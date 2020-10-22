@@ -52,7 +52,7 @@ class gecko_constants:
     '''
     version_major = 0
     version_minor = 3
-    version_patch = 5
+    version_patch = 6
 
     include_dummy_spa = False
     intouch2_port = 10022
@@ -84,6 +84,7 @@ class gecko_constants:
     spa_pack_struct_bool_type = 'Bool'
     spa_pack_struct_enum_type = 'Enum'
     spa_pack_struct_pos_elements_xpath = './/*[@Pos]'
+    spa_pack_struct_word_type_elements_xpath = './/*[@Type="Word"]'
     spa_pack_struct_begin_attrib = 'Begin'
     spa_pack_struct_end_attrib = 'End'
     spa_pack_struct_read_write_attrib = 'RW'
@@ -96,6 +97,8 @@ class gecko_constants:
     key_temp_units = 'TempUnits'
     key_rh_water_temp = 'RhWaterTemp'
     key_setpoint_g = 'SetpointG'
+    key_real_setpoint_g = 'RealSetPointG'
+    key_displayed_temp_g = 'DisplayedTempG'
     key_user_demand_light = 'UdLi'
     key_pump_1 = "P1"
     key_pump_2 = "P2"
@@ -103,10 +106,6 @@ class gecko_constants:
     key_pump_4 = "P4"
     key_pump_5 = "P5"
     key_blower = "BL"
-    key_rh_triac_temp = 'RhTriacTemp'
-    key_real_setpoint_g = 'RealSetPointG'
-    key_displayed_temp_g = 'DisplayedTempG'
-    key_econ_below_setpoint = 'EconBelowSetpoint'
 
     exception_message_no_spa_pack = "Cannot find spa pack for {0}"
     exception_message_not_writable = "Cannot set value for {0}. This status array item doesn't allow writing"
@@ -131,19 +130,6 @@ class gecko_constants:
     pack_command_key_press = 57
     pack_command_set_value = 70
 
-    # Simple state format strings
-    format_string_simple_state = [
-        ( "Current temp {0}", key_displayed_temp_g ),
-        ( "Setpoint {0}", key_setpoint_g ),
-        ( "Pump 1 {0}", key_pump_1 ),
-        ( "Pump 2 {0}", key_pump_2 ),
-        ( "Pump 3 {0}", key_pump_3 ),
-        ( "Pump 4 {0}", key_pump_4 ),
-        ( "Pump 5 {0}", key_pump_5 ),
-        ( "Blower {0}", key_blower ),
-        ( "Lights {0}", key_user_demand_light ),
-    ]
-
     # Gecko keypad constants
     keypad_pump_1 = 1
     keypad_pump_2 = 2
@@ -155,17 +141,28 @@ class gecko_constants:
     keypad_up = 21
     keypad_down = 22
 
-    # Spa devices and accessories, list of tuples
-    #   ID, Description, structure key
-    devices = [
-        ("P1", "Pump 1", None),
-        ("P2", "Pump 2", None),
-        ("P3", "Pump 3", None),
-        ("P4", "Pump 4", None),
-        ("P5", "Pump 5", None),
-        ("BLOWER", "Blower", None),
-        ("LIGHT", "Lights", None)
-    ]
+    # Pack outputs
+    pack_outputs_xpaths = [ './HCOutputConfig/*[@Type="Enum"]', 
+        './LCOutputConfig/*[@Type="Enum"]', 
+        './LVOutputConfig/*[@Type="Enum"]' ]
+    spa_pack_device_xpath = "./DeviceStatus/*"
+    spa_pack_user_demands = "./UserDemands/*"
+
+    device_class_pump = "PUMP"
+    device_class_blower = "BLOWER"
+    device_class_light = "LIGHT"
+
+    # Spa devices and accessories, dictionary of tuples
+    #   ID: Description, keypad, structure key, class
+    devices = {
+        "P1": ("Pump 1", keypad_pump_1, key_pump_1, device_class_pump),
+        "P2": ("Pump 2", keypad_pump_2, key_pump_2, device_class_pump),
+        "P3": ("Pump 3", keypad_pump_3, key_pump_3, device_class_pump),
+        "P4": ("Pump 4", keypad_pump_4, key_pump_4, device_class_pump),
+        "P5": ("Pump 5", keypad_pump_5, key_pump_5, device_class_pump),
+        "BL": ("Blower", keypad_blower, key_blower, device_class_blower),
+        "LI": ("Lights", keypad_light, key_user_demand_light, device_class_light)
+    }
 
     # Buttons, list of tuples
     #   ID, Description, KeyPad ID
@@ -190,7 +187,7 @@ class gecko_response:
         gecko_response: base class for handling the UDP conversation with the intouch module
     '''
 
-    def __init__(self, request_and_response, handler=None, timeout=2, timeout_handler=None):
+    def __init__(self, request_and_response, handler=None, timeout=5, timeout_handler=None):
         self.request_and_response = request_and_response
         self.handler = handler
         if self.handler is None:
@@ -200,15 +197,21 @@ class gecko_response:
         self.init_time = time.monotonic()
         self.has_sequence = True
         self.parms = None
+        self.retry_count = 0
 
-    def check_timeout(self):
+    def check_timeout(self, spa):
         if self.timeout == 0:
             return False
         if time.monotonic() - self.init_time > self.timeout:
+            self.retry_count += 1
+            logger.warning("Handler for %s timed out, retry %d" % ( self.request_and_response[0], self.retry_count ))
+            if self.retry_count < 5:
+                self.init_time = time.monotonic()
+                self.send_request(spa)
+                return False
+            logger.warning("Handler for %s timed out, aborted" % ( self.request_and_response[0] ))
             if not self.timeout_handler is None:
                 self.timeout_handler()
-            #TODO: Auto retry of handler?
-            logger.warning("Handler for %s timed out" % self.request_and_response )
             return True
         return False
 
@@ -500,7 +503,8 @@ class gecko_temperature_decorator:
             temp = temp / 18.0
         else:
             temp = (temp + 320) / 10.0
-        return "{0:.1f}°{1}".format(temp, units)
+        return temp
+        #return "{0:.1f}°{1}".format(temp, units)
 
     @value.setter
     def value(self, temp):
@@ -599,7 +603,7 @@ class gecko_spa(gecko_comms):
             self.exit.wait(5)
 
     def clean_handlers(self):
-        handlers_to_remove = [ handler for handler in self.handlers if handler.check_timeout() ]
+        handlers_to_remove = [ handler for handler in self.handlers if handler.check_timeout(self) ]
         self.handlers = [handler for handler in self.handlers if handler not in handlers_to_remove]
 
     def receive_thread_func(self):
@@ -627,19 +631,10 @@ class gecko_spa(gecko_comms):
     def build_accessors(self):
         self.accessors = { element.tag: gecko_struct_accessor(self, element) for xml in [ self.config_xml, self.log_xml ] for element in xml.findall(gecko_constants.spa_pack_struct_pos_elements_xpath) }
         # Fix temperature accessors ...
-        self.accessors[gecko_constants.key_rh_water_temp] = gecko_temperature_decorator(self, self.accessors[gecko_constants.key_rh_water_temp])
-        self.accessors[gecko_constants.key_setpoint_g]  = gecko_temperature_decorator(self, self.accessors[gecko_constants.key_setpoint_g])
-        self.accessors[gecko_constants.key_rh_triac_temp]  = gecko_temperature_decorator(self, self.accessors[gecko_constants.key_rh_triac_temp])
-        self.accessors[gecko_constants.key_real_setpoint_g]  = gecko_temperature_decorator(self, self.accessors[gecko_constants.key_real_setpoint_g])
-        self.accessors[gecko_constants.key_displayed_temp_g]  = gecko_temperature_decorator(self, self.accessors[gecko_constants.key_displayed_temp_g])
-        self.accessors[gecko_constants.key_econ_below_setpoint]  = gecko_temperature_decorator(self, self.accessors[gecko_constants.key_econ_below_setpoint])
-        
-    def get_simple_state(self):
-        return ", ".join( fmtstr[0].format(self.accessors[fmtstr[1]].value) for fmtstr in gecko_constants.format_string_simple_state )
-
-    def get_devices(self):
-        # TODO: Use config to determine this ...
-        return [device[0] for device in gecko_constants.devices]
+        temp_keys = { element.tag for xml in [ self.config_xml, self.log_xml ] for element in xml.findall( gecko_constants.spa_pack_struct_word_type_elements_xpath ) if "temp" in element.tag.lower() or "setpoint" in element.tag.lower() }
+        logger.debug("Temperature keys to decorate %s" % temp_keys)
+        for key in temp_keys:
+            self.accessors[key] = gecko_temperature_decorator(self, self.accessors[key])
 
     def get_buttons(self):
         # TODO: Use config to determine this ...
@@ -726,3 +721,5 @@ class gecko_manager(gecko_comms):
         return "v{0}.{1}.{2}".format(gecko_constants.version_major, gecko_constants.version_minor, gecko_constants.version_patch)
 
 #TODO: DocTest here please ...
+if __name__ == "__main__":
+    manager = gecko_manager("8e82a3e9-fc08-4952-96aa-292863e27dac")

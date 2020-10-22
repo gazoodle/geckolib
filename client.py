@@ -33,14 +33,40 @@ import sys
 import traceback
 
 from geckolib import gecko_constants, gecko_manager
+from geckoautomation import GeckoFacade
+
+def show_state(facade):
+    print(facade.water_heater)
+    for pump in facade.pumps:
+        print(pump)
+    for blower in facade.blowers:
+        print(blower)
+    for light in facade.lights:
+        print(light)
+    for reminder in facade.reminders:
+        print(reminder)
+    print(facade.water_care)
+
+def get_version_strings(spa):
+    return [
+        "SpaPackStruct.xml revision {0}".format(spa.manager.spa_pack_struct_revision),
+        "intouch version EN {0}".format(spa.intouch_version_EN),
+        "intouch version CO {0}".format(spa.intouch_version_CO),
+        "Spa pack {0} {1}".format(spa.pack, spa.version),
+        "Low level configuration # {0}".format(spa.config_number),
+        "Config version {0}".format(spa.config_version),
+        "Log version {0}".format(spa.log_version),
+        "Pack type {0}".format(spa.pack_type),
+    ]
 
 # Set logging
 stm_log = logging.StreamHandler()
 stm_log.setLevel(logging.WARNING)
 stm_log.setFormatter(logging.Formatter("%(message)s"))
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s %(message)s", handlers=[
-    logging.FileHandler("client.log"),
-    stm_log])
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s %(message)s", 
+    handlers=[
+        logging.FileHandler("client.log"),
+        stm_log])
 logger = logging.getLogger(__name__)
 
 manager = gecko_manager('02ac6d28-42d0-41e3-ad22-274d0aa491da')
@@ -71,7 +97,7 @@ try:
     manager.discover()
 
     if len(manager.spas) == 0:
-        logger.warn("Try using the iOS or Android app to confirm they are functioning correctly")
+        logger.warning("Try using the iOS or Android app to confirm they are functioning correctly")
         exit(1)
 
     print("Found {0} spas".format(len(manager.spas)))
@@ -88,8 +114,11 @@ try:
     print('Connecting to spa `{0}` at {1} ... '.format(spa.name, spa.ipaddress),end='',flush=True)
     spa.connect()
     print("connected!")
-    print(spa.get_simple_state())
 
+    facade = GeckoFacade(spa)
+    show_state(facade)
+
+    # TODO: Use command dispatcher ... there must be one in the python libraries somewhere!
     while True:
         inp = input("{0}$ ".format(spa.name))
         cmd = inp.lower()
@@ -101,32 +130,43 @@ try:
             print("")
             print("+++++++++++++++++++ Help +++++++++++++++++++")
             print("")
-            print("exit             - Exit this program")
-            print("state            - Show the state of the spa")
+            print("== {0} commands ==".format(spa.name))
+            print("press <btn>      - Press button <btn>. Where <btn> is one of {0}".format(spa.get_buttons()))
+            for device in facade.all_user_devices:
+                print("{0} <ON|OFF>      - Turn {1} ON or OFF".format(device.ui_key, device.name))
+            #print("all <ON|OFF>     - Turn all devices ON or OFF")
+            print("setpoint <temp>  - Set the setpoint temperature to <temp>")
+            print("state            - Show the state of spa `{0}`".format(spa.name))
+            print("")
+            print("== in.touch2 commands ==")
             print("version          - Show version information")
             print("config           - Dump the spa configuration")
             print("live             - Dump the spa real-time status")
-            #print("on <d>          - Turn device <d> on. Where <d> is one of {0}".format(spa.get_devices()))
-            #print("off <d>         - Turn device <d> off. Where <d> is one of {0}".format(spa.get_devices()))
             print("get <key>        - Get the value of SpaPackStruct key <key>")
             print("set <key>=<val>  - Set the value of SpaPackStrung key <key> to <val>")
-            print("press <btn>      - Press button <btn>. Where <btn> is one of {0}".format(spa.get_buttons()))
-            print("setpoint <temp>  - Set the setpoint temperature to <temp>")
             print("refresh          - Force the live status block to refresh")
+            print("snapshot [<desc>]- Take a snapshot of the spa data structure and write it to the log file, with optional description")
+            print("")
+            print("== client.py commands ==")
             print("download         - Download SpaPackStruct.xml even if it already exists")
             print("license          - Show the license details")
             print("about            - About this program")
+            print("exit             - Exit this program")
             print("")
 
         elif cmd == "state":
-            print(spa.get_simple_state())
+            show_state(facade)
+
+        elif cmd.startswith("snapshot "):
+            cmd = cmd[9:]
+            logger.info("Snapshot (%s)" % cmd)
+            for str in get_version_strings(spa):
+                logger.info(str)
+            logger.info([ hex(b) for b in spa.status_block])
 
         elif cmd == "version":
-            print("SpaPackStruct.xml revision {0}".format(manager.spa_pack_struct_revision))
-            print("intouch version EN {0}".format(spa.intouch_version_EN))
-            print("intouch version CO {0}".format(spa.intouch_version_CO))
-            print("Spa pack {0} {1}".format(spa.pack, spa.version))
-            print("Low level configuration # {0}".format(spa.config_number))
+            for str in get_version_strings(spa):
+                print(str)
 
         elif cmd == "config":
             print("Configuration Settings")
@@ -160,7 +200,7 @@ try:
 
         elif cmd.startswith("setpoint "):
             cmd = cmd[9:]
-            spa.accessors['SetpointG'].value = float(cmd)
+            facade._water_heater.set_target_temperature(float(cmd))
 
         elif cmd.startswith("get "):
             key = inp[4:]
@@ -195,8 +235,29 @@ try:
             print("Client version {0}".format(version))
             print("Library version {0}".format(manager.version))
 
+        # TODO: Needs work to deal with multiple requests and responses that need matching up ...
+        #elif cmd.startswith("all "):
+        #    cmd = cmd[4:]
+        #    for device in facade.all_user_devices:
+        #        if cmd == "on": 
+        #            device.turn_on()
+        #        else:
+        #            device.turn_off()
         else:
-            print("Unknown command. Try 'help'!")
+            
+            found = False
+            for device in facade.all_user_devices:
+                if cmd.startswith(device.ui_key.lower()):
+                    cmd = cmd[len(device.ui_key)+1:]
+                    if cmd == "on":
+                        device.turn_on()
+                        found = True
+                    else:
+                        device.turn_off()
+                        found = True
+
+            if not found:
+                print("Unknown command. Try 'help'!")
 
 finally:
     manager.finish()
