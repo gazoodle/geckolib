@@ -263,6 +263,12 @@ class GeckoFacade(GeckoAutomationBase):
         # P1 ...    Pump 1      Out1A->P1H      1           <Doesn't work as expected ...>
         # Pn ...    Pump n      Out?A/B->PnH/L  n                     ""
 
+        # Fix for issue#1 https://github.com/gazoodle/geckolib/issues/1
+        # self.actual_user_devices.append("Waterfall")
+        # Remove unknown device classes
+        self.actual_user_devices = [ handled_device for handled_device in self.actual_user_devices if handled_device in gecko_constants.devices ]
+        logger.debug("Handled user devices are %s" % self.actual_user_devices )
+
         self._pumps = [ GeckoPump(self, device, gecko_constants.devices[device])
             for device in self.actual_user_devices
             if gecko_constants.devices[device][3] == gecko_constants.device_class_pump]

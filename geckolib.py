@@ -52,7 +52,7 @@ class gecko_constants:
     '''
     version_major = 0
     version_minor = 3
-    version_patch = 6
+    version_patch = 7
 
     include_dummy_spa = False
     intouch2_port = 10022

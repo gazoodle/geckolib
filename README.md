@@ -69,6 +69,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
    happen at present
  - Show which parts of the status block are addressed by the SpaPackStruct.xml
    so we can inspect the remainder to see if there is anything useful in there.
+ - Handle other device types such as Waterfall
+
+## Done/Fixed in 0.3.7
+ - Deal with unhandled devices
 
 ## Done/Fixed in 0.3.6
  - Limit buttons & devices to those available based on configuration (i.e. don't show P3 if not installed)
@@ -78,5 +82,5 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Timeout retry of command to make it more robust on busy networks
 
  # Version
- v0.3.6
+ v0.3.7
  Using Semantic versioning https://semver.org/
