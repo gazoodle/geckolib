@@ -407,6 +407,7 @@ class gecko_comms:
 
 ###################################################################################################
 class gecko_struct_accessor:
+    
     def __init__(self, spa, element):
         self.spa = spa
         self.tag = element.tag

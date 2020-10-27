@@ -1,4 +1,20 @@
 #!/usr/bin/python3
+'''
+    Sample client program for geckolib, searches for in.touch2 devices and
+    then allows interaction with them
+'''
+
+import logging
+import traceback
+
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/geckolib')))
+
+# pylint: disable=import-error,wrong-import-position
+from geckoautomation import GeckoFacade
+from geckolib import gecko_constants, gecko_manager
+
 LICENSE = '''
 #
 #   Copyright (C) 2020, Gazoodle (https://github.com/gazoodle)
@@ -18,14 +34,9 @@ LICENSE = '''
 #
 '''
 
-import logging
-import sys
-import traceback
-
-from geckolib import gecko_constants, gecko_manager
-from geckoautomation import GeckoFacade
 
 def show_state(facade):
+    ''' Show the state of the device '''
     print(facade.water_heater)
     for pump in facade.pumps:
         print(pump)
