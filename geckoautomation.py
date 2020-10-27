@@ -17,13 +17,6 @@
 #
 # Inspiration from https://developers.home-assistant.io/docs/core/entity
 
-# HISTORY
-# =======
-#
-# 0.1.x       Oct 2020        -   Initial implementation
-#
-# Using Semantic versioning https://semver.org/
-
 #
 # Automation interface facade classes for geckolib
 #

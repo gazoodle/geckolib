@@ -71,6 +71,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
    so we can inspect the remainder to see if there is anything useful in there.
  - Handle other device types such as Waterfall
 
+## Done/Fixed in 0.3.8
+
+
 ## Done/Fixed in 0.3.7
  - Deal with unhandled devices
 
@@ -82,5 +85,5 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Timeout retry of command to make it more robust on busy networks
 
  # Version
- v0.3.7
+ v0.3.8
  Using Semantic versioning https://semver.org/

@@ -18,16 +18,6 @@ LICENSE = '''
 #
 '''
 
-#   HISTORY
-#   =======
-#
-#   0.1.x       Oct 2020        -   Proof of concept code
-#   0.2.x       Oct 2020        -   Initial development
-#   0.3.x       Oct 2020        -   Created GitHub repo and readied for initial experimental release
-#
-#   Using Semantic versioning https://semver.org/
-
-
 import logging
 import sys
 import traceback
@@ -70,7 +60,6 @@ logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(name)s %(levelnam
 logger = logging.getLogger(__name__)
 
 manager = gecko_manager('02ac6d28-42d0-41e3-ad22-274d0aa491da')
-version = "0.3.6"
 
 print("""
 
@@ -232,7 +221,6 @@ try:
         elif cmd == "about":
             print("")
             print("client.py: A python program using GeckoLib library to drive Gecko enabled devices with in.touch2 communication modules")
-            print("Client version {0}".format(version))
             print("Library version {0}".format(manager.version))
 
         # TODO: Needs work to deal with multiple requests and responses that need matching up ...

@@ -15,14 +15,6 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-
-#   HISTORY
-#   =======
-#
-#   0.1.x       Oct 2020        -   Proof of concept code
-#   0.2.x       Oct 2020        -   Initial development
-#   0.3.x       Oct 2020        -   Created GitHub repo and readied for initial experimental release
-#
 #   Using Semantic versioning https://semver.org/
 
 import logging
@@ -52,7 +44,7 @@ class gecko_constants:
     '''
     version_major = 0
     version_minor = 3
-    version_patch = 7
+    version_patch = 8
 
     include_dummy_spa = False
     intouch2_port = 10022
