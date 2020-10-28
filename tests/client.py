@@ -5,15 +5,17 @@
 '''
 
 import logging
-import traceback
-
 import os
 import sys
+import traceback
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/geckolib')))
 
 # pylint: disable=import-error,wrong-import-position
 from geckoautomation import GeckoFacade
-from geckolib import gecko_constants, gecko_manager
+from geckolib import GeckoConstants, GeckoManager
+
+
 
 LICENSE = '''
 #
@@ -70,7 +72,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(name)s %(levelnam
         stm_log])
 logger = logging.getLogger(__name__)
 
-manager = gecko_manager('02ac6d28-42d0-41e3-ad22-274d0aa491da')
+manager = GeckoManager('02ac6d28-42d0-41e3-ad22-274d0aa491da')
 
 print("""
 
@@ -98,7 +100,7 @@ try:
 
     if len(manager.spas) == 0:
         logger.warning("Try using the iOS or Android app to confirm they are functioning correctly")
-        exit(1)
+        sys.exit(1)
 
     print("Found {0} spas".format(len(manager.spas)))
     spa_to_manage = 0
@@ -194,7 +196,7 @@ try:
 
         elif cmd.startswith("press "):
             cmd = cmd[6:]
-            for button in gecko_constants.buttons:
+            for button in GeckoConstants.buttons:
                 if button[0].lower() == cmd:
                     spa.press(button[2])
 

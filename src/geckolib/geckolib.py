@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+'''
+    Library to communicate with Gecko Alliance products via the in.touch2 module
+'''
+
 #
 #   Copyright (C) 2020, Gazoodle (https://github.com/gazoodle)
 #
@@ -30,154 +34,159 @@ import xml.etree.ElementTree as ET
 
 import urllib3
 
-# Module logger, uses the library name (at this time it was geckolib) and it is silent unless required ...
+# Module logger, uses the library name (at this time it was geckolib) and it
+# is silent unless required ...
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 ###################################################################################################
-class gecko_constants:
+class GeckoConstants:
     '''
-        gecko_constants is a literal class so that we can program in a mostly DRY fashion,
+        GeckoConstants is a literal class so that we can program in a mostly DRY fashion,
         for example a filename or url would be present as would values that could be changed
         and might be difficult to discover inline, but some constants that form part of a functions
         documented behaviour might not be here, e.g. 'rw' as a parameter to open()
     '''
-    version_major = 0
-    version_minor = 3
-    version_patch = 8
+    VERSION_MAJOR = 0
+    VERSION_MINOR = 3
+    VERSION_PATCH = 8
 
-    include_dummy_spa = False
-    intouch2_port = 10022
-    max_packet_size = 8192
-    discovery_timeout_in_seconds = 4
-    discovery_retry_count_to_find_any_spa = 3
-    ping_timeout_in_seconds = 4
+    INCLUDE_DUMMY_SPA = False
+    INTOUCH2_PORT = 10022
+    MAX_PACKET_SIZE = 8192
+    DISCOVERY_TIMEOUT_IN_SECONDS = 4
+    DISCOVERY_RETRY_COUNT_TO_FIND_ANY_SPA = 3
+    PING_TIMEOUT_IN_SECONDS = 4
 
-    broadcast_address = '255.255.255.255'
-    message_encoding = 'utf-8'
-    format_client_identifier = 'IOS{0}'
+    BROADCAST_ADDRESS = '255.255.255.255'
+    MESSAGE_ENCODING = 'utf-8'
+    FORMAT_CLIENT_IDENTIFIER = 'IOS{0}'
 
-    spa_pack_struct_file = "SpaPackStruct.xml"
-    spa_pack_struct_url = "http://intouch.geckoal.com/gecko/prod/SpaPackStruct.xml"
+    SPA_PACK_STRUCT_FILE = "SpaPackStruct.xml"
+    SPA_PACK_STRUCT_URL = "http://intouch.geckoal.com/gecko/prod/SpaPackStruct.xml"
     # XPaths and attributes for SpaPackStruct
-    spa_pack_revision_xpath = "./SpaPackStruct/FileRevision"
-    spa_pack_revision_attrib = 'Number'
-    spa_pack_plateform_xpath = './Plateform'
-    spa_pack_name_attrib = 'Name'
-    spa_pack_config_xpath = "./ConfigStructures/ConfigStructure[@LibRev='{0}']"
-    spa_pack_log_xpath = "./LogStructures/LogStructure[@LibRev='{0}']"
-    spa_pack_struct_pos_attrib = 'Pos'
-    spa_pack_struct_type_attrib = 'Type'
-    spa_pack_struct_bitpos_attrib = 'BitPos'
-    spa_pack_struct_items_attrib = 'Items'
-    spa_pack_struct_word_type = 'Word'
-    spa_pack_struct_time_type = 'Time'
-    spa_pack_struct_maxitems_attrib = 'MaxItems'
-    spa_pack_struct_bool_type = 'Bool'
-    spa_pack_struct_enum_type = 'Enum'
-    spa_pack_struct_pos_elements_xpath = './/*[@Pos]'
-    spa_pack_struct_word_type_elements_xpath = './/*[@Type="Word"]'
-    spa_pack_struct_begin_attrib = 'Begin'
-    spa_pack_struct_end_attrib = 'End'
-    spa_pack_struct_read_write_attrib = 'RW'
+    SPA_PACK_REVISION_XPATH = "./SpaPackStruct/FileRevision"
+    SPA_PACK_REVISION_ATTRIB = 'Number'
+    SPA_PACK_PLATEFORM_XPATH = './Plateform'
+    SPA_PACK_NAME_ATTRIB = 'Name'
+    SPA_PACK_CONFIG_XPATH = "./ConfigStructures/ConfigStructure[@LibRev='{0}']"
+    SPA_PACK_LOG_XPATH = "./LogStructures/LogStructure[@LibRev='{0}']"
+    SPA_PACK_STRUCT_POS_ATTRIB = 'Pos'
+    SPA_PACK_STRUCT_TYPE_ATTRIB = 'Type'
+    SPA_PACK_STRUCT_BITPOS_ATTRIB = 'BitPos'
+    SPA_PACK_STRUCT_ITEMS_ATTRIB = 'Items'
+    SPA_PACK_STRUCT_WORD_TYPE = 'Word'
+    SPA_PACK_STRUCT_TIME_TYPE = 'Time'
+    SPA_PACK_STRUCT_MAXITEMS_ATTRIB = 'MaxItems'
+    SPA_PACK_STRUCT_BOOL_TYPE = 'Bool'
+    SPA_PACK_STRUCT_ENUM_TYPE = 'Enum'
+    SPA_PACK_STRUCT_POS_ELEMENTS_XPATH = './/*[@Pos]'
+    SPA_PACK_STRUCT_WORD_TYPE_ELEMENTS_XPATH = './/*[@Type="Word"]'
+    SPA_PACK_STRUCT_BEGIN_ATTRIB = 'Begin'
+    SPA_PACK_STRUCT_END_ATTRIB = 'End'
+    SPA_PACK_STRUCT_READ_WRITE_ATTRIB = 'RW'
     # Accessor keys for SpaPackStruct
-    key_pack_type = 'PackType'
-    key_pack_config_id = 'PackConfID'
-    key_pack_config_rev = 'PackConfRev'
-    key_pack_config_rel = 'PackConfRel'
-    key_config_number = 'ConfigNumber'
-    key_temp_units = 'TempUnits'
-    key_rh_water_temp = 'RhWaterTemp'
-    key_setpoint_g = 'SetpointG'
-    key_real_setpoint_g = 'RealSetPointG'
-    key_displayed_temp_g = 'DisplayedTempG'
-    key_user_demand_light = 'UdLi'
-    key_pump_1 = "P1"
-    key_pump_2 = "P2"
-    key_pump_3 = "P3"
-    key_pump_4 = "P4"
-    key_pump_5 = "P5"
+    KEY_PACK_TYPE = 'PackType'
+    KEY_PACK_CONFIG_ID = 'PackConfID'
+    KEY_PACK_CONFIG_REV = 'PackConfRev'
+    KEY_PACK_CONFIG_REL = 'PackConfRel'
+    KEY_CONFIG_NUMBER = 'ConfigNumber'
+    KEY_TEMP_UNITS = 'TempUnits'
+    KEY_RH_WATER_TEMP = 'RhWaterTemp'
+    KEY_SETPOINT_G = 'SetpointG'
+    KEY_REAL_SETPOINT_G = 'RealSetPointG'
+    KEY_DISPLAYED_TEMP_G = 'DisplayedTempG'
+    KEY_USER_DEMAND_LIGHT = 'UdLi'
+    KEY_PUMP_1 = "P1"
+    KEY_PUMP_2 = "P2"
+    KEY_PUMP_3 = "P3"
+    KEY_PUMP_4 = "P4"
+    KEY_PUMP_5 = "P5"
     key_blower = "BL"
 
-    exception_message_no_spa_pack = "Cannot find spa pack for {0}"
-    exception_message_not_writable = "Cannot set value for {0}. This status array item doesn't allow writing"
+    EXCEPTION_MESSAGE_NO_SPA_PACK = "Cannot find spa pack for {0}"
+    EXCEPTION_MESSAGE_NOT_WRITABLE = "Cannot set value for {0}. This status" \
+                                     " array item doesn't allow writing"
 
     # Message pseudo xml parts
-    message_hello = '<HELLO>{0}</HELLO>'
-    message_part_packet = '<PACKT>{0}</PACKT>'
-    message_part_datas = '<DATAS>{0}</DATAS>'
-    message_part_src_connection_name = '<SRCCN>{0}</SRCCN>'
-    message_part_dest_connection_name = '<DESCN>{0}</DESCN>'
+    MESSAGE_HELLO = '<HELLO>{0}</HELLO>'
+    MESSAGE_PART_PACKET = '<PACKT>{0}</PACKT>'
+    MESSAGE_PART_DATAS = '<DATAS>{0}</DATAS>'
+    MESSAGE_PART_SRC_CONNECTION_NAME = '<SRCCN>{0}</SRCCN>'
+    MESSAGE_PART_DEST_CONNECTION_NAME = '<DESCN>{0}</DESCN>'
 
     # Command & response pseudo xml content
-    request_and_response_ping = ('APING', b'APING')
-    request_and_response_get_version = ('AVERS', b'SVERS')
-    request_and_response_get_channel = ('CURCH', b'CHCUR')
-    request_and_response_get_config = ('SFILE', b'FILES')
-    request_and_response_get_status = ('STATU', b'STATV')
-    request_and_response_partial_status = ('STATQ', b'STATP')
-    request_and_response_pack_command = ('SPACK', b'PACKS')
+    REQUEST_AND_RESPONSE_PING = ('APING', b'APING')
+    REQUEST_AND_RESPONSE_GET_VERSION = ('AVERS', b'SVERS')
+    REQUEST_AND_RESPONSE_GET_CHANNEL = ('CURCH', b'CHCUR')
+    REQUEST_AND_RESPONSE_GET_CONFIG = ('SFILE', b'FILES')
+    REQUEST_AND_RESPONSE_GET_STATUS = ('STATU', b'STATV')
+    REQUEST_AND_RESPONSE_PARTIAL_STATUS = ('STATQ', b'STATP')
+    REQUEST_AND_RESPONSE_PACK_COMMAND = ('SPACK', b'PACKS')
 
     # Pack commands
-    pack_command_key_press = 57
-    pack_command_set_value = 70
+    PACK_COMMAND_KEY_PRESS = 57
+    PACK_COMMAND_SET_VALUE = 70
 
     # Gecko keypad constants
-    keypad_pump_1 = 1
-    keypad_pump_2 = 2
-    keypad_pump_3 = 3
-    keypad_pump_4 = 4
-    keypad_pump_5 = 5
-    keypad_blower = 6
-    keypad_light = 16
-    keypad_up = 21
-    keypad_down = 22
+    KEYPAD_PUMP_1 = 1
+    KEYPAD_PUMP_2 = 2
+    KEYPAD_PUMP_3 = 3
+    KEYPAD_PUMP_4 = 4
+    KEYPAD_PUMP_5 = 5
+    KEYPAD_BLOWER = 6
+    KEYPAD_LIGHT = 16
+    KEYPAD_UP = 21
+    KEYPAD_DOWN = 22
 
     # Pack outputs
-    pack_outputs_xpaths = [ './HCOutputConfig/*[@Type="Enum"]', 
-        './LCOutputConfig/*[@Type="Enum"]', 
-        './LVOutputConfig/*[@Type="Enum"]' ]
-    spa_pack_device_xpath = "./DeviceStatus/*"
-    spa_pack_user_demands = "./UserDemands/*"
+    PACK_OUTPUTS_XPATHS = ['./HCOutputConfig/*[@Type="Enum"]',
+                           './LCOutputConfig/*[@Type="Enum"]',
+                           './LVOutputConfig/*[@Type="Enum"]']
+    SPA_PACK_DEVICE_XPATH = "./DeviceStatus/*"
+    SPA_PACK_USER_DEMANDS = "./UserDemands/*"
 
-    device_class_pump = "PUMP"
-    device_class_blower = "BLOWER"
-    device_class_light = "LIGHT"
+    DEVICE_CLASS_PUMP = "PUMP"
+    DEVICE_CLASS_BLOWER = "BLOWER"
+    DEVICE_CLASS_LIGHT = "LIGHT"
 
     # Spa devices and accessories, dictionary of tuples
     #   ID: Description, keypad, structure key, class
-    devices = {
-        "P1": ("Pump 1", keypad_pump_1, key_pump_1, device_class_pump),
-        "P2": ("Pump 2", keypad_pump_2, key_pump_2, device_class_pump),
-        "P3": ("Pump 3", keypad_pump_3, key_pump_3, device_class_pump),
-        "P4": ("Pump 4", keypad_pump_4, key_pump_4, device_class_pump),
-        "P5": ("Pump 5", keypad_pump_5, key_pump_5, device_class_pump),
-        "BL": ("Blower", keypad_blower, key_blower, device_class_blower),
-        "LI": ("Lights", keypad_light, key_user_demand_light, device_class_light)
+    DEVICES = {
+        "P1": ("Pump 1", KEYPAD_PUMP_1, KEY_PUMP_1, DEVICE_CLASS_PUMP),
+        "P2": ("Pump 2", KEYPAD_PUMP_2, KEY_PUMP_2, DEVICE_CLASS_PUMP),
+        "P3": ("Pump 3", KEYPAD_PUMP_3, KEY_PUMP_3, DEVICE_CLASS_PUMP),
+        "P4": ("Pump 4", KEYPAD_PUMP_4, KEY_PUMP_4, DEVICE_CLASS_PUMP),
+        "P5": ("Pump 5", KEYPAD_PUMP_5, KEY_PUMP_5, DEVICE_CLASS_PUMP),
+        "BL": ("Blower", KEYPAD_BLOWER, key_blower, DEVICE_CLASS_BLOWER),
+        "LI": ("Lights", KEYPAD_LIGHT, KEY_USER_DEMAND_LIGHT, DEVICE_CLASS_LIGHT)
     }
 
     # Buttons, list of tuples
     #   ID, Description, KeyPad ID
-    buttons = [
-        ("P1", "Pump 1 Button", keypad_pump_1),
-        ("P2", "Pump 2 Button", keypad_pump_2),
-        ("P3", "Pump 3 Button", keypad_pump_3),
-        ("P4", "Pump 4 Button", keypad_pump_4),
-        ("P5", "Pump 5 Button", keypad_pump_5),
-        ("BLOWER", "Blower Button", keypad_blower),
-        ("LIGHT", "Lights Button", keypad_light),
-        ("UP", "Up Button", keypad_up),
-        ("DOWN", "Down Button", keypad_down)
+    BUTTONS = [
+        ("P1", "Pump 1 Button", KEYPAD_PUMP_1),
+        ("P2", "Pump 2 Button", KEYPAD_PUMP_2),
+        ("P3", "Pump 3 Button", KEYPAD_PUMP_3),
+        ("P4", "Pump 4 Button", KEYPAD_PUMP_4),
+        ("P5", "Pump 5 Button", KEYPAD_PUMP_5),
+        ("BLOWER", "Blower Button", KEYPAD_BLOWER),
+        ("LIGHT", "Lights Button", KEYPAD_LIGHT),
+        ("UP", "Up Button", KEYPAD_UP),
+        ("DOWN", "Down Button", KEYPAD_DOWN)
 
     ]
 
-    regex_dot_star = '(.*)'
+    REGEX_DOT_STAR = '(.*)'
 
 ###################################################################################################
-class gecko_response:
+class GeckoResponse:
     '''
-        gecko_response: base class for handling the UDP conversation with the intouch module
+        GeckoResponse: base class for handling the UDP conversation with the intouch module
     '''
+
+    # pylint: disable=too-many-instance-attributes
+    # Eight is reasonable in this case.
 
     def __init__(self, request_and_response, handler=None, timeout=5, timeout_handler=None):
         self.request_and_response = request_and_response
@@ -192,22 +201,25 @@ class gecko_response:
         self.retry_count = 0
 
     def check_timeout(self, spa):
+        ''' Decide if this device response has timed-out, and if so, optionally retry '''
         if self.timeout == 0:
             return False
         if time.monotonic() - self.init_time > self.timeout:
             self.retry_count += 1
-            logger.warning("Handler for %s timed out, retry %d" % ( self.request_and_response[0], self.retry_count ))
+            logger.warning("Handler for %s timed out, retry %d",
+                           self.request_and_response[0], self.retry_count)
             if self.retry_count < 5:
                 self.init_time = time.monotonic()
                 self.send_request(spa)
                 return False
-            logger.warning("Handler for %s timed out, aborted" % ( self.request_and_response[0] ))
+            logger.warning("Handler for %s timed out, aborted", self.request_and_response[0])
             if not self.timeout_handler is None:
                 self.timeout_handler()
             return True
         return False
 
     def handle_response_if_matched(self, spa, response):
+        ''' Handle the response, and if it matches, call the handler '''
         if response.startswith(self.request_and_response[1]):
             if self.handler(spa, response):
                 spa.remove_handler(self)
@@ -215,159 +227,179 @@ class gecko_response:
         return False
 
     def send_request(self, spa):
-        spa.send_message(spa.build_command(self.request_and_response[0], self.has_sequence, self.parms))
+        ''' Send a request to the spa '''
+        spa.send_message(spa.build_command(self.request_and_response[0],
+                                           self.has_sequence, self.parms))
 
-    def unpack(self, format, length, response ):
+    def unpack(self, fmt, length, response):
+        ''' Unpack the response using the format, dealing with the keywords '''
         cmd_len = 0
         if response.startswith(self.request_and_response[1]):
             cmd_len = len(self.request_and_response[1])
-        return struct.unpack(format, response[cmd_len:cmd_len+length]) + (response[cmd_len+length:],)
+        return struct.unpack(fmt, response[cmd_len:cmd_len+length]) \
+                             + (response[cmd_len+length:],)
 
     def default_handler(self, spa, response):
+        ''' Default handler does nothing '''
+        del spa, response # Unused
         return True
 
 ###################################################################################################
-class gecko_ping(gecko_response):
+class GeckoPing(GeckoResponse):
+    ''' Handle the ping command '''
 
     def __init__(self):
-        super().__init__(gecko_constants.request_and_response_ping, self.ping_handler, gecko_constants.ping_timeout_in_seconds)
+        super().__init__(GeckoConstants.REQUEST_AND_RESPONSE_PING, self.ping_handler,
+                         GeckoConstants.PING_TIMEOUT_IN_SECONDS)
         self.has_sequence = False
 
     def ping_handler(self, spa, response):
+        ''' Handle the ping response from the other end '''
         logger.debug("Ping response received")
+        del spa, response # unused
         return True
 
 ###################################################################################################
-class gecko_partial_status(gecko_response):
-    
+class GeckoPartialStatus(GeckoResponse):
+    ''' Handle partial status responses to stitch the block back together '''
+
     def __init__(self):
-        super().__init__(gecko_constants.request_and_response_partial_status, self.partial_status_handler, 0)
-        
+        super().__init__(GeckoConstants.REQUEST_AND_RESPONSE_PARTIAL_STATUS,
+                         self.partial_status_handler, 0)
+
     def partial_status_handler(self, spa, response):
+        ''' Handle the partial status response from the other end '''
         self.send_request(spa)
         change_count, response = self.unpack(">B", 1, response)
-        #TODO: Must be a better way to do this with list comprehensions!
-        for i in range(change_count):
-            pos, b1, b2, response = self.unpack(">HBB", 4, response)
-            ba = bytearray()
-            ba.append(b1)
-            ba.append(b2)
-            spa.replace_status_block_segment( pos, ba )
+        for _ in range(change_count):
+            pos, byte_1, byte_2, response = self.unpack(">HBB", 4, response)
+            arry = bytearray()
+            arry.append(byte_1)
+            arry.append(byte_2)
+            spa.replace_status_block_segment(pos, arry)
 
         # Never complete so it will remain in the handler collection
         return False
 
 ###################################################################################################
-class gecko_get_software_version(gecko_response):
+class GeckoGetSoftwareVersion(GeckoResponse):
+    ''' Process the Get the software version command '''
 
     def __init__(self):
-        super().__init__(gecko_constants.request_and_response_get_version, self.version_handler )
+        super().__init__(GeckoConstants.REQUEST_AND_RESPONSE_GET_VERSION, self.version_handler )
 
     def version_handler(self, spa, response):
         EN_build, EN_major, EN_minor, CO_build, CO_major, CO_minor, response = self.unpack(">HBBHBB", 8, response)
         spa.intouch_version_EN = "{0} v{1}.{2}".format(EN_build, EN_major, EN_minor)
         spa.intouch_version_CO = "{0} v{1}.{2}".format(CO_build, CO_major, CO_minor)
-        logger.debug("Got software version %s/%s, now get channel" % (spa.intouch_version_EN, spa.intouch_version_CO ))
-        spa.send_request(gecko_get_channel())
+        logger.debug("Got software version %s/%s, now get channel", spa.intouch_version_EN, spa.intouch_version_CO)
+        spa.send_request(GeckoGetChannel())
         return True
 
 ###################################################################################################
-class gecko_get_channel(gecko_response):
+class GeckoGetChannel(GeckoResponse):
+    ''' Process the Get channel command '''
 
     def __init__(self):
-        super().__init__(gecko_constants.request_and_response_get_channel, self.channel_handler )
+        super().__init__(GeckoConstants.REQUEST_AND_RESPONSE_GET_CHANNEL, self.channel_handler )
 
     def channel_handler(self, spa, response):
         spa.channel, spa.signal, response = self.unpack('>BB', 2, response)
-        logger.debug("Got channel %s/%s, get config" % (spa.channel, spa.signal))
-        spa.send_request(gecko_get_config())
+        logger.debug("Got channel %s/%s, get config", spa.channel, spa.signal)
+        spa.send_request(GeckoGetConfig())
         return True
 
 ###################################################################################################
-class gecko_pack_command(gecko_response):
+class GeckoPackCommand(GeckoResponse):
+    ''' Handle the pack command '''
 
     def __init__(self, packtype, values):
-        super().__init__(gecko_constants.request_and_response_pack_command)
+        super().__init__(GeckoConstants.REQUEST_AND_RESPONSE_PACK_COMMAND)
         self.parms = "".join(chr(item) for item in [packtype, len(values)] + values)
-        logger.debug("Pack cmd %s" % self.parms.encode(gecko_constants.message_encoding))
+        logger.debug("Pack cmd %s", self.parms.encode(GeckoConstants.MESSAGE_ENCODING))
 
 ###################################################################################################
-class gecko_get_config(gecko_response):
+class GeckoGetConfig(GeckoResponse):
+    ''' Handle the GetConfig command '''
 
     def __init__(self):
-        super().__init__(gecko_constants.request_and_response_get_config, self.config_handler )
+        super().__init__(GeckoConstants.REQUEST_AND_RESPONSE_GET_CONFIG, self.config_handler )
 
     def config_handler(self, spa, response):
         # Treat the files as if they were indices into the SpaPackStruct.xml file
-        config = response[6:].decode(gecko_constants.message_encoding).replace('.xml', '').split(',')
+        config = response[6:].decode(GeckoConstants.MESSAGE_ENCODING).replace('.xml', '').split(',')
         # Split the string around the underscore
         gecko_pack_config = config[0].split('_')
         gecko_pack_log = config[1].split('_')
 
-        # XML is case-sensitive, but the platform from the config isn't formed the same, so we manually
-        # search the Plateform nodes to find the one we're interested in
-        for plateform in spa.manager.spa_pack_struct.findall(gecko_constants.spa_pack_plateform_xpath):
-            if plateform.attrib[gecko_constants.spa_pack_name_attrib].lower() == gecko_pack_config[0].lower():
+        # XML is case-sensitive, but the platform from the config isn't formed the same,
+        # so we manually search the Plateform nodes to find the one we're interested in
+        for plateform in spa.manager.spa_pack_struct.findall(GeckoConstants.SPA_PACK_PLATEFORM_XPATH):
+            if plateform.attrib[GeckoConstants.SPA_PACK_NAME_ATTRIB].lower() == gecko_pack_config[0].lower():
                 spa.gecko_pack_xml = plateform
 
         # We can't carry on without information on how the STATV data block is formed ...
         if spa.gecko_pack_xml is None:
-            raise Exception(gecko_constants.exception_message_no_spa_pack.format(gecko_pack_config[0]))
+            raise Exception(GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(gecko_pack_config[0]))
 
         # Stash the config and log structure declarations
         spa.config_version = int(gecko_pack_config[1][1:])
-        spa.config_xml = spa.gecko_pack_xml.find(gecko_constants.spa_pack_config_xpath.format(spa.config_version))
+        spa.config_xml = spa.gecko_pack_xml.find(GeckoConstants.SPA_PACK_CONFIG_XPATH.format(spa.config_version))
         spa.log_version = int(gecko_pack_log[1][1:])
-        spa.log_xml = spa.gecko_pack_xml.find(gecko_constants.spa_pack_log_xpath.format(spa.log_version))
-        spa.pack_type = int(spa.gecko_pack_xml.attrib[gecko_constants.spa_pack_struct_type_attrib])
+        spa.log_xml = spa.gecko_pack_xml.find(GeckoConstants.SPA_PACK_LOG_XPATH.format(spa.log_version))
+        spa.pack_type = int(spa.gecko_pack_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_TYPE_ATTRIB])
 
-        logger.debug("Got spa configuration Type %s - CFG %s/LOG %s, now ask for initial status block" % ( spa.pack_type, spa.config_version, spa.log_version ))
+        logger.debug("Got spa configuration Type %s - CFG %s/LOG %s, now ask for initial status block",
+                     spa.pack_type, spa.config_version, spa.log_version )
 
         # Grab a big chunk first time around
-        spa.send_request(gecko_get_status(0, 1024))
+        spa.send_request(GeckoGetStatus(0, 1024))
         return True
 
 ###################################################################################################
-class gecko_get_status(gecko_response):
+class GeckoGetStatus(GeckoResponse):
+    ''' Handle the get status command '''
 
     def __init__(self, start, length):
         self.offset = start
         self.length = length
         self.next_expected = 0
         self.received = 0
-        super().__init__(gecko_constants.request_and_response_get_status, self.status_handler, 20 )
+        super().__init__(GeckoConstants.REQUEST_AND_RESPONSE_GET_STATUS, self.status_handler, 20 )
         self.parms = "{0:c}{1:c}{2:c}{3:c}".format(start//256, start%256, length//256, length%256 )
 
     def status_handler(self, spa, response):
-        seq, nxt, ln, response = self.unpack('>BBB', 3, response )
-        logger.debug("Status block segment # %d (then #%d) length %d, was expecting %d" % (seq, nxt, ln, self.next_expected))
+        seq, nxt, length, response = self.unpack('>BBB', 3, response )
+        logger.debug("Status block segment # %d (then #%d) length %d, was expecting %d",
+                     seq, nxt, length, self.next_expected)
         if not self.next_expected == seq:
             logger.warning("Out-of-sequence status block segment - ignored")
             if nxt == 0:
                 logger.warning("Retry status block request")
-                spa.send_request(gecko_get_status(self.offset, self.length))
+                spa.send_request(GeckoGetStatus(self.offset, self.length))
         else:
-            spa.replace_status_block_segment(self.offset + self.received, response[0:ln])
-            self.received += ln
+            spa.replace_status_block_segment(self.offset + self.received, response[0:length])
+            self.received += length
             self.next_expected = nxt
             # When we get the last partial segment, we can assume the spa is connected and we can report on status
-            if nxt==0:
+            if nxt == 0:
                 spa.is_connected = True
-        return nxt==0
+        return nxt == 0
 
 ###################################################################################################
-class gecko_comms:
+class GeckoComms:
+    ''' Base class for UDP packet sending and receiving '''
 
-    def __init__(self, manager):
+    def __init__(self, comms_manager):
         # Create a UDP socket
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.socket.settimeout(1)
         self.ipaddress = None
-        self.port = gecko_constants.intouch2_port
+        self.port = GeckoConstants.INTOUCH2_PORT
         self.identifier = None
         self.srccn = None
         self.descn = None
-        self.manager = manager
+        self.manager = comms_manager
         self.sequence_number = 1
 
     def __del__(self):
@@ -376,24 +408,25 @@ class gecko_comms:
     def send_message(self, message, destination = None):
         if destination is None:
             destination = self.ipaddress
-        logger.debug("Send message %s to %s" % ( message.encode(gecko_constants.message_encoding), ( destination, self.port )))
-        self.socket.sendto( message.encode(gecko_constants.message_encoding), (destination, self.port))
+        logger.debug("Send message %s to %s", message.encode(GeckoConstants.MESSAGE_ENCODING), (destination, self.port))
+        self.socket.sendto(message.encode(GeckoConstants.MESSAGE_ENCODING), (destination, self.port))
 
     def receive_answer(self):
-        data, remote = self.socket.recvfrom(gecko_constants.max_packet_size)
-        logger.debug("Receive answer %s from %s" % ( data, remote ) )
+        data, remote = self.socket.recvfrom(GeckoConstants.MAX_PACKET_SIZE)
+        logger.debug("Receive answer %s from %s", data, remote)
         return (data, remote)
 
     def extract_data_using_regex(self, message, data):
-        match = re.search(bytes(message.format(gecko_constants.regex_dot_star), gecko_constants.message_encoding), data, re.DOTALL)
+        match = re.search(bytes(message.format(GeckoConstants.REGEX_DOT_STAR), GeckoConstants.MESSAGE_ENCODING),
+                          data, re.DOTALL)
         return match.group(1)
 
     def assemble_packet(self, data):
-        return gecko_constants.message_part_packet.format( 
+        return GeckoConstants.MESSAGE_PART_PACKET.format( 
             "{0}{1}{2}".format(
                 self.srccn,
                 self.descn,
-                gecko_constants.message_part_datas.format(data)
+                GeckoConstants.MESSAGE_PART_DATAS.format(data)
             )
         )
 
@@ -406,26 +439,27 @@ class gecko_comms:
         return self.assemble_packet(cmd)
 
 ###################################################################################################
-class gecko_struct_accessor:
+class GeckoStructAccessor:
+    ''' Class to access the spa data structure according to the declaration in SpaPackStruct.xml '''
     
     def __init__(self, spa, element):
         self.spa = spa
         self.tag = element.tag
-        self.pos = int(element.attrib[gecko_constants.spa_pack_struct_pos_attrib])
-        self.type = element.attrib[gecko_constants.spa_pack_struct_type_attrib]
+        self.pos = int(element.attrib[GeckoConstants.SPA_PACK_STRUCT_POS_ATTRIB])
+        self.type = element.attrib[GeckoConstants.SPA_PACK_STRUCT_TYPE_ATTRIB]
         self.bitpos = None
-        if gecko_constants.spa_pack_struct_bitpos_attrib in element.attrib:
-            self.bitpos = int(element.attrib[gecko_constants.spa_pack_struct_bitpos_attrib])
+        if GeckoConstants.SPA_PACK_STRUCT_BITPOS_ATTRIB in element.attrib:
+            self.bitpos = int(element.attrib[GeckoConstants.SPA_PACK_STRUCT_BITPOS_ATTRIB])
             self.bitmask = 1
-        if gecko_constants.spa_pack_struct_items_attrib in element.attrib:
-            self.items = element.attrib[gecko_constants.spa_pack_struct_items_attrib].split('|')
+        if GeckoConstants.SPA_PACK_STRUCT_ITEMS_ATTRIB in element.attrib:
+            self.items = element.attrib[GeckoConstants.SPA_PACK_STRUCT_ITEMS_ATTRIB].split('|')
         self.length = 1
         self.format = ">B"
-        if self.type == gecko_constants.spa_pack_struct_word_type or self.type == gecko_constants.spa_pack_struct_time_type:
+        if self.type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE or self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
             self.length = 2
             self.format = ">H"
-        if gecko_constants.spa_pack_struct_maxitems_attrib in element.attrib:
-            self.maxitems = int(element.attrib[gecko_constants.spa_pack_struct_maxitems_attrib])
+        if GeckoConstants.SPA_PACK_STRUCT_MAXITEMS_ATTRIB in element.attrib:
+            self.maxitems = int(element.attrib[GeckoConstants.SPA_PACK_STRUCT_MAXITEMS_ATTRIB])
             if self.maxitems > 8:
                 self.bitmask = 15
             elif self.maxitems > 4:
@@ -433,34 +467,34 @@ class gecko_struct_accessor:
             elif self.maxitems > 2:
                 self.bitmask = 3
         self.read_write = None
-        if gecko_constants.spa_pack_struct_read_write_attrib in element.attrib:
-            self.read_write = element.attrib[gecko_constants.spa_pack_struct_read_write_attrib]
+        if GeckoConstants.SPA_PACK_STRUCT_READ_WRITE_ATTRIB in element.attrib:
+            self.read_write = element.attrib[GeckoConstants.SPA_PACK_STRUCT_READ_WRITE_ATTRIB]
 
     @property
     def value(self):
         data = struct.unpack(self.format, self.spa.status_block[self.pos:self.pos+self.length])[0]
-        logger.debug("Accessor %s @ %s, %s raw data = %x" % (self.tag, self.pos, self.type, data))
+        logger.debug("Accessor %s @ %s, %s raw data = %x", self.tag, self.pos, self.type, data)
         if not self.bitpos is None:
             data = (data >> self.bitpos) & self.bitmask
-            logger.debug("BitPos %s accessor %s adjusted data = %x" % ((self.bitpos, self.bitmask), self.tag, data))
-        if self.type == gecko_constants.spa_pack_struct_bool_type:
+            logger.debug("BitPos %s accessor %s adjusted data = %x", (self.bitpos, self.bitmask), self.tag, data)
+        if self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
             data = data == 1
-            logger.debug("Bool accessor %s adjusted data = %s" % (self.tag, data))
-        elif self.type == gecko_constants.spa_pack_struct_enum_type:
+            logger.debug("Bool accessor %s adjusted data = %s", self.tag, data)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             data = self.items[data]
-            logger.debug("Enum accessor %s adjusted data = %s" % (self.tag, data))
+            logger.debug("Enum accessor %s adjusted data = %s", self.tag, data)
         return data
 
     @value.setter
     def value(self, newvalue):
         if self.read_write is None:
-            raise Exception(gecko_constants.exception_message_not_writable.format(self.tag))
+            raise Exception(GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag))
 
-        if self.type == gecko_constants.spa_pack_struct_bool_type:
-            logger.debug("Bool accessor %s adjusted from %s" % (self.tag, newvalue))
+        if self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
+            logger.debug("Bool accessor %s adjusted from %s", self.tag, newvalue)
             newvalue = newvalue.lower() == "true"
-        elif self.type == gecko_constants.spa_pack_struct_enum_type:
-            logger.debug("Enum accessor %s adjusted from %s" % (self.tag, newvalue))
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
+            logger.debug("Enum accessor %s adjusted from %s", self.tag, newvalue)
             newvalue = self.items.index(newvalue)
 
         # If it is a bitpos, then mask it with the existing value
@@ -470,18 +504,23 @@ class gecko_struct_accessor:
             newvalue = (existing & ~(self.bitmask << self.bitpos)) | ((newvalue & self.bitmask) << self.bitpos)
 
         if self.length == 1:
-            newvalue = [ int(newvalue) ]
+            newvalue = [int(newvalue)]
         elif self.length == 2:
-            newvalue = [ int(newvalue)//256, int(newvalue)%256 ]
+            newvalue = [int(newvalue)//256, int(newvalue)%256]
 
-        logger.debug("Accessor %s @ %s, %s setting value to %s, existing value was %s" % (self.tag, self.pos, self.type, newvalue, existing))
+        logger.debug("Accessor %s @ %s, %s setting value to %s, existing value was %s",
+                     self.tag, self.pos, self.type, newvalue, existing)
 
         # We issue a pack command to acheive this ...
-        self.spa.send_request(gecko_pack_command(self.spa.pack_type, [gecko_constants.pack_command_set_value, self.spa.config_version, self.spa.log_version, self.pos//256, self.pos%256 ] + newvalue))
-
+        self.spa.send_request(GeckoPackCommand(self.spa.pack_type,
+                              [GeckoConstants.PACK_COMMAND_SET_VALUE,
+                              self.spa.config_version, self.spa.log_version, self.pos//256, 
+                              self.pos%256] + newvalue))
 
 ###################################################################################################
-class gecko_temperature_decorator:
+class GeckoTemperatureDecorator:
+    ''' Class to decorate a temperature accessor so that the farenheight tenths, offset 
+        from freezing are handled '''
 
     def __init__(self, spa, accessor):
         self.spa = spa
@@ -491,7 +530,7 @@ class gecko_temperature_decorator:
     def value(self):
         # Temp is in farenheight tenths, offset from freezing point
         temp = self.accessor.value
-        units = self.spa.accessors[gecko_constants.key_temp_units].value
+        units = self.spa.accessors[GeckoConstants.KEY_TEMP_UNITS].value
         if units == "C":
             temp = temp / 18.0
         else:
@@ -501,7 +540,7 @@ class gecko_temperature_decorator:
 
     @value.setter
     def value(self, temp):
-        units = self.spa.accessors[gecko_constants.key_temp_units].value
+        units = self.spa.accessors[GeckoConstants.KEY_TEMP_UNITS].value
         if units == "C":
             temp = float(temp) * 18.0
         else:
@@ -509,27 +548,72 @@ class gecko_temperature_decorator:
         self.accessor.value = int(temp)
 
 ###################################################################################################
-class gecko_spa(gecko_comms):
+class GeckoCommsClient(GeckoComms):
+    ''' GeckoCommsClient handles the receive thread lifetime and handler list '''
+    def __init__(self, manager):
+        super().__init__(manager)
+        self.handlers = []
+        self.exit = threading.Event()
+        self.receive_thread = threading.Thread(target=self.receive_thread_func)
+        self.receive_thread.start()
+
+    def __del__(self):
+        super().__del__()
+        self.receive_thread.join()
+
+    def finished(self):
+        self.exit.set()
+
+    def add_handler(self, handler):
+        self.handlers.append(handler)
+
+    def remove_handler(self, handler):
+        self.handlers.remove(handler)
+
+    def clean_handlers(self):
+        handlers_to_remove = [handler for handler in self.handlers if handler.check_timeout(self)]
+        self.handlers = [handler for handler in self.handlers if handler not in handlers_to_remove]
+
+    def receive_thread_func(self):
+        while not self.exit.is_set():
+            try:
+                self.handle_response(self.extract_data_using_regex(GeckoConstants.MESSAGE_PART_DATAS, self.receive_answer()[0]))
+            except socket.timeout:
+                pass
+            except:
+                (ex, ty, tb) = sys.exc_info()
+                print("{0}: {1}".format(ex, ty))
+                traceback.print_tb(tb)
+            self.clean_handlers()
+
+    def handle_response(self, response):
+        # Iterate over the handlers to see if any are interested in this response ...
+        for handler in self.handlers:
+            if handler.handle_response_if_matched(self, response):
+                return
+        # We sometimes get extraneous PACKS response when another client has issued the SPACK command ... don't fret about it!
+        if response.startswith(GeckoConstants.REQUEST_AND_RESPONSE_PACK_COMMAND[1]):
+            return
+        logger.warning("Unhandled response %s (%d)" % (response, len(response)))
+
+###################################################################################################
+class GeckoSpa(GeckoCommsClient):
     '''
-        gecko_spa class manages an instance of a spa, and is the main point of contact for control 
+        GeckoSpa class manages an instance of a spa, and is the main point of contact for control
         and monitoring. Uses the declarations found in SpaPackStruct.xml to build an object that
         exposes the properties and capabilities of your spa
     '''
     def __init__(self, manager, response):
         super().__init__(manager)
-        data = self.extract_data_using_regex(gecko_constants.message_hello, response[0]).decode(gecko_constants.message_encoding)
+        data = self.extract_data_using_regex(GeckoConstants.MESSAGE_HELLO, response[0]).decode(GeckoConstants.MESSAGE_ENCODING)
         self.client_identifier = manager.client_identifier
         self.identifier, self.name = data.split('|')
         self.ipaddress, self.port = response[1]
-        self.srccn = gecko_constants.message_part_src_connection_name.format(self.client_identifier)
-        self.descn = gecko_constants.message_part_dest_connection_name.format(self.identifier)
-        self.handlers = []
-        self.add_handler( gecko_partial_status() )
+        self.srccn = GeckoConstants.MESSAGE_PART_SRC_CONNECTION_NAME.format(self.client_identifier)
+        self.descn = GeckoConstants.MESSAGE_PART_DEST_CONNECTION_NAME.format(self.identifier)
+        self.add_handler(GeckoPartialStatus())
 
-        self.exit = threading.Event()
-        self.receive_thread = threading.Thread(target=self.receive_thread_func)
         self.ping_thread = threading.Thread(target=self.ping_thread_func)
-        self.receive_thread.start()
 
         # Default values for properties
         self.channel = 0
@@ -551,18 +635,11 @@ class gecko_spa(gecko_comms):
 
     def __del__(self):
         super().__del__()
-        self.receive_thread.join()
         self.ping_thread.join()
 
     def send_request(self, request):
         self.add_handler(request)
         request.send_request(self)
-
-    def add_handler(self, handler):
-        self.handlers.append(handler)
-
-    def remove_handler(self, handler):
-        self.handlers.remove(handler)
 
     def replace_status_block_segment(self, offset, segment):
         segment_len = len(segment)
@@ -572,88 +649,62 @@ class gecko_spa(gecko_comms):
 
     def connect(self):
         # Identify self to the intouch module
-        self.send_message(gecko_constants.message_hello.format(self.client_identifier))
+        self.send_message(GeckoConstants.MESSAGE_HELLO.format(self.client_identifier))
         self.ping_thread.start()
         # Get the intouch version
         logger.info("Starting spa connection handshake...")
         self.is_connected = False
-        self.send_request(gecko_get_software_version())
+        self.send_request(GeckoGetSoftwareVersion())
         # Wait for connection sequence to complete
         while not self.is_connected:
             pass
         self.build_accessors()
-        self.pack = self.accessors[gecko_constants.key_pack_type].value
-        self.version = "{0} v{1}.{2}".format(self.accessors[gecko_constants.key_pack_config_id].value, self.accessors[gecko_constants.key_pack_config_rev].value, self.accessors[gecko_constants.key_pack_config_rel].value)
-        self.config_number = self.accessors[gecko_constants.key_config_number].value
+        self.pack = self.accessors[GeckoConstants.KEY_PACK_TYPE].value
+        self.version = "{0} v{1}.{2}".format(self.accessors[GeckoConstants.KEY_PACK_CONFIG_ID].value, self.accessors[GeckoConstants.KEY_PACK_CONFIG_REV].value, self.accessors[GeckoConstants.KEY_PACK_CONFIG_REL].value)
+        self.config_number = self.accessors[GeckoConstants.KEY_CONFIG_NUMBER].value
         logger.info("Spa is connected")
 
     def disconnect(self):
-        self.exit.set()
+        self.finished()
 
     def ping_thread_func(self):
         while not self.exit.is_set():
-            self.send_request(gecko_ping())
+            self.send_request(GeckoPing())
             self.exit.wait(5)
 
-    def clean_handlers(self):
-        handlers_to_remove = [ handler for handler in self.handlers if handler.check_timeout(self) ]
-        self.handlers = [handler for handler in self.handlers if handler not in handlers_to_remove]
-
-    def receive_thread_func(self):
-        while not self.exit.is_set():
-            try:
-                self.handle_response(self.extract_data_using_regex(gecko_constants.message_part_datas, self.receive_answer()[0]))
-            except socket.timeout:
-                pass
-            except:
-                (ex,ty,tb) = sys.exc_info()
-                print("{0}: {1}".format(ex,ty))
-                traceback.print_tb(tb)
-            self.clean_handlers()
-
-    def handle_response(self, response):
-        # Iterate over the handlers to see if any are interested in this response ...
-        for handler in self.handlers:
-            if handler.handle_response_if_matched(self, response):
-                return
-        # We sometimes get extraneous PACKS response when another client has issued the SPACK command ... don't fret about it!
-        if response.startswith(gecko_constants.request_and_response_pack_command[1]):
-            return
-        logger.warning("Unhandled response %s (%d)" % (response, len(response)))
-
     def build_accessors(self):
-        self.accessors = { element.tag: gecko_struct_accessor(self, element) for xml in [ self.config_xml, self.log_xml ] for element in xml.findall(gecko_constants.spa_pack_struct_pos_elements_xpath) }
+        self.accessors = { element.tag: GeckoStructAccessor(self, element) for xml in [ self.config_xml, self.log_xml ] for element in xml.findall(GeckoConstants.SPA_PACK_STRUCT_POS_ELEMENTS_XPATH) }
         # Fix temperature accessors ...
-        temp_keys = { element.tag for xml in [ self.config_xml, self.log_xml ] for element in xml.findall( gecko_constants.spa_pack_struct_word_type_elements_xpath ) if "temp" in element.tag.lower() or "setpoint" in element.tag.lower() }
+        temp_keys = { element.tag for xml in [ self.config_xml, self.log_xml ] for element in xml.findall( GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE_ELEMENTS_XPATH ) if "temp" in element.tag.lower() or "setpoint" in element.tag.lower() }
         logger.debug("Temperature keys to decorate %s" % temp_keys)
         for key in temp_keys:
-            self.accessors[key] = gecko_temperature_decorator(self, self.accessors[key])
+            self.accessors[key] = GeckoTemperatureDecorator(self, self.accessors[key])
 
     def get_buttons(self):
         # TODO: Use config to determine this ...
-        return [button[0] for button in gecko_constants.buttons]
+        return [button[0] for button in GeckoConstants.buttons]
 
     def refresh(self):
-        self.send_request(gecko_get_status(int(self.log_xml.attrib[gecko_constants.spa_pack_struct_begin_attrib]), int(self.log_xml.attrib[gecko_constants.spa_pack_struct_end_attrib])))
+        self.send_request(GeckoGetStatus(int(self.log_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_BEGIN_ATTRIB]), int(self.log_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_END_ATTRIB])))
 
     def press(self, keypad):
-        self.send_request(gecko_pack_command(self.pack_type, [gecko_constants.pack_command_key_press, keypad]))
+        self.send_request(GeckoPackCommand(self.pack_type, [GeckoConstants.PACK_COMMAND_KEY_PRESS, keypad]))
 
 ###################################################################################################
-class gecko_manager(gecko_comms):
+class GeckoManager(GeckoComms):
     '''
-        gecko_manager class manages the local spa collection and hosts the discovery process
+        GeckoManager class manages the local spa collection and hosts the discovery process
     '''
 
     def __init__(self, client_uuid):
         super().__init__(self)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        if not os.path.exists(gecko_constants.spa_pack_struct_file):
+        if not os.path.exists(GeckoConstants.SPA_PACK_STRUCT_FILE):
             logger.info("SpaPackStruct.xml not found, downloading from the internet...")
             self.download()
-        self.spa_pack_struct = ET.parse(gecko_constants.spa_pack_struct_file)
-        self.spa_pack_struct_revision = self.spa_pack_struct.find(gecko_constants.spa_pack_revision_xpath).attrib[gecko_constants.spa_pack_revision_attrib]
-        self.client_identifier = gecko_constants.format_client_identifier.format(client_uuid)
+        self.spa_pack_struct = ET.parse(GeckoConstants.SPA_PACK_STRUCT_FILE)
+        self.spa_pack_struct_revision = self.spa_pack_struct.find(GeckoConstants.SPA_PACK_REVISION_XPATH).attrib[GeckoConstants.SPA_PACK_REVISION_ATTRIB]
+        self.client_identifier = GeckoConstants.FORMAT_CLIENT_IDENTIFIER.format(client_uuid)
         logger.info("SpaPackStruct v%s" % (self.spa_pack_struct_revision ))
         logger.info("Client identifier %s" % self.client_identifier )
 
@@ -670,9 +721,9 @@ class gecko_manager(gecko_comms):
         '''
         logger.info("Downloading SpaPackStruct.xml")
         http = urllib3.PoolManager()
-        response = http.request('GET', gecko_constants.spa_pack_struct_url, preload_content=False)
+        response = http.request('GET', GeckoConstants.SPA_PACK_STRUCT_URL, preload_content=False)
 
-        with open(gecko_constants.spa_pack_struct_file, 'wb') as out:
+        with open(GeckoConstants.SPA_PACK_STRUCT_FILE, 'wb') as out:
             while True:
                 data = response.read(4096)
                 if not data:
@@ -688,31 +739,31 @@ class gecko_manager(gecko_comms):
         '''
         logger.info("Discovery process started")
         self.retry_count = 0
-        while self.retry_count < gecko_constants.discovery_retry_count_to_find_any_spa:
+        while self.retry_count < GeckoConstants.DISCOVERY_RETRY_COUNT_TO_FIND_ANY_SPA:
             # Broadcast the discovery message to every client on the local LAN 
-            self.send_message(gecko_constants.message_hello.format(1), gecko_constants.broadcast_address)
+            self.send_message(GeckoConstants.MESSAGE_HELLO.format(1), GeckoConstants.BROADCAST_ADDRESS)
             self.spas = []
             # Wait to ensure we've heard from all the modules that responded within the discovery period
             now = time.monotonic()
-            while time.monotonic() - now < gecko_constants.discovery_timeout_in_seconds:
+            while time.monotonic() - now < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
                 try:
-                    self.spas.append(gecko_spa(self, self.receive_answer()))
+                    self.spas.append(GeckoSpa(self, self.receive_answer()))
                 except socket.timeout:
                     break
             if len(self.spas) > 0:
                 # Dummy spa to test multiple spas in client programs ... will not actually respond!
-                if gecko_constants.include_dummy_spa:
-                    self.spas.append(gecko_spa(self, (b'<HELLO>SPA90:1f:12:5c:d3:c0|Dummy Spa</HELLO>', ('127.0.0.1', 10022))))
-                logger.info("Found %d spas ... %s" % ( len(self.spas), [(spa.name, spa.identifier) for spa in self.spas] ))
+                if GeckoConstants.INCLUDE_DUMMY_SPA:
+                    self.spas.append(GeckoSpa(self, (b'<HELLO>SPA90:1f:12:5c:d3:c0|Dummy Spa</HELLO>', ('127.0.0.1', 10022))))
+                logger.info("Found %d spas ... %s", len(self.spas), [(spa.name, spa.identifier) for spa in self.spas])
                 return
             self.retry_count += 1
-            logger.info("Didn't find any spas within %d seconds, retry %d" % ( gecko_constants.discovery_timeout_in_seconds, self.retry_count ))
+            logger.info("Didn't find any spas within %d seconds, retry %d", GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS, self.retry_count )
         logger.warning("No spas found, check that you are on the same LAN as your in.touch2 device")
 
     @property
     def version(self):
-        return "v{0}.{1}.{2}".format(gecko_constants.version_major, gecko_constants.version_minor, gecko_constants.version_patch)
+        return "v{0}.{1}.{2}".format(GeckoConstants.VERSION_MAJOR, GeckoConstants.VERSION_MINOR, GeckoConstants.VERSION_PATCH)
 
 #TODO: DocTest here please ...
 if __name__ == "__main__":
-    manager = gecko_manager("8e82a3e9-fc08-4952-96aa-292863e27dac")
+    manager = GeckoManager("8e82a3e9-fc08-4952-96aa-292863e27dac")
