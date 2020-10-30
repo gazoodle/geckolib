@@ -7,7 +7,6 @@
 import logging
 import os
 import sys
-import traceback
 
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/geckolib"))
@@ -38,7 +37,7 @@ LICENSE = """
 """
 
 
-def show_state(facade):
+def show_state(facade):  # pylint: disable=redefined-outer-name
     """ Show the state of the device """
     print(facade.water_heater)
     for pump in facade.pumps:
@@ -52,7 +51,8 @@ def show_state(facade):
     print(facade.water_care)
 
 
-def get_version_strings(spa):
+def get_version_strings(spa):  # pylint: disable=redefined-outer-name
+    """ Get the version strings for the spa """
     return [
         "SpaPackStruct.xml revision {0}".format(spa.manager.spa_pack_struct_revision),
         "intouch version EN {0}".format(spa.intouch_version_EN),
@@ -86,12 +86,12 @@ print(
 
     This code will allow you to make changes to your spa configuration that is outside
     of what the app, top panel and side panel settings allow. I've not tested every setting
-    and it might be that you prevent your spa pack from operating as it used to do. 
-    
+    and it might be that you prevent your spa pack from operating as it used to do.
+
     Configuration is declared in the file SpaPackStruct.xml which is downloaded the first
-    time you run this program. Settings marked as RW="ALL" seem to indicate that any process 
-    can write them, so you ought to be able to revert the settings to their original ones. 
-    
+    time you run this program. Settings marked as RW="ALL" seem to indicate that any process
+    can write them, so you ought to be able to revert the settings to their original ones.
+
     I strongly suggest dumping the configuration values with the "config" command and recording
     them somewhere safe.
 
@@ -170,7 +170,8 @@ try:
             )
             print("refresh          - Force the live status block to refresh")
             print(
-                "snapshot [<desc>]- Take a snapshot of the spa data structure and write it to the log file, with optional description"
+                "snapshot [<desc>]- Take a snapshot of the spa data structure and write"
+                " it to the log file, with optional description"
             )
             print("")
             print("== client.py commands ==")
@@ -187,9 +188,9 @@ try:
 
         elif cmd.startswith("snapshot "):
             cmd = cmd[9:]
-            logger.info("Snapshot (%s)" % cmd)
-            for str in get_version_strings(spa):
-                logger.info(str)
+            logger.info("Snapshot (%s)", cmd)
+            for ver_str in get_version_strings(spa):
+                logger.info(ver_str)
             logger.info([hex(b) for b in spa.status_block])
 
         elif cmd == "version":
@@ -228,25 +229,21 @@ try:
 
         elif cmd.startswith("setpoint "):
             cmd = cmd[9:]
-            facade._water_heater.set_target_temperature(float(cmd))
+            facade.water_heater.set_target_temperature(float(cmd))
 
         elif cmd.startswith("get "):
             key = inp[4:]
             try:
                 print("{0} = {1}".format(key, spa.accessors[key].value))
-            except:
-                (ex, ty, tb) = sys.exc_info()
-                print("{0}: {1}".format(ex, ty))
-                traceback.print_tb(tb)
+            except Exception:  # pylint: disable=broad-except
+                logger.exception("Exception handling '%s'", key)
 
         elif cmd.startswith("set "):
             try:
                 key, val = inp[4:].split("=")
                 spa.accessors[key].value = val
-            except:
-                (ex, ty, tb) = sys.exc_info()
-                print("{0}: {1}".format(ex, ty))
-                traceback.print_tb(tb)
+            except Exception:  # pylint: disable=broad-except
+                logger.exception("Exception handling %s=%s", key, val)
 
         elif cmd == "refresh":
             spa.refresh()
