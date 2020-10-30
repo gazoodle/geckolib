@@ -76,6 +76,7 @@ class GeckoConstants:
     SPA_PACK_STRUCT_TYPE_ATTRIB = "Type"
     SPA_PACK_STRUCT_BITPOS_ATTRIB = "BitPos"
     SPA_PACK_STRUCT_ITEMS_ATTRIB = "Items"
+    SPA_PACK_STRUCT_SIZE_ATTRIB = "Size"
     SPA_PACK_STRUCT_WORD_TYPE = "Word"
     SPA_PACK_STRUCT_TIME_TYPE = "Time"
     SPA_PACK_STRUCT_MAXITEMS_ATTRIB = "MaxItems"
@@ -532,16 +533,18 @@ class GeckoComms:
             cmd += parms
         return self.assemble_packet(cmd)
 
+
 ###################################################################################################
 class GeckoStructAccessor:
     """ Class to access the spa data structure according to the declaration in SpaPackStruct.xml """
 
     def __init__(self, spa, element):
-        self.spa = spa
         self.tag = element.tag
+        self.spa = spa
         self.pos = int(element.attrib[GeckoConstants.SPA_PACK_STRUCT_POS_ATTRIB])
         self.type = element.attrib[GeckoConstants.SPA_PACK_STRUCT_TYPE_ATTRIB]
         self.bitpos = None
+
         if GeckoConstants.SPA_PACK_STRUCT_BITPOS_ATTRIB in element.attrib:
             self.bitpos = int(
                 element.attrib[GeckoConstants.SPA_PACK_STRUCT_BITPOS_ATTRIB]
@@ -551,8 +554,17 @@ class GeckoStructAccessor:
             self.items = element.attrib[
                 GeckoConstants.SPA_PACK_STRUCT_ITEMS_ATTRIB
             ].split("|")
+
         self.length = 1
         self.format = ">B"
+
+        if GeckoConstants.SPA_PACK_STRUCT_SIZE_ATTRIB in element.attrib:
+            self.length = int(
+                element.attrib[GeckoConstants.SPA_PACK_STRUCT_SIZE_ATTRIB]
+            )
+            if self.length == 2:
+                self.format = ">H"
+
         if (
             self.type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE
             or self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE
@@ -577,6 +589,7 @@ class GeckoStructAccessor:
 
     @property
     def value(self):
+        """ Get a value from the pack structure using the initialized declaration """
         data = struct.unpack(
             self.format, self.spa.status_block[self.pos : self.pos + self.length]
         )[0]
@@ -601,15 +614,13 @@ class GeckoStructAccessor:
 
     @value.setter
     def value(self, newvalue):
+        """ Set a value in the pack structure using the initialized declaration """
         if self.read_write is None:
             raise Exception(
                 GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag)
             )
 
-        if self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
-            logger.debug("Bool accessor %s adjusted from %s", self.tag, newvalue)
-            newvalue = newvalue.lower() == "true"
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
+        if self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             logger.debug("Enum accessor %s adjusted from %s", self.tag, newvalue)
             newvalue = self.items.index(newvalue)
 
@@ -619,8 +630,10 @@ class GeckoStructAccessor:
         )[0]
         if not self.bitpos is None:
             logger.debug(
-                "Bitpos %s accessor %s adjusted from %s"
-                % ((self.bitpos, self.bitmask), self.tag, newvalue)
+                "Bitpos %s accessor %s adjusted from %s",
+                (self.bitpos, self.bitmask),
+                self.tag,
+                newvalue,
             )
             newvalue = (existing & ~(self.bitmask << self.bitpos)) | (
                 (newvalue & self.bitmask) << self.bitpos
@@ -856,7 +869,7 @@ class GeckoSpa(GeckoCommsClient):
 
     def get_buttons(self):
         # TODO: Use config to determine this ...
-        return [button[0] for button in GeckoConstants.buttons]
+        return [button[0] for button in GeckoConstants.BUTTONS]
 
     def refresh(self):
         self.send_request(

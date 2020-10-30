@@ -65,14 +65,16 @@ https://www.gnu.org/licenses/gpl-3.0.html
     * Reminders
     * Diagnostics
  - Support installtools/requirements.txt to ensure all libraries are present
- - Unit tests to make sure EnumAccessors are working as expected ... odd things 
-   happen at present
+ - More unit tests
  - Show which parts of the status block are addressed by the SpaPackStruct.xml
    so we can inspect the remainder to see if there is anything useful in there.
  - Handle other device types such as Waterfall
 
 ## Done/Fixed in 0.3.8
-
+ - Restructure code to be in line with Python library style
+ - Code auto formatted with Black
+ - Some pylint warnings fixed
+ - Unit tests added for GeckoStructAccessor
 
 ## Done/Fixed in 0.3.7
  - Deal with unhandled devices

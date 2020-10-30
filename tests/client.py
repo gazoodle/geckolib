@@ -222,7 +222,7 @@ try:
 
         elif cmd.startswith("press "):
             cmd = cmd[6:]
-            for button in GeckoConstants.buttons:
+            for button in GeckoConstants.BUTTONS:
                 if button[0].lower() == cmd:
                     spa.press(button[2])
 
