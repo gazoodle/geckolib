@@ -7,6 +7,7 @@
 import logging
 import os
 import sys
+import cmd
 
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/geckolib"))
@@ -15,6 +16,8 @@ sys.path.insert(
 # pylint: disable=import-error,wrong-import-position
 from geckoautomation import GeckoFacade
 from geckolib import GeckoConstants, GeckoManager
+
+logger = None
 
 
 LICENSE = """
@@ -37,49 +40,241 @@ LICENSE = """
 """
 
 
-def show_state(facade):  # pylint: disable=redefined-outer-name
-    """ Show the state of the device """
-    print(facade.water_heater)
-    for pump in facade.pumps:
-        print(pump)
-    for blower in facade.blowers:
-        print(blower)
-    for light in facade.lights:
-        print(light)
-    for reminder in facade.reminders:
-        print(reminder)
-    print(facade.water_care)
+class GeckoShell(cmd.Cmd):
+    """ GeckoShell is a client application to drive the geckolib automation interface """
+
+    def __init__(self):
+        super().__init__()
+
+        self.manager = GeckoManager("02ac6d28-42d0-41e3-ad22-274d0aa491da")
+        self.spa = None
+        self.facade = None
+
+        self.do_watercare.__func__.__doc__ = self.do_watercare.__doc__.format(
+            GeckoConstants.WATERCARE_MODE_STRING
+        )
+
+        self.intro = "Welcome to the Gecko shell. Type help or ? to list commands.\n"
+        self.prompt = "(Gecko) "
+        self.onecmd("discover")
+
+    def __del__(self):
+        self.manager.finish()
+
+    def do_exit(self, arg):
+        """Exit this shell: EXIT"""
+        print("Thank you for using the Gecko shell")
+        del arg
+        return True
+
+    def do_discover(self, arg):
+        """Discover all the in.touch2 devices on your network : DISCOVER"""
+        del arg
+        print(
+            "Starting discovery process...",
+            end="",
+            flush=True,
+        )
+        self.manager.discover()
+        number_of_spas = len(self.manager.spas)
+        print("Found {0} spas".format(number_of_spas))
+        if number_of_spas == 0:
+            logger.warning(
+                "Try using the iOS or Android app to confirm they are functioning correctly"
+            )
+            sys.exit(1)
+        if number_of_spas == 1:
+            self.onecmd("manage 1")
+
+    def do_list(self, arg):
+        """List the spas that are available to manage : LIST """
+        del arg
+        for idx, spa in enumerate(self.manager.spas):
+            print("{0}. {1}".format(idx + 1, spa.name))
+
+    def do_manage(self, arg):
+        """Manage a named or numbered spa : MANAGE 1"""
+        spa_to_manage = int(arg)
+        self.spa = self.manager.spas[spa_to_manage - 1]
+        print(
+            "Connecting to spa `{0}` at {1} ... ".format(
+                self.spa.name, self.spa.ipaddress
+            ),
+            end="",
+            flush=True,
+        )
+        self.spa.connect()
+        self.facade = GeckoFacade(self.spa)
+        print("connected!")
+        self.prompt = "{0}$ ".format(self.spa.name)
+
+        # Build list of spa commands
+        for device in self.facade.all_user_devices:
+            func_name = "do_{0}".format(device.ui_key)
+            setattr(
+                GeckoShell,
+                func_name,
+                lambda self, arg, device=device: self.device_command(arg, device),
+            )
+            func_ptr = getattr(GeckoShell, func_name)
+            func_ptr.__doc__ = "Turn device {0} ON or OFF: {1} <ON|OFF>".format(
+                device.name, device.ui_key
+            )
+
+        self.onecmd("state")
+
+    def device_command(self, arg, device):
+        """Turn a device on or off"""
+        print("Turn device {0} {1}".format(device.name, arg))
+        if arg.lower() == "on":
+            device.turn_on()
+        else:
+            device.turn_off()
+
+    def do_state(self, arg):
+        """Show the state of the managed spa"""
+        del arg
+        if self.facade is None:
+            print("Must be connected to a spa")
+            return
+        print(self.facade.water_heater)
+        for pump in self.facade.pumps:
+            print(pump)
+        for blower in self.facade.blowers:
+            print(blower)
+        for light in self.facade.lights:
+            print(light)
+        for reminder in self.facade.reminders:
+            print(reminder)
+        print(self.facade.water_care)
+
+    def get_version_strings(self):  # pylint: disable=redefined-outer-name
+        """ Get the version strings for the spa """
+        return [
+            "SpaPackStruct.xml revision {0}".format(
+                self.manager.spa_pack_struct_revision
+            ),
+            "intouch version EN {0}".format(self.spa.intouch_version_en),
+            "intouch version CO {0}".format(self.spa.intouch_version_co),
+            "Spa pack {0} {1}".format(self.spa.pack, self.spa.version),
+            "Low level configuration # {0}".format(self.spa.config_number),
+            "Config version {0}".format(self.spa.config_version),
+            "Log version {0}".format(self.spa.log_version),
+            "Pack type {0}".format(self.spa.pack_type),
+        ]
+
+    def do_version(self, arg):
+        """Show the version information"""
+        del arg
+        for version_str in self.get_version_strings():
+            print(version_str)
+
+    def do_config(self, arg):
+        """Display the configuration data from the spa"""
+        del arg
+        print("Configuration Settings")
+        print("======================")
+        print("")
+        for element in self.spa.config_xml.findall("./*"):
+            if "Pos" in element.attrib:
+                continue
+            print(element.tag)
+            print("-" * len(element.tag))
+            for child in element.findall("./*"):
+                print(
+                    "  {0}: {1}".format(child.tag, self.spa.accessors[child.tag].value)
+                )
+            print("")
+
+    def do_live(self, arg):
+        """Display the live settings from the spa"""
+        del arg
+        print("Live Settings")
+        print("=============")
+        print("")
+        for element in self.spa.log_xml.findall("./*"):
+            print(element.tag)
+            print("-" * len(element.tag))
+            for child in element.findall("./*"):
+                print(
+                    "  {0}: {1}".format(child.tag, self.spa.accessors[child.tag].value)
+                )
+            print("")
+
+    def do_about(self, arg):
+        """Display information about this client program and support library"""
+        del arg
+        print("")
+        print(
+            "client.py: A python program using GeckoLib library to drive Gecko enabled"
+            " devices with in.touch2 communication modules"
+        )
+        print("Library version {0}".format(self.manager.version))
+
+    def do_license(self, arg):
+        """Display the license details"""
+        del arg
+        print(LICENSE)
+
+    def do_download(self, arg):
+        """Download the SpaPackStruct.xml from Gecko"""
+        del arg
+        self.manager.download()
+
+    def do_refresh(self, arg):
+        """Refresh the live data from your spa"""
+        del arg
+        self.spa.refresh()
+
+    def do_get(self, arg):
+        """Get the value of the specified spa pack structure element"""
+        try:
+            print("{0} = {1}".format(arg, self.spa.accessors[arg].value))
+        except Exception:  # pylint: disable=broad-except
+            logger.exception("Exception getting '%s'", arg)
+
+    def do_set(self, arg):
+        """Set the value of the specified spa pack structure element"""
+        try:
+            key, val = arg.split("=")
+            self.spa.accessors[key].value = val
+        except Exception:  # pylint: disable=broad-except
+            logger.exception("Exception handling setting %s=%s", key, val)
+
+    def do_watercare(self, arg):
+        """Set the active watercare mode to one of {0} : WATERCARE <mode>"""
+        try:
+            self.facade.water_care.set_mode(arg)
+        except Exception:  # pylint: disable=broad-except
+            logger.exception("Exception setting watercare to '%s'", arg)
+
+    def do_setpoint(self, arg):
+        """Set the spa setpoint temperature"""
+        self.facade.water_care.set_target_temperature(float(arg))
+
+    def do_snapshot(self, arg):
+        """Take a snapshot of the spa data structure with a descriptive message: SNAPSHOT <desc>"""
+        logger.info("Snapshot (%s)", arg)
+        for ver_str in self.get_version_strings():
+            logger.info(ver_str)
+        logger.info([hex(b) for b in self.spa.status_block])
 
 
-def get_version_strings(spa):  # pylint: disable=redefined-outer-name
-    """ Get the version strings for the spa """
-    return [
-        "SpaPackStruct.xml revision {0}".format(spa.manager.spa_pack_struct_revision),
-        "intouch version EN {0}".format(spa.intouch_version_EN),
-        "intouch version CO {0}".format(spa.intouch_version_CO),
-        "Spa pack {0} {1}".format(spa.pack, spa.version),
-        "Low level configuration # {0}".format(spa.config_number),
-        "Config version {0}".format(spa.config_version),
-        "Log version {0}".format(spa.log_version),
-        "Pack type {0}".format(spa.pack_type),
-    ]
+if __name__ == "__main__":
 
+    # Set logging
+    stm_log = logging.StreamHandler()
+    stm_log.setLevel(logging.WARNING)
+    stm_log.setFormatter(logging.Formatter("%(message)s"))
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s %(name)s %(levelname)s %(message)s",
+        handlers=[logging.FileHandler("client.log"), stm_log],
+    )
+    logger = logging.getLogger(__name__)
 
-# Set logging
-stm_log = logging.StreamHandler()
-stm_log.setLevel(logging.WARNING)
-stm_log.setFormatter(logging.Formatter("%(message)s"))
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s %(name)s %(levelname)s %(message)s",
-    handlers=[logging.FileHandler("client.log"), stm_log],
-)
-logger = logging.getLogger(__name__)
-
-manager = GeckoManager("02ac6d28-42d0-41e3-ad22-274d0aa491da")
-
-print(
-    """
+    print(
+        """
 
     <Disclaimer>
     --------------------------------- USE AT YOUR OWN RISK ---------------------------------
@@ -98,204 +293,11 @@ print(
     </Disclaimer>
 
     """
-)
-
-try:
-    print("Starting discovery ...")
-    manager.discover()
-
-    if len(manager.spas) == 0:
-        logger.warning(
-            "Try using the iOS or Android app to confirm they are functioning correctly"
-        )
-        sys.exit(1)
-
-    print("Found {0} spas".format(len(manager.spas)))
-    spa_to_manage = 0
-
-    if len(manager.spas) > 1:
-        index = 1
-        for spa in manager.spas:
-            print("{0}. {1}".format(index, spa.name))
-            index += 1
-        spa_to_manage = int(input("Which spa do you want to manage ? ")) - 1
-
-    spa = manager.spas[spa_to_manage]
-    print(
-        "Connecting to spa `{0}` at {1} ... ".format(spa.name, spa.ipaddress),
-        end="",
-        flush=True,
     )
-    spa.connect()
-    print("connected!")
 
-    facade = GeckoFacade(spa)
-    show_state(facade)
-
-    # TODO: Use command dispatcher ... there must be one in the python libraries somewhere!
-    while True:
-        inp = input("{0}$ ".format(spa.name))
-        cmd = inp.lower()
-        logger.info("Handle command %s" % inp)
-        if cmd == "exit" or cmd == "quit":
-            exit(0)
-
-        elif cmd == "help":
-            print("")
-            print("+++++++++++++++++++ Help +++++++++++++++++++")
-            print("")
-            print("== {0} commands ==".format(spa.name))
-            print(
-                "press <btn>      - Press button <btn>. Where <btn> is one of {0}".format(
-                    spa.get_buttons()
-                )
-            )
-            for device in facade.all_user_devices:
-                print(
-                    "{0} <ON|OFF>      - Turn {1} ON or OFF".format(
-                        device.ui_key, device.name
-                    )
-                )
-            # print("all <ON|OFF>     - Turn all devices ON or OFF")
-            print("setpoint <temp>  - Set the setpoint temperature to <temp>")
-            print(
-                "watercare <mode> - Set the watercare mode to one of {0}".format(
-                    GeckoConstants.WATERCARE_MODE_STRING
-                )
-            )
-            print("state            - Show the state of spa `{0}`".format(spa.name))
-            print("")
-            print("== in.touch2 commands ==")
-            print("version          - Show version information")
-            print("config           - Dump the spa configuration")
-            print("live             - Dump the spa real-time status")
-            print("get <key>        - Get the value of SpaPackStruct key <key>")
-            print(
-                "set <key>=<val>  - Set the value of SpaPackStrung key <key> to <val>"
-            )
-            print("refresh          - Force the live status block to refresh")
-            print(
-                "snapshot [<desc>]- Take a snapshot of the spa data structure and write"
-                " it to the log file, with optional description"
-            )
-            print("")
-            print("== client.py commands ==")
-            print(
-                "download         - Download SpaPackStruct.xml even if it already exists"
-            )
-            print("license          - Show the license details")
-            print("about            - About this program")
-            print("exit             - Exit this program")
-            print("")
-
-        elif cmd == "state":
-            show_state(facade)
-
-        elif cmd.startswith("snapshot "):
-            cmd = cmd[9:]
-            logger.info("Snapshot (%s)", cmd)
-            for ver_str in get_version_strings(spa):
-                logger.info(ver_str)
-            logger.info([hex(b) for b in spa.status_block])
-
-        elif cmd == "version":
-            for str in get_version_strings(spa):
-                print(str)
-
-        elif cmd == "config":
-            print("Configuration Settings")
-            print("======================")
-            print("")
-            for el in spa.config_xml.findall("./*"):
-                if "Pos" in el.attrib:
-                    continue
-                print(el.tag)
-                print("-" * len(el.tag))
-                for c in el.findall("./*"):
-                    print("  {0}: {1}".format(c.tag, spa.accessors[c.tag].value))
-                print("")
-
-        elif cmd == "live":
-            print("Live Settings")
-            print("=============")
-            print("")
-            for el in spa.log_xml.findall("./*"):
-                print(el.tag)
-                print("-" * len(el.tag))
-                for c in el.findall("./*"):
-                    print("  {0}: {1}".format(c.tag, spa.accessors[c.tag].value))
-                print("")
-
-        elif cmd.startswith("press "):
-            cmd = cmd[6:]
-            for button in GeckoConstants.BUTTONS:
-                if button[0].lower() == cmd:
-                    spa.press(button[2])
-
-        elif cmd.startswith("setpoint "):
-            cmd = cmd[9:]
-            facade.water_heater.set_target_temperature(float(cmd))
-
-        elif cmd.startswith("watercare "):
-            mode = inp[10:]
-            try:
-                facade.water_care.set_mode(mode)
-            except Exception:  # pylint: disable=broad-except
-                logger.exception("Exception setting watercare to '%s'", mode)
-
-        elif cmd.startswith("get "):
-            key = inp[4:]
-            try:
-                print("{0} = {1}".format(key, spa.accessors[key].value))
-            except Exception:  # pylint: disable=broad-except
-                logger.exception("Exception getting '%s'", key)
-
-        elif cmd.startswith("set "):
-            try:
-                key, val = inp[4:].split("=")
-                spa.accessors[key].value = val
-            except Exception:  # pylint: disable=broad-except
-                logger.exception("Exception handling setting %s=%s", key, val)
-
-        elif cmd == "refresh":
-            spa.refresh()
-
-        elif cmd == "download":
-            manager.download()
-
-        elif cmd == "license":
-            print(LICENSE)
-
-        elif cmd == "about":
-            print("")
-            print(
-                "client.py: A python program using GeckoLib library to drive Gecko enabled devices with in.touch2 communication modules"
-            )
-            print("Library version {0}".format(manager.version))
-
-        # TODO: Needs work to deal with multiple requests and responses that need matching up ...
-        # elif cmd.startswith("all "):
-        #    cmd = cmd[4:]
-        #    for device in facade.all_user_devices:
-        #        if cmd == "on":
-        #            device.turn_on()
-        #        else:
-        #            device.turn_off()
-        else:
-
-            found = False
-            for device in facade.all_user_devices:
-                if cmd.startswith(device.ui_key.lower()):
-                    cmd = cmd[len(device.ui_key) + 1 :]
-                    if cmd == "on":
-                        device.turn_on()
-                        found = True
-                    else:
-                        device.turn_off()
-                        found = True
-
-            if not found:
-                print("Unknown command. Try 'help'!")
-
-finally:
-    manager.finish()
+    sh = GeckoShell()
+    try:
+        sh.cmdloop()
+    finally:
+        del sh
+    sys.exit(0)

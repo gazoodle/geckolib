@@ -28,7 +28,6 @@
 import logging
 from geckolib import (
     GeckoConstants,
-    GeckoSpa,
     GeckoGetActiveWatercare,
     GeckoSetActiveWatercare,
 )
