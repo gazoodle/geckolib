@@ -124,6 +124,8 @@ class GeckoConstants:
     REQUEST_AND_RESPONSE_GET_STATUS = ("STATU", b"STATV")
     REQUEST_AND_RESPONSE_PARTIAL_STATUS = ("STATQ", b"STATP")
     REQUEST_AND_RESPONSE_PACK_COMMAND = ("SPACK", b"PACKS")
+    REQUEST_AND_RESPONSE_GET_ACTIVE_WATERCARE = ("GETWC", b"WCGET")
+    REQUEST_AND_RESPONSE_SET_ACTIVE_WATERCARE = ("SETWC", b"WCSET")
 
     # Pack commands
     PACK_COMMAND_KEY_PRESS = 57
@@ -181,6 +183,22 @@ class GeckoConstants:
 
     REGEX_DOT_STAR = "(.*)"
 
+    WATERCARE_MODE = (
+        AwayFromHome,
+        Standard,
+        EnergySaving,
+        SuperEnergySaving,
+        Weekender,
+    ) = range(5)
+
+    WATERCARE_MODE_STRING = [
+        "Away From Home",
+        "Standard",
+        "Energy Saving",
+        "Super Energy Saving",
+        "Weekender",
+    ]
+
 
 ###################################################################################################
 class GeckoResponse:
@@ -204,6 +222,7 @@ class GeckoResponse:
         self.has_sequence = True
         self.parms = None
         self.retry_count = 0
+        self.aborted = False
 
     def check_timeout(self, spa):
         """ Decide if this device response has timed-out, and if so, optionally retry """
@@ -223,6 +242,7 @@ class GeckoResponse:
             logger.warning(
                 "Handler for %s timed out, aborted", self.request_and_response[0]
             )
+            self.aborted = True
             if not self.timeout_handler is None:
                 self.timeout_handler()
             return True
@@ -349,6 +369,46 @@ class GeckoGetChannel(GeckoResponse):
         spa.channel, spa.signal, response = self.unpack(">BB", 2, response)
         logger.debug("Got channel %s/%s, get config", spa.channel, spa.signal)
         spa.send_request(GeckoGetConfig())
+        return True
+
+
+###################################################################################################
+class GeckoGetActiveWatercare(GeckoResponse):
+    """ Process the Get active watercare command """
+
+    def __init__(self):
+        super().__init__(
+            GeckoConstants.REQUEST_AND_RESPONSE_GET_ACTIVE_WATERCARE,
+            self.watercare_handler,
+        )
+        self.active_mode = None
+
+    def watercare_handler(self, spa, response):
+        """ Handle the get active watercare response """
+        del spa
+        self.active_mode = self.unpack(">B", 1, response)[0]
+        logger.debug(
+            "Got active watercare %d(%s)",
+            self.active_mode,
+            GeckoConstants.WATERCARE_MODE_STRING[self.active_mode],
+        )
+        return True
+
+
+###################################################################################################
+class GeckoSetActiveWatercare(GeckoResponse):
+    """ Process the Set active watercare command """
+
+    def __init__(self, new_mode):
+        super().__init__(
+            GeckoConstants.REQUEST_AND_RESPONSE_SET_ACTIVE_WATERCARE,
+            self.watercare_handler,
+        )
+        self.parms = chr(new_mode)
+
+    def watercare_handler(self, spa, response):
+        """ Handle the set active watercare response """
+        del self, spa, response
         return True
 
 

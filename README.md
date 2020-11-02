@@ -69,12 +69,14 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Show which parts of the status block are addressed by the SpaPackStruct.xml
    so we can inspect the remainder to see if there is anything useful in there.
  - Handle other device types such as Waterfall
+ - Async APIs
 
 ## Done/Fixed in 0.3.8
  - Restructure code to be in line with Python library style
  - Code auto formatted with Black
- - Some pylint warnings fixed
+ - Some pylint warnings/issues fixed
  - Unit tests added for GeckoStructAccessor
+ - Watercare handled
 
 ## Done/Fixed in 0.3.7
  - Deal with unhandled devices

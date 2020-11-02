@@ -158,6 +158,11 @@ try:
                 )
             # print("all <ON|OFF>     - Turn all devices ON or OFF")
             print("setpoint <temp>  - Set the setpoint temperature to <temp>")
+            print(
+                "watercare <mode> - Set the watercare mode to one of {0}".format(
+                    GeckoConstants.WATERCARE_MODE_STRING
+                )
+            )
             print("state            - Show the state of spa `{0}`".format(spa.name))
             print("")
             print("== in.touch2 commands ==")
@@ -231,19 +236,26 @@ try:
             cmd = cmd[9:]
             facade.water_heater.set_target_temperature(float(cmd))
 
+        elif cmd.startswith("watercare "):
+            mode = inp[10:]
+            try:
+                facade.water_care.set_mode(mode)
+            except Exception:  # pylint: disable=broad-except
+                logger.exception("Exception setting watercare to '%s'", mode)
+
         elif cmd.startswith("get "):
             key = inp[4:]
             try:
                 print("{0} = {1}".format(key, spa.accessors[key].value))
             except Exception:  # pylint: disable=broad-except
-                logger.exception("Exception handling '%s'", key)
+                logger.exception("Exception getting '%s'", key)
 
         elif cmd.startswith("set "):
             try:
                 key, val = inp[4:].split("=")
                 spa.accessors[key].value = val
             except Exception:  # pylint: disable=broad-except
-                logger.exception("Exception handling %s=%s", key, val)
+                logger.exception("Exception handling setting %s=%s", key, val)
 
         elif cmd == "refresh":
             spa.refresh()
