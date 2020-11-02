@@ -278,8 +278,9 @@ class GeckoWaterCare(GeckoAutomationBase):
 
     def set_mode(self, new_mode):
         """Set the active watercare mode to new_mode.
-        new_mode can be a string, in which case the value must be a member of GeckoConstants.WATERCARE_MODE_STRING,
-        or it can be an integer from GeckoConstants.WATERCARE_MODE
+        new_mode can be a string, in which case the value must be a member of
+        GeckoConstants.WATERCARE_MODE_STRING, or it can be an integer from
+        GeckoConstants.WATERCARE_MODE
         """
         if isinstance(new_mode, str):
             new_mode = GeckoConstants.WATERCARE_MODE_STRING.index(new_mode)
