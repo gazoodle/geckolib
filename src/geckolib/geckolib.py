@@ -97,13 +97,14 @@ class GeckoConstants:
     KEY_SETPOINT_G = "SetpointG"
     KEY_REAL_SETPOINT_G = "RealSetPointG"
     KEY_DISPLAYED_TEMP_G = "DisplayedTempG"
-    KEY_USER_DEMAND_LIGHT = "UdLi"
     KEY_PUMP_1 = "P1"
     KEY_PUMP_2 = "P2"
     KEY_PUMP_3 = "P3"
     KEY_PUMP_4 = "P4"
     KEY_PUMP_5 = "P5"
-    key_blower = "BL"
+    KEY_BLOWER = "BL"
+
+    KEY_USER_DEMAND_LIGHT = "UdLi"
 
     EXCEPTION_MESSAGE_NO_SPA_PACK = "Cannot find spa pack for {0}"
     EXCEPTION_MESSAGE_NOT_WRITABLE = (
@@ -163,7 +164,7 @@ class GeckoConstants:
         "P3": ("Pump 3", KEYPAD_PUMP_3, KEY_PUMP_3, DEVICE_CLASS_PUMP),
         "P4": ("Pump 4", KEYPAD_PUMP_4, KEY_PUMP_4, DEVICE_CLASS_PUMP),
         "P5": ("Pump 5", KEYPAD_PUMP_5, KEY_PUMP_5, DEVICE_CLASS_PUMP),
-        "BL": ("Blower", KEYPAD_BLOWER, key_blower, DEVICE_CLASS_BLOWER),
+        "BL": ("Blower", KEYPAD_BLOWER, KEY_BLOWER, DEVICE_CLASS_BLOWER),
         "LI": ("Lights", KEYPAD_LIGHT, KEY_USER_DEMAND_LIGHT, DEVICE_CLASS_LIGHT),
     }
 

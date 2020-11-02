@@ -49,7 +49,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 # Todo
 
- - Water care settings
  - Reminders
  - Spa state (heating/cooling/errors)
  - Error handling
@@ -69,14 +68,16 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Show which parts of the status block are addressed by the SpaPackStruct.xml
    so we can inspect the remainder to see if there is anything useful in there.
  - Handle other device types such as Waterfall
+ - Handle multi/variable speed pumps
  - Async APIs
 
 ## Done/Fixed in 0.3.8
  - Restructure code to be in line with Python library style
  - Code auto formatted with Black
- - Some pylint warnings/issues fixed
+ - Most pylint warnings/issues fixed
  - Unit tests added for GeckoStructAccessor
  - Watercare handled
+ - Client.py program restructured to use python Cmd class
 
 ## Done/Fixed in 0.3.7
  - Deal with unhandled devices
