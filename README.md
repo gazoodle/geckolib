@@ -71,6 +71,12 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Handle multi/variable speed pumps
  - Async APIs
 
+## Done/Fixed in 0.3.9
+ - Message encoding -> latin1 from utf-8 to avoid mangling raw bytes. This fixes
+   the turning pump 2 off when turning pump 1 on using `set UdP2=HI` then 
+   `set UdP1=HI`. There must be a better way to do this without switching between
+   strings and bytes ...
+
 ## Done/Fixed in 0.3.8
  - Restructure code to be in line with Python library style
  - Code auto formatted with Black

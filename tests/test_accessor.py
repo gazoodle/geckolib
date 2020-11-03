@@ -30,14 +30,28 @@ class MockSpa:
             b"\x02\xbe"
             # Bytes 19-20 are a sized bitpos enum
             b"\x11\x70"
+            # Bytes 21-22 are an empty sized bitpos enum
+            b"\x00\x00"
         )
         self.last_pos = 0
+        self.last_len = 0
         self.last_data = None
+
+    def replace_status_block_segment(self, offset, segment):
+        """ Replace a segment of the status block """
+        segment_len = len(segment)
+        prefix = self.status_block[0:offset]
+        suffix = self.status_block[offset + segment_len :]
+        self.status_block = prefix + segment + suffix
 
     def send_request(self, message):
         """ Store data from the last message sent """
-        self.last_pos = struct.unpack(">H", message.parms[5:7].encode("utf-8"))[0]
+        self.last_len = struct.unpack(">B", message.parms[1:2].encode("latin1"))[0]
+        self.last_pos = struct.unpack(">H", message.parms[5:7].encode("latin1"))[0]
         self.last_data = message.parms[7:]
+        self.replace_status_block_segment(
+            self.last_pos, self.last_data.encode("latin1")
+        )
 
 
 class TestStructAccessor(unittest.TestCase):
@@ -176,6 +190,46 @@ class TestStructAccessor(unittest.TestCase):
         accessor.value = "OFF"
         self.assertEqual(chr(0b00000001) + chr(0b01110000), self.spa.last_data)
 
+    def test_multiple_write_bitpos_enum(self):
+        """ Can we write multiple bitpos enums to the structure """
+
+        element_p1 = ET.fromstring(
+            '<UdP1 Type="Enum" Pos="21" BitPos="14" Size="2" '
+            'MaxItems="4" Items="OFF|LO|HI" RW="ALL" />'
+        )
+        element_p2 = ET.fromstring(
+            '<UdP2 Type="Enum" Pos="21" BitPos="12" Size="2" '
+            'MaxItems="4" Items="OFF|LO|HI" RW="ALL" />'
+        )
+
+        accessor_p1 = GeckoStructAccessor(self.spa, element_p1)
+        accessor_p2 = GeckoStructAccessor(self.spa, element_p2)
+
+        accessor_p2.value = "HI"
+        self.assertEqual(21, self.spa.last_pos)
+        self.assertEqual("\x20\x00", self.spa.last_data)
+        self.assertEqual(7, self.spa.last_len)
+        self.assertEqual(2, len(self.spa.last_data))
+
+        accessor_p1.value = "HI"
+        self.assertEqual(21, self.spa.last_pos)
+        self.assertEqual("\xA0\x00", self.spa.last_data)
+        self.assertEqual(7, self.spa.last_len)
+        self.assertEqual(2, len(self.spa.last_data))
+
+
+# Set logging
+import logging
+
+stm_log = logging.StreamHandler()
+stm_log.setLevel(logging.WARNING)
+stm_log.setFormatter(logging.Formatter("%(message)s"))
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(name)s %(levelname)s %(message)s",
+    handlers=[logging.FileHandler("unittest.log"), stm_log],
+)
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     unittest.main()

@@ -48,7 +48,7 @@ class GeckoConstants:
 
     VERSION_MAJOR = 0
     VERSION_MINOR = 3
-    VERSION_PATCH = 8
+    VERSION_PATCH = 9
 
     INCLUDE_DUMMY_SPA = False
     INTOUCH2_PORT = 10022
@@ -59,7 +59,7 @@ class GeckoConstants:
     PING_FREQUENCY_IN_SECONDS = 15
 
     BROADCAST_ADDRESS = "255.255.255.255"
-    MESSAGE_ENCODING = "utf-8"
+    MESSAGE_ENCODING = "latin1"
     FORMAT_CLIENT_IDENTIFIER = "IOS{0}"
 
     SPA_PACK_STRUCT_FILE = "SpaPackStruct.xml"
@@ -420,7 +420,11 @@ class GeckoPackCommand(GeckoResponse):
     def __init__(self, packtype, values):
         super().__init__(GeckoConstants.REQUEST_AND_RESPONSE_PACK_COMMAND)
         self.parms = "".join(chr(item) for item in [packtype, len(values)] + values)
-        logger.debug("Pack cmd %s", self.parms.encode(GeckoConstants.MESSAGE_ENCODING))
+        logger.debug(
+            "Pack cmd %s(%d)",
+            self.parms.encode(GeckoConstants.MESSAGE_ENCODING),
+            len(self.parms),
+        )
 
 
 ###################################################################################################
@@ -711,12 +715,13 @@ class GeckoStructAccessor:
             newvalue = [int(newvalue) // 256, int(newvalue) % 256]
 
         logger.debug(
-            "Accessor %s @ %s, %s setting value to %s, existing value was %s",
+            "Accessor %s @ %s, %s setting value to %s, existing value was %s. Length is %d",
             self.tag,
             self.pos,
             self.type,
             newvalue,
             existing,
+            self.length,
         )
 
         # We issue a pack command to acheive this ...
