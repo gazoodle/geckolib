@@ -6,13 +6,11 @@ import sys
 import unittest
 import xml.etree.ElementTree as ET
 
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/geckolib"))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
+
+from geckolib import (  # pylint: disable=import-error,wrong-import-position
+    GeckoStructAccessor,
 )
-
-# pylint: disable=import-error,wrong-import-position
-from geckolib import GeckoStructAccessor
-
 
 # pylint: disable=too-few-public-methods
 # The mock class doesn't need any more public methods

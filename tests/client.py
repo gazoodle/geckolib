@@ -9,13 +9,13 @@ import os
 import sys
 import cmd
 
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/geckolib"))
-)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
-# pylint: disable=import-error,wrong-import-position
-from geckoautomation import GeckoFacade
-from geckolib import GeckoConstants, GeckoManager
+from geckolib import (  # pylint: disable=import-error,wrong-import-position
+    GeckoConstants,
+    GeckoManager,
+    GeckoFacade,
+)
 
 logger = None
 
@@ -267,7 +267,8 @@ if __name__ == "__main__":
     stm_log.setLevel(logging.WARNING)
     stm_log.setFormatter(logging.Formatter("%(message)s"))
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.DEBUG,  # Uncomment this line to get detailed information
+        # level=logging.WARNING, # Uncomment this line to keep log files small
         format="%(asctime)s %(name)s %(levelname)s %(message)s",
         handlers=[logging.FileHandler("client.log"), stm_log],
     )

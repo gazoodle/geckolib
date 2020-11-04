@@ -76,6 +76,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
    the turning pump 2 off when turning pump 1 on using `set UdP2=HI` then 
    `set UdP1=HI`. There must be a better way to do this without switching between
    strings and bytes ...
+ - Major source restructure to get ready for PyPI package
 
 ## Done/Fixed in 0.3.8
  - Restructure code to be in line with Python library style
