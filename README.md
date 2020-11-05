@@ -167,6 +167,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Async APIs
  - Turn on/off log file in GeckoShell
 
+## Done/Fixed in 0.3.10
+ - Try upload to PiPY
+
 ## Done/Fixed in 0.3.9
  - Message encoding -> latin1 from utf-8 to avoid mangling raw bytes. This fixes
    the turning pump 2 off when turning pump 1 on using `set UdP2=HI` then 
