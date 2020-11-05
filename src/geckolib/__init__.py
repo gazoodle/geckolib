@@ -6,6 +6,7 @@ from .const import GeckoConstants
 from .facade import GeckoFacade
 from .manager import GeckoManager
 from .spastruct import GeckoStructAccessor
+from .utils import GeckoShell
 
 # __all__ = ["GeckoManager"]
 
