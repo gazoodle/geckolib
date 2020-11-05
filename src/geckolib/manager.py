@@ -11,6 +11,7 @@ import urllib3
 from .driver import GeckoComms
 from .const import GeckoConstants
 from .spa import GeckoSpa
+from ._version import VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -110,8 +111,4 @@ class GeckoManager(GeckoComms):
     @property
     def version(self):
         """ Get the version of the library """
-        return "v{0}.{1}.{2}".format(
-            GeckoConstants.VERSION_MAJOR,
-            GeckoConstants.VERSION_MINOR,
-            GeckoConstants.VERSION_PATCH,
-        )
+        return "v{0}".format(VERSION)

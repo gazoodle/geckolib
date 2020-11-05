@@ -9,10 +9,6 @@ class GeckoConstants:
     documented behaviour might not be here, e.g. 'rw' as a parameter to open()
     """
 
-    VERSION_MAJOR = 0
-    VERSION_MINOR = 3
-    VERSION_PATCH = 9
-
     INCLUDE_DUMMY_SPA = False
     INTOUCH2_PORT = 10022
     MAX_PACKET_SIZE = 8192
