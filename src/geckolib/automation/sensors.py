@@ -1,6 +1,6 @@
 """ Gecko automation support for sensors """
 
-from .automation import GeckoAutomationBase
+from .base import GeckoAutomationBase
 
 
 class GeckoSensor(GeckoAutomationBase):

@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 
 import urllib3
 
-from .comms import GeckoComms
+from .driver import GeckoComms
 from .const import GeckoConstants
 from .spa import GeckoSpa
 

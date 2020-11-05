@@ -1,8 +1,8 @@
 """ Gecko Water Heaters """
 
-from .automation import GeckoAutomationBase
+from .base import GeckoAutomationBase
 from .sensors import GeckoSensor
-from .const import GeckoConstants
+from ..const import GeckoConstants
 
 
 class GeckoWaterHeater(GeckoAutomationBase):

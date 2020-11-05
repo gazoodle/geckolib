@@ -4,7 +4,7 @@ import struct
 import time
 import logging
 
-from .const import GeckoConstants
+from ..const import GeckoConstants
 
 logger = logging.getLogger(__name__)
 

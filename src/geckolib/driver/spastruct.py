@@ -3,7 +3,7 @@
 import struct
 import logging
 
-from .const import GeckoConstants
+from ..const import GeckoConstants
 from .responses import GeckoPackCommand
 
 logger = logging.getLogger(__name__)

@@ -2,7 +2,7 @@
 
 import logging
 
-from .automation import GeckoAutomationBase
+from .base import GeckoAutomationBase
 from .sensors import GeckoSensor
 
 logger = logging.getLogger(__name__)

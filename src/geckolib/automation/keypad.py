@@ -1,6 +1,6 @@
 """ Gecko Keypads """
 
-from .automation import GeckoAutomationBase
+from .base import GeckoAutomationBase
 
 
 class GeckoKeypad(GeckoAutomationBase):

@@ -1,8 +1,8 @@
 """ Gecko Watercare """
 
-from .automation import GeckoAutomationBase
-from .responses import GeckoGetActiveWatercare, GeckoSetActiveWatercare
-from .const import GeckoConstants
+from .base import GeckoAutomationBase
+from ..driver import GeckoGetActiveWatercare, GeckoSetActiveWatercare
+from ..const import GeckoConstants
 
 
 class GeckoWaterCare(GeckoAutomationBase):

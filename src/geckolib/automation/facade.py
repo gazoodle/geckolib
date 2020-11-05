@@ -3,7 +3,7 @@
 import logging
 
 from .blower import GeckoBlower
-from .const import GeckoConstants
+from ..const import GeckoConstants
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight

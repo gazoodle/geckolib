@@ -5,7 +5,7 @@ import re
 import logging
 import threading
 
-from .const import GeckoConstants
+from ..const import GeckoConstants
 
 logger = logging.getLogger(__name__)
 

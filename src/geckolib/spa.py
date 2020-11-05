@@ -3,17 +3,17 @@
 import logging
 import threading
 
-from .comms import GeckoCommsClient
+from .driver import GeckoCommsClient
 from .const import GeckoConstants
-from .decorators import GeckoTemperatureDecorator
-from .responses import (
+from .driver import GeckoTemperatureDecorator
+from .driver import (
     GeckoGetSoftwareVersion,
     GeckoGetStatus,
     GeckoPackCommand,
     GeckoPartialStatus,
     GeckoPing,
 )
-from .spastruct import GeckoStructAccessor
+from .driver import GeckoStructAccessor
 
 logger = logging.getLogger(__name__)
 

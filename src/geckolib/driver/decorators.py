@@ -1,6 +1,6 @@
 """ Decorator classes """
 
-from .const import GeckoConstants
+from ..const import GeckoConstants
 
 
 class GeckoTemperatureDecorator:
