@@ -167,6 +167,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Async APIs
  - Turn on/off log file in GeckoShell
 
+## Done/Fixed in 0.3.11
+ - Ping frequency set to 45 seconds
+
 ## Done/Fixed in 0.3.10
  - Try upload to PiPY
 
