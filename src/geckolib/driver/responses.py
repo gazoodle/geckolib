@@ -32,6 +32,10 @@ class GeckoResponse:
         self.retry_count = 0
         self.aborted = False
 
+    def reset(self):
+        """ Method that gets called in a retry situation to ensure that
+        the class is ready to start again """
+
     def check_timeout(self, spa):
         """ Decide if this device response has timed-out, and if so, optionally retry """
         if self.timeout == 0:
@@ -66,6 +70,7 @@ class GeckoResponse:
 
     def send_request(self, spa):
         """ Send a request to the spa """
+        self.reset()
         spa.send_message(
             spa.build_command(
                 self.request_and_response[0], self.has_sequence, self.parms
@@ -310,11 +315,15 @@ class GeckoGetStatus(GeckoResponse):
         self.next_expected = 0
         self.received = 0
         super().__init__(
-            GeckoConstants.REQUEST_AND_RESPONSE_GET_STATUS, self.status_handler, 20
+            GeckoConstants.REQUEST_AND_RESPONSE_GET_STATUS, self.status_handler, 10
         )
         self.parms = "{0:c}{1:c}{2:c}{3:c}".format(
             start // 256, start % 256, length // 256, length % 256
         )
+
+    def reset(self):
+        self.next_expected = 0
+        self.received = 0
 
     def status_handler(self, spa, response):
         """ Handle the status response segment """
