@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 
 class GeckoFacade:
     """Facade to abstract the Gecko implementation details and present an interface suitable
-    for consumption by automation systems, e.g. Home Assistant"""
+    for consumption by automation systems, e.g. Home Assistant. This class and all the output
+    and state objects maintain their state locally so there should be no need to poll"""
 
     def __init__(self, spa):
         self._spa = spa
@@ -77,7 +78,7 @@ class GeckoFacade:
             device
             for device in actual_devices
             for ud in user_demands
-            if "Ud{0}".format(device).upper() == ud.upper()
+            if f"Ud{device}".upper() == ud.upper()
         ]
         logger.debug("Actual user devices are %s", self.actual_user_devices)
         # These keys can be used to determine the actual state ...

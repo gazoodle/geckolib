@@ -33,6 +33,4 @@ class GeckoWaterCare(GeckoAutomationBase):
         self._spa.send_request(GeckoSetActiveWatercare(new_mode))
 
     def __str__(self):
-        return "{0}: {1}".format(
-            self.name, GeckoConstants.WATERCARE_MODE_STRING[self.mode]
-        )
+        return f"{self.name}: {GeckoConstants.WATERCARE_MODE_STRING[self.mode]}"

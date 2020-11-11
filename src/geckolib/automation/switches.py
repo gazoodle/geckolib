@@ -16,7 +16,7 @@ class GeckoSwitch(GeckoAutomationBase):
         super().__init__(facade, props[0])
         self.ui_key = key
         self._state_sensor = GeckoSensor(
-            facade, "{0} State".format(props[0]), self._spa.accessors[props[2]]
+            facade, f"{props[0]} State", self._spa.accessors[props[2]]
         )
         self._keypad_button = props[1]
         self.device_class = props[3]
@@ -43,4 +43,4 @@ class GeckoSwitch(GeckoAutomationBase):
         self._spa.press(self._keypad_button)
 
     def __str__(self):
-        return "{0}: {1}".format(self.name, self._state_sensor.state)
+        return f"{self.name}: {self._state_sensor.state}"

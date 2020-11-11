@@ -92,14 +92,9 @@ class GeckoWaterHeater(GeckoAutomationBase):
 
     def format_temperature(self, temperature):
         """ Format a temperature value to a printable string """
-        return "{0:.1f}{1}".format(temperature, self.temperature_unit)
+        return f"{temperature:.1f}{self.temperature_unit}"
 
     def __str__(self):
         if self._is_present:
-            return "{0}: Temperature {1}, SetPoint {2}, Operation {3}".format(
-                self.name,
-                self.format_temperature(self.current_temperature),
-                self.format_temperature(self.target_temperature),
-                self.current_operation,
-            )
-        return "{0}: Not present".format(self.name)
+            return f"{self.name}: Temperature {self.format_temperature(self.current_temperature)}, SetPoint {self.format_temperature(self.target_temperature)}, Operation {self.current_operation}"
+        return f"{self.name}: Not present"

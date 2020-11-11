@@ -10,4 +10,4 @@ class GeckoKeypad(GeckoAutomationBase):
         super().__init__(facade, "Keypad")
 
     def __str__(self):
-        return "{0}: Not implemented yet".format(self.name)
+        return f"{self.name}: Not implemented yet"
