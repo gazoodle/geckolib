@@ -54,11 +54,7 @@ class GeckoShell(cmd.Cmd):
     def run():  # pylint: disable=no-method-argument
         """ Convenience function to run a shell command loop """
         print(DISCLAIMER)
-        shell = GeckoShell()
-        try:
-            shell.cmdloop()
-        finally:
-            del shell
+        GeckoShell().cmdloop()
 
     def __init__(self):
         super().__init__()
@@ -74,9 +70,6 @@ class GeckoShell(cmd.Cmd):
         self.intro = "Welcome to the Gecko shell. Type help or ? to list commands.\n"
         self.prompt = "(Gecko) "
         self.onecmd("discover")
-
-    def __del__(self):
-        self.manager.finish()
 
     def do_exit(self, arg):
         """Exit this shell: EXIT"""

@@ -38,7 +38,7 @@ class GeckoSpa(GeckoCommsClient):
         )
         self.add_handler(GeckoPartialStatus())
 
-        self.ping_thread = threading.Thread(target=self.ping_thread_func)
+        self.ping_thread = threading.Thread(target=self.ping_thread_func,daemon=True)
 
         # Default values for properties
         self.channel = 0
@@ -62,10 +62,6 @@ class GeckoSpa(GeckoCommsClient):
         # configurations larger than this
         self.status_block = b"\x00" * 1024
         self.accessors = {}
-
-    def __del__(self):
-        super().__del__()
-        self.ping_thread.join()
 
     def send_request(self, request):
         """ Send a request and hold the handler to wait for the response """
@@ -100,10 +96,6 @@ class GeckoSpa(GeckoCommsClient):
         )
         self.config_number = self.accessors[GeckoConstants.KEY_CONFIG_NUMBER].value
         logger.info("Spa is connected")
-
-    def disconnect(self):
-        """ Disconnect from the in.touch2 module """
-        self.finished()
 
     def ping_thread_func(self):
         """ Ping thread function """

@@ -94,9 +94,6 @@ class SampleClient:
         self.manager = GeckoManager(CLIENT_ID)
         self.facade = None
 
-    def __del__(self):
-        self.manager.finish()
-
     def connect_to_first_spa(self):
         """ Connect the client to the first spa that it encounters """
         self.manager.discover()
@@ -169,6 +166,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ## Done/Fixed in 0.3.11
  - Ping frequency set to 45 seconds
+ - Reset method to GeckoReponse class to handle retries in GeckoGetStatus class
+ - Add mechanism to locate a spa in the manager class based on it's identifier
+ - Set worker threads to daemon mode and removed lifetime management stuff
 
 ## Done/Fixed in 0.3.10
  - Try upload to PiPY

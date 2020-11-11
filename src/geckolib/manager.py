@@ -39,11 +39,6 @@ class GeckoManager(GeckoComms):
         self.retry_count = 0
         self.spas = []
 
-    def finish(self):
-        """ Disconnect all the connected spas and release the background worker threads """
-        for spa in self.spas:
-            spa.disconnect()
-
     def download(self):
         """ Download SpaPackStruct.xml from it's permanent home """
         logger.info("Downloading SpaPackStruct.xml")
@@ -107,6 +102,14 @@ class GeckoManager(GeckoComms):
         logger.warning(
             "No spas found, check that you are on the same LAN as your in.touch2 device"
         )
+
+    def get_spa_from_id(self, identifier):
+        """ Locate a spa based on it's identifier """
+        return next(spa for spa in self.spas if spa.identifier == identifier)
+
+    def get_spa_from_name(self, name):
+        """ Locate a spa based on it's name """
+        return next(spa for spa in self.spas if spa.name == name)
 
     @property
     def version(self):

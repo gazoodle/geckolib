@@ -84,16 +84,8 @@ class GeckoCommsClient(GeckoComms):
         super().__init__(mgr)
         self.handlers = []
         self.exit = threading.Event()
-        self.receive_thread = threading.Thread(target=self.receive_thread_func)
+        self.receive_thread = threading.Thread(target=self.receive_thread_func,daemon=True)
         self.receive_thread.start()
-
-    def __del__(self):
-        super().__del__()
-        self.receive_thread.join()
-
-    def finished(self):
-        """ Signal that we're finished with the communication """
-        self.exit.set()
 
     def add_handler(self, handler):
         """ Add a handler to the handler list """
