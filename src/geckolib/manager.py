@@ -103,7 +103,7 @@ class GeckoManager(GeckoComms):
             "No spas found, check that you are on the same LAN as your in.touch2 device"
         )
 
-    def get_spa_from_id(self, identifier):
+    def get_spa_from_identifier(self, identifier):
         """ Locate a spa based on it's identifier """
         return next(spa for spa in self.spas if spa.identifier == identifier)
 
