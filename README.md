@@ -97,7 +97,6 @@ class SampleClient:
     def connect_to_first_spa(self):
         """ Connect the client to the first spa that it encounters """
         self.manager.discover()
-        self.manager.spas[0].connect()
         self.facade = GeckoFacade(self.manager.spas[0])
 
     def pump_1_on(self):
@@ -169,6 +168,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Reset method to GeckoReponse class to handle retries in GeckoGetStatus class
  - Add mechanism to locate a spa in the manager class based on it's identifier
  - Set worker threads to daemon mode and removed lifetime management stuff
+ - Facade class will automatically connect to spa if needed
 
 ## Done/Fixed in 0.3.10
  - Try upload to PiPY

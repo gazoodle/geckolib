@@ -19,6 +19,8 @@ class GeckoFacade:
 
     def __init__(self, spa):
         self._spa = spa
+        if not spa.is_connected:
+            spa.connect()
         self._sensors = []
         self._water_heater = GeckoWaterHeater(self)
         self._water_care = GeckoWaterCare(self)
@@ -110,6 +112,16 @@ class GeckoFacade:
             for device in self.actual_user_devices
             if GeckoConstants.DEVICES[device][3] == GeckoConstants.DEVICE_CLASS_LIGHT
         ]
+
+    @property
+    def name(self):
+        """ Get the spa name """
+        return self._spa.name
+    
+    @property
+    def identifier(self):
+        """ Get the spa identifier """
+        return self._spa.identifier
 
     @property
     def water_heater(self):
