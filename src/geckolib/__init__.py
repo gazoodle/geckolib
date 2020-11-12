@@ -4,10 +4,11 @@ import logging
 
 from .const import GeckoConstants
 from .automation import GeckoFacade
-from .manager import GeckoManager
-from .driver import GeckoStructAccessor
-from .utils import GeckoShell
+from .manager import ObsoleteGeckoManager
+from .locator import GeckoLocator
+from .driver import GeckoStructAccessor, GeckoSpaPack
 from ._version import VERSION
+from .utils import GeckoShell
 
 # __all__ = ["GeckoManager"]
 

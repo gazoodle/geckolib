@@ -4,7 +4,7 @@ import cmd
 import sys
 import logging
 
-from .. import GeckoManager, GeckoConstants, GeckoFacade
+from .. import GeckoConstants, GeckoFacade, GeckoLocator, VERSION, GeckoSpaPack
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +47,7 @@ DISCLAIMER = """
 
 """
 
+SHELL_UUID = "02ac6d28-42d0-41e3-ad22-274d0aa491da"
 
 class GeckoShell(cmd.Cmd):
     """ GeckoShell is a client application to drive the geckolib automation interface """
@@ -54,13 +55,14 @@ class GeckoShell(cmd.Cmd):
     def run():  # pylint: disable=no-method-argument
         """ Convenience function to run a shell command loop """
         print(DISCLAIMER)
-        GeckoShell().cmdloop()
+
+        with GeckoShell() as shell:
+            shell.cmdloop()
 
     def __init__(self):
         super().__init__()
 
-        self.manager = GeckoManager("02ac6d28-42d0-41e3-ad22-274d0aa491da")
-        self.spa = None
+        self.spas = None
         self.facade = None
 
         self.do_watercare.__func__.__doc__ = self.do_watercare.__doc__.format(
@@ -70,6 +72,14 @@ class GeckoShell(cmd.Cmd):
         self.intro = "Welcome to the Gecko shell. Type help or ? to list commands.\n"
         self.prompt = "(Gecko) "
         self.onecmd("discover")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        print("Exit GeckoShell")
+        if self.facade:
+            self.facade.complete()
 
     def do_exit(self, arg):
         """Exit this shell: EXIT"""
@@ -85,8 +95,11 @@ class GeckoShell(cmd.Cmd):
             end="",
             flush=True,
         )
-        self.manager.discover()
-        number_of_spas = len(self.manager.spas)
+
+        with GeckoLocator(SHELL_UUID) as locator:
+            self.spas = locator.spas
+
+        number_of_spas = len(self.spas)
         print("Found {0} spas".format(number_of_spas))
         if number_of_spas == 0:
             logger.warning(
@@ -99,24 +112,23 @@ class GeckoShell(cmd.Cmd):
     def do_list(self, arg):
         """List the spas that are available to manage : LIST """
         del arg
-        for idx, spa in enumerate(self.manager.spas):
+        for idx, spa in enumerate(self.spas):
             print("{0}. {1}".format(idx + 1, spa.name))
 
     def do_manage(self, arg):
         """Manage a named or numbered spa : MANAGE 1"""
         spa_to_manage = int(arg)
-        self.spa = self.manager.spas[spa_to_manage - 1]
+        spa = self.spas[spa_to_manage - 1]
         print(
             "Connecting to spa `{0}` at {1} ... ".format(
-                self.spa.name, self.spa.ipaddress
+                spa.name, spa.ipaddress
             ),
             end="",
             flush=True,
         )
-        self.spa.connect()
-        self.facade = GeckoFacade(self.spa)
+        self.facade = spa.get_facade()
         print("connected!")
-        self.prompt = "{0}$ ".format(self.spa.name)
+        self.prompt = "{0}$ ".format(self.facade.name)
 
         # Build list of spa commands
         for device in self.facade.all_user_devices:
@@ -162,15 +174,15 @@ class GeckoShell(cmd.Cmd):
         """ Get the version strings for the spa """
         return [
             "SpaPackStruct.xml revision {0}".format(
-                self.manager.spa_pack_struct_revision
+                self.facade.spa.revision
             ),
-            "intouch version EN {0}".format(self.spa.intouch_version_en),
-            "intouch version CO {0}".format(self.spa.intouch_version_co),
-            "Spa pack {0} {1}".format(self.spa.pack, self.spa.version),
-            "Low level configuration # {0}".format(self.spa.config_number),
-            "Config version {0}".format(self.spa.config_version),
-            "Log version {0}".format(self.spa.log_version),
-            "Pack type {0}".format(self.spa.pack_type),
+            "intouch version EN {0}".format(self.facade.spa.intouch_version_en),
+            "intouch version CO {0}".format(self.facade.spa.intouch_version_co),
+            "Spa pack {0} {1}".format(self.facade.spa.pack, self.facade.spa.version),
+            "Low level configuration # {0}".format(self.facade.spa.config_number),
+            "Config version {0}".format(self.facade.spa.config_version),
+            "Log version {0}".format(self.facade.spa.log_version),
+            "Pack type {0}".format(self.facade.spa.pack_type),
         ]
 
     def do_version(self, arg):
@@ -185,14 +197,14 @@ class GeckoShell(cmd.Cmd):
         print("Configuration Settings")
         print("======================")
         print("")
-        for element in self.spa.config_xml.findall("./*"):
+        for element in self.facade.spa.config_xml.findall("./*"):
             if "Pos" in element.attrib:
                 continue
             print(element.tag)
             print("-" * len(element.tag))
             for child in element.findall("./*"):
                 print(
-                    "  {0}: {1}".format(child.tag, self.spa.accessors[child.tag].value)
+                    "  {0}: {1}".format(child.tag, self.facade.spa.accessors[child.tag].value)
                 )
             print("")
 
@@ -202,12 +214,12 @@ class GeckoShell(cmd.Cmd):
         print("Live Settings")
         print("=============")
         print("")
-        for element in self.spa.log_xml.findall("./*"):
+        for element in self.facade.spa.log_xml.findall("./*"):
             print(element.tag)
             print("-" * len(element.tag))
             for child in element.findall("./*"):
                 print(
-                    "  {0}: {1}".format(child.tag, self.spa.accessors[child.tag].value)
+                    "  {0}: {1}".format(child.tag, self.facade.spa.accessors[child.tag].value)
                 )
             print("")
 
@@ -219,7 +231,7 @@ class GeckoShell(cmd.Cmd):
             "client.py: A python program using GeckoLib library to drive Gecko enabled"
             " devices with in.touch2 communication modules"
         )
-        print("Library version {0}".format(self.manager.version))
+        print("Library version v{0}".format(VERSION))
 
     def do_license(self, arg):
         """Display the license details"""
@@ -229,17 +241,17 @@ class GeckoShell(cmd.Cmd):
     def do_download(self, arg):
         """Download the SpaPackStruct.xml from Gecko"""
         del arg
-        self.manager.download()
+        GeckoSpaPack.download()
 
     def do_refresh(self, arg):
         """Refresh the live data from your spa"""
         del arg
-        self.spa.refresh()
+        self.facade.spa.refresh()
 
     def do_get(self, arg):
         """Get the value of the specified spa pack structure element"""
         try:
-            print("{0} = {1}".format(arg, self.spa.accessors[arg].value))
+            print("{0} = {1}".format(arg, self.facade.spa.accessors[arg].value))
         except Exception:  # pylint: disable=broad-except
             logger.exception("Exception getting '%s'", arg)
 
@@ -247,7 +259,7 @@ class GeckoShell(cmd.Cmd):
         """Set the value of the specified spa pack structure element"""
         try:
             key, val = arg.split("=")
-            self.spa.accessors[key].value = val
+            self.facade.spa.accessors[key].value = val
         except Exception:  # pylint: disable=broad-except
             logger.exception("Exception handling setting %s=%s", key, val)
 
@@ -267,4 +279,4 @@ class GeckoShell(cmd.Cmd):
         logger.info("Snapshot (%s)", arg)
         for ver_str in self.get_version_strings():
             logger.info(ver_str)
-        logger.info([hex(b) for b in self.spa.status_block])
+        logger.info([hex(b) for b in self.facade.spa.status_block])

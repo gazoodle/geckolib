@@ -3,42 +3,58 @@
 import logging
 import threading
 
-from .driver import GeckoCommsClient
+from .driver import GeckoComms
 from .const import GeckoConstants
-from .driver import GeckoTemperatureDecorator
 from .driver import (
+    GeckoTemperatureDecorator,
     GeckoGetSoftwareVersion,
     GeckoGetStatus,
     GeckoPackCommand,
     GeckoPartialStatus,
     GeckoPing,
+    GeckoSpaPack
 )
 from .driver import GeckoStructAccessor
+from .automation import GeckoFacade
 
 logger = logging.getLogger(__name__)
 
+##################################################################################################
+class GeckoSpaDescriptor:
+    """ A descriptor class for spas that have been discovered on the network """
 
-class GeckoSpa(GeckoCommsClient):
+    def __init__(self, client_identifier, response):
+        self.client_identifier = client_identifier
+        data = GeckoComms.extract_data_using_regex(
+            GeckoConstants.MESSAGE_HELLO, response[0]
+        ).decode(GeckoConstants.MESSAGE_ENCODING)
+        self.identifier, self.name = data.split("|")
+        self.ipaddress, self.port = response[1]
+
+    def get_facade(self):
+        """ Get an automation facade to interact with the spa described by this class """
+        return GeckoFacade(GeckoSpa(self).connect())
+
+##################################################################################################
+class GeckoSpa(GeckoComms, GeckoSpaPack):
     """
     GeckoSpa class manages an instance of a spa, and is the main point of contact for control
     and monitoring. Uses the declarations found in SpaPackStruct.xml to build an object that
-    exposes the properties and capabilities of your spa
+    exposes the properties and capabilities of your spa. This class should only be used via
+    a Facade which hides the implementation details
     """
 
-    def __init__(self, mgr, response):
-        super().__init__(mgr)
-        data = self.extract_data_using_regex(
-            GeckoConstants.MESSAGE_HELLO, response[0]
-        ).decode(GeckoConstants.MESSAGE_ENCODING)
-        self.client_identifier = mgr.client_identifier
-        self.identifier, self.name = data.split("|")
-        self.ipaddress, self.port = response[1]
-        self._conns = GeckoConstants.MESSAGE_PART_CONNECTION_NAMES.format(
-            self.client_identifier, self.identifier
-        )
+    def __init__(self, descriptor):
+        super().__init__(descriptor.ipaddress, GeckoConstants.MESSAGE_PART_CONNECTION_NAMES.format(
+            descriptor.client_identifier, descriptor.identifier
+        ))
+        GeckoSpaPack.__init__(self)
+        self.descriptor = descriptor
+        self.start()
         self.add_handler(GeckoPartialStatus())
+        self.start_receiving()
 
-        self.ping_thread = threading.Thread(target=self.ping_thread_func,daemon=True)
+        self._ping_thread = threading.Thread(target=self._ping_thread_func,daemon=True)
 
         # Default values for properties
         self.channel = 0
@@ -63,6 +79,11 @@ class GeckoSpa(GeckoCommsClient):
         self.status_block = b"\x00" * 1024
         self.accessors = {}
 
+    def complete(self):
+        """ Complete the use of this spa class """
+        super().complete()
+        self._ping_thread.join()
+
     def send_request(self, request):
         """ Send a request and hold the handler to wait for the response """
         self.add_handler(request)
@@ -78,15 +99,16 @@ class GeckoSpa(GeckoCommsClient):
     def connect(self):
         """ Connect to the in.touch2 module """
         # Identify self to the intouch module
-        self.send_message(GeckoConstants.MESSAGE_HELLO.format(self.client_identifier))
-        self.ping_thread.start()
+        self.send_message(GeckoConstants.MESSAGE_HELLO.format(self.descriptor.client_identifier))
+        self._ping_thread.start()
         # Get the intouch version
         logger.info("Starting spa connection handshake...")
         self.is_connected = False
         self.send_request(GeckoGetSoftwareVersion())
         # Wait for connection sequence to complete
         while not self.is_connected:
-            pass
+            if not self.isalive:
+                return
         self._build_accessors()
         self.pack = self.accessors[GeckoConstants.KEY_PACK_TYPE].value
         self.version = "{0} v{1}.{2}".format(
@@ -96,12 +118,15 @@ class GeckoSpa(GeckoCommsClient):
         )
         self.config_number = self.accessors[GeckoConstants.KEY_CONFIG_NUMBER].value
         logger.info("Spa is connected")
+        return self
 
-    def ping_thread_func(self):
+    def _ping_thread_func(self):
         """ Ping thread function """
-        while not self.exit.is_set():
+        logger.info("Ping thread started")
+        while self.isalive:
             self.send_request(GeckoPing())
-            self.exit.wait(GeckoConstants.PING_FREQUENCY_IN_SECONDS)
+            self.wait(GeckoConstants.PING_FREQUENCY_IN_SECONDS)
+        logger.info("Ping thread finished")
 
     def _build_accessors(self):
         self.accessors = {

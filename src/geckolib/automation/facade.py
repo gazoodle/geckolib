@@ -20,13 +20,23 @@ class GeckoFacade:
 
     def __init__(self, spa):
         self._spa = spa
-        if not spa.is_connected:
-            spa.connect()
         self._sensors = []
         self._water_heater = GeckoWaterHeater(self)
         self._water_care = GeckoWaterCare(self)
         self._keypad = GeckoKeypad(self)
         self.scan_outputs()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        if self._spa:
+            self._spa.complete()
+            self._spa = None
+
+    def complete(self):
+        """ Finish using this facade if not used in a `with` statement """
+        self.__exit__()
 
     def scan_outputs(self):
         """ Scan the spa outputs to decide what user options are available """
@@ -117,12 +127,17 @@ class GeckoFacade:
     @property
     def name(self):
         """ Get the spa name """
-        return self._spa.name
-    
+        return self._spa.descriptor.name
+
     @property
     def identifier(self):
         """ Get the spa identifier """
-        return self._spa.identifier
+        return self._spa.descriptor.identifier
+
+    @property
+    def spa(self):
+        """ Get the spa implementation class """
+        return self._spa
 
     @property
     def water_heater(self):

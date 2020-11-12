@@ -10,6 +10,7 @@ from .responses import (
     GeckoPing,
 )
 
-from .comms import GeckoComms, GeckoCommsClient
+from .comms import GeckoComms
 from .decorators import GeckoTemperatureDecorator
 from .spastruct import GeckoStructAccessor
+from .spapack import GeckoSpaPack

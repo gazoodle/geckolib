@@ -263,7 +263,7 @@ class GeckoGetConfig(GeckoResponse):
 
         # XML is case-sensitive, but the platform from the config isn't formed the same,
         # so we manually search the Plateform nodes to find the one we're interested in
-        for plateform in spa.manager.spa_pack_struct.findall(
+        for plateform in spa.xml.findall(
             GeckoConstants.SPA_PACK_PLATEFORM_XPATH
         ):
             if (

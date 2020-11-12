@@ -76,56 +76,31 @@ Spa$ watercare Weekender
 
 ```python
 
-""" Sample Client """
+""" Simple client demonstrating use of geckolib """
 
-import sys
-import os
 import time
-
-from geckolib import GeckoManager, GeckoFacade   # pylint: disable=import-error,wrong-import-position
+from geckolib import GeckoLocator   # pylint: disable=import-error,wrong-import-position
 
 # Replace with your own UUID, see https://www.uuidgenerator.net/>
 CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
 
-class SampleClient:
-    """ Sample client class to demonstrate how to use geckolib """
+print("Locating spas on your network")
+with GeckoLocator(CLIENT_ID) as locator:
 
-    def __init__(self):
-        self.manager = GeckoManager(CLIENT_ID)
-        self.facade = None
+    print("Connecting to first spa")
+    with locator.spas[0].get_facade() as facade:
 
-    def connect_to_first_spa(self):
-        """ Connect the client to the first spa that it encounters """
-        self.manager.discover()
-        self.facade = GeckoFacade(self.manager.spas[0])
+        print(facade.water_heater)
 
-    def pump_1_on(self):
-        """ Turn the first pump on """
-        self.facade.pumps[0].turn_on()
+        print("Turning pump 1 on")
+        facade.pumps[0].turn_on()
 
-    def pump_1_off(self):
-        """ Turn the first pump off """
-        self.facade.pumps[0].turn_off()
+        time.sleep(5)
 
-    @property
-    def get_current_temperature(self):
-        """ Get the current temperature of the spa """
-        return self.facade.water_heater.current_temperature
+        print("Turning pump 1 off")
+        facade.pumps[0].turn_off()
+        time.sleep(2)
 
-cli = SampleClient()
-cli.connect_to_first_spa()
-print("Spa temp is {0}".format(cli.get_current_temperature))
-
-print("Turning pump 1 on")
-cli.pump_1_on()
-
-time.sleep(5)
-
-print("Turning pump 1 off")
-cli.pump_1_off()
-time.sleep(2)
-
-del cli
 
 ```
 
@@ -167,8 +142,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Ping frequency set to 45 seconds
  - Reset method to GeckoReponse class to handle retries in GeckoGetStatus class
  - Add mechanism to locate a spa in the manager class based on it's identifier
- - Set worker threads to daemon mode and removed lifetime management stuff
- - Facade class will automatically connect to spa if needed
+ - Set worker threads to daemon mode
+ - Re-structure for better lifetime management and easier clienting
 
 ## Done/Fixed in 0.3.10
  - Try upload to PiPY
