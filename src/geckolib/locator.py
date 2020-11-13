@@ -28,12 +28,6 @@ class GeckoLocator:
     def __exit__(self, *args):
         pass
 
-    def complete(self):
-        """ Finish using the manager class """
-        print("Manager finish")
-        for spa in self.spas:
-            spa.complete()
-
     def _discover(self):
         with GeckoComms() as comms:
             logger.info("Discovery process started")
