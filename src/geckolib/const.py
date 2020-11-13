@@ -62,6 +62,7 @@ class GeckoConstants:
     KEY_PUMP_4 = "P4"
     KEY_PUMP_5 = "P5"
     KEY_BLOWER = "BL"
+    KEY_WATERFALL = "Waterfall"
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 
@@ -98,6 +99,7 @@ class GeckoConstants:
     KEYPAD_PUMP_4 = 4
     KEYPAD_PUMP_5 = 5
     KEYPAD_BLOWER = 6
+    KEYPAD_WATERFALL = None
     KEYPAD_LIGHT = 16
     KEYPAD_UP = 21
     KEYPAD_DOWN = 22
@@ -124,6 +126,7 @@ class GeckoConstants:
         "P4": ("Pump 4", KEYPAD_PUMP_4, KEY_PUMP_4, DEVICE_CLASS_PUMP),
         "P5": ("Pump 5", KEYPAD_PUMP_5, KEY_PUMP_5, DEVICE_CLASS_PUMP),
         "BL": ("Blower", KEYPAD_BLOWER, KEY_BLOWER, DEVICE_CLASS_BLOWER),
+        "Waterfall": ("Waterfall", KEYPAD_WATERFALL, KEY_WATERFALL, DEVICE_CLASS_PUMP),
         "LI": ("Lights", KEYPAD_LIGHT, KEY_USER_DEMAND_LIGHT, DEVICE_CLASS_LIGHT),
     }
 
