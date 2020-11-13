@@ -125,11 +125,11 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - APIs to support integration into automation systems (Ongoing)
     * HVAC (Heating/Cooling/Setpoint/Modes)
     * States (Pumps/Blowers/Lights)
+    * Support Devices States (Circulation Pump/Ozone/Filters)
     * Operations (Pumps/Blowers/Lights)
     * Warnings/Errors
     * Reminders
     * Diagnostics
- - Support installtools/requirements.txt to ensure all libraries are present
  - More unit tests
  - Show which parts of the status block are addressed by the SpaPackStruct.xml
    so we can inspect the remainder to see if there is anything useful in there.
