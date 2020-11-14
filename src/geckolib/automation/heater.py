@@ -12,7 +12,7 @@ class GeckoWaterHeater(GeckoAutomationBase):
     TEMP_FARENHEIGHT = "°F"
 
     def __init__(self, facade):
-        super().__init__(facade, "Heater")
+        super().__init__(facade, "Heater", "HEAT")
         self._min_temp = 20
         self._max_temp = 40
         self._current_operation = "Idle"
@@ -87,7 +87,8 @@ class GeckoWaterHeater(GeckoAutomationBase):
         """ Return the current operation of the water heater """
         # Check the property bag to determine what is going on ...
 
-        # Failing that, assume we know what is happening based on the temperature states ...
+        # Failing that, assume we know what is happening based on the
+        # temperature states ...
         return self._current_operation
 
     def format_temperature(self, temperature):
@@ -96,5 +97,8 @@ class GeckoWaterHeater(GeckoAutomationBase):
 
     def __str__(self):
         if self._is_present:
-            return f"{self.name}: Temperature {self.format_temperature(self.current_temperature)}, SetPoint {self.format_temperature(self.target_temperature)}, Operation {self.current_operation}"
+            return f"{self.name}: Temperature "
+            f"{self.format_temperature(self.current_temperature)}, SetPoint "
+            f"{self.format_temperature(self.target_temperature)}, Operation "
+            f"{self.current_operation}"
         return f"{self.name}: Not present"

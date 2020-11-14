@@ -12,14 +12,14 @@ from .driver import (
     GeckoPackCommand,
     GeckoPartialStatus,
     GeckoPing,
-    GeckoSpaPack
+    GeckoSpaPack,
 )
 from .driver import GeckoStructAccessor
 from .automation import GeckoFacade
 
 logger = logging.getLogger(__name__)
 
-##################################################################################################
+
 class GeckoSpaDescriptor:
     """ A descriptor class for spas that have been discovered on the network """
 
@@ -32,29 +32,32 @@ class GeckoSpaDescriptor:
         self.ipaddress, self.port = response[1]
 
     def get_facade(self):
-        """ Get an automation facade to interact with the spa described by this class """
+        """Get an automation facade to interact with the spa described
+        by this class"""
         return GeckoFacade(GeckoSpa(self).connect())
 
-##################################################################################################
+
 class GeckoSpa(GeckoComms, GeckoSpaPack):
     """
-    GeckoSpa class manages an instance of a spa, and is the main point of contact for control
-    and monitoring. Uses the declarations found in SpaPackStruct.xml to build an object that
-    exposes the properties and capabilities of your spa. This class should only be used via
-    a Facade which hides the implementation details
-    """
+    GeckoSpa class manages an instance of a spa, and is the main point of contact for
+    control and monitoring. Uses the declarations found in SpaPackStruct.xml to build
+    an object that exposes the properties and capabilities of your spa. This class
+    should only be used via a Facade which hides the implementation details"""
 
     def __init__(self, descriptor):
-        super().__init__(descriptor.ipaddress, GeckoConstants.MESSAGE_PART_CONNECTION_NAMES.format(
-            descriptor.client_identifier, descriptor.identifier
-        ))
+        super().__init__(
+            descriptor.ipaddress,
+            GeckoConstants.MESSAGE_PART_CONNECTION_NAMES.format(
+                descriptor.client_identifier, descriptor.identifier
+            ),
+        )
         GeckoSpaPack.__init__(self)
         self.descriptor = descriptor
         self.start()
         self.add_handler(GeckoPartialStatus())
         self.start_receiving()
 
-        self._ping_thread = threading.Thread(target=self._ping_thread_func,daemon=True)
+        self._ping_thread = threading.Thread(target=self._ping_thread_func, daemon=True)
 
         # Default values for properties
         self.channel = 0
@@ -99,7 +102,9 @@ class GeckoSpa(GeckoComms, GeckoSpaPack):
     def connect(self):
         """ Connect to the in.touch2 module """
         # Identify self to the intouch module
-        self.send_message(GeckoConstants.MESSAGE_HELLO.format(self.descriptor.client_identifier))
+        self.send_message(
+            GeckoConstants.MESSAGE_HELLO.format(self.descriptor.client_identifier)
+        )
         self._ping_thread.start()
         # Get the intouch version
         logger.info("Starting spa connection handshake...")

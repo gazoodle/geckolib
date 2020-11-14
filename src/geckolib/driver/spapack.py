@@ -1,4 +1,3 @@
-
 import os
 import xml.etree.ElementTree as ET
 import logging
@@ -7,6 +6,7 @@ import urllib3
 from ..const import GeckoConstants
 
 logger = logging.getLogger(__name__)
+
 
 class GeckoSpaPack:
     """ Class to manage the SpaPackStruct.xml file """

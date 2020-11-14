@@ -13,7 +13,7 @@ class GeckoSwitch(GeckoAutomationBase):
 
     def __init__(self, facade, key, props):
         """ props is a tuple of (name, keypad_button, state_key, device_class) """
-        super().__init__(facade, props[0])
+        super().__init__(facade, key, props[0])
         self.ui_key = key
         self._state_sensor = GeckoSensor(
             facade, f"{props[0]} State", self._spa.accessors[props[2]]

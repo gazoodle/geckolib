@@ -10,6 +10,7 @@ from .spa import GeckoSpaDescriptor
 
 logger = logging.getLogger(__name__)
 
+
 class GeckoLocator:
     """
     GeckoLocator class locates in.touch2 devices on your local LAN
@@ -37,18 +38,26 @@ class GeckoLocator:
             while retry_count < GeckoConstants.DISCOVERY_RETRY_COUNT_TO_FIND_ANY_SPA:
                 # Broadcast the discovery message to every client on the local LAN
                 comms.send_message(
-                    GeckoConstants.MESSAGE_HELLO.format(1), GeckoConstants.BROADCAST_ADDRESS
+                    GeckoConstants.MESSAGE_HELLO.format(1),
+                    GeckoConstants.BROADCAST_ADDRESS,
                 )
                 # Wait to ensure we've heard from all the modules that responded within
                 # the discovery period
                 now = time.monotonic()
-                while time.monotonic() - now < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
+                while (
+                    time.monotonic() - now < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS
+                ):
                     try:
-                        self.spas.append(GeckoSpaDescriptor(self.client_identifier, comms.receive_answer()))
+                        self.spas.append(
+                            GeckoSpaDescriptor(
+                                self.client_identifier, comms.receive_answer()
+                            )
+                        )
                     except socket.timeout:
                         break
                 if len(self.spas) > 0:
-                    # Dummy spa to test multiple spas in client programs ... will not actually respond!
+                    # Dummy spa to test multiple spas in client programs ... will not
+                    # actually respond!
                     if GeckoConstants.INCLUDE_DUMMY_SPA:
                         self.spas.append(
                             GeckoSpaDescriptor(
@@ -72,7 +81,8 @@ class GeckoLocator:
                     retry_count,
                 )
             logger.warning(
-                "No spas found, check that you are on the same LAN as your in.touch2 device"
+                "No spas found, check that you are on the same LAN as your"
+                " in.touch2 device"
             )
 
     def get_spa_from_identifier(self, identifier):

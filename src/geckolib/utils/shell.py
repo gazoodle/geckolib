@@ -4,7 +4,7 @@ import cmd
 import sys
 import logging
 
-from .. import GeckoConstants, GeckoFacade, GeckoLocator, VERSION, GeckoSpaPack
+from .. import GeckoConstants, GeckoLocator, VERSION, GeckoSpaPack
 
 logger = logging.getLogger(__name__)
 
@@ -30,18 +30,20 @@ LICENSE = """
 DISCLAIMER = """
 
     <Disclaimer>
-    --------------------------------- USE AT YOUR OWN RISK ---------------------------------
+    ----------------------------- USE AT YOUR OWN RISK -----------------------------
 
     This code will allow you to make changes to your spa configuration that is outside
-    of what the app, top panel and side panel settings allow. I've not tested every setting
-    and it might be that you prevent your spa pack from operating as it used to do.
+    of what the app, top panel and side panel settings allow. I've not tested every
+    setting and it might be that you prevent your spa pack from operating as it used to
+    do.
 
-    Configuration is declared in the file SpaPackStruct.xml which is downloaded the first
-    time you run this program. Settings marked as RW="ALL" seem to indicate that any process
-    can write them, so you ought to be able to revert the settings to their original ones.
+    Configuration is declared in the file SpaPackStruct.xml which is downloaded the
+    first time you run this program. Settings marked as RW="ALL" seem to indicate that
+    any process can write them, so you ought to be able to revert the settings to their
+    original ones.
 
-    I strongly suggest dumping the configuration values with the "config" command and recording
-    them somewhere safe.
+    I strongly suggest dumping the configuration values with the "config" command and
+    recording them somewhere safe.
 
     </Disclaimer>
 
@@ -49,8 +51,10 @@ DISCLAIMER = """
 
 SHELL_UUID = "02ac6d28-42d0-41e3-ad22-274d0aa491da"
 
+
 class GeckoShell(cmd.Cmd):
-    """ GeckoShell is a client application to drive the geckolib automation interface """
+    """GeckoShell is a client application to drive the geckolib automation
+    interface"""
 
     def run():  # pylint: disable=no-method-argument
         """ Convenience function to run a shell command loop """
@@ -77,7 +81,6 @@ class GeckoShell(cmd.Cmd):
         return self
 
     def __exit__(self, *args):
-        print("Exit GeckoShell")
         if self.facade:
             self.facade.complete()
 
@@ -103,7 +106,8 @@ class GeckoShell(cmd.Cmd):
         print("Found {0} spas".format(number_of_spas))
         if number_of_spas == 0:
             logger.warning(
-                "Try using the iOS or Android app to confirm they are functioning correctly"
+                "Try using the iOS or Android app to confirm they are "
+                "functioning correctly"
             )
             sys.exit(1)
         if number_of_spas == 1:
@@ -120,9 +124,7 @@ class GeckoShell(cmd.Cmd):
         spa_to_manage = int(arg)
         spa = self.spas[spa_to_manage - 1]
         print(
-            "Connecting to spa `{0}` at {1} ... ".format(
-                spa.name, spa.ipaddress
-            ),
+            "Connecting to spa `{0}` at {1} ... ".format(spa.name, spa.ipaddress),
             end="",
             flush=True,
         )
@@ -173,9 +175,7 @@ class GeckoShell(cmd.Cmd):
     def get_version_strings(self):  # pylint: disable=redefined-outer-name
         """ Get the version strings for the spa """
         return [
-            "SpaPackStruct.xml revision {0}".format(
-                self.facade.spa.revision
-            ),
+            "SpaPackStruct.xml revision {0}".format(self.facade.spa.revision),
             "intouch version EN {0}".format(self.facade.spa.intouch_version_en),
             "intouch version CO {0}".format(self.facade.spa.intouch_version_co),
             "Spa pack {0} {1}".format(self.facade.spa.pack, self.facade.spa.version),
@@ -204,7 +204,9 @@ class GeckoShell(cmd.Cmd):
             print("-" * len(element.tag))
             for child in element.findall("./*"):
                 print(
-                    "  {0}: {1}".format(child.tag, self.facade.spa.accessors[child.tag].value)
+                    "  {0}: {1}".format(
+                        child.tag, self.facade.spa.accessors[child.tag].value
+                    )
                 )
             print("")
 
@@ -219,7 +221,9 @@ class GeckoShell(cmd.Cmd):
             print("-" * len(element.tag))
             for child in element.findall("./*"):
                 print(
-                    "  {0}: {1}".format(child.tag, self.facade.spa.accessors[child.tag].value)
+                    "  {0}: {1}".format(
+                        child.tag, self.facade.spa.accessors[child.tag].value
+                    )
                 )
             print("")
 
@@ -275,7 +279,8 @@ class GeckoShell(cmd.Cmd):
         self.facade.water_heater.set_target_temperature(float(arg))
 
     def do_snapshot(self, arg):
-        """Take a snapshot of the spa data structure with a descriptive message: SNAPSHOT <desc>"""
+        """Take a snapshot of the spa data structure with a descriptive
+        message: SNAPSHOT <desc>"""
         logger.info("Snapshot (%s)", arg)
         for ver_str in self.get_version_strings():
             logger.info(ver_str)

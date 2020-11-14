@@ -15,8 +15,9 @@ logger = logging.getLogger(__name__)
 
 class GeckoFacade:
     """Facade to abstract the Gecko implementation details and present an interface suitable
-    for consumption by automation systems, e.g. Home Assistant. This class and all the output
-    and state objects maintain their state locally so there should be no need to poll"""
+    for consumption by automation systems, e.g. Home Assistant. This class and all the
+    output and state objects maintain their state locally so there should be no need to
+    poll"""
 
     def __init__(self, spa):
         self._spa = spa
@@ -83,7 +84,8 @@ class GeckoFacade:
             if element.tag.startswith("Ud")
         ]
         logger.debug("Possible user demands are %s", user_demands)
-        # Actual user devices are those where the actual device has a corresponding user demand
+        # Actual user devices are those where the actual device has a corresponding
+        # user demand
         self.actual_user_devices = [
             device
             for device in actual_devices
@@ -93,7 +95,7 @@ class GeckoFacade:
         logger.debug("Actual user devices are %s", self.actual_user_devices)
         # These keys can be used to determine the actual state ...
         # Key       Desc        Outputs         Keypad      Direct Drive
-        # P1 ...    Pump 1      Out1A->P1H      1           <Doesn't work as expected ...>
+        # P1 ...    Pump 1      Out1A->P1H      1           <Doesn't work as expected>
         # Pn ...    Pump n      Out?A/B->PnH/L  n                     ""
 
         # Fix for issue#1 https://github.com/gazoodle/geckolib/issues/1

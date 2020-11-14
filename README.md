@@ -137,6 +137,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Handle multi/variable speed pumps
  - Async APIs
  - Turn on/off log file in GeckoShell
+ - Make GeckoGetStatus handle missing and out-of-sequence as this is a major 
+   cause of delays during spa connection
+ - Write simulator module and use that to investigate comms from the app for 
+   features that I don't have
 
 ## Done/Fixed in 0.3.11
  - Ping frequency set to 45 seconds
@@ -144,6 +148,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Add mechanism to locate a spa in the manager class based on it's identifier
  - Set worker threads to daemon mode
  - Re-structure for better lifetime management and easier clienting
+ - Merged PR from dukey32123 supplying waterfall constants ... need to find key code too.
+ - flake8 and black formatting and tidy-up
 
 ## Done/Fixed in 0.3.10
  - Try upload to PiPY

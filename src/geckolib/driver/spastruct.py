@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class GeckoStructAccessor:
-    """ Class to access the spa data structure according to the declaration in SpaPackStruct.xml """
+    """Class to access the spa data structure according to the declaration
+    in SpaPackStruct.xml"""
 
     def __init__(self, spa, element):
         self.tag = element.tag
@@ -70,7 +71,7 @@ class GeckoStructAccessor:
         logger.debug(
             "Accessor %s @ %s, %s raw data = %x", self.tag, self.pos, self.type, data
         )
-        if not self.bitpos is None:
+        if self.bitpos is not None:
             data = (data >> self.bitpos) & self.bitmask
             logger.debug(
                 "BitPos %s accessor %s adjusted data = %x",
@@ -102,7 +103,7 @@ class GeckoStructAccessor:
         existing = struct.unpack(
             self.format, self.spa.status_block[self.pos : self.pos + self.length]
         )[0]
-        if not self.bitpos is None:
+        if self.bitpos is not None:
             logger.debug(
                 "Bitpos %s accessor %s adjusted from %s",
                 (self.bitpos, self.bitmask),
@@ -119,7 +120,8 @@ class GeckoStructAccessor:
             newvalue = [int(newvalue) // 256, int(newvalue) % 256]
 
         logger.debug(
-            "Accessor %s @ %s, %s setting value to %s, existing value was %s. Length is %d",
+            "Accessor %s @ %s, %s setting value to %s, existing value was %s. "
+            "Length is %d",
             self.tag,
             self.pos,
             self.type,

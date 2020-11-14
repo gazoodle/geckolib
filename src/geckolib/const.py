@@ -5,8 +5,8 @@ class GeckoConstants:
     """
     GeckoConstants is a literal class so that we can program in a mostly DRY fashion,
     for example a filename or url would be present as would values that could be changed
-    and might be difficult to discover inline, but some constants that form part of a functions
-    documented behaviour might not be here, e.g. 'rw' as a parameter to open()
+    and might be difficult to discover inline, but some constants that form part of a
+    functions documented behaviour might not be here, e.g. 'rw' as a parameter to open()
     """
 
     INCLUDE_DUMMY_SPA = False

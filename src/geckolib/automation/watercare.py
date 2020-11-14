@@ -9,7 +9,7 @@ class GeckoWaterCare(GeckoAutomationBase):
     """ Watercare manangement class """
 
     def __init__(self, facade):
-        super().__init__(facade, "WaterCare")
+        super().__init__(facade, "WaterCare", "WATERCARE")
         self.active_mode = None
 
     @property

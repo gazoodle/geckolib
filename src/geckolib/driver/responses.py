@@ -8,7 +8,7 @@ from ..const import GeckoConstants
 
 logger = logging.getLogger(__name__)
 
-###################################################################################################
+
 class GeckoResponse:
     """
     GeckoResponse: base class for handling the UDP conversation with the intouch module
@@ -33,11 +33,12 @@ class GeckoResponse:
         self.aborted = False
 
     def reset(self):
-        """ Method that gets called in a retry situation to ensure that
-        the class is ready to start again """
+        """Method that gets called in a retry situation to ensure that
+        the class is ready to start again"""
 
     def check_timeout(self, spa):
-        """ Decide if this device response has timed-out, and if so, optionally retry """
+        """Decide if this device response has timed-out, and if so,
+        optionally retry"""
         if self.timeout == 0:
             return False
         if time.monotonic() - self.init_time > self.timeout:
@@ -55,7 +56,7 @@ class GeckoResponse:
                 "Handler for %s timed out, aborted", self.request_and_response[0]
             )
             self.aborted = True
-            if not self.timeout_handler is None:
+            if self.timeout_handler is not None:
                 self.timeout_handler()
             return True
         return False
@@ -92,7 +93,6 @@ class GeckoResponse:
         return True
 
 
-###################################################################################################
 class GeckoPing(GeckoResponse):
     """ Handle the ping command """
 
@@ -111,7 +111,6 @@ class GeckoPing(GeckoResponse):
         return True
 
 
-###################################################################################################
 class GeckoPartialStatus(GeckoResponse):
     """ Handle partial status responses to stitch the block back together """
 
@@ -137,7 +136,6 @@ class GeckoPartialStatus(GeckoResponse):
         return False
 
 
-###################################################################################################
 class GeckoGetSoftwareVersion(GeckoResponse):
     """ Process the Get the software version command """
 
@@ -168,7 +166,6 @@ class GeckoGetSoftwareVersion(GeckoResponse):
         return True
 
 
-###################################################################################################
 class GeckoGetChannel(GeckoResponse):
     """ Process the Get channel command """
 
@@ -185,7 +182,6 @@ class GeckoGetChannel(GeckoResponse):
         return True
 
 
-###################################################################################################
 class GeckoGetActiveWatercare(GeckoResponse):
     """ Process the Get active watercare command """
 
@@ -208,7 +204,6 @@ class GeckoGetActiveWatercare(GeckoResponse):
         return True
 
 
-###################################################################################################
 class GeckoSetActiveWatercare(GeckoResponse):
     """ Process the Set active watercare command """
 
@@ -225,7 +220,6 @@ class GeckoSetActiveWatercare(GeckoResponse):
         return True
 
 
-###################################################################################################
 class GeckoPackCommand(GeckoResponse):
     """ Handle the pack command """
 
@@ -239,7 +233,6 @@ class GeckoPackCommand(GeckoResponse):
         )
 
 
-###################################################################################################
 class GeckoGetConfig(GeckoResponse):
     """ Handle the GetConfig command """
 
@@ -263,16 +256,14 @@ class GeckoGetConfig(GeckoResponse):
 
         # XML is case-sensitive, but the platform from the config isn't formed the same,
         # so we manually search the Plateform nodes to find the one we're interested in
-        for plateform in spa.xml.findall(
-            GeckoConstants.SPA_PACK_PLATEFORM_XPATH
-        ):
+        for plateform in spa.xml.findall(GeckoConstants.SPA_PACK_PLATEFORM_XPATH):
             if (
                 plateform.attrib[GeckoConstants.SPA_PACK_NAME_ATTRIB].lower()
                 == gecko_pack_config[0].lower()
             ):
                 spa.gecko_pack_xml = plateform
 
-        # We can't carry on without information on how the STATV data block is formed ...
+        # We can't carry on without information on how the STATV data block is formed
         if spa.gecko_pack_xml is None:
             raise Exception(
                 GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
@@ -294,7 +285,8 @@ class GeckoGetConfig(GeckoResponse):
         )
 
         logger.debug(
-            "Got spa configuration Type %s - CFG %s/LOG %s, now ask for initial status block",
+            "Got spa configuration Type %s - CFG %s/LOG %s, now ask for initial "
+            "status block",
             spa.pack_type,
             spa.config_version,
             spa.log_version,
@@ -305,7 +297,6 @@ class GeckoGetConfig(GeckoResponse):
         return True
 
 
-###################################################################################################
 class GeckoGetStatus(GeckoResponse):
     """ Handle the get status command """
 

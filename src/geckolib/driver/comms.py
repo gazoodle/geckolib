@@ -9,15 +9,16 @@ from ..const import GeckoConstants
 
 logger = logging.getLogger(__name__)
 
+
 class GeckoComms:
     """ Communicate with a Gecko in.touch2 module """
 
-    def __init__(self, ipaddress = None, conns = None):
+    def __init__(self, ipaddress=None, conns=None):
         self._socket = None
         self._ipaddress = ipaddress
         self._port = GeckoConstants.INTOUCH2_PORT
         self._conns = ""
-        if not conns is None:
+        if conns is not None:
             self._conns = conns
         self._sequence_number = 0
 
@@ -56,7 +57,9 @@ class GeckoComms:
     def start_receiving(self):
         """ Start the receiving thread, dispatching responses to the handlers """
         self._exit_event = threading.Event()
-        self._receive_thread = threading.Thread(target=self._receive_thread_func,daemon=True)
+        self._receive_thread = threading.Thread(
+            target=self._receive_thread_func, daemon=True
+        )
         self._receive_thread.start()
 
     def send_message(self, message, destination=None):
@@ -89,7 +92,7 @@ class GeckoComms:
         if has_sequence:
             self._sequence_number += 1
             cmd += chr(self._sequence_number)
-        if not parms is None:
+        if parms is not None:
             cmd += parms
         return self.assemble_packet(cmd)
 

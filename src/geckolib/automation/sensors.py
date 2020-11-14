@@ -8,7 +8,7 @@ class GeckoSensor(GeckoAutomationBase):
     class properties"""
 
     def __init__(self, facade, name, accessor, unit_accessor=None):
-        super().__init__(facade, name)
+        super().__init__(facade, name, name.upper())
         self._accessor = accessor
         self._unit_of_measurement_accessor = unit_accessor
         self._device_class = None
@@ -36,6 +36,6 @@ class GeckoSensor(GeckoAutomationBase):
         return self._accessor
 
 
-###################################################################################################
+########################################################################################
 class GeckoBinarySensor(GeckoSensor):
     """ Binary sensors only have two states """
