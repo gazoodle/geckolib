@@ -39,6 +39,14 @@ class GeckoWaterHeater(GeckoAutomationBase):
             )
             self._is_present = True
 
+        # Setup change observers
+        if self._current_temperature_sensor:
+            self._current_temperature_sensor.watch(self._on_change)
+        if self._target_temperature_sensor:
+            self._target_temperature_sensor.watch(self._on_change)
+        if self._temperature_unit_accessor:
+            self._temperature_unit_accessor.watch(self._on_change)
+
     @property
     def is_present(self):
         """ Determine if the heater is present from the config """
@@ -97,8 +105,10 @@ class GeckoWaterHeater(GeckoAutomationBase):
 
     def __str__(self):
         if self._is_present:
-            return f"{self.name}: Temperature "
-            f"{self.format_temperature(self.current_temperature)}, SetPoint "
-            f"{self.format_temperature(self.target_temperature)}, Operation "
-            f"{self.current_operation}"
+            return (
+                f"{self.name}: Temperature "
+                f"{self.format_temperature(self.current_temperature)}, SetPoint "
+                f"{self.format_temperature(self.target_temperature)}, Operation "
+                f"{self.current_operation}"
+            )
         return f"{self.name}: Not present"

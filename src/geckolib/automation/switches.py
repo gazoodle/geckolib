@@ -18,8 +18,16 @@ class GeckoSwitch(GeckoAutomationBase):
         self._state_sensor = GeckoSensor(
             facade, f"{props[0]} State", self._spa.accessors[props[2]]
         )
+        self._state_sensor.watch(self._on_change)
         self._keypad_button = props[1]
         self.device_class = props[3]
+        self.watch(self._report)
+
+    def _report(self, sender, old_value, new_value):
+        print(
+            f"Switch for {self.ui_key} state changed because {sender}"
+            f" changed from {old_value} to {new_value}"
+        )
 
     @property
     def is_on(self):

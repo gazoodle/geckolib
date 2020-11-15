@@ -10,7 +10,11 @@ class GeckoSensor(GeckoAutomationBase):
     def __init__(self, facade, name, accessor, unit_accessor=None):
         super().__init__(facade, name, name.upper())
         self._accessor = accessor
+        # Bubble up change notification
+        accessor.watch(self._on_change)
         self._unit_of_measurement_accessor = unit_accessor
+        if unit_accessor:
+            unit_accessor.watch(self._on_change)
         self._device_class = None
 
     @property

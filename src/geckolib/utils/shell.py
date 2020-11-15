@@ -56,15 +56,19 @@ class GeckoShell(cmd.Cmd):
     """GeckoShell is a client application to drive the geckolib automation
     interface"""
 
-    def run():  # pylint: disable=no-method-argument
+    def run(first_commands=None):  # pylint: disable=no-method-argument
         """ Convenience function to run a shell command loop """
         print(DISCLAIMER)
 
-        with GeckoShell() as shell:
+        with GeckoShell(first_commands) as shell:
             shell.cmdloop()
 
-    def __init__(self):
+    def __init__(self, first_commands=None):
         super().__init__()
+
+        self.stream_logger = None
+        self.file_logger = None
+        self._init_logging()
 
         self.spas = None
         self.facade = None
@@ -75,6 +79,9 @@ class GeckoShell(cmd.Cmd):
 
         self.intro = "Welcome to the Gecko shell. Type help or ? to list commands.\n"
         self.prompt = "(Gecko) "
+        if first_commands is not None:
+            for command in first_commands:
+                self.onecmd(command)
         self.onecmd("discover")
 
     def __enter__(self):
@@ -285,3 +292,37 @@ class GeckoShell(cmd.Cmd):
         for ver_str in self.get_version_strings():
             logger.info(ver_str)
         logger.info([hex(b) for b in self.facade.spa.status_block])
+
+    def do_loglevel(self, arg):
+        """ Set the logging level """
+        for handler in logging.getLogger().handlers:
+            handler.setLevel(arg)
+        self._set_root_log_level()
+
+    def do_logfile(self, arg):
+        """ Add a file logger to the system """
+        if self.file_logger is not None:
+            print("There is already a file logger installed")
+            return
+        self.file_logger = logging.FileHandler("client.log")
+        self.file_logger.setLevel(logging.DEBUG)
+        self.file_logger.setFormatter(
+            logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
+        )
+        logging.getLogger().addHandler(self.file_logger)
+        self._set_root_log_level()
+
+    def _init_logging(self):
+        self.stream_logger = logging.StreamHandler()
+        self.stream_logger.setLevel(logging.WARNING)
+        self.stream_logger.setFormatter(
+            logging.Formatter("LOG> %(levelname)s %(message)s")
+        )
+        logging.getLogger().addHandler(self.stream_logger)
+        self._set_root_log_level()
+
+    def _set_root_log_level(self):
+        # Set root log level
+        logging.getLogger().setLevel(
+            min(handler.level for handler in logging.getLogger().handlers)
+        )

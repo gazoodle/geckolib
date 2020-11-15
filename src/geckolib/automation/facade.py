@@ -9,23 +9,34 @@ from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
 from .watercare import GeckoWaterCare
+from ..driver import Observable
 
 logger = logging.getLogger(__name__)
 
 
-class GeckoFacade:
+class GeckoFacade(Observable):
     """Facade to abstract the Gecko implementation details and present an interface suitable
     for consumption by automation systems, e.g. Home Assistant. This class and all the
     output and state objects maintain their state locally so there should be no need to
     poll"""
 
     def __init__(self, spa):
+        super().__init__()
         self._spa = spa
         self._sensors = []
         self._water_heater = GeckoWaterHeater(self)
         self._water_care = GeckoWaterCare(self)
         self._keypad = GeckoKeypad(self)
         self.scan_outputs()
+        # Install change notifications
+        for device in self.all_automation_devices:
+            device.watch(self._on_change)
+        self.watch(self._report)
+
+    def _report(self, sender, old_value, new_value):
+        print(
+            f"Facade changed because {sender} changed from {old_value} to {new_value}"
+        )
 
     def __enter__(self):
         return self
@@ -173,8 +184,13 @@ class GeckoFacade:
 
     @property
     def all_user_devices(self):
-        """ Get all the devices as a list """
+        """ Get all the user controllable devices as a list """
         return self._pumps + self._blowers + self._lights
+
+    @property
+    def all_automation_devices(self):
+        """ Get all the automation devices as a list """
+        return self.all_user_devices + [self.water_heater, self.water_care, self.keypad]
 
     @property
     def reminders(self):

@@ -1,10 +1,13 @@
 """ Automation interface support classes. """
 
+from ..driver import Observable
 
-class GeckoAutomationBase:
+
+class GeckoAutomationBase(Observable):
     """ Base of all the automation helper classes """
 
     def __init__(self, facade, name, key):
+        super().__init__()
         self._facade = facade
         self._spa = facade._spa
         self._name = name

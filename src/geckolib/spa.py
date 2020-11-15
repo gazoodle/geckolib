@@ -97,7 +97,11 @@ class GeckoSpa(GeckoComms, GeckoSpaPack):
         segment_len = len(segment)
         prefix = self.status_block[0:offset]
         suffix = self.status_block[offset + segment_len :]
+        previous_block = self.status_block
         self.status_block = prefix + segment + suffix
+        # Notify changes to accessors
+        for accessor in self.accessors.values():
+            accessor.status_block_changed(offset, segment_len, previous_block)
 
     def connect(self):
         """ Connect to the in.touch2 module """
@@ -111,6 +115,7 @@ class GeckoSpa(GeckoComms, GeckoSpaPack):
         self.is_connected = False
         self.send_request(GeckoGetSoftwareVersion())
         # Wait for connection sequence to complete
+        # TODO: Add a timeout/retry mechanism here
         while not self.is_connected:
             if not self.isalive:
                 return
@@ -130,6 +135,9 @@ class GeckoSpa(GeckoComms, GeckoSpaPack):
         logger.info("Ping thread started")
         while self.isalive:
             self.send_request(GeckoPing())
+            # TODO: This is a prophylactic call to ensure that the state is up-to-date
+            # it really ought to work without this, but need investigation
+            self.refresh()
             self.wait(GeckoConstants.PING_FREQUENCY_IN_SECONDS)
         logger.info("Ping thread finished")
 
@@ -160,6 +168,8 @@ class GeckoSpa(GeckoComms, GeckoSpaPack):
 
     def refresh(self):
         """ Refresh the live spa data block """
+        if not self.is_connected:
+            return
         self.send_request(
             GeckoGetStatus(
                 int(self.log_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_BEGIN_ATTRIB]),

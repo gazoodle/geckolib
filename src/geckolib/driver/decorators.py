@@ -1,21 +1,20 @@
 """ Decorator classes """
 
 from ..const import GeckoConstants
+from .spastruct import GeckoStructAccessor
 
 
-class GeckoTemperatureDecorator:
+class GeckoTemperatureDecorator(GeckoStructAccessor):
     """Class to decorate a temperature accessor so that the farenheight tenths, offset
     from freezing are handled"""
 
     def __init__(self, spa, accessor):
-        self.spa = spa
-        self.accessor = accessor
+        super().__init__(spa, accessor.element)
 
-    @property
-    def value(self):
+    def _get_value(self, status_block=None):
         """ Get the temperature """
         # Internally, temp is in farenheight tenths, offset from freezing point
-        temp = self.accessor.value
+        temp = super()._get_value(status_block)
         units = self.spa.accessors[GeckoConstants.KEY_TEMP_UNITS].value
         if units == "C":
             temp = temp / 18.0
@@ -23,12 +22,11 @@ class GeckoTemperatureDecorator:
             temp = (temp + 320) / 10.0
         return temp
 
-    @value.setter
-    def value(self, temp):
+    def _set_value(self, temp):
         """ Set the temperature """
         units = self.spa.accessors[GeckoConstants.KEY_TEMP_UNITS].value
         if units == "C":
             temp = float(temp) * 18.0
         else:
             temp = (float(temp) * 10.0) - 320
-        self.accessor.value = int(temp)
+        super()._set_value(int(temp))

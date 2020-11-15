@@ -4,16 +4,19 @@ import struct
 import logging
 
 from ..const import GeckoConstants
+from .observable import Observable
 from .responses import GeckoPackCommand
 
 logger = logging.getLogger(__name__)
 
 
-class GeckoStructAccessor:
+class GeckoStructAccessor(Observable):
     """Class to access the spa data structure according to the declaration
     in SpaPackStruct.xml"""
 
     def __init__(self, spa, element):
+        super().__init__()
+        self.element = element
         self.tag = element.tag
         self.spa = spa
         self.pos = int(element.attrib[GeckoConstants.SPA_PACK_STRUCT_POS_ATTRIB])
@@ -62,11 +65,42 @@ class GeckoStructAccessor:
                 GeckoConstants.SPA_PACK_STRUCT_READ_WRITE_ATTRIB
             ]
 
-    @property
-    def value(self):
-        """ Get a value from the pack structure using the initialized declaration """
+    def status_block_changed(self, offset, len, previous):
+        # Does the notified range intersect us, if not then we don't care!
+        intersection_start = max(offset, self.pos)
+        intersection_end = min(offset + len, self.pos + self.length)
+        if intersection_end - intersection_start <= 0:
+            return
+
+        logger.debug(
+            "Accessor %s @ %d-%d notified of change at %d-%d",
+            self.tag,
+            self.pos,
+            self.pos + self.length,
+            offset,
+            offset + len,
+        )
+
+        old_value = self._get_value(previous)
+        new_value = self.value
+
+        # No reason to notify if there is no change
+        if new_value == old_value:
+            return
+
+        logger.info(
+            "Value for %s changed from %s to %s", self.tag, old_value, new_value
+        )
+
+        self._on_change(self, old_value, new_value)
+
+    def _get_value(self, status_block=None):
+        """Get a value from the pack structure using the initialized declaration
+        or using the optionally supplied status_block (used by change notification)"""
+        if status_block is None:
+            status_block = self.spa.status_block
         data = struct.unpack(
-            self.format, self.spa.status_block[self.pos : self.pos + self.length]
+            self.format, status_block[self.pos : self.pos + self.length]
         )[0]
         logger.debug(
             "Accessor %s @ %s, %s raw data = %x", self.tag, self.pos, self.type, data
@@ -87,8 +121,7 @@ class GeckoStructAccessor:
             logger.debug("Enum accessor %s adjusted data = %s", self.tag, data)
         return data
 
-    @value.setter
-    def value(self, newvalue):
+    def _set_value(self, newvalue):
         """ Set a value in the pack structure using the initialized declaration """
         if self.read_write is None:
             raise Exception(
@@ -144,3 +177,16 @@ class GeckoStructAccessor:
                 + newvalue,
             )
         )
+
+    @property
+    def value(self):
+        """ Get a value from the pack structure using the initialized declaration """
+        return self._get_value()
+
+    @value.setter
+    def value(self, newvalue):
+        """ Set a value in the pack structure using the initialized declaration """
+        self._set_value(newvalue)
+
+    def __str__(self):
+        return f"{self.tag}: {self.value}"

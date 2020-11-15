@@ -1,5 +1,10 @@
 """ Gecko driver """
 
+from .observable import Observable
+from .comms import GeckoComms
+from .decorators import GeckoTemperatureDecorator
+from .spastruct import GeckoStructAccessor
+from .spapack import GeckoSpaPack
 from .responses import (
     GeckoGetActiveWatercare,
     GeckoSetActiveWatercare,
@@ -10,12 +15,9 @@ from .responses import (
     GeckoPing,
 )
 
-from .comms import GeckoComms
-from .decorators import GeckoTemperatureDecorator
-from .spastruct import GeckoStructAccessor
-from .spapack import GeckoSpaPack
 
 __all__ = [
+    "Observable",
     "GeckoGetActiveWatercare",
     "GeckoSetActiveWatercare",
     "GeckoGetSoftwareVersion",

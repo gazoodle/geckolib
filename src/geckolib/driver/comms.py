@@ -158,6 +158,6 @@ class GeckoComms:
                 return
         # We sometimes get extraneous PACKS response when another client has issued
         # the SPACK command ... don't fret about it!
-        if response.startswith(GeckoConstants.REQUEST_AND_RESPONSE_PACK_COMMAND[1]):
-            return
+        # if response.startswith(GeckoConstants.REQUEST_AND_RESPONSE_PACK_COMMAND[1]):
+        #    return
         logger.warning("Unhandled response %s (%d)", response, len(response))

@@ -141,6 +141,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
    cause of delays during spa connection
  - Write simulator module and use that to investigate comms from the app for 
    features that I don't have
+ - Sometimes in.touch2 doesn't report back to this library resulting in missing 
+   changes
+
 
 ## Done/Fixed in 0.3.11
  - Ping frequency set to 45 seconds
