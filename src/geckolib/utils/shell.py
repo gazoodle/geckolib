@@ -92,13 +92,13 @@ class GeckoShell(cmd.Cmd):
             self.facade.complete()
 
     def do_exit(self, arg):
-        """Exit this shell: EXIT"""
+        """Exit this shell: exit"""
         del arg
         print("Thank you for using the Gecko shell")
         return True
 
     def do_discover(self, arg):
-        """Discover all the in.touch2 devices on your network : DISCOVER"""
+        """Discover all the in.touch2 devices on your network : discover"""
         del arg
         print(
             "Starting discovery process...",
@@ -121,13 +121,13 @@ class GeckoShell(cmd.Cmd):
             self.onecmd("manage 1")
 
     def do_list(self, arg):
-        """List the spas that are available to manage : LIST """
+        """List the spas that are available to manage : list"""
         del arg
         for idx, spa in enumerate(self.spas):
             print("{0}. {1}".format(idx + 1, spa.name))
 
     def do_manage(self, arg):
-        """Manage a named or numbered spa : MANAGE 1"""
+        """Manage a named or numbered spa : manage 1"""
         spa_to_manage = int(arg)
         spa = self.spas[spa_to_manage - 1]
         print(
@@ -163,7 +163,7 @@ class GeckoShell(cmd.Cmd):
             device.turn_off()
 
     def do_state(self, arg):
-        """Show the state of the managed spa"""
+        """Show the state of the managed spa : state"""
         del arg
         if self.facade is None:
             print("Must be connected to a spa")
@@ -180,7 +180,7 @@ class GeckoShell(cmd.Cmd):
         print(self.facade.water_care)
 
     def get_version_strings(self):  # pylint: disable=redefined-outer-name
-        """ Get the version strings for the spa """
+        """Get the version strings for the spa"""
         return [
             "SpaPackStruct.xml revision {0}".format(self.facade.spa.revision),
             "intouch version EN {0}".format(self.facade.spa.intouch_version_en),
@@ -193,13 +193,13 @@ class GeckoShell(cmd.Cmd):
         ]
 
     def do_version(self, arg):
-        """Show the version information"""
+        """Show the version information : version"""
         del arg
         for version_str in self.get_version_strings():
             print(version_str)
 
     def do_config(self, arg):
-        """Display the configuration data from the spa"""
+        """Display the configuration data from the spa : config"""
         del arg
         print("Configuration Settings")
         print("======================")
@@ -218,7 +218,7 @@ class GeckoShell(cmd.Cmd):
             print("")
 
     def do_live(self, arg):
-        """Display the live settings from the spa"""
+        """Display the live settings from the spa : live"""
         del arg
         print("Live Settings")
         print("=============")
@@ -235,7 +235,7 @@ class GeckoShell(cmd.Cmd):
             print("")
 
     def do_about(self, arg):
-        """Display information about this client program and support library"""
+        """Display information about this client program and support library : about"""
         del arg
         print("")
         print(
@@ -245,29 +245,30 @@ class GeckoShell(cmd.Cmd):
         print("Library version v{0}".format(VERSION))
 
     def do_license(self, arg):
-        """Display the license details"""
+        """Display the license details : license"""
         del arg
         print(LICENSE)
 
     def do_download(self, arg):
-        """Download the SpaPackStruct.xml from Gecko"""
+        """Download the SpaPackStruct.xml from Gecko : download"""
         del arg
         GeckoSpaPack.download()
 
     def do_refresh(self, arg):
-        """Refresh the live data from your spa"""
+        """Refresh the live data from your spa : refresh"""
         del arg
         self.facade.spa.refresh()
 
     def do_get(self, arg):
-        """Get the value of the specified spa pack structure element"""
+        """Get the value of the specified spa pack structure element : get <Element>"""
         try:
             print("{0} = {1}".format(arg, self.facade.spa.accessors[arg].value))
         except Exception:  # pylint: disable=broad-except
             logger.exception("Exception getting '%s'", arg)
 
     def do_set(self, arg):
-        """Set the value of the specified spa pack structure element"""
+        """Set the value of the specified spa pack structure
+        element : set <Element>=<value>"""
         try:
             key, val = arg.split("=")
             self.facade.spa.accessors[key].value = val
@@ -282,25 +283,25 @@ class GeckoShell(cmd.Cmd):
             logger.exception("Exception setting watercare to '%s'", arg)
 
     def do_setpoint(self, arg):
-        """Set the spa setpoint temperature"""
+        """Set the spa setpoint temperature : setpoint <temp>"""
         self.facade.water_heater.set_target_temperature(float(arg))
 
     def do_snapshot(self, arg):
         """Take a snapshot of the spa data structure with a descriptive
-        message: SNAPSHOT <desc>"""
+        message : SNAPSHOT <desc>"""
         logger.info("Snapshot (%s)", arg)
         for ver_str in self.get_version_strings():
             logger.info(ver_str)
         logger.info([hex(b) for b in self.facade.spa.status_block])
 
     def do_loglevel(self, arg):
-        """ Set the logging level """
+        """Set the logging level : loglevel <ERROR|WARNING|INFO|DEBUG>"""
         for handler in logging.getLogger().handlers:
             handler.setLevel(arg)
         self._set_root_log_level()
 
     def do_logfile(self, arg):
-        """ Add a file logger to the system """
+        """Add a file logger to the system : logfile <filename>"""
         if self.file_logger is not None:
             print("There is already a file logger installed")
             return
