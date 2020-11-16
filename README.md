@@ -76,7 +76,7 @@ Spa$ watercare Weekender
 
 ```
 
-If you have more than one spa/device detected, you can use the `list` and `manage` command
+If you have more than one spa/device detected, you can use the `list` and `manage` commands
 
 ```
 
@@ -195,6 +195,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
    changes
  - Deal with this: 
      UnicodeEncodeError: 'latin-1' codec can't encode character '\u0101' in position 108: ordinal not in range(256)
+
+## Done/Fixed in 0.3.12
 
 
 ## Done/Fixed in 0.3.11
