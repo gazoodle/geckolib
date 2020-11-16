@@ -1,21 +1,23 @@
 """ Gecko Water Heaters """
 
 from .base import GeckoAutomationBase
-from .sensors import GeckoSensor
+from .sensors import GeckoSensor, GeckoBinarySensor
 from ..const import GeckoConstants
 
 
 class GeckoWaterHeater(GeckoAutomationBase):
-    """ Water Heater object based on Home Assistant Entity Type WaterHeater """
+    """ Water Heater object based on Home Assistant Entity Type Climate """
 
     TEMP_CELCIUS = "°C"
     TEMP_FARENHEIGHT = "°F"
 
+    MIN_TEMP_C = 15
+    MAX_TEMP_C = 40
+    MIN_TEMP_F = 59
+    MAX_TEMP_F = 104
+
     def __init__(self, facade):
         super().__init__(facade, "Heater", "HEAT")
-        self._min_temp = 20
-        self._max_temp = 40
-        self._current_operation = "Idle"
         self._is_present = False
 
         # Attempt to locate the various items needed from the spa accessors
@@ -38,14 +40,33 @@ class GeckoWaterHeater(GeckoAutomationBase):
                 self._temperature_unit_accessor,
             )
             self._is_present = True
+        if GeckoConstants.KEY_REAL_SETPOINT_G in self._spa.accessors:
+            self._real_setpoint_sensor = GeckoSensor(
+                facade,
+                "Real Target Temperature",
+                self._spa.accessors[GeckoConstants.KEY_REAL_SETPOINT_G],
+                self._temperature_unit_accessor,
+            )
+            self._is_present = True
+
+        self._heating_action_sensor = GeckoBinarySensor(
+            self, "Heating", self._spa.accessors[GeckoConstants.KEY_HEATING]
+        )
+        self._cooling_action_sensor = GeckoBinarySensor(
+            self, "Cooling", self._spa.accessors[GeckoConstants.KEY_COOLINGDOWN]
+        )
 
         # Setup change observers
-        if self._current_temperature_sensor:
-            self._current_temperature_sensor.watch(self._on_change)
-        if self._target_temperature_sensor:
-            self._target_temperature_sensor.watch(self._on_change)
-        if self._temperature_unit_accessor:
-            self._temperature_unit_accessor.watch(self._on_change)
+        for sensor in [
+            self._current_temperature_sensor,
+            self._target_temperature_sensor,
+            self._real_setpoint_sensor,
+            self._temperature_unit_accessor,
+            self._heating_action_sensor,
+            self._cooling_action_sensor,
+        ]:
+            if sensor is not None:
+                sensor.watch(self._on_change)
 
     @property
     def is_present(self):
@@ -62,14 +83,27 @@ class GeckoWaterHeater(GeckoAutomationBase):
         self._target_temperature_sensor.accessor.value = new_temperature
 
     @property
+    def real_target_temperature(self):
+        """ Get the real target temperature (takes economy mode into account) """
+        return self._real_setpoint_sensor.state
+
+    @property
     def min_temp(self):
         """ Get the minimum temperature of the water heater """
-        return self._min_temp
+        return (
+            self.MIN_TEMP_C
+            if self._temperature_unit_accessor.value == "C"
+            else self.MIN_TEMP_F
+        )
 
     @property
     def max_temp(self):
         """ Get the maximum temperature of the water heater """
-        return self._min_temp
+        return (
+            self.MAX_TEMP_C
+            if self._temperature_unit_accessor.value == "C"
+            else self.MAX_TEMP_F
+        )
 
     @property
     def current_temperature(self):
@@ -93,11 +127,15 @@ class GeckoWaterHeater(GeckoAutomationBase):
     @property
     def current_operation(self):
         """ Return the current operation of the water heater """
-        # Check the property bag to determine what is going on ...
-
-        # Failing that, assume we know what is happening based on the
-        # temperature states ...
-        return self._current_operation
+        if self._heating_action_sensor.is_on:
+            return GeckoConstants.WATER_HEATER_HEATING
+        elif self._cooling_action_sensor.is_on:
+            return GeckoConstants.WATER_HEATER_COOLING
+        if self.current_temperature < self.real_target_temperature:
+            return GeckoConstants.WATER_HEATER_HEATING
+        elif self.current_temperature > self.real_target_temperature:
+            return GeckoConstants.WATER_HEATER_COOLING
+        return GeckoConstants.WATER_HEATER_IDLE
 
     def format_temperature(self, temperature):
         """ Format a temperature value to a printable string """
@@ -108,7 +146,8 @@ class GeckoWaterHeater(GeckoAutomationBase):
             return (
                 f"{self.name}: Temperature "
                 f"{self.format_temperature(self.current_temperature)}, SetPoint "
-                f"{self.format_temperature(self.target_temperature)}, Operation "
+                f"{self.format_temperature(self.target_temperature)}, Real SetPoint "
+                f"{self.format_temperature(self.real_target_temperature)}, Operation "
                 f"{self.current_operation}"
             )
         return f"{self.name}: Not present"

@@ -7,7 +7,7 @@ class GeckoSensor(GeckoAutomationBase):
     """Sensors wrap accessors state with extra units and device
     class properties"""
 
-    def __init__(self, facade, name, accessor, unit_accessor=None):
+    def __init__(self, facade, name, accessor, unit_accessor=None, device_class=None):
         super().__init__(facade, name, name.upper())
         self._accessor = accessor
         # Bubble up change notification
@@ -15,7 +15,7 @@ class GeckoSensor(GeckoAutomationBase):
         self._unit_of_measurement_accessor = unit_accessor
         if unit_accessor:
             unit_accessor.watch(self._on_change)
-        self._device_class = None
+        self._device_class = device_class
 
     @property
     def state(self):
@@ -43,3 +43,11 @@ class GeckoSensor(GeckoAutomationBase):
 ########################################################################################
 class GeckoBinarySensor(GeckoSensor):
     """ Binary sensors only have two states """
+
+    @property
+    def is_on(self):
+        """ Determine if the sensor is on or not """
+        state = self.state
+        if isinstance(state, bool):
+            return state
+        return state != "OFF"

@@ -186,17 +186,15 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Handle other device types such as Waterfall
  - Handle multi/variable speed pumps
  - Async APIs
- - Turn on/off log file in GeckoShell
  - Make GeckoGetStatus handle missing and out-of-sequence as this is a major 
    cause of delays during spa connection
  - Write simulator module and use that to investigate comms from the app for 
    features that I don't have
  - Sometimes in.touch2 doesn't report back to this library resulting in missing 
    changes
- - Deal with this: 
-     UnicodeEncodeError: 'latin-1' codec can't encode character '\u0101' in position 108: ordinal not in range(256)
 
-## Done/Fixed in 0.3.12
+## Done/Fixed in 0.3.12 
+ - UnicodeEncodeError: 'latin-1' codec can't encode character '\u0101' in position 108: ordinal not in range(256)
 
 
 ## Done/Fixed in 0.3.11

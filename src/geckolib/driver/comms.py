@@ -91,7 +91,7 @@ class GeckoComms:
         """ Build a command, optionally using a sequence number and parameters """
         if has_sequence:
             self._sequence_number += 1
-            cmd += chr(self._sequence_number)
+            cmd += chr(self._sequence_number % 256)
         if parms is not None:
             cmd += parms
         return self.assemble_packet(cmd)

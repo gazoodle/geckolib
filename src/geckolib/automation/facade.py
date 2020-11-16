@@ -1,6 +1,7 @@
 """ Facade to hide implementation details """
 
 import logging
+import threading
 
 from .blower import GeckoBlower
 from ..const import GeckoConstants
@@ -8,6 +9,7 @@ from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
+from .sensors import GeckoSensor, GeckoBinarySensor
 from .watercare import GeckoWaterCare
 from ..driver import Observable
 
@@ -24,6 +26,7 @@ class GeckoFacade(Observable):
         super().__init__()
         self._spa = spa
         self._sensors = []
+        self._binary_sensors = []
         self._water_heater = GeckoWaterHeater(self)
         self._water_care = GeckoWaterCare(self)
         self._keypad = GeckoKeypad(self)
@@ -31,6 +34,15 @@ class GeckoFacade(Observable):
         # Install change notifications
         for device in self.all_automation_devices:
             device.watch(self._on_change)
+        self._update_thread = None
+        if self.spa:
+            self._update_thread = threading.Thread(
+                target=self._update_thread_func, daemon=True
+            )
+            self._update_thread.start()
+            # Wait for one cycle to complete
+            while self.water_care.active_mode is None:
+                self._spa.wait(1)
 
     def __enter__(self):
         return self
@@ -39,6 +51,8 @@ class GeckoFacade(Observable):
         if self._spa:
             self._spa.complete()
             self._spa = None
+        if self._update_thread:
+            self._update_thread.join()
 
     def complete(self):
         """ Finish using this facade if not used in a `with` statement """
@@ -131,6 +145,29 @@ class GeckoFacade(Observable):
             if GeckoConstants.DEVICES[device][3] == GeckoConstants.DEVICE_CLASS_LIGHT
         ]
 
+        self._sensors = [
+            GeckoSensor(
+                self,
+                "Triac Temp",
+                self._spa.accessors["RhTriacTemp"],
+                self._spa.accessors[GeckoConstants.KEY_TEMP_UNITS],
+                "temperature",
+            ),
+        ]
+
+        self._binary_sensors = [
+            GeckoBinarySensor(
+                self, binary_sensor[0], self._spa.accessors[binary_sensor[1]]
+            )
+            for binary_sensor in GeckoConstants.BINARY_SENSORS
+            if binary_sensor[1] in self._spa.accessors
+        ]
+
+    @property
+    def unique_id(self):
+        """ A unique id for the facade """
+        return f"{self.identifier.replace(':', '')}"
+
     @property
     def name(self):
         """ Get the spa name """
@@ -177,6 +214,16 @@ class GeckoFacade(Observable):
         return self._lights
 
     @property
+    def sensors(self):
+        """ Get the sensor list """
+        return self._sensors
+
+    @property
+    def binary_sensors(self):
+        """ Get the binary sensor list """
+        return self._binary_sensors
+
+    @property
     def all_user_devices(self):
         """ Get all the user controllable devices as a list """
         return self._pumps + self._blowers + self._lights
@@ -184,9 +231,21 @@ class GeckoFacade(Observable):
     @property
     def all_automation_devices(self):
         """ Get all the automation devices as a list """
-        return self.all_user_devices + [self.water_heater, self.water_care, self.keypad]
+        return (
+            self.all_user_devices
+            + self.sensors
+            + self.binary_sensors
+            + [self.water_heater, self.water_care, self.keypad]
+        )
 
     @property
     def reminders(self):
         """ Get the reminders list """
         return []
+
+    def _update_thread_func(self):
+        while self.spa.isalive:
+            self.water_care.update()
+            self.spa.wait(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
+
+        logger.info("Facade update thread finished")

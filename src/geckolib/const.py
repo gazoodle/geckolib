@@ -16,6 +16,7 @@ class GeckoConstants:
     DISCOVERY_RETRY_COUNT_TO_FIND_ANY_SPA = 3
     PING_TIMEOUT_IN_SECONDS = 4
     PING_FREQUENCY_IN_SECONDS = 45
+    FACADE_UPDATE_FREQUENCY_IN_SECONDS = 30
 
     BROADCAST_ADDRESS = "255.255.255.255"
     MESSAGE_ENCODING = "latin1"
@@ -56,6 +57,8 @@ class GeckoConstants:
     KEY_SETPOINT_G = "SetpointG"
     KEY_REAL_SETPOINT_G = "RealSetPointG"
     KEY_DISPLAYED_TEMP_G = "DisplayedTempG"
+    KEY_HEATING = "Heating"
+    KEY_COOLINGDOWN = "CoolingDown"
     KEY_PUMP_1 = "P1"
     KEY_PUMP_2 = "P2"
     KEY_PUMP_3 = "P3"
@@ -63,6 +66,8 @@ class GeckoConstants:
     KEY_PUMP_5 = "P5"
     KEY_BLOWER = "BL"
     KEY_WATERFALL = "Waterfall"
+    KEY_CIRCULATING_PUMP = "CP"
+    KEY_OZONE = "O3"
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 
@@ -87,6 +92,11 @@ class GeckoConstants:
     REQUEST_AND_RESPONSE_PACK_COMMAND = ("SPACK", b"PACKS")
     REQUEST_AND_RESPONSE_GET_ACTIVE_WATERCARE = ("GETWC", b"WCGET")
     REQUEST_AND_RESPONSE_SET_ACTIVE_WATERCARE = ("SETWC", b"WCSET")
+
+    # Water heater status
+    WATER_HEATER_HEATING = "Heating"
+    WATER_HEATER_COOLING = "Cooling"
+    WATER_HEATER_IDLE = "Idle"
 
     # Pack commands
     PACK_COMMAND_KEY_PRESS = 57
@@ -116,6 +126,7 @@ class GeckoConstants:
     DEVICE_CLASS_PUMP = "PUMP"
     DEVICE_CLASS_BLOWER = "BLOWER"
     DEVICE_CLASS_LIGHT = "LIGHT"
+    DEVICE_CLASS_OTHER = "OTHER"
 
     # Spa devices and accessories, dictionary of tuples
     #   ID: Description, keypad, structure key, class
@@ -129,6 +140,19 @@ class GeckoConstants:
         "Waterfall": ("Waterfall", KEYPAD_WATERFALL, KEY_WATERFALL, DEVICE_CLASS_PUMP),
         "LI": ("Lights", KEYPAD_LIGHT, KEY_USER_DEMAND_LIGHT, DEVICE_CLASS_LIGHT),
     }
+
+    BINARY_SENSORS = [
+        (
+            "Circulating Pump",
+            KEY_CIRCULATING_PUMP,
+            DEVICE_CLASS_PUMP,
+        ),
+        ("Pump Run", "PumpRun", DEVICE_CLASS_PUMP),
+        ("Ozone", KEY_OZONE, DEVICE_CLASS_OTHER),
+    ]
+
+    # Unused at the moment
+    # SENSORS = [("Triac Temp", "Rh")]
 
     # Buttons, list of tuples
     #   ID, Description, KeyPad ID

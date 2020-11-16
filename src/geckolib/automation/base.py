@@ -21,7 +21,7 @@ class GeckoAutomationBase(Observable):
     @property
     def unique_id(self):
         """ A unique id for the property """
-        return f"{self._facade.identifier.replace(':', '')}-{self._key}"
+        return f"{self._facade.unique_id}-{self._key}"
 
     @property
     def facade(self):
