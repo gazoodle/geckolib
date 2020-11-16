@@ -6,6 +6,10 @@ the conversation between the iOS app and the inTouch2 home transmitter.
 
 Designed to be used by home automation systems such as Home Assistant or openHAB
 
+*This library is currently in Alpha, meaning that there may be large changes
+in library shape, class definitions, behaviours etc as I client it in my ongoing
+Home Assistant integration which hasn't been released yet.*
+
 # Installation
 
 This library is hosted on PyPI and can be installed with the following command-line
