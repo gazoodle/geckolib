@@ -31,12 +31,6 @@ class GeckoFacade(Observable):
         # Install change notifications
         for device in self.all_automation_devices:
             device.watch(self._on_change)
-        self.watch(self._report)
-
-    def _report(self, sender, old_value, new_value):
-        print(
-            f"Facade changed because {sender} changed from {old_value} to {new_value}"
-        )
 
     def __enter__(self):
         return self

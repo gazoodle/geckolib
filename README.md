@@ -72,6 +72,52 @@ Spa$ watercare Weekender
 
 ```
 
+If you have more than one spa/device detected, you can use the `list` and `manage` command
+
+```
+
+Starting discovery process...Found 2 spas
+Welcome to the Gecko shell. Type help or ? to list commands.
+
+(Gecko) list
+1. Spa
+2. Dummy Spa
+(Gecko) manage 1
+Connecting to spa `Spa` at 10.1.2.3 ... connected!
+Heater: Temperature 39.0°C, SetPoint 39.0°C, Operation Idle
+P1: OFF
+P2: OFF
+BL: OFF
+LI: OFF
+WaterCare: Standard
+Spa$ 
+
+```
+
+If you want to get some diagnostics you can enable file logging at the start of the session
+
+```python
+>>> from geckolib import GeckoShell
+>>> GeckoShell.run(["logfile client.log"])
+
+  :
+  :
+
+```
+
+or it can be used later after you've connected to your spa with the `logfile` command
+
+```
+
+Spa$ logfile client.log
+
+```
+
+
+The file `client.log` will contain diagnostic information that may be useful 
+for tracking down issues
+
+
 # API Usage
 
 ```python
@@ -143,16 +189,21 @@ https://www.gnu.org/licenses/gpl-3.0.html
    features that I don't have
  - Sometimes in.touch2 doesn't report back to this library resulting in missing 
    changes
+ - Deal with this: 
+     UnicodeEncodeError: 'latin-1' codec can't encode character '\u0101' in position 108: ordinal not in range(256)
 
 
 ## Done/Fixed in 0.3.11
  - Ping frequency set to 45 seconds
  - Reset method to GeckoReponse class to handle retries in GeckoGetStatus class
- - Add mechanism to locate a spa in the manager class based on it's identifier
+ - Add mechanism to locate a spa in the locator class based on it's identifier
  - Set worker threads to daemon mode
  - Re-structure for better lifetime management and easier clienting
- - Merged PR from dukey32123 supplying waterfall constants ... need to find key code too.
+ - Merged PR from dukey32123 supplying waterfall constants ... need to find keypad code too.
  - flake8 and black formatting and tidy-up
+ - Observable added to propagate change notification so we can be cliented as a 
+   local-push integration in Home Assistant
+ - Moved all the functionality out of client.py and put it into GeckoShell class
 
 ## Done/Fixed in 0.3.10
  - Try upload to PiPY

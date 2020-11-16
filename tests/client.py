@@ -12,5 +12,4 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../s
 from geckolib import GeckoShell  # noqa: E402
 
 # Run the shell
-# GeckoShell.run(["logfile client.log", "loglevel INFO"])
 GeckoShell.run(["logfile client.log"])

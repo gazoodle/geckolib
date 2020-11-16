@@ -1,5 +1,9 @@
 """ Observable class """
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class Observable:
     """Class to manage observables"""
@@ -17,6 +21,7 @@ class Observable:
 
     def _on_change(self, sender, old_value, new_value):
         """ Trigger the change notification for all observers """
+        logger.info(f"{sender} changed from {old_value} to {new_value}")
         for observer in self.observers:
             observer(sender, old_value, new_value)
 
