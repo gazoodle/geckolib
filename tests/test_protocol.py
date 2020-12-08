@@ -316,7 +316,7 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
     def test_recv_handle_response_final(self):
         handler = GeckoStatusBlockProtocolHandler()
         handler.handle(None, b"STATV\x03\x00\x04\x01\x02\x03\x04", PARMS)
-        self.assertTrue(handler.should_remove_handler)
+        self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler.sequence, 3)
         self.assertEqual(handler.next, 0)
         self.assertEqual(handler.length, 4)
