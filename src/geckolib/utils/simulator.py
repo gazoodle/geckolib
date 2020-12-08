@@ -17,8 +17,9 @@ from ..driver import (
     GeckoRemindersProtocolHandler,
     GeckoPackCommandProtocolHandler,
     GeckoStructure,
+    GeckoUdpSocket,
 )
-from .. import VERSION, GeckoUdpSocket
+from .. import VERSION
 
 _LOGGER = logging.getLogger(__name__)
 

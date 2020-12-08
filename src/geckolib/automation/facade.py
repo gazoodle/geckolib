@@ -9,7 +9,7 @@ from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
-from .sensors import GeckoSensor, GeckoBinarySensor
+from .sensors import GeckoBinarySensor
 from .watercare import GeckoWaterCare
 from ..driver import Observable
 
