@@ -4,12 +4,7 @@
     then allows interaction with them
 """
 
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
-
-from geckolib import GeckoShell  # noqa: E402
+from context import GeckoShell
 
 # Run the shell
 GeckoShell.run(["logfile client.log"])

@@ -2,17 +2,24 @@
 
 import logging
 import threading
+import time
 
-from .driver import GeckoComms
 from .const import GeckoConstants
 from .driver import (
+    GeckoUdpSocket,
+    GeckoHelloProtocolHandler,
+    GeckoPacketProtocolHandler,
+    GeckoPingProtocolHandler,
+    GeckoVersionProtocolHandler,
+    GeckoGetChannelProtocolHandler,
+    GeckoConfigFileProtocolHandler,
+    GeckoStatusBlockProtocolHandler,
+    GeckoPartialStatusBlockProtocolHandler,
+    GeckoPackCommandProtocolHandler,
+    # Rest
     GeckoTemperatureDecorator,
-    GeckoGetSoftwareVersion,
-    GeckoGetStatus,
-    GeckoPackCommand,
-    GeckoPartialStatus,
-    GeckoPing,
     GeckoSpaPack,
+    GeckoStructure,
 )
 from .driver import GeckoStructAccessor
 from .automation import GeckoFacade
@@ -23,21 +30,29 @@ logger = logging.getLogger(__name__)
 class GeckoSpaDescriptor:
     """ A descriptor class for spas that have been discovered on the network """
 
-    def __init__(self, client_identifier, response):
+    def __init__(
+        self,
+        client_identifier: bytes,
+        spa_identifier: bytes,
+        spa_name: str,
+        sender: tuple,
+    ):
         self.client_identifier = client_identifier
-        data = GeckoComms.extract_data_using_regex(
-            GeckoConstants.MESSAGE_HELLO, response[0]
-        ).decode(GeckoConstants.MESSAGE_ENCODING)
-        self.identifier, self.name = data.split("|")
-        self.ipaddress, self.port = response[1]
+        self.identifier = spa_identifier
+        self.name = spa_name
+        self.ipaddress, self.port = sender
 
     def get_facade(self):
         """Get an automation facade to interact with the spa described
         by this class"""
         return GeckoFacade(GeckoSpa(self).connect())
 
+    @property
+    def destination(self):
+        return (self.ipaddress, self.port)
 
-class GeckoSpa(GeckoComms, GeckoSpaPack):
+
+class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
     """
     GeckoSpa class manages an instance of a spa, and is the main point of contact for
     control and monitoring. Uses the declarations found in SpaPackStruct.xml to build
@@ -45,18 +60,17 @@ class GeckoSpa(GeckoComms, GeckoSpaPack):
     should only be used via a Facade which hides the implementation details"""
 
     def __init__(self, descriptor):
-        super().__init__(
-            descriptor.ipaddress,
-            GeckoConstants.MESSAGE_PART_CONNECTION_NAMES.format(
-                descriptor.client_identifier, descriptor.identifier
-            ),
-        )
+        super().__init__()
         GeckoSpaPack.__init__(self)
-        self.descriptor = descriptor
-        self.start()
-        self.add_handler(GeckoPartialStatus())
-        self.start_receiving()
 
+        self.descriptor = descriptor
+
+        self.add_receive_handler(GeckoPacketProtocolHandler())
+        self.add_receive_handler(
+            GeckoPartialStatusBlockProtocolHandler(
+                on_handled=self._on_partial_status_update
+            )
+        )
         self._ping_thread = threading.Thread(target=self._ping_thread_func, daemon=True)
 
         # Default values for properties
@@ -79,46 +93,144 @@ class GeckoSpa(GeckoComms, GeckoSpaPack):
 
         # Inspection of the SpaPackStruct.xml shows that there are (currently) no
         # configurations larger than this
-        self.status_block = b"\x00" * 1024
         self.accessors = {}
+
+        self.struct = GeckoStructure(self)
 
     def complete(self):
         """ Complete the use of this spa class """
-        super().complete()
+        super().close()
         self._ping_thread.join()
 
-    def send_request(self, request):
-        """ Send a request and hold the handler to wait for the response """
-        self.add_handler(request)
-        request.send_request(self)
+    def _on_partial_status_update(self, handler, socket, sender):
+        for change in handler.changes:
+            self.struct.replace_status_block_segment(change[0], change[1])
 
-    def replace_status_block_segment(self, offset, segment):
-        """ Replace a segment of the status block """
-        segment_len = len(segment)
-        prefix = self.status_block[0:offset]
-        suffix = self.status_block[offset + segment_len :]
-        previous_block = self.status_block
-        self.status_block = prefix + segment + suffix
-        # Notify changes to accessors
-        for accessor in self.accessors.values():
-            accessor.status_block_changed(offset, segment_len, previous_block)
+    def _on_config_received(self, handler, socket, sender):
+        # XML is case-sensitive, but the platform from the config isn't formed the same,
+        # so we manually search the Plateform nodes to find the one we're interested in
+        for plateform in self.xml.findall(GeckoConstants.SPA_PACK_PLATEFORM_XPATH):
+            if (
+                plateform.attrib[GeckoConstants.SPA_PACK_NAME_ATTRIB].lower()
+                == handler.plateform_key.lower()
+            ):
+                self.gecko_pack_xml = plateform
+
+        # We can't carry on without information on how the STATV data block is formed
+        if self.gecko_pack_xml is None:
+            raise Exception(
+                GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
+                    handler.plateform_key
+                )
+            )
+
+        # Stash the config and log structure declarations
+        self.config_version = handler.config_version
+        self.config_xml = self.gecko_pack_xml.find(
+            GeckoConstants.SPA_PACK_CONFIG_XPATH.format(self.config_version)
+        )
+        self.log_version = handler.log_version
+        self.log_xml = self.gecko_pack_xml.find(
+            GeckoConstants.SPA_PACK_LOG_XPATH.format(self.log_version)
+        )
+        self.pack_type = int(
+            self.gecko_pack_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_TYPE_ATTRIB]
+        )
+        logger.debug(
+            "Got spa configuration Type %s - CFG %s/LOG %s, now ask for initial "
+            "status block",
+            self.pack_type,
+            self.config_version,
+            self.log_version,
+        )
+
+        self.struct.retry_request(
+            GeckoStatusBlockProtocolHandler.full_request(
+                socket.get_and_increment_sequence_counter(), parms=sender
+            ),
+            sender,
+        )
+
+    def _on_channel_received(self, handler, socket, sender):
+        self.channel = handler.channel
+        self.signal = handler.signal_strength
+        logger.debug("Got channel %s/%s, now get config", self.channel, self.signal)
+        socket.add_receive_handler(
+            GeckoConfigFileProtocolHandler(on_handled=self._on_config_received)
+        )
+        socket.queue_send(
+            GeckoConfigFileProtocolHandler.request(
+                socket.get_and_increment_sequence_counter(), parms=sender
+            ),
+            sender,
+        )
+
+    def _on_version_received(self, handler, socket, sender):
+        self.intouch_version_en = "{0} v{1}.{2}".format(
+            handler.en_build, handler.en_major, handler.en_minor
+        )
+        self.intouch_version_co = "{0} v{1}.{2}".format(
+            handler.co_build, handler.co_major, handler.co_minor
+        )
+        logger.debug(
+            "Got software version %s/%s, now get channel",
+            self.intouch_version_en,
+            self.intouch_version_co,
+        )
+        socket.add_receive_handler(
+            GeckoGetChannelProtocolHandler(on_handled=self._on_channel_received)
+        )
+        socket.queue_send(
+            GeckoGetChannelProtocolHandler.request(
+                socket.get_and_increment_sequence_counter(), parms=sender
+            ),
+            sender,
+        )
+
+    @property
+    def sendparms(self):
+        return (
+            self.descriptor.destination[0],
+            self.descriptor.destination[1],
+            self.descriptor.identifier,
+            self.descriptor.client_identifier,
+        )
+
+    def _on_ping_response(self, handler, socket, sender):
+        self._last_ping = time.monotonic()
 
     def connect(self):
         """ Connect to the in.touch2 module """
         # Identify self to the intouch module
-        self.send_message(
-            GeckoConstants.MESSAGE_HELLO.format(self.descriptor.client_identifier)
+        self.queue_send(
+            GeckoHelloProtocolHandler.client(self.descriptor.client_identifier),
+            self.descriptor.destination,
         )
+        self.open()
+        self._ping_handler = GeckoPingProtocolHandler.request(
+            parms=self.sendparms, on_handled=self._on_ping_response
+        )
+        self.add_receive_handler(self._ping_handler)
         self._ping_thread.start()
         # Get the intouch version
         logger.info("Starting spa connection handshake...")
         self.is_connected = False
-        self.send_request(GeckoGetSoftwareVersion())
+        self.add_receive_handler(
+            GeckoVersionProtocolHandler(on_handled=self._on_version_received)
+        )
+        self.queue_send(
+            GeckoVersionProtocolHandler.request(
+                self.get_and_increment_sequence_counter(),
+                parms=self.sendparms,
+            ),
+            self.sendparms,
+        )
         # Wait for connection sequence to complete
         # TODO: Add a timeout/retry mechanism here
         while not self.is_connected:
-            if not self.isalive:
+            if not self.isopen:
                 return
+            self.is_connected = self.struct.had_at_least_one_block
         self._build_accessors()
         self.pack = self.accessors[GeckoConstants.KEY_PACK_TYPE].value
         self.version = "{0} v{1}.{2}".format(
@@ -132,13 +244,18 @@ class GeckoSpa(GeckoComms, GeckoSpaPack):
 
     def _ping_thread_func(self):
         """ Ping thread function """
-        logger.info("Ping thread started")
-        while self.isalive:
-            self.send_request(GeckoPing())
-            # TODO: This is a prophylactic call to ensure that the state is up-to-date
-            # it really ought to work without this, but need investigation
+        logger.info("Ping thread started, %r", self.isopen)
+        while self.isopen:
+            self.queue_send(self._ping_handler, self.sendparms)
             self.refresh()
             self.wait(GeckoConstants.PING_FREQUENCY_IN_SECONDS)
+            if (
+                time.monotonic() - self._last_ping
+                > GeckoConstants.PING_DEVICE_NOT_RESPONDING_TIMEOUT
+            ):
+                logger.warning(
+                    "Spa is not responding to pings, need to reconnect...TODO"
+                )
         logger.info("Ping thread finished")
 
     def _build_accessors(self):
@@ -169,18 +286,27 @@ class GeckoSpa(GeckoComms, GeckoSpaPack):
     def refresh(self):
         """ Refresh the live spa data block """
         if not self.is_connected:
+            logger.debug("Can't refresh as we're not connected yet")
             return
-        self.send_request(
-            GeckoGetStatus(
+        self.struct.retry_request(
+            GeckoStatusBlockProtocolHandler.request(
+                self.get_and_increment_sequence_counter(),
                 int(self.log_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_BEGIN_ATTRIB]),
                 int(self.log_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_END_ATTRIB]),
-            )
+                parms=self.sendparms,
+            ),
+            self.sendparms,
         )
 
     def press(self, keypad):
         """ Simulate a button press """
-        self.send_request(
-            GeckoPackCommand(
-                self.pack_type, [GeckoConstants.PACK_COMMAND_KEY_PRESS, keypad]
-            )
+        self.add_receive_handler(GeckoPackCommandProtocolHandler())
+        self.queue_send(
+            GeckoPackCommandProtocolHandler.keypress(
+                self.get_and_increment_sequence_counter(),
+                self.pack_type,
+                keypad,
+                parms=self.sendparms,
+            ),
+            self.sendparms,
         )

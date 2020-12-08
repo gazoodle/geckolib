@@ -5,9 +5,92 @@ import logging
 
 from ..const import GeckoConstants
 from .observable import Observable
-from .responses import GeckoPackCommand
+from .protocol import (
+    GeckoPackCommandProtocolHandler,
+    GeckoStatusBlockProtocolHandler,
+)
+from .udp_socket import GeckoUdpSocket
 
 logger = logging.getLogger(__name__)
+
+
+class GeckoStructure:
+    """Class to host/manage the raw data block for a spa structure"""
+
+    def __init__(self, socket: GeckoUdpSocket):
+        self._status_block = b"\x00" * 1024
+        self._socket = socket
+        self._accessors = {}
+        self.had_at_least_one_block = False
+
+        # Install a set of handlers
+
+    def replace_status_block_segment(self, offset, segment):
+        """ Replace a segment of the status block """
+        previous_block = self._status_block
+        segment_len = len(segment)
+        self._status_block = (
+            self._status_block[0:offset]
+            + segment
+            + self._status_block[offset + segment_len :]
+        )
+        # Notify changes to accessors
+        for accessor in self._accessors.values():
+            accessor.status_block_changed(offset, segment_len, previous_block)
+
+    @property
+    def status_block(self):
+        return self._status_block
+
+    def set_status_block(self, block):
+        self._status_block = block
+
+    def _on_retry(self, socket, handler):
+        print("Retry")
+        if handler is not None:
+            handler.reset_timeout()
+        self._next_expected = 0
+        self._status_block_segments = []
+
+    def _on_status_block_received(
+        self, handler: GeckoStatusBlockProtocolHandler, socket, sender
+    ):
+        logger.debug(
+            "Status block segment # %d (next is #%d) length %d",
+            handler.sequence,
+            handler.next,
+            handler.length,
+        )
+
+        if not self._next_expected == handler.sequence:
+            logger.warning(
+                "Out-of-sequence status block segment %d - ignored", handler.sequence
+            )
+            if handler.next == 0:
+                logger.warning("Retry status block request")
+                self._next_expected = 0
+                self._status_block_segments = []
+                if not handler.retry(socket):
+                    raise RuntimeError("Too many retries")
+        else:
+            self._status_block_segments.append(handler.data)
+            self._next_expected = handler.next
+            # When we get the last partial segment, we can assume the spa is
+            # connected and we can report on status
+            if handler.next == 0:
+                self.replace_status_block_segment(
+                    self._status_block_offset, b"".join(self._status_block_segments)
+                )
+                self.had_at_least_one_block = True
+                handler._should_remove_handler = True
+
+    def retry_request(self, request: GeckoStatusBlockProtocolHandler, sender: tuple):
+        request._on_handled = self._on_status_block_received
+        self._status_block_offset = request.start
+        self._socket.add_receive_handler(request)
+        self._next_expected = 0
+        self._status_block_segments = []
+        self._socket.queue_send(request, sender)
 
 
 class GeckoStructAccessor(Observable):
@@ -98,7 +181,7 @@ class GeckoStructAccessor(Observable):
         """Get a value from the pack structure using the initialized declaration
         or using the optionally supplied status_block (used by change notification)"""
         if status_block is None:
-            status_block = self.spa.status_block
+            status_block = self.spa.struct.status_block
         data = struct.unpack(
             self.format, status_block[self.pos : self.pos + self.length]
         )[0]
@@ -134,7 +217,7 @@ class GeckoStructAccessor(Observable):
 
         # If it is a bitpos, then mask it with the existing value
         existing = struct.unpack(
-            self.format, self.spa.status_block[self.pos : self.pos + self.length]
+            self.format, self.spa.struct.status_block[self.pos : self.pos + self.length]
         )[0]
         if self.bitpos is not None:
             logger.debug(
@@ -146,11 +229,6 @@ class GeckoStructAccessor(Observable):
             newvalue = (existing & ~(self.bitmask << self.bitpos)) | (
                 (newvalue & self.bitmask) << self.bitpos
             )
-
-        if self.length == 1:
-            newvalue = [int(newvalue)]
-        elif self.length == 2:
-            newvalue = [int(newvalue) // 256, int(newvalue) % 256]
 
         logger.debug(
             "Accessor %s @ %s, %s setting value to %s, existing value was %s. "
@@ -164,17 +242,17 @@ class GeckoStructAccessor(Observable):
         )
 
         # We issue a pack command to acheive this ...
-        self.spa.send_request(
-            GeckoPackCommand(
+        self.spa.add_receive_handler(GeckoPackCommandProtocolHandler())
+        self.spa.queue_send(
+            GeckoPackCommandProtocolHandler.set_value(
+                self.spa.get_and_increment_sequence_counter(),
                 self.spa.pack_type,
-                [
-                    GeckoConstants.PACK_COMMAND_SET_VALUE,
-                    self.spa.config_version,
-                    self.spa.log_version,
-                    self.pos // 256,
-                    self.pos % 256,
-                ]
-                + newvalue,
+                self.spa.config_version,
+                self.spa.log_version,
+                self.pos,
+                self.length,
+                newvalue,
+                parms=self.spa.sendparms,
             )
         )
 
@@ -188,5 +266,5 @@ class GeckoStructAccessor(Observable):
         """ Set a value in the pack structure using the initialized declaration """
         self._set_value(newvalue)
 
-    def __str__(self):
-        return f"{self.tag}: {self.value}"
+    def __repr__(self):
+        return f"{self.tag!r}: {self.value!r}"

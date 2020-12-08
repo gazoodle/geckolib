@@ -15,10 +15,11 @@ class GeckoConstants:
     DISCOVERY_TIMEOUT_IN_SECONDS = 4
     DISCOVERY_RETRY_COUNT_TO_FIND_ANY_SPA = 3
     PING_TIMEOUT_IN_SECONDS = 4
-    PING_FREQUENCY_IN_SECONDS = 45
+    PING_FREQUENCY_IN_SECONDS = 15
+    PING_DEVICE_NOT_RESPONDING_TIMEOUT = 60
     FACADE_UPDATE_FREQUENCY_IN_SECONDS = 30
 
-    BROADCAST_ADDRESS = "255.255.255.255"
+    BROADCAST_ADDRESS = "<broadcast>"
     MESSAGE_ENCODING = "latin1"
     FORMAT_CLIENT_IDENTIFIER = "IOS{0}"
 
@@ -76,31 +77,10 @@ class GeckoConstants:
         "Cannot set value for {0}. This status array item doesn't allow writing"
     )
 
-    # Message pseudo xml parts
-    MESSAGE_HELLO = "<HELLO>{0}</HELLO>"
-    MESSAGE_PART_PACKET = "<PACKT>{0}</PACKT>"
-    MESSAGE_PART_DATAS = "<DATAS>{0}</DATAS>"
-    MESSAGE_PART_CONNECTION_NAMES = "<SRCCN>{0}</SRCCN><DESCN>{1}</DESCN>"
-
-    # Command & response pseudo xml content
-    REQUEST_AND_RESPONSE_PING = ("APING", b"APING")
-    REQUEST_AND_RESPONSE_GET_VERSION = ("AVERS", b"SVERS")
-    REQUEST_AND_RESPONSE_GET_CHANNEL = ("CURCH", b"CHCUR")
-    REQUEST_AND_RESPONSE_GET_CONFIG = ("SFILE", b"FILES")
-    REQUEST_AND_RESPONSE_GET_STATUS = ("STATU", b"STATV")
-    REQUEST_AND_RESPONSE_PARTIAL_STATUS = ("STATQ", b"STATP")
-    REQUEST_AND_RESPONSE_PACK_COMMAND = ("SPACK", b"PACKS")
-    REQUEST_AND_RESPONSE_GET_ACTIVE_WATERCARE = ("GETWC", b"WCGET")
-    REQUEST_AND_RESPONSE_SET_ACTIVE_WATERCARE = ("SETWC", b"WCSET")
-
     # Water heater status
     WATER_HEATER_HEATING = "Heating"
     WATER_HEATER_COOLING = "Cooling"
     WATER_HEATER_IDLE = "Idle"
-
-    # Pack commands
-    PACK_COMMAND_KEY_PRESS = 57
-    PACK_COMMAND_SET_VALUE = 70
 
     # Gecko keypad constants
     KEYPAD_PUMP_1 = 1
@@ -167,8 +147,6 @@ class GeckoConstants:
         ("UP", "Up Button", KEYPAD_UP),
         ("DOWN", "Down Button", KEYPAD_DOWN),
     ]
-
-    REGEX_DOT_STAR = "(.*)"
 
     WATERCARE_MODE = (
         AwayFromHome,

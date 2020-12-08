@@ -195,6 +195,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ## Done/Fixed in 0.3.12 
  - UnicodeEncodeError: 'latin-1' codec can't encode character '\u0101' in position 108: ordinal not in range(256)
+ - Massive restructure of protocol handlers to make building a simulator easier
 
 
 ## Done/Fixed in 0.3.11

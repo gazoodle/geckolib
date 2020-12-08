@@ -1,10 +1,12 @@
 """ Gecko Locator class """
 
 import logging
-import socket
 import time
 
-from .driver import GeckoComms
+from .driver import (
+    GeckoUdpSocket,
+    GeckoHelloProtocolHandler,
+)
 from .const import GeckoConstants
 from .spa import GeckoSpaDescriptor
 
@@ -19,7 +21,7 @@ class GeckoLocator:
     def __init__(self, client_uuid):
         self.client_identifier = GeckoConstants.FORMAT_CLIENT_IDENTIFIER.format(
             client_uuid
-        )
+        ).encode(GeckoConstants.MESSAGE_ENCODING)
         self.spas = []
 
     def __enter__(self):
@@ -30,60 +32,39 @@ class GeckoLocator:
         pass
 
     def _discover(self):
-        with GeckoComms() as comms:
+        with GeckoUdpSocket() as socket:
             logger.info("Discovery process started")
-            comms.set_broadcast()
+            socket.enable_broadcast()
+
             self.spas = []
-            retry_count = 0
-            while retry_count < GeckoConstants.DISCOVERY_RETRY_COUNT_TO_FIND_ANY_SPA:
-                # Broadcast the discovery message to every client on the local LAN
-                comms.send_message(
-                    GeckoConstants.MESSAGE_HELLO.format(1),
-                    GeckoConstants.BROADCAST_ADDRESS,
+
+            hello_protocol_handler = GeckoHelloProtocolHandler.broadcast(
+                on_handled=lambda handler, socket, sender: self.spas.append(
+                    GeckoSpaDescriptor(
+                        self.client_identifier,
+                        handler.spa_identifier,
+                        handler.spa_name,
+                        sender,
+                    )
                 )
-                # Wait to ensure we've heard from all the modules that responded within
-                # the discovery period
-                now = time.monotonic()
-                while (
-                    time.monotonic() - now < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS
-                ):
-                    try:
-                        self.spas.append(
-                            GeckoSpaDescriptor(
-                                self.client_identifier, comms.receive_answer()
-                            )
-                        )
-                    except socket.timeout:
-                        break
+            )
+            socket.add_receive_handler(hello_protocol_handler)
+            socket.queue_send(
+                hello_protocol_handler,
+                GeckoHelloProtocolHandler.broadcast_address(),
+            )
+            # Give it a second to settle down
+            time.sleep(1)
+            now = time.monotonic()
+            # Wait for a while to see what we've got
+            while time.monotonic() - now < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
                 if len(self.spas) > 0:
-                    # Dummy spa to test multiple spas in client programs ... will not
-                    # actually respond!
-                    if GeckoConstants.INCLUDE_DUMMY_SPA:
-                        self.spas.append(
-                            GeckoSpaDescriptor(
-                                self.client_identifier,
-                                (
-                                    b"<HELLO>SPA90:1f:12:5c:d3:c0|Dummy Spa</HELLO>",
-                                    ("127.0.0.1", 10022),
-                                ),
-                            )
-                        )
                     logger.info(
                         "Found %d spas ... %s",
                         len(self.spas),
                         [(spa.name, spa.identifier) for spa in self.spas],
                     )
                     return
-                retry_count += 1
-                logger.info(
-                    "Didn't find any spas within %d seconds, retry # %d",
-                    GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS,
-                    retry_count,
-                )
-            logger.warning(
-                "No spas found, check that you are on the same LAN as your"
-                " in.touch2 device"
-            )
 
     def get_spa_from_identifier(self, identifier):
         """ Locate a spa based on its identifier """

@@ -1,74 +1,44 @@
 """ GeckoShell class """
 
-import cmd
 import sys
 import logging
-
-from .. import GeckoConstants, GeckoLocator, VERSION, GeckoSpaPack
+from .shared_command import GeckoCmd
+from .. import GeckoConstants, GeckoLocator, VERSION
 
 logger = logging.getLogger(__name__)
 
-LICENSE = """
-#
-#   Copyright (C) 2020, Gazoodle (https://github.com/gazoodle)
-#
-#   This program is free software: you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
-#
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#
-#   You should have received a copy of the GNU General Public License
-#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#
-"""
-
-DISCLAIMER = """
-
-    <Disclaimer>
-    ----------------------------- USE AT YOUR OWN RISK -----------------------------
-
-    This code will allow you to make changes to your spa configuration that is outside
-    of what the app, top panel and side panel settings allow. I've not tested every
-    setting and it might be that you prevent your spa pack from operating as it used to
-    do.
-
-    Configuration is declared in the file SpaPackStruct.xml which is downloaded the
-    first time you run this program. Settings marked as RW="ALL" seem to indicate that
-    any process can write them, so you ought to be able to revert the settings to their
-    original ones.
-
-    I strongly suggest dumping the configuration values with the "config" command and
-    recording them somewhere safe.
-
-    </Disclaimer>
-
-"""
 
 SHELL_UUID = "02ac6d28-42d0-41e3-ad22-274d0aa491da"
 
 
-class GeckoShell(cmd.Cmd):
+class GeckoShell(GeckoCmd):
     """GeckoShell is a client application to drive the geckolib automation
     interface"""
 
-    def run(first_commands=None):  # pylint: disable=no-method-argument
-        """ Convenience function to run a shell command loop """
-        print(DISCLAIMER)
+    BANNER = """
 
-        with GeckoShell(first_commands) as shell:
-            shell.cmdloop()
+        <Disclaimer>
+        ----------------------------- USE AT YOUR OWN RISK -----------------------------
+
+        This code will allow you to make changes to your spa configuration that is
+        outside of what the app, top panel and side panel settings allow. I've not
+        tested every setting and it might be that you prevent your spa pack from
+        operating as it used to do.
+
+        Configuration is declared in the file SpaPackStruct.xml which is downloaded the
+        first time you run this program. Settings marked as RW="ALL" seem to indicate
+        that any process can write them, so you ought to be able to revert the settings
+        to their original ones.
+
+        I strongly suggest dumping the configuration values with the "config" command
+        and recording them somewhere safe.
+
+        </Disclaimer>
+
+    """
 
     def __init__(self, first_commands=None):
-        super().__init__()
-
-        self.stream_logger = None
-        self.file_logger = None
-        self._init_logging()
+        super().__init__(first_commands)
 
         self.spas = None
         self.facade = None
@@ -79,23 +49,12 @@ class GeckoShell(cmd.Cmd):
 
         self.intro = "Welcome to the Gecko shell. Type help or ? to list commands.\n"
         self.prompt = "(Gecko) "
-        if first_commands is not None:
-            for command in first_commands:
-                self.onecmd(command)
         self.onecmd("discover")
 
-    def __enter__(self):
-        return self
-
     def __exit__(self, *args):
+        super().__exit__(args)
         if self.facade:
             self.facade.complete()
-
-    def do_exit(self, arg):
-        """Exit this shell: exit"""
-        del arg
-        print("Thank you for using the Gecko shell")
-        return True
 
     def do_discover(self, arg):
         """Discover all the in.touch2 devices on your network : discover"""
@@ -239,20 +198,10 @@ class GeckoShell(cmd.Cmd):
         del arg
         print("")
         print(
-            "client.py: A python program using GeckoLib library to drive Gecko enabled"
+            "GeckoShell: A python program using GeckoLib library to drive Gecko enabled"
             " devices with in.touch2 communication modules"
         )
         print("Library version v{0}".format(VERSION))
-
-    def do_license(self, arg):
-        """Display the license details : license"""
-        del arg
-        print(LICENSE)
-
-    def do_download(self, arg):
-        """Download the SpaPackStruct.xml from Gecko : download"""
-        del arg
-        GeckoSpaPack.download()
 
     def do_refresh(self, arg):
         """Refresh the live data from your spa : refresh"""
@@ -293,37 +242,3 @@ class GeckoShell(cmd.Cmd):
         for ver_str in self.get_version_strings():
             logger.info(ver_str)
         logger.info([hex(b) for b in self.facade.spa.status_block])
-
-    def do_loglevel(self, arg):
-        """Set the logging level : loglevel <ERROR|WARNING|INFO|DEBUG>"""
-        for handler in logging.getLogger().handlers:
-            handler.setLevel(arg)
-        self._set_root_log_level()
-
-    def do_logfile(self, arg):
-        """Add a file logger to the system : logfile <filename>"""
-        if self.file_logger is not None:
-            print("There is already a file logger installed")
-            return
-        self.file_logger = logging.FileHandler("client.log")
-        self.file_logger.setLevel(logging.DEBUG)
-        self.file_logger.setFormatter(
-            logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
-        )
-        logging.getLogger().addHandler(self.file_logger)
-        self._set_root_log_level()
-
-    def _init_logging(self):
-        self.stream_logger = logging.StreamHandler()
-        self.stream_logger.setLevel(logging.WARNING)
-        self.stream_logger.setFormatter(
-            logging.Formatter("LOG> %(levelname)s %(message)s")
-        )
-        logging.getLogger().addHandler(self.stream_logger)
-        self._set_root_log_level()
-
-    def _set_root_log_level(self):
-        # Set root log level
-        logging.getLogger().setLevel(
-            min(handler.level for handler in logging.getLogger().handlers)
-        )

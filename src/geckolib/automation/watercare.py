@@ -1,7 +1,8 @@
 """ Gecko Watercare """
 
 from .base import GeckoAutomationBase
-from ..driver import GeckoGetActiveWatercare, GeckoSetActiveWatercare
+
+# from ..driver import GeckoGetActiveWatercare, GeckoSetActiveWatercare
 from ..const import GeckoConstants
 
 
@@ -30,10 +31,16 @@ class GeckoWaterCare(GeckoAutomationBase):
         """
         if isinstance(new_mode, str):
             new_mode = GeckoConstants.WATERCARE_MODE_STRING.index(new_mode)
-        self._spa.send_request(GeckoSetActiveWatercare(new_mode))
+        raise NotImplementedError("Fix this!")
+        # self._spa.send_request(GeckoSetActiveWatercare(new_mode))
 
     def update(self):
-        get_wc = GeckoGetActiveWatercare()
+        # TODO: Temporary solution
+        self.active_mode = 1
+        return
+        # get_wc = GeckoGetActiveWatercare()
+        get_wc = None
+        raise NotImplementedError("Fix this!")
         self._spa.send_request(get_wc)
         while get_wc.active_mode is None:
             if get_wc.aborted:

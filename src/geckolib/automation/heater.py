@@ -49,12 +49,15 @@ class GeckoWaterHeater(GeckoAutomationBase):
             )
             self._is_present = True
 
-        self._heating_action_sensor = GeckoBinarySensor(
-            self, "Heating", self._spa.accessors[GeckoConstants.KEY_HEATING]
-        )
-        self._cooling_action_sensor = GeckoBinarySensor(
-            self, "Cooling", self._spa.accessors[GeckoConstants.KEY_COOLINGDOWN]
-        )
+        self._heating_action_sensor = self._cooling_action_sensor = None
+        if GeckoConstants.KEY_HEATING in self._spa.accessors:
+            self._heating_action_sensor = GeckoBinarySensor(
+                self, "Heating", self._spa.accessors[GeckoConstants.KEY_HEATING]
+            )
+        if GeckoConstants.KEY_COOLINGDOWN in self._spa.accessors:
+            self._cooling_action_sensor = GeckoBinarySensor(
+                self, "Cooling", self._spa.accessors[GeckoConstants.KEY_COOLINGDOWN]
+            )
 
         # Setup change observers
         for sensor in [

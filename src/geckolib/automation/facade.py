@@ -146,13 +146,13 @@ class GeckoFacade(Observable):
         ]
 
         self._sensors = [
-            GeckoSensor(
-                self,
-                "Triac Temp",
-                self._spa.accessors["RhTriacTemp"],
-                self._spa.accessors[GeckoConstants.KEY_TEMP_UNITS],
-                "temperature",
-            ),
+            # GeckoSensor(
+            #   self,
+            #  "Triac Temp",
+            #  self._spa.accessors["RhTriacTemp"],
+            #  self._spa.accessors[GeckoConstants.KEY_TEMP_UNITS],
+            #  "temperature",
+            # ),
         ]
 
         self._binary_sensors = [
@@ -244,7 +244,7 @@ class GeckoFacade(Observable):
         return []
 
     def _update_thread_func(self):
-        while self.spa.isalive:
+        while self.spa.isopen:
             self.water_care.update()
             self.spa.wait(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
 

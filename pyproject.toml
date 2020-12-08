@@ -23,6 +23,6 @@ line_length=88
 indent = "    "
 # by default isort don't check module indexes
 not_skip = '__init__.py'
-sections = ['FUTURE','STDLIB','INBETWEENS','THIRDPARTY','FIRSTPARTY','LOCALFOLDER']
+sections = ['FUTURE','STDLIB','THIRDPARTY','FIRSTPARTY','LOCALFOLDER']
 default_section = 'THIRDPARTY'
 #known_first_party = custom_components.gecko
