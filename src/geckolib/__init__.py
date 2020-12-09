@@ -40,7 +40,7 @@ from .driver import (
     Observable,
 )
 from ._version import VERSION
-from .utils import GeckoShell, GeckoSimulator
+from .utils import GeckoShell, GeckoSimulator, GeckoSnapshot
 
 # Module logger, uses the library name (at this time it was geckolib) and it
 # is silent unless required ...
@@ -72,6 +72,7 @@ __all__ = [
     # From utils
     "GeckoShell",
     "GeckoSimulator",
+    "GeckoSnapshot",
     # From driver
     "GeckoTemperatureDecorator",
     "Observable",

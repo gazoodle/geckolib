@@ -253,7 +253,8 @@ class GeckoStructAccessor(Observable):
                 self.length,
                 newvalue,
                 parms=self.spa.sendparms,
-            )
+            ),
+            self.spa.sendparms,
         )
 
     @property

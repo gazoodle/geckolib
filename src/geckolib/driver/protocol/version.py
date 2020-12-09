@@ -20,19 +20,15 @@ class GeckoVersionProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def response(en_build, en_major, en_minor, co_build, co_major, co_minor, **kwargs):
+    def response(intouch_EN: tuple, intouch_CO: tuple, **kwargs):
         return GeckoVersionProtocolHandler(
             content=b"".join(
                 [
                     SVERS_VERB,
                     struct.pack(
                         VERSION_FORMAT,
-                        en_build,
-                        en_major,
-                        en_minor,
-                        co_build,
-                        co_major,
-                        co_minor,
+                        *intouch_EN,
+                        *intouch_CO,
                     ),
                 ]
             ),

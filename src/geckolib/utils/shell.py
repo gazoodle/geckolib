@@ -138,23 +138,24 @@ class GeckoShell(GeckoCmd):
             print(reminder)
         print(self.facade.water_care)
 
-    def get_version_strings(self):  # pylint: disable=redefined-outer-name
+    @property
+    def version_strings(self):
         """Get the version strings for the spa"""
         return [
-            "SpaPackStruct.xml revision {0}".format(self.facade.spa.revision),
-            "intouch version EN {0}".format(self.facade.spa.intouch_version_en),
-            "intouch version CO {0}".format(self.facade.spa.intouch_version_co),
-            "Spa pack {0} {1}".format(self.facade.spa.pack, self.facade.spa.version),
-            "Low level configuration # {0}".format(self.facade.spa.config_number),
-            "Config version {0}".format(self.facade.spa.config_version),
-            "Log version {0}".format(self.facade.spa.log_version),
-            "Pack type {0}".format(self.facade.spa.pack_type),
+            f"SpaPackStruct.xml revision {self.facade.spa.revision}",
+            f"intouch version EN {self.facade.spa.intouch_version_en}",
+            f"intouch version CO {self.facade.spa.intouch_version_co}",
+            f"Spa pack {self.facade.spa.pack} {self.facade.spa.version}",
+            f"Low level configuration # {self.facade.spa.config_number}",
+            f"Config version {self.facade.spa.config_version}",
+            f"Log version {self.facade.spa.log_version}",
+            f"Pack type {self.facade.spa.pack_type}",
         ]
 
     def do_version(self, arg):
         """Show the version information : version"""
         del arg
-        for version_str in self.get_version_strings():
+        for version_str in self.version_strings:
             print(version_str)
 
     def do_config(self, arg):
@@ -239,6 +240,6 @@ class GeckoShell(GeckoCmd):
         """Take a snapshot of the spa data structure with a descriptive
         message : SNAPSHOT <desc>"""
         logger.info("Snapshot (%s)", arg)
-        for ver_str in self.get_version_strings():
+        for ver_str in self.version_strings:
             logger.info(ver_str)
-        logger.info([hex(b) for b in self.facade.spa.status_block])
+        logger.info([hex(b) for b in self.facade.spa.struct.status_block])

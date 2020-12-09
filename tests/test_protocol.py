@@ -154,7 +154,9 @@ class TestGeckoVersionHandler(unittest.TestCase):
         )
 
     def test_send_construct_response(self):
-        handler = GeckoVersionProtocolHandler.response(1, 2, 3, 4, 5, 6, parms=PARMS)
+        handler = GeckoVersionProtocolHandler.response(
+            (1, 2, 3), (4, 5, 6), parms=PARMS
+        )
         self.assertEqual(
             handler.send_bytes,
             b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN>"

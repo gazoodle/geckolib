@@ -103,7 +103,7 @@ class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
 
         # Otherwise must be STATP
         if socket is not None:
-            socket.new_queue_send(
+            socket.queue_send(
                 GeckoPartialStatusBlockProtocolHandler(
                     content=b"".join(
                         [
