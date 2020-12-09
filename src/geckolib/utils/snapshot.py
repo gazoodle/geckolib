@@ -75,7 +75,6 @@ class GeckoSnapshot:
             self._bytes = bytes(
                 bytearray([int(b.strip()[1:-1], 16) for b in match.group(1).split(",")])
             )
-            print(self._bytes)
 
     @property
     def name(self):
