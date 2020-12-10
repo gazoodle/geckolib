@@ -315,7 +315,7 @@ class GeckoUdpSocket:
                     self._MAX_PACKET_SIZE
                 )
                 self.dispatch_recevied_data(received_bytes, remote_end)
-            except socket.timeout:
+            except (socket.timeout, OSError):
                 return
             finally:
                 pass
@@ -351,8 +351,13 @@ class GeckoUdpSocket:
             for handler in self._receive_handlers:
                 handler.loop(self)
             self._cleanup_handlers()
+            self._loop_func()
 
         _LOGGER.info("GeckoUdpSocket thread finished")
+
+    def _loop_func(self):
+        # Opportunity for sub-class to get a thread loop
+        pass
 
     def __repr__(self):
         return (

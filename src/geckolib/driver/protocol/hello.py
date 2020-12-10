@@ -25,7 +25,7 @@ class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
 
     @staticmethod
     def broadcast(**kwargs):
-        return GeckoHelloProtocolHandler(b"1", timeout=1, retry_count=5, **kwargs)
+        return GeckoHelloProtocolHandler(b"1", **kwargs)
 
     @staticmethod
     def client(client_identifier: bytes, **kwargs):

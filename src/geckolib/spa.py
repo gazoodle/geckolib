@@ -42,14 +42,25 @@ class GeckoSpaDescriptor:
         self.name = spa_name
         self.ipaddress, self.port = sender
 
-    def get_facade(self):
+    def get_facade(self, wait_for_connection=True):
         """Get an automation facade to interact with the spa described
         by this class"""
-        return GeckoFacade(GeckoSpa(self).connect())
+        facade = GeckoFacade(GeckoSpa(self).start_connect())
+        if wait_for_connection:
+            while not facade.is_connected:
+                facade.wait(0.1)
+        return facade
+
+    @property
+    def identifier_as_string(self):
+        return self.identifier.decode(GeckoConstants.MESSAGE_ENCODING)
 
     @property
     def destination(self):
         return (self.ipaddress, self.port)
+
+    def __repr__(self):
+        return f"{self.name}({self.identifier_as_string})"
 
 
 class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
@@ -64,6 +75,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         GeckoSpaPack.__init__(self)
 
         self.descriptor = descriptor
+        self.on_connected = None
 
         self.add_receive_handler(GeckoPacketProtocolHandler())
         self.add_receive_handler(
@@ -86,7 +98,8 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         self.log_version = 0
         self.log_xml = None
         self.pack_type = None
-        self.is_connected = False
+        self._is_connected = False
+        self._connection_started = None
         self.pack = None
         self.version = None
         self.config_number = None
@@ -199,14 +212,15 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
     def _on_ping_response(self, handler, socket, sender):
         self._last_ping = time.monotonic()
 
-    def connect(self):
+    def start_connect(self):
         """ Connect to the in.touch2 module """
+        self._connection_started = time.monotonic()
         # Identify self to the intouch module
+        self.open()
         self.queue_send(
             GeckoHelloProtocolHandler.client(self.descriptor.client_identifier),
             self.descriptor.destination,
         )
-        self.open()
         self._ping_handler = GeckoPingProtocolHandler.request(
             parms=self.sendparms, on_handled=self._on_ping_response
         )
@@ -214,7 +228,6 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         self._ping_thread.start()
         # Get the intouch version
         logger.info("Starting spa connection handshake...")
-        self.is_connected = False
         self.add_receive_handler(
             GeckoVersionProtocolHandler(on_handled=self._on_version_received)
         )
@@ -225,12 +238,17 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
             ),
             self.sendparms,
         )
-        # Wait for connection sequence to complete
-        # TODO: Add a timeout/retry mechanism here
-        while not self.is_connected:
-            if not self.isopen:
-                return
-            self.is_connected = self.struct.had_at_least_one_block
+        return self
+
+    def _loop_func(self):
+        if self._is_connected:
+            return
+        if self.isopen:
+            if self.struct.had_at_least_one_block:
+                self._final_connect()
+
+    def _final_connect(self):
+        logger.debug("Connected, build accessors")
         self._build_accessors()
         self.pack = self.accessors[GeckoConstants.KEY_PACK_TYPE].value
         self.version = "{0} v{1}.{2}".format(
@@ -239,8 +257,10 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
             self.accessors[GeckoConstants.KEY_PACK_CONFIG_REL].value,
         )
         self.config_number = self.accessors[GeckoConstants.KEY_CONFIG_NUMBER].value
-        logger.info("Spa is connected")
-        return self
+        self._is_connected = True
+        if self.on_connected is not None:
+            self.on_connected(self)
+        logger.info("Spa is now connected")
 
     def _ping_thread_func(self):
         """ Ping thread function """
@@ -254,7 +274,8 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
                 > GeckoConstants.PING_DEVICE_NOT_RESPONDING_TIMEOUT
             ):
                 logger.warning(
-                    "Spa is not responding to pings, need to reconnect...TODO"
+                    # TODO
+                    "TODO: Spa is not responding to pings, need to reconnect..."
                 )
         logger.info("Ping thread finished")
 
@@ -282,6 +303,17 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
     def get_buttons(self):
         """ Get a list of buttons that can be pressed """
         return [button[0] for button in GeckoConstants.BUTTONS]
+
+    @property
+    def is_connected(self):
+        if self._is_connected:
+            return True
+        if (
+            time.monotonic() - self._connection_started
+            > GeckoConstants.CONNECTION_TIMEOUT_IN_SECONDS
+        ):
+            raise RuntimeError("Spa took too long to connect ...")
+        return False
 
     def refresh(self):
         """ Refresh the live spa data block """

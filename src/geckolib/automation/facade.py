@@ -27,22 +27,15 @@ class GeckoFacade(Observable):
         self._spa = spa
         self._sensors = []
         self._binary_sensors = []
-        self._water_heater = GeckoWaterHeater(self)
-        self._water_care = GeckoWaterCare(self)
-        self._keypad = GeckoKeypad(self)
-        self.scan_outputs()
-        # Install change notifications
-        for device in self.all_automation_devices:
-            device.watch(self._on_change)
-        self._update_thread = None
-        if self.spa:
-            self._update_thread = threading.Thread(
-                target=self._update_thread_func, daemon=True
-            )
-            self._update_thread.start()
-            # Wait for one cycle to complete
-            while self.water_care.active_mode is None:
-                self._spa.wait(1)
+        self._water_heater = None
+        self._water_care = None
+        self._keypad = None
+        self._update_thread = threading.Thread(
+            target=self._update_thread_func, daemon=True
+        )
+        self._update_thread.start()
+        self._facade_ready = False
+        self._spa.on_connected = self._on_connected
 
     def __enter__(self):
         return self
@@ -54,9 +47,34 @@ class GeckoFacade(Observable):
         if self._update_thread:
             self._update_thread.join()
 
+    def _on_connected(self, spa):
+        logger.debug("Facade knows spa is connected")
+        self._water_heater = GeckoWaterHeater(self)
+        self._water_care = GeckoWaterCare(self)
+        self._keypad = GeckoKeypad(self)
+        self.scan_outputs()
+        # Install change notifications
+        for device in self.all_automation_devices:
+            device.watch(self._on_change)
+        logger.debug("Facade waiting for one watercare update cycle")
+        # Wait for one cycle to complete
+        while self.water_care.active_mode is None:
+            self._spa.wait(0.1)
+        logger.debug("Facade is now ready")
+        self._facade_ready = True
+
     def complete(self):
         """ Finish using this facade if not used in a `with` statement """
         self.__exit__()
+
+    @property
+    def is_connected(self):
+        if not self._spa.is_connected:
+            return False
+        return self._facade_ready
+
+    def wait(self, timeout):
+        self.spa.wait(timeout)
 
     def scan_outputs(self):
         """ Scan the spa outputs to decide what user options are available """
@@ -176,7 +194,7 @@ class GeckoFacade(Observable):
     @property
     def identifier(self):
         """ Get the spa identifier """
-        return self._spa.descriptor.identifier
+        return self._spa.descriptor.identifier_as_string
 
     @property
     def spa(self):
@@ -199,7 +217,7 @@ class GeckoFacade(Observable):
         return self._keypad
 
     @property
-    def pumps(self):
+    def pumps(self) -> [GeckoPump]:
         """ Get the pumps list """
         return self._pumps
 
@@ -245,6 +263,12 @@ class GeckoFacade(Observable):
 
     def _update_thread_func(self):
         while self.spa.isopen:
+            if not self.spa.is_connected:
+                self.spa.wait(0.1)
+                continue
+            if self._water_care is None:
+                self.spa.wait(0.1)
+                continue
             self.water_care.update()
             self.spa.wait(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
 
