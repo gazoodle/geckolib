@@ -103,21 +103,38 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         self.pack = None
         self.version = None
         self.config_number = None
-
-        # Inspection of the SpaPackStruct.xml shows that there are (currently) no
-        # configurations larger than this
-        self.accessors = {}
-
-        self.struct = GeckoStructure(self)
+        self.struct = GeckoStructure(self._on_set_value)
 
     def complete(self):
         """ Complete the use of this spa class """
         super().close()
         self._ping_thread.join()
 
+    @property
+    def accessors(self):
+        return self.struct.accessors
+
     def _on_partial_status_update(self, handler, socket, sender):
         for change in handler.changes:
             self.struct.replace_status_block_segment(change[0], change[1])
+
+    def _on_set_value(self, pos, length, newvalue):
+        print(f"SPA: Set value @{pos} for {length} to {newvalue}")
+        # We issue a pack command to acheive this ...
+        self.add_receive_handler(GeckoPackCommandProtocolHandler())
+        self.queue_send(
+            GeckoPackCommandProtocolHandler.set_value(
+                self.get_and_increment_sequence_counter(),
+                self.pack_type,
+                self.config_version,
+                self.log_version,
+                pos,
+                length,
+                newvalue,
+                parms=self.sendparms,
+            ),
+            self.sendparms,
+        )
 
     def _on_config_received(self, handler, socket, sender):
         # XML is case-sensitive, but the platform from the config isn't formed the same,
@@ -158,6 +175,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         )
 
         self.struct.retry_request(
+            self,
             GeckoStatusBlockProtocolHandler.full_request(
                 socket.get_and_increment_sequence_counter(), parms=sender
             ),
@@ -249,7 +267,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
 
     def _final_connect(self):
         logger.debug("Connected, build accessors")
-        self._build_accessors()
+        self.struct.build_accessors([self.config_xml, self.log_xml])
         self.pack = self.accessors[GeckoConstants.KEY_PACK_TYPE].value
         self.version = "{0} v{1}.{2}".format(
             self.accessors[GeckoConstants.KEY_PACK_CONFIG_ID].value,
@@ -321,6 +339,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
             logger.debug("Can't refresh as we're not connected yet")
             return
         self.struct.retry_request(
+            self,
             GeckoStatusBlockProtocolHandler.request(
                 self.get_and_increment_sequence_counter(),
                 int(self.log_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_BEGIN_ATTRIB]),

@@ -121,15 +121,49 @@ Spa$ logfile client.log
 The file `client.log` will contain diagnostic information that may be useful 
 for tracking down issues
 
+# Simulator Usage
+
+It's best if you download the repo for using the simulator. Once you've done that, 
+open a terminal to your repo test folder (./tests)
+
+`python3 simulator.py`
+
+You should see a prompt
+
+```
+Welcome to the Gecko simulator. Type help or ? to list commands.
+
+(GeckoSim) 
+```
+
+You should load the default snapshot at this point
+
+```
+(GeckoSim) load snapshots/default.snapshot
+(GeckoSim)
+```
+
+Now you can run the client program, or indeed your iOS or Android app and then 
+attempt to connect to the simulator. At present it only supports loading another
+snapshot to change the state. If the changes are too great, for example, if you've
+loaded a completly different spa then the iOS and Android apps may be confused.
+
+Best to click on the account icon and then reselect the test spa to get it to
+reconnect from the start.
+
+Also, at present the simulator doesn't respond to any commands issued from the
+iOS and Android applications.
 
 # API Usage
 
-```python
+This first example is a trivial one to show how to minimally client this library
 
-""" Simple client demonstrating use of geckolib """
+```python
+""" Sample client demonstrating use of geckolib """
 
 import time
-from geckolib import GeckoLocator   # pylint: disable=import-error,wrong-import-position
+
+from geckolib import GeckoLocator
 
 # Replace with your own UUID, see https://www.uuidgenerator.net/>
 CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
@@ -137,7 +171,7 @@ CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
 print("Locating spas on your network")
 with GeckoLocator(CLIENT_ID) as locator:
 
-    print("Connecting to first spa")
+    print(f"Connecting to first spa {locator.spas[0]}")
     with locator.spas[0].get_facade() as facade:
 
         print(facade.water_heater)
@@ -150,8 +184,89 @@ with GeckoLocator(CLIENT_ID) as locator:
         print("Turning pump 1 off")
         facade.pumps[0].turn_off()
         time.sleep(2)
+```
+
+A more complex example 
+
+```python
+""" Real world sample client demonstrating use of geckolib
+
+Python async suffers like many interpreted languages with function
+colour see:
+
+http://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/
+
+To avoid this, the geckolib is written using synchronous functions and
+methodologies, but using threading to manage the I/O portions. Where
+appropriate, state flags are exposed so that you can use async clients
+to ensure that your host is still responsive and I don't have to maintain
+two versions of the library ... ugh!"""
+
+import time
+
+from geckolib import GeckoLocator
+
+# Replace with your own UUID, see https://www.uuidgenerator.net/>
+CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
+
+# First up, lets locate all the spas on your network
+print("Locating spas on your network ", end="", flush=True)
+locator = GeckoLocator(CLIENT_ID)
+locator.start_discovery()
+
+# We can perform other operations while this is progressing, like output a dot
+while not locator.has_had_enough_time:
+    # Could also be `await asyncio.sleep(1)`
+    locator.wait(1)
+    print(".", end="", flush=True)
+
+locator.complete()
+
+# Report how many we've found
+print(f" found {len(locator.spas)} spas")
+
+if len(locator.spas) == 0:
+    raise RuntimeError("Cannot continue as there were no spas detected")
+
+# Grasp info about your spa, this is often the integration phase in your
+# automation system, sometimes you can store binary identifiers, sometimes
+# you can't ...
+persistent_spa_identifier = locator.spas[0].identifier_as_string
+print(f"Using spa identifier {persistent_spa_identifier}")
+
+# Some time later, when we want to start the automation system but don't
+# want to choose the spa again, we do something like this ...
+facade = GeckoLocator.find_spa(CLIENT_ID, persistent_spa_identifier).get_facade(False)
+
+# Now we have a facade, wait for it to be connected
+print(f"Connecting to {facade.name} ", end="", flush=True)
+while not facade.is_connected:
+    # Could also be `await asyncio.sleep(1)`
+    facade.wait(1)
+    print(".", end="", flush=True)
+print(" connected")
+
+# Do some things with the facade
+print(f"Water heater : {facade.water_heater}")
 
 
+def pump_1_change(sender, old_value, new_value):
+    print(f"Pump 1 changed from {old_value} to {new_value}")
+
+
+# Watch pump 1 for changes and report on them
+facade.pumps[0].watch(pump_1_change)
+
+print("Turn pump 1 on")
+facade.pumps[0].turn_on()
+
+time.sleep(5)
+
+print("Turning pump 1 off")
+facade.pumps[0].turn_off()
+
+time.sleep(2)
+facade.complete()
 ```
 
 # Acknowledgements
@@ -166,7 +281,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 # Todo
 
  - Reminders
- - Spa state (heating/cooling/errors)
+ - Spa state (errors)
  - Error handling
  - Better timeout/retry for multiple commands
  - Pythonize where possible
@@ -185,18 +300,17 @@ https://www.gnu.org/licenses/gpl-3.0.html
    so we can inspect the remainder to see if there is anything useful in there.
  - Handle other device types such as Waterfall
  - Handle multi/variable speed pumps
- - Async APIs
- - Make GeckoGetStatus handle missing and out-of-sequence as this is a major 
-   cause of delays during spa connection
- - Write simulator module and use that to investigate comms from the app for 
-   features that I don't have
- - Sometimes in.touch2 doesn't report back to this library resulting in missing 
-   changes
+ - Smart Winter Mode (SWM)
+ - Filter status
 
-## Done/Fixed in 0.3.12 
+
+## Done/Fixed in 0.3.12
  - UnicodeEncodeError: 'latin-1' codec can't encode character '\u0101' in position 108: ordinal not in range(256)
- - Massive restructure of protocol handlers to make building a simulator easier
-
+ - Massive refactor of protocol handlers to make building a simulator easier
+ - Changes to allow library to be more suitable for async clients
+ - Ping frequency returned to 15 seconds
+ - Simulator added to allow investigation using snapshots sent in from other folk
+ - Heating state fixed to show heating/cooling as appropriate
 
 ## Done/Fixed in 0.3.11
  - Ping frequency set to 45 seconds

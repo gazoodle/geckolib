@@ -1,6 +1,5 @@
 """ Unit tests for the snapshot handlers """
 
-import logging
 import unittest
 import unittest.mock
 
@@ -66,9 +65,4 @@ class TestGeckoSnapshot(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    if False:  # Change to True to enable logging
-        stream_logger = logging.StreamHandler()
-        stream_logger.setLevel(logging.DEBUG)
-        stream_logger.setFormatter(logging.Formatter("LOG> %(levelname)s %(message)s"))
-        logging.getLogger().addHandler(stream_logger)
     unittest.main()

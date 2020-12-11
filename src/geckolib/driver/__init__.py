@@ -18,7 +18,8 @@ from .protocol import (
 from .observable import Observable
 
 from .spapack import GeckoSpaPack
-from .spastruct import GeckoStructure, GeckoStructAccessor
+from .accessor import GeckoStructAccessor
+from .spastruct import GeckoStructure
 from .udp_socket import GeckoUdpProtocolHandler, GeckoUdpSocket
 
 __all__ = [

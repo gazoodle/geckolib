@@ -1,6 +1,5 @@
 """ Unit tests for the UDP socket classes """
 
-import logging
 import unittest
 import unittest.mock
 import time
@@ -167,9 +166,4 @@ class TestGeckoUdpSocket(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    if True:  # Change to True to enable logging
-        stream_logger = logging.StreamHandler()
-        stream_logger.setLevel(logging.DEBUG)
-        stream_logger.setFormatter(logging.Formatter("LOG> %(levelname)s %(message)s"))
-        logging.getLogger().addHandler(stream_logger)
     unittest.main()

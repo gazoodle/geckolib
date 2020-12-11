@@ -38,7 +38,7 @@ class GeckoSimulator(GeckoCmd):
 
         self._socket = GeckoUdpSocket()
         self._install_standard_handlers()
-        self.structure = GeckoStructure(self._socket)
+        self.structure = GeckoStructure(self._on_set_value)
         self.snapshot = None
 
         super().__init__(first_commands)
@@ -231,3 +231,6 @@ class GeckoSimulator(GeckoCmd):
             print("Pressed a key")
         elif handler.is_set_value:
             print("Set a value")
+
+    def _on_set_value(self, pos, length, newvalue):
+        print(f"Simulator: Set value @{pos} for {length} to {newvalue}")
