@@ -228,7 +228,7 @@ class GeckoSimulator(GeckoCmd):
             GeckoPackCommandProtocolHandler.response(parms=sender), sender
         )
         if handler.is_key_press:
-            print("Pressed a key")
+            print(f"Pressed a key ({handler.keycode})")
         elif handler.is_set_value:
             print("Set a value")
 

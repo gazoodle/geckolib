@@ -311,6 +311,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Ping frequency returned to 15 seconds
  - Simulator added to allow investigation using snapshots sent in from other folk
  - Heating state fixed to show heating/cooling as appropriate
+ - Issue#1 Waterfall now recognised and responding to button press
 
 ## Done/Fixed in 0.3.11
  - Ping frequency set to 45 seconds

@@ -93,10 +93,10 @@ class GeckoConstants:
     KEYPAD_PUMP_4 = 4
     KEYPAD_PUMP_5 = 5
     KEYPAD_BLOWER = 6
-    KEYPAD_WATERFALL = None
     KEYPAD_LIGHT = 16
     KEYPAD_UP = 21
     KEYPAD_DOWN = 22
+    KEYPAD_WATERFALL = 23
 
     # Pack outputs
     PACK_OUTPUTS_XPATHS = [
