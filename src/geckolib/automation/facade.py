@@ -105,12 +105,14 @@ class GeckoFacade(Observable):
         logger.debug("All devices are %s", all_devices)
         # If any of the actual connection values starts with any of the devices,
         # then the device is present
-        actual_devices = [
-            device
-            for device in all_devices
-            for val in actual_connections.values()
-            if val.startswith(device)
-        ]
+        actual_devices = set(
+            [
+                device
+                for device in all_devices
+                for val in actual_connections.values()
+                if val.startswith(device)
+            ]
+        )
         logger.debug("Actual devices are %s", actual_devices)
         # User devices are those that have a Ud in the tag name
         user_demands = [
