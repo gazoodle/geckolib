@@ -303,6 +303,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Smart Winter Mode (SWM)
  - Filter status
 
+## Done/Fixed in 0.3.13
+ - Move MrSteam handling on so that we can get a proper structure dump
 
 ## Done/Fixed in 0.3.12
  - UnicodeEncodeError: 'latin-1' codec can't encode character '\u0101' in position 108: ordinal not in range(256)

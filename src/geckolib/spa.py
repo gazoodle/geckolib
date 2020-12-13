@@ -17,11 +17,9 @@ from .driver import (
     GeckoPartialStatusBlockProtocolHandler,
     GeckoPackCommandProtocolHandler,
     # Rest
-    GeckoTemperatureDecorator,
     GeckoSpaPack,
     GeckoStructure,
 )
-from .driver import GeckoStructAccessor
 from .automation import GeckoFacade
 
 logger = logging.getLogger(__name__)
@@ -119,7 +117,6 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
             self.struct.replace_status_block_segment(change[0], change[1])
 
     def _on_set_value(self, pos, length, newvalue):
-        print(f"SPA: Set value @{pos} for {length} to {newvalue}")
         # We issue a pack command to acheive this ...
         self.add_receive_handler(GeckoPackCommandProtocolHandler())
         self.queue_send(
@@ -296,27 +293,6 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
                     "TODO: Spa is not responding to pings, need to reconnect..."
                 )
         logger.info("Ping thread finished")
-
-    def _build_accessors(self):
-        self.accessors = {
-            element.tag: GeckoStructAccessor(self, element)
-            for xml in [self.config_xml, self.log_xml]
-            for element in xml.findall(
-                GeckoConstants.SPA_PACK_STRUCT_POS_ELEMENTS_XPATH
-            )
-        }
-        # Fix temperature accessors ...
-        temp_keys = {
-            element.tag
-            for xml in [self.config_xml, self.log_xml]
-            for element in xml.findall(
-                GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE_ELEMENTS_XPATH
-            )
-            if "temp" in element.tag.lower() or "setpoint" in element.tag.lower()
-        }
-        logger.debug("Temperature keys to decorate %s", temp_keys)
-        for key in temp_keys:
-            self.accessors[key] = GeckoTemperatureDecorator(self, self.accessors[key])
 
     def get_buttons(self):
         """ Get a list of buttons that can be pressed """
