@@ -343,6 +343,9 @@ class GeckoUdpSocket:
                     if handler not in remove_handlers
                 ]
 
+            if remove_handlers:
+                _LOGGER.debug("Remaining handlers %s", self._receive_handlers)
+
     def _thread_func(self):
         while self.isopen:
             self._process_send_requests()

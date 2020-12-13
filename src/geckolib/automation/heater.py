@@ -130,10 +130,28 @@ class GeckoWaterHeater(GeckoAutomationBase):
     @property
     def current_operation(self):
         """ Return the current operation of the water heater """
-        if self._heating_action_sensor.is_on:
-            return GeckoConstants.WATER_HEATER_HEATING
-        elif self._cooling_action_sensor.is_on:
-            return GeckoConstants.WATER_HEATER_COOLING
+
+        # If we have both sensors, then these are the arbiters
+        if (
+            self._heating_action_sensor is not None
+            and self._cooling_action_sensor is not None
+        ):
+            if self._heating_action_sensor.is_on:
+                return GeckoConstants.WATER_HEATER_HEATING
+            elif self._cooling_action_sensor.is_on:
+                return GeckoConstants.WATER_HEATER_COOLING
+            else:
+                return GeckoConstants.WATER_HEATER_IDLE
+
+        # Otherwise, we take what we can get
+        if self._heating_action_sensor is not None:
+            if self._heating_action_sensor.is_on:
+                return GeckoConstants.WATER_HEATER_HEATING
+        if self._cooling_action_sensor is not None:
+            if self._cooling_action_sensor.is_on:
+                return GeckoConstants.WATER_HEATER_COOLING
+
+        # Finally, it's down to the actual temperatures
         if self.current_temperature < self.real_target_temperature:
             return GeckoConstants.WATER_HEATER_HEATING
         elif self.current_temperature > self.real_target_temperature:

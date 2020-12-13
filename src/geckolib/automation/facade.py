@@ -56,10 +56,6 @@ class GeckoFacade(Observable):
         # Install change notifications
         for device in self.all_automation_devices:
             device.watch(self._on_change)
-        logger.debug("Facade waiting for one watercare update cycle")
-        # Wait for one cycle to complete
-        while self.water_care.active_mode is None:
-            self._spa.wait(0.1)
         logger.debug("Facade is now ready")
         self._facade_ready = True
 
@@ -265,13 +261,13 @@ class GeckoFacade(Observable):
 
     def _update_thread_func(self):
         while self.spa.isopen:
-            if not self.spa.is_connected:
-                self.spa.wait(0.1)
-                continue
             if self._water_care is None:
                 self.spa.wait(0.1)
                 continue
             self.water_care.update()
+            if self._water_care.active_mode is None:
+                self.spa.wait(0.1)
+                continue
             self.spa.wait(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
 
         logger.info("Facade update thread finished")

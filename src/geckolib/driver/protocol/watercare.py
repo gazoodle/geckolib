@@ -14,6 +14,7 @@ WCREQ_VERB = b"WCREQ"
 
 
 GET_WATERCARE_FORMAT = ">B"
+SET_WATERCARE_FORMAT = ">BB"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +23,17 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
     @staticmethod
     def request(seq, **kwargs):
         return GeckoWatercareProtocolHandler(
-            content=b"".join([GETWC_VERB, struct.pack(">B", seq)]), **kwargs
+            content=b"".join([GETWC_VERB, struct.pack(">B", seq)]), timeout=4, **kwargs
+        )
+
+    @staticmethod
+    def set(seq, mode, **kwargs):
+        return GeckoWatercareProtocolHandler(
+            content=b"".join(
+                [SETWC_VERB, struct.pack(SET_WATERCARE_FORMAT, seq, mode)]
+            ),
+            timeout=4,
+            **kwargs,
         )
 
     @staticmethod

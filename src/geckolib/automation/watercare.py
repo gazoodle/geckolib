@@ -1,9 +1,12 @@
 """ Gecko Watercare """
 
+import logging
 from .base import GeckoAutomationBase
 
-# from ..driver import GeckoGetActiveWatercare, GeckoSetActiveWatercare
+from ..driver import GeckoWatercareProtocolHandler
 from ..const import GeckoConstants
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class GeckoWaterCare(GeckoAutomationBase):
@@ -12,6 +15,7 @@ class GeckoWaterCare(GeckoAutomationBase):
     def __init__(self, facade):
         super().__init__(facade, "WaterCare", "WATERCARE")
         self.active_mode = None
+        self._water_care_handler = None
 
     @property
     def mode(self):
@@ -31,24 +35,33 @@ class GeckoWaterCare(GeckoAutomationBase):
         """
         if isinstance(new_mode, str):
             new_mode = GeckoConstants.WATERCARE_MODE_STRING.index(new_mode)
-        raise NotImplementedError("Fix this!")
-        # self._spa.send_request(GeckoSetActiveWatercare(new_mode))
+        self._spa.queue_send(
+            GeckoWatercareProtocolHandler.set(
+                self._spa.get_and_increment_sequence_counter(),
+                new_mode,
+                parms=self._spa.sendparms,
+            ),
+            self._spa.sendparms,
+        )
+
+    def _on_watercare(self, handler, socket, sender):
+        if self.active_mode != handler.mode:
+            old_mode = self.active_mode
+            self.active_mode = handler.mode
+            self._on_change(self, old_mode, self.active_mode)
+        self._water_care_handler = None
 
     def update(self):
-        # TODO: Temporary solution
-        self.active_mode = 1
-        return
-        # get_wc = GeckoGetActiveWatercare()
-        get_wc = None
-        raise NotImplementedError("Fix this!")
-        self._spa.send_request(get_wc)
-        while get_wc.active_mode is None:
-            if get_wc.aborted:
-                raise TimeoutError()
-        if self.active_mode != get_wc.active_mode:
-            old_mode = self.active_mode
-            self.active_mode = get_wc.active_mode
-            self._on_change(self, old_mode, self.active_mode)
+        if self._water_care_handler is not None:
+            return
+
+        self._water_care_handler = GeckoWatercareProtocolHandler.request(
+            self._spa.get_and_increment_sequence_counter(),
+            on_handled=self._on_watercare,
+            parms=self._spa.sendparms,
+        )
+        self._spa.add_receive_handler(self._water_care_handler)
+        self._spa.queue_send(self._water_care_handler, self._spa.sendparms)
 
     def __str__(self):
         if self.active_mode is None:

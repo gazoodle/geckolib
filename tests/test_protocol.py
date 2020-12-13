@@ -418,6 +418,15 @@ class TestGeckoWatercareHandler(unittest.TestCase):
             b"\x01\x05\x00\x00\x00\x00</DATAS></PACKT>",
         )
 
+    def test_send_construct_set(self):
+        handler = GeckoWatercareProtocolHandler.set(1, 2, parms=PARMS)
+        self.assertEqual(
+            handler.send_bytes,
+            b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN>"
+            b"<DATAS>SETWC\x01\x02</DATAS></PACKT>",
+        )
+        self.assertEqual(handler._timeout_in_seconds, 4)
+
     def test_recv_can_handle(self):
         handler = GeckoWatercareProtocolHandler()
         self.assertTrue(handler.can_handle(b"GETWC", PARMS))
