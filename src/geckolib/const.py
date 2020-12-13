@@ -73,6 +73,10 @@ class GeckoConstants:
     KEY_WATERFALL = "Waterfall"
     KEY_CIRCULATING_PUMP = "CP"
     KEY_OZONE = "O3"
+    KEY_SMW_ACTIVE = "SwmActive"
+    KEY_SWM_RISK = "SwmRisk"
+    KEY_FILTER_PURGE = "Purge"
+    KEY_FILTER_CLEAN = "Clean"
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 
@@ -133,10 +137,12 @@ class GeckoConstants:
         ),
         ("Pump Run", "PumpRun", DEVICE_CLASS_PUMP),
         ("Ozone", KEY_OZONE, DEVICE_CLASS_OTHER),
+        ("Smart Winter Mode:Active", KEY_SMW_ACTIVE, DEVICE_CLASS_OTHER),
+        ("Filter Status:Clean", KEY_FILTER_CLEAN, DEVICE_CLASS_OTHER),
+        ("Filter Status:Purge", KEY_FILTER_PURGE, DEVICE_CLASS_OTHER),
     ]
 
-    # Unused at the moment
-    # SENSORS = [("Triac Temp", "Rh")]
+    SENSORS = [("Smart Winter Mode:Risk", KEY_SWM_RISK)]
 
     # Buttons, list of tuples
     #   ID, Description, KeyPad ID

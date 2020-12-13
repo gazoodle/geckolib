@@ -137,6 +137,8 @@ class GeckoShell(GeckoCmd):
         for reminder in self.facade.reminders:
             print(reminder)
         print(self.facade.water_care)
+        for sensor in [*self.facade.sensors, *self.facade.binary_sensors]:
+            print(sensor)
 
     @property
     def version_strings(self):

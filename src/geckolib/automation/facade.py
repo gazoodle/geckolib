@@ -9,7 +9,7 @@ from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
-from .sensors import GeckoBinarySensor
+from .sensors import GeckoSensor, GeckoBinarySensor
 from .watercare import GeckoWaterCare
 from ..driver import Observable
 
@@ -162,13 +162,9 @@ class GeckoFacade(Observable):
         ]
 
         self._sensors = [
-            # GeckoSensor(
-            #   self,
-            #  "Triac Temp",
-            #  self._spa.accessors["RhTriacTemp"],
-            #  self._spa.accessors[GeckoConstants.KEY_TEMP_UNITS],
-            #  "temperature",
-            # ),
+            GeckoSensor(self, sensor[0], self._spa.accessors[sensor[1]])
+            for sensor in GeckoConstants.SENSORS
+            if sensor[1] in self._spa.accessors
         ]
 
         self._binary_sensors = [

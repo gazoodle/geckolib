@@ -300,8 +300,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
    so we can inspect the remainder to see if there is anything useful in there.
  - Handle other device types such as Waterfall
  - Handle multi/variable speed pumps
- - Smart Winter Mode (SWM)
- - Filter status
+
+## Done/Fixed in 0.3.14
+ - Added SmartWinterMode sensors
+ - Added Filter Clean/Purge sensors
 
 ## Done/Fixed in 0.3.13
  - Move MrSteam handling on so that we can get a proper structure dump

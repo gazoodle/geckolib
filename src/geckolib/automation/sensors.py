@@ -39,6 +39,9 @@ class GeckoSensor(GeckoAutomationBase):
         """ Access the accessor member """
         return self._accessor
 
+    def __repr__(self):
+        return f"{self.name} = {self.state}"
+
 
 ########################################################################################
 class GeckoBinarySensor(GeckoSensor):
@@ -50,4 +53,6 @@ class GeckoBinarySensor(GeckoSensor):
         state = self.state
         if isinstance(state, bool):
             return state
+        if state == "":
+            return False
         return state != "OFF"
