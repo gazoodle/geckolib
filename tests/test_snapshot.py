@@ -185,6 +185,7 @@ class TestGeckoSnapshot(unittest.TestCase):
         self.assertEqual(
             snapshot.bytes[29:39], b"\x00\x02\x00\x00\x00\x00\x00\x0c\x00\x02"
         )
+        self.assertEqual(snapshot.bytes[329:333], b"\x00\xba\x03\x00")
 
     def test_parselines_alt(self):
         snapshot = GeckoSnapshot()
@@ -205,7 +206,7 @@ class TestGeckoSnapshot(unittest.TestCase):
         snapshot = GeckoSnapshot()
         for line in LOG_LINES_CONNECTION:
             snapshot.parse(line)
-        self.assertEqual(snapshot.spapack, "inYT 163 v4.0")
+        self.assertEqual(snapshot.spapack, "inYT 355 v4.0")
         self.assertTupleEqual(snapshot.intouch_EN, (70, 14, 0))
         self.assertTupleEqual(snapshot.intouch_CO, (69, 11, 0))
         self.assertEqual(snapshot.config_version, 61)
@@ -214,6 +215,7 @@ class TestGeckoSnapshot(unittest.TestCase):
         self.assertEqual(
             snapshot.bytes[29:39], b"\x01\x00\x01\x02\x00\x01\x1e\x00\x0c\x08"
         )
+        self.assertEqual(snapshot.bytes[295:301], b"\x3d\x3d\x01\x63\x04\x00")
         self.assertEqual(snapshot.packtype, "inYT")
 
 

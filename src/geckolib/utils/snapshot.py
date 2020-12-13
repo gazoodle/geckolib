@@ -45,7 +45,7 @@ class GeckoSnapshot:
             # Match "Log version 9"
             (r"Log version (\d+)", self._re_log_version),
             # Match "['0x5', '0x1', ... '0x0']"
-            (r"\[('.*')\]", self._re_data),
+            (r"\[([0-9A-Fa-fx\\' ,]*)\]", self._re_data),
             #
             #   Connection set
             #
@@ -89,7 +89,8 @@ class GeckoSnapshot:
         (self._pack_type,) = groups
 
     def _re_spa_pack_id(self, groups):
-        (self._pack_conf_id,) = groups
+        (hex_id,) = groups
+        self._pack_conf_id = f"{int(hex_id,16)}"
 
     def _re_spa_pack_rev(self, groups):
         (self._pack_conf_rev,) = groups
