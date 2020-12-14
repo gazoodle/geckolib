@@ -301,6 +301,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Handle other device types such as Waterfall
  - Handle multi/variable speed pumps
 
+## Done/Fixed in 0.3.15
+ - Trying out Github publish actions
+
 ## Done/Fixed in 0.3.14
  - Added SmartWinterMode sensors
  - Added Filter Clean/Purge sensors
