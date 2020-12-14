@@ -6,9 +6,11 @@ the conversation between the iOS app and the inTouch2 home transmitter.
 
 Designed to be used by home automation systems such as Home Assistant or openHAB
 
-*This library is currently in Alpha, meaning that there may be large changes
+_This library is currently in Alpha, meaning that there may be large changes
 in library shape, class definitions, behaviours etc as I client it in my ongoing
-Home Assistant integration which hasn't been released yet.*
+Home Assistant integration. This has now been released, in preview, and can be 
+found at https://github.com/gazoodle/gecko-home-assistant, or from HACS by adding
+a new integration and seaching for Gecko_
 
 # Installation
 
