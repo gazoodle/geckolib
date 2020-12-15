@@ -81,6 +81,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
                 on_handled=self._on_partial_status_update
             )
         )
+        self._last_ping = time.monotonic()
         self._ping_thread = threading.Thread(target=self._ping_thread_func, daemon=True)
 
         # Default values for properties
