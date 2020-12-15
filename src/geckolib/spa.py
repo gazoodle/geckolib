@@ -184,15 +184,13 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         self.channel = handler.channel
         self.signal = handler.signal_strength
         logger.debug("Got channel %s/%s, now get config", self.channel, self.signal)
-        socket.add_receive_handler(
-            GeckoConfigFileProtocolHandler(on_handled=self._on_config_received)
+        config_file_handler = GeckoConfigFileProtocolHandler.request(
+            socket.get_and_increment_sequence_counter(),
+            parms=sender,
+            on_handled=self._on_config_received,
         )
-        socket.queue_send(
-            GeckoConfigFileProtocolHandler.request(
-                socket.get_and_increment_sequence_counter(), parms=sender
-            ),
-            sender,
-        )
+        socket.add_receive_handler(config_file_handler)
+        socket.queue_send(config_file_handler, sender)
 
     def _on_version_received(self, handler, socket, sender):
         self.intouch_version_en = "{0} v{1}.{2}".format(
@@ -206,13 +204,14 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
             self.intouch_version_en,
             self.intouch_version_co,
         )
-        socket.add_receive_handler(
-            GeckoGetChannelProtocolHandler(on_handled=self._on_channel_received)
+        get_channel_handler = GeckoGetChannelProtocolHandler.request(
+            self.get_and_increment_sequence_counter(),
+            parms=sender,
+            on_handled=self._on_channel_received,
         )
+        socket.add_receive_handler(get_channel_handler)
         socket.queue_send(
-            GeckoGetChannelProtocolHandler.request(
-                socket.get_and_increment_sequence_counter(), parms=sender
-            ),
+            get_channel_handler,
             sender,
         )
 
@@ -244,16 +243,13 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         self._ping_thread.start()
         # Get the intouch version
         logger.info("Starting spa connection handshake...")
-        self.add_receive_handler(
-            GeckoVersionProtocolHandler(on_handled=self._on_version_received)
+        version_handler = GeckoVersionProtocolHandler.request(
+            self.get_and_increment_sequence_counter(),
+            parms=self.sendparms,
+            on_handled=self._on_version_received,
         )
-        self.queue_send(
-            GeckoVersionProtocolHandler.request(
-                self.get_and_increment_sequence_counter(),
-                parms=self.sendparms,
-            ),
-            self.sendparms,
-        )
+        self.add_receive_handler(version_handler)
+        self.queue_send(version_handler, self.sendparms)
         return self
 
     def _loop_func(self):

@@ -16,7 +16,11 @@ class GeckoConfigFileProtocolHandler(GeckoPacketProtocolHandler):
     @staticmethod
     def request(seq, **kwargs):
         return GeckoConfigFileProtocolHandler(
-            content=b"".join([SFILE_VERB, struct.pack(">B", seq)]), **kwargs
+            content=b"".join([SFILE_VERB, struct.pack(">B", seq)]),
+            timeout=2,
+            retry_count=10,
+            on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
+            **kwargs,
         )
 
     @staticmethod

@@ -62,7 +62,8 @@ class TestUdpProtocolHandler(unittest.TestCase):
         self.assertTrue(handler.has_timedout)
         self.assertFalse(handler.should_remove_handler)
         handler.loop(None)
-        self.assertTrue(handler.should_remove_handler)
+        # Still false since we don't know if the sub-class wants to do this
+        self.assertFalse(handler.should_remove_handler)
 
     def test_should_remove_handler(self):
         self.assertFalse(self.base_handler.should_remove_handler)
@@ -128,10 +129,12 @@ class TestGeckoUdpSocket(unittest.TestCase):
             self.socket.wait()
             self.assertEqual(handler.received, "ONCE")
 
-    def test_new_receive_retry(self):
+    def test_receive_retry(self):
         class Retry(GeckoUdpProtocolHandler):
             def __init__(self):
-                super().__init__(timeout=0.01, retry_count=5)
+                super().__init__(
+                    timeout=0.01, retry_count=5, on_retry_failed=self._on_retry_failed
+                )
                 self.retry_occurred = 0
 
             @property
@@ -142,11 +145,14 @@ class TestGeckoUdpSocket(unittest.TestCase):
                 return True
 
             def handle(self, socket, received_bytes: bytes, sender: tuple):
-                self.should_remove_handler = True
+                self._should_remove_handler = True
 
             def _reset_timeout(self):
                 super()._reset_timeout()
                 self.retry_occurred += 1
+
+            def _on_retry_failed(self, handler, socket):
+                handler._should_remove_handler = True
 
         self.socket.mock_socket.data_for_recvfrom = None
         retry_handler = Retry()

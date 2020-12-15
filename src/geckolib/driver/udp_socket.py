@@ -46,6 +46,7 @@ class GeckoUdpProtocolHandler:
         self._start_time = time.monotonic()
         self._timeout_in_seconds = kwargs.get("timeout", 0)
         self._retry_count = kwargs.get("retry_count", 0)
+        self._on_retry_failed = kwargs.get("on_retry_failed", None)
         self._should_remove_handler = False
 
     ##########################################################################
@@ -127,7 +128,13 @@ class GeckoUdpProtocolHandler:
         _LOGGER.debug("Handler has timed out")
         if self.retry(socket):
             return
-        self._should_remove_handler = True
+        if self._on_retry_failed is not None:
+            self._on_retry_failed(self, socket)
+
+    @staticmethod
+    def _default_retry_failed_handler(handler, socket):
+        _LOGGER.debug("Default retry failed handler for %r being used", handler)
+        handler._should_remove_handler = True
 
     # Pythonic methods
     def __repr__(self):

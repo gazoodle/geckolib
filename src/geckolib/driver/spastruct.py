@@ -42,13 +42,6 @@ class GeckoStructure:
     def set_status_block(self, block):
         self._status_block = block
 
-    def _on_retry(self, socket, handler):
-        print("Retry")
-        if handler is not None:
-            handler.reset_timeout()
-        self._next_expected = 0
-        self._status_block_segments = []
-
     def _on_status_block_received(
         self, handler: GeckoStatusBlockProtocolHandler, socket, sender
     ):

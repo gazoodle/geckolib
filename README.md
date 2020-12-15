@@ -302,6 +302,11 @@ https://www.gnu.org/licenses/gpl-3.0.html
    so we can inspect the remainder to see if there is anything useful in there.
  - Handle other device types such as Waterfall
  - Handle multi/variable speed pumps
+ - Connection retry needed when pings fail
+ - A missing spa is an unusual event not a critical failure, retry connection
+
+## Done/Fixed in 0.3.16
+ - More robust to missed packets during spa connection
 
 ## Done/Fixed in 0.3.15
  - Trying out Github publish actions
