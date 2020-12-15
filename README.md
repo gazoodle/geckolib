@@ -307,6 +307,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ## Done/Fixed in 0.3.16
  - More robust to missed packets during spa connection
+ - Mechanism to access raw pack values from the facade, e.g. facade.pumps[0].state_sensor.accessor.raw_value
 
 ## Done/Fixed in 0.3.15
  - Trying out Github publish actions

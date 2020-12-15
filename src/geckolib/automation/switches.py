@@ -43,5 +43,8 @@ class GeckoSwitch(GeckoAutomationBase):
             return
         self._spa.press(self._keypad_button)
 
+    def state_sensor(self):
+        return self._state_sensor
+
     def __str__(self):
         return f"{self.name}: {self._state_sensor.state}"
