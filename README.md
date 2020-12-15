@@ -16,6 +16,10 @@ This library is hosted on PyPI and can be installed with the following command-l
 
 `pip install geckolib`
 
+You also have to have URLLIB3 installed
+
+`pip install urllib3`
+
 # GeckoShell usage
 
 Once the library is installed, you should be able to start a Python interpreter session
