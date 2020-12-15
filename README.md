@@ -306,6 +306,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - A missing spa is an unusual event not a critical failure, retry connection
 
 ## Done/Fixed in 0.3.17
+ - Attempt to fix urllib3 requirement in pip install. It was in the wrong place
 
 ## Done/Fixed in 0.3.16
  - More robust to missed packets during spa connection
