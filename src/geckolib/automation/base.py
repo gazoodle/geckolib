@@ -19,6 +19,11 @@ class GeckoAutomationBase(Observable):
         return self._name
 
     @property
+    def key(self):
+        """ Key into the spa pack """
+        return self._key
+
+    @property
     def unique_id(self):
         """ A unique id for the property """
         return f"{self._facade.unique_id}-{self._key}"
@@ -27,3 +32,6 @@ class GeckoAutomationBase(Observable):
     def facade(self):
         """ Return the facade that is associated with this automation object """
         return self._facade
+
+    def __repr__(self):
+        return f"{super().__repr__()}(name={self.name}, key={self.key})"

@@ -250,6 +250,19 @@ class GeckoFacade(Observable):
             + [self.water_heater, self.water_care, self.keypad]
         )
 
+    def get_device(self, key):
+        """ Get an automation device from the key """
+        for device in self.all_automation_devices:
+            if device.key == key:
+                return device
+        return None
+
+    @property
+    def devices(self):
+        """Get a list of automation device keys. Keys can be passed to get_device
+        to find the specific device"""
+        return [device.key for device in self.all_automation_devices]
+
     @property
     def reminders(self):
         """ Get the reminders list """
