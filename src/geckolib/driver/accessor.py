@@ -93,7 +93,7 @@ class GeckoStructAccessor(Observable):
 
         self._on_change(self, old_value, new_value)
 
-    def _get_value(self, status_block=None):
+    def _get_raw_value(self, status_block=None):
         """Get a value from the pack structure using the initialized declaration
         or using the optionally supplied status_block (used by change notification)"""
         if status_block is None:
@@ -112,6 +112,10 @@ class GeckoStructAccessor(Observable):
                 self.tag,
                 data,
             )
+        return data
+
+    def _get_value(self, status_block=None):
+        data = self._get_raw_value(status_block)
         if self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
             data = data == 1
             logger.debug("Bool accessor %s adjusted data = %s", self.tag, data)
@@ -169,6 +173,12 @@ class GeckoStructAccessor(Observable):
     def value(self):
         """ Get a value from the pack structure using the initialized declaration """
         return self._get_value()
+
+    @property
+    def raw_value(self):
+        """Get a raw integer value from the pack structure using the initialized
+        declaration"""
+        return self._get_raw_value()
 
     @value.setter
     def value(self, newvalue):
