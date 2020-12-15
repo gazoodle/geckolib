@@ -305,6 +305,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Connection retry needed when pings fail
  - A missing spa is an unusual event not a critical failure, retry connection
 
+## Done/Fixed in 0.3.17
+
 ## Done/Fixed in 0.3.16
  - More robust to missed packets during spa connection
  - Mechanism to access raw pack values from the facade, e.g. facade.pumps[0].state_sensor.accessor.raw_value
