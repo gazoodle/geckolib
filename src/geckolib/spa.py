@@ -157,10 +157,19 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         self.config_xml = self.gecko_pack_xml.find(
             GeckoConstants.SPA_PACK_CONFIG_XPATH.format(self.config_version)
         )
+        if self.config_xml is None:
+            raise Exception(
+                f"Cannot find XML configuraton for {handler.plateform_key}"
+                f" v{self.config_version}"
+            )
         self.log_version = handler.log_version
         self.log_xml = self.gecko_pack_xml.find(
             GeckoConstants.SPA_PACK_LOG_XPATH.format(self.log_version)
         )
+        if self.log_xml is None:
+            raise Exception(
+                f"Cannot find XML log for {handler.plateform_key} v{self.log_version}"
+            )
         self.pack_type = int(
             self.gecko_pack_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_TYPE_ATTRIB]
         )
@@ -261,6 +270,8 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
 
     def _final_connect(self):
         logger.debug("Connected, build accessors")
+        if self.config_xml is None or self.log_xml is None:
+            raise AttributeError("Config or Log XML is None")
         self.struct.build_accessors([self.config_xml, self.log_xml])
         self.pack = self.accessors[GeckoConstants.KEY_PACK_TYPE].value
         self.version = "{0} v{1}.{2}".format(
