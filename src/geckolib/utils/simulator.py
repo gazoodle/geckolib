@@ -275,7 +275,7 @@ class GeckoSimulator(GeckoCmd):
         if handler.is_key_press:
             print(f"Pressed a key ({handler.keycode})")
         elif handler.is_set_value:
-            print("Set a value")
+            print(f"Set a value ({handler.position} = {handler.new_data})")
 
     def _on_set_value(self, pos, length, newvalue):
         print(f"Simulator: Set value @{pos} for {length} to {newvalue}")

@@ -89,11 +89,13 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
         if command == PACK_COMMAND_KEY_PRESS:
             if length == 2:
                 self.is_key_press = True
+                self.is_set_value = False
                 self.keycode = struct.unpack(">B", remainder[4:])[0]
             else:
                 _LOGGER.warning("SPACK key press command incorrect length")
         elif command == PACK_COMMAND_SET_VALUE:
             self.is_set_value = True
+            self.is_key_press = False
             config_version, log_version, self.position = struct.unpack(
                 ">BBH", remainder[4:8]
             )

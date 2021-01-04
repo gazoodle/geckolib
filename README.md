@@ -304,6 +304,12 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Handle multi/variable speed pumps
  - Connection retry needed when pings fail
  - A missing spa is an unusual event not a critical failure, retry connection
+ - Find mechanism to get more recent SpaPackStruct.xml.
+   o V19 available from Gecko
+   o V24 can be dug out of Android APK assemblies using some C#
+   o V28 is obfuscated in latest version
+   Contact initiated with Gecko
+ - Handle inMix for lighting control
 
 ## Done/Fixed in 0.3.17
  - Attempt to fix urllib3 requirement in pip install. It was in the wrong place
