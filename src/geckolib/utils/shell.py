@@ -3,7 +3,7 @@
 import sys
 import logging
 from .shared_command import GeckoCmd
-from .. import GeckoConstants, GeckoLocator, VERSION
+from .. import GeckoConstants, GeckoLocator, GeckoPump, VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -100,16 +100,28 @@ class GeckoShell(GeckoCmd):
 
         # Build list of spa commands
         for device in self.facade.all_user_devices:
-            func_name = "do_{0}".format(device.ui_key)
-            setattr(
-                GeckoShell,
-                func_name,
-                lambda self, arg, device=device: self.device_command(arg, device),
-            )
-            func_ptr = getattr(GeckoShell, func_name)
-            func_ptr.__doc__ = "Turn device {0} ON or OFF: {1} <ON|OFF>".format(
-                device.name, device.ui_key
-            )
+            if isinstance(device, GeckoPump):
+                func_name = "do_{0}".format(device.ui_key)
+                setattr(
+                    GeckoShell,
+                    func_name,
+                    lambda self, arg, device=device: self.do_pump(arg, device),
+                )
+                func_ptr = getattr(GeckoShell, func_name)
+                func_ptr.__doc__ = "Set pump {0} mode: {1} <OFF|LO|HI>".format(
+                    device.name, device.ui_key
+                )
+            else:
+                func_name = "do_{0}".format(device.ui_key)
+                setattr(
+                    GeckoShell,
+                    func_name,
+                    lambda self, arg, device=device: self.device_command(arg, device),
+                )
+                func_ptr = getattr(GeckoShell, func_name)
+                func_ptr.__doc__ = "Turn device {0} ON or OFF: {1} <ON|OFF>".format(
+                    device.name, device.ui_key
+                )
 
         self.onecmd("state")
 
@@ -120,6 +132,10 @@ class GeckoShell(GeckoCmd):
             device.turn_on()
         else:
             device.turn_off()
+
+    def do_pump(self, arg, device):
+        print("Turn device {0} {1}".format(device.name, arg))
+        device.set_mode(arg)
 
     def do_state(self, arg):
         """Show the state of the managed spa : state"""
