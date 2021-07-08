@@ -31,6 +31,9 @@ class GeckoLocator:
         self._socket = None
         self._on_found = kwargs.get("on_found", None)
         self._spa_to_find = kwargs.get("spa_to_find", None)
+        self._static_ip = kwargs.get("static_ip", None)
+        if self._static_ip == "":
+            self._static_ip = None
         self._has_found_spa = False
         self._started = None
 
@@ -111,7 +114,7 @@ class GeckoLocator:
             if self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
                 self._socket.queue_send(
                     GeckoHelloProtocolHandler.broadcast(),
-                    GeckoHelloProtocolHandler.broadcast_address(),
+                    GeckoHelloProtocolHandler.broadcast_address(static_ip=self._static_ip),
                 )
             self._socket.wait(1)
         logger.debug("Locator retry thread stopped")

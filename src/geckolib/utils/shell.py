@@ -38,10 +38,10 @@ class GeckoShell(GeckoCmd):
     """
 
     def __init__(self, first_commands=None):
-        super().__init__(first_commands)
-
         self.spas = None
         self.facade = None
+
+        super().__init__(first_commands)
 
         self.do_watercare.__func__.__doc__ = self.do_watercare.__doc__.format(
             GeckoConstants.WATERCARE_MODE_STRING
@@ -57,15 +57,17 @@ class GeckoShell(GeckoCmd):
             self.facade.complete()
 
     def do_discover(self, arg):
-        """Discover all the in.touch2 devices on your network : discover"""
-        del arg
+        """Discover all the in.touch2 devices on your network : discover [<ip address>]"""
+        if self.spas is not None:
+            return
+
         print(
             "Starting discovery process...",
             end="",
             flush=True,
         )
 
-        with GeckoLocator(SHELL_UUID) as locator:
+        with GeckoLocator(SHELL_UUID, static_ip=arg) as locator:
             self.spas = locator.spas
 
         number_of_spas = len(self.spas)

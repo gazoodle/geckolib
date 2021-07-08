@@ -123,6 +123,17 @@ Spa$ logfile client.log
 The file `client.log` will contain diagnostic information that may be useful 
 for tracking down issues
 
+If you want to start the client and point it at a specific IP address (maybe you have your SPA on a different subnet), you can issue the discovery command as part of the launch parameters
+
+```python
+>>> from geckolib import GeckoShell
+>>> GeckoShell.run(["logfile client.log", "discover 192.168.1.2"])
+
+  :
+  :
+
+```
+
 # Simulator Usage
 
 It's best if you download the repo for using the simulator. Once you've done that, 
@@ -310,6 +321,11 @@ https://www.gnu.org/licenses/gpl-3.0.html
    o V28 is obfuscated in latest version
    Contact initiated with Gecko
  - Handle inMix for lighting control
+
+## Done/Fixed in 0.3.18
+ - Added some more snapshots
+ - Attempt to handle spas that return unsupported config/log versions
+ - Add ability to provide an IP address to the library
 
 ## Done/Fixed in 0.3.17
  - Attempt to fix urllib3 requirement in pip install. It was in the wrong place

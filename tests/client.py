@@ -5,6 +5,7 @@
 """
 
 from context import GeckoShell
+import sys
 
-# Run the shell
-GeckoShell.run(["logfile client.log"])
+# Run the shell with any extra arguments
+GeckoShell.run(["logfile client.log"] + sys.argv[1:])

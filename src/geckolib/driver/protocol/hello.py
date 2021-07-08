@@ -20,7 +20,9 @@ class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
         self.spa_name = None
 
     @staticmethod
-    def broadcast_address():
+    def broadcast_address(static_ip):
+        if static_ip is not None:
+            return (static_ip, GeckoConstants.INTOUCH2_PORT)
         return (GeckoConstants.BROADCAST_ADDRESS, GeckoConstants.INTOUCH2_PORT)
 
     @staticmethod
