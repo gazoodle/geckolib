@@ -318,8 +318,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Find mechanism to get more recent SpaPackStruct.xml.
    o V19 available from Gecko
    o V24 can be dug out of Android APK assemblies using some C#
-   o V28 is obfuscated in latest version
-   Contact initiated with Gecko
+   o V28 is obfuscated in latest version (Xamarin compression apparently)
+   o V33 is downloaded from https portal, investigation ongoing.
+   Contact initiated with Gecko .. still ongoing.
  - Handle inMix for lighting control
 
 ## Done/Fixed in 0.3.19
