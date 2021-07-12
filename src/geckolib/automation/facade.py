@@ -122,12 +122,13 @@ class GeckoFacade(Observable):
         # Actual user devices are those where the actual device has a corresponding
         # user demand
         self.actual_user_devices = [
-            device
+            { "device": device, "user_demand" : { "demand": self._spa.accessors[f"{ud}"].tag, "options": self._spa.accessors[f"{ud}"].items } }
             for device in actual_devices
             for ud in user_demands
             if f"Ud{device}".upper() == ud.upper()
         ]
         logger.debug("Actual user devices are %s", self.actual_user_devices)
+
         # These keys can be used to determine the actual state ...
         # Key       Desc        Outputs         Keypad      Direct Drive
         # P1 ...    Pump 1      Out1A->P1H      1           <Doesn't work as expected>
@@ -139,26 +140,27 @@ class GeckoFacade(Observable):
         self.actual_user_devices = [
             handled_device
             for handled_device in self.actual_user_devices
-            if handled_device in GeckoConstants.DEVICES
+            if handled_device["device"] in GeckoConstants.DEVICES
         ]
         logger.debug("Handled user devices are %s", self.actual_user_devices)
 
+
         self._pumps = [
-            GeckoPump(self, device, GeckoConstants.DEVICES[device])
+            GeckoPump(self, device["device"], GeckoConstants.DEVICES[device["device"]], device["user_demand"])
             for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device][3] == GeckoConstants.DEVICE_CLASS_PUMP
+            if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_PUMP
         ]
 
         self._blowers = [
-            GeckoBlower(self, device, GeckoConstants.DEVICES[device])
+            GeckoBlower(self, device["device"], GeckoConstants.DEVICES[device["device"]])
             for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device][3] == GeckoConstants.DEVICE_CLASS_BLOWER
+            if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_BLOWER
         ]
 
         self._lights = [
-            GeckoLight(self, device, GeckoConstants.DEVICES[device])
+            GeckoLight(self, device["device"], GeckoConstants.DEVICES[device["device"]])
             for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device][3] == GeckoConstants.DEVICE_CLASS_LIGHT
+            if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_LIGHT
         ]
 
         self._sensors = [
