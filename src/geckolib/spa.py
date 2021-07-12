@@ -116,6 +116,8 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
     def _on_partial_status_update(self, handler, socket, sender):
         for change in handler.changes:
             self.struct.replace_status_block_segment(change[0], change[1])
+        else:
+            handler.changes.clear()
 
     def _on_set_value(self, pos, length, newvalue):
         # We issue a pack command to acheive this ...
