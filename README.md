@@ -322,6 +322,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
    Contact initiated with Gecko
  - Handle inMix for lighting control
 
+## Done/Fixed in 0.3.19
+ - Ensure STATP changes are cleared after processing rather than accumulating for-all-time! Thanks https://github.com/maegibbons
+
 ## Done/Fixed in 0.3.18
  - Added some more snapshots
  - Attempt to handle spas that return unsupported config/log versions
