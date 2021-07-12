@@ -146,6 +146,7 @@ class GeckoShell(GeckoCmd):
     def version_strings(self):
         """Get the version strings for the spa"""
         return [
+            f"geckolib version {VERSION}",
             f"SpaPackStruct.xml revision {self.facade.spa.revision}",
             f"intouch version EN {self.facade.spa.intouch_version_en}",
             f"intouch version CO {self.facade.spa.intouch_version_co}",
