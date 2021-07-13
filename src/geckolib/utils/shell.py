@@ -1,6 +1,6 @@
 """ GeckoShell class """
 
-import sys
+import sys, traceback
 import logging
 from .shared_command import GeckoCmd
 from .. import GeckoConstants, GeckoLocator, GeckoPump, VERSION
@@ -107,7 +107,7 @@ class GeckoShell(GeckoCmd):
                 setattr(
                     GeckoShell,
                     func_name,
-                    lambda self, arg, device=device: self.do_pump(arg, device),
+                    lambda self, arg, device=device: self.pump_command(arg, device),
                 )
                 func_ptr = getattr(GeckoShell, func_name)
                 func_ptr.__doc__ = "Set pump {0} mode: {1} <OFF|LO|HI>".format(
@@ -135,9 +135,13 @@ class GeckoShell(GeckoCmd):
         else:
             device.turn_off()
 
-    def do_pump(self, arg, device):
-        print("Turn device {0} {1}".format(device.name, arg))
-        device.set_mode(arg)
+    def pump_command(self, arg, device):
+        """Set a pump mode <mode>"""
+        print("Set pump {0} {1}".format(device.name, arg))
+        try:
+            device.set_mode(arg)
+        except Exception as e:
+            traceback.print_exc()
 
     def do_state(self, arg):
         """Show the state of the managed spa : state"""
