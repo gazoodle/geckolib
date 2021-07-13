@@ -53,7 +53,7 @@ exercise some of your spa features using the commands below
 
 ```
 
-Spa$ P1 ON
+Spa$ P1 HI
 Spa$ P1 OFF
 
 Spa$ LI ON
