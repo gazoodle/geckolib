@@ -323,6 +323,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
    Contact initiated with Gecko .. still ongoing.
  - Handle inMix for lighting control
 
+## Done/Fixed in 0.3.20
+ - Merge changes for variable speed pumps. Thanks https://github.com/los93sol
+ - Prevent new "pump" command showing in help UI
+
 ## Done/Fixed in 0.3.19
  - Ensure STATP changes are cleared after processing rather than accumulating for-all-time! Thanks https://github.com/maegibbons
 
