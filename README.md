@@ -190,12 +190,12 @@ with GeckoLocator(CLIENT_ID) as locator:
         print(facade.water_heater)
 
         print("Turning pump 1 on")
-        facade.pumps[0].turn_on()
+        facade.pumps[0].set_mode('HI')
 
         time.sleep(5)
 
         print("Turning pump 1 off")
-        facade.pumps[0].turn_off()
+        facade.pumps[0].set_mode('OFF')
         time.sleep(2)
 ```
 
@@ -271,12 +271,12 @@ def pump_1_change(sender, old_value, new_value):
 facade.pumps[0].watch(pump_1_change)
 
 print("Turn pump 1 on")
-facade.pumps[0].turn_on()
+facade.pumps[0].set_mode('HI')
 
 time.sleep(5)
 
 print("Turning pump 1 off")
-facade.pumps[0].turn_off()
+facade.pumps[0].set_mode('OFF')
 
 time.sleep(2)
 facade.complete()
