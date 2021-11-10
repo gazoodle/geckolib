@@ -11,7 +11,9 @@ from .light import GeckoLight
 from .pump import GeckoPump
 from .sensors import GeckoSensor, GeckoBinarySensor
 from .watercare import GeckoWaterCare
+from .reminders import GeckoReminders
 from ..driver import Observable
+
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,7 @@ class GeckoFacade(Observable):
         self._binary_sensors = []
         self._water_heater = None
         self._water_care = None
+        self._reminders = None
         self._keypad = None
         self._update_thread = threading.Thread(
             target=self._update_thread_func, daemon=True
@@ -52,6 +55,7 @@ class GeckoFacade(Observable):
         self._water_heater = GeckoWaterHeater(self)
         self._water_care = GeckoWaterCare(self)
         self._keypad = GeckoKeypad(self)
+        self._reminders = GeckoReminders(self)
         self.scan_outputs()
         # Install change notifications
         for device in self.all_automation_devices:
@@ -122,7 +126,8 @@ class GeckoFacade(Observable):
         # Actual user devices are those where the actual device has a corresponding
         # user demand
         self.actual_user_devices = [
-            { "device": device, "user_demand" : { "demand": self._spa.accessors[f"{ud}"].tag, "options": self._spa.accessors[f"{ud}"].items } }
+            {"device": device, "user_demand": {
+                "demand": self._spa.accessors[f"{ud}"].tag, "options": self._spa.accessors[f"{ud}"].items}}
             for device in actual_devices
             for ud in user_demands
             if f"Ud{device}".upper() == ud.upper()
@@ -144,21 +149,23 @@ class GeckoFacade(Observable):
         ]
         logger.debug("Handled user devices are %s", self.actual_user_devices)
 
-
         self._pumps = [
-            GeckoPump(self, device["device"], GeckoConstants.DEVICES[device["device"]], device["user_demand"])
+            GeckoPump(
+                self, device["device"], GeckoConstants.DEVICES[device["device"]], device["user_demand"])
             for device in self.actual_user_devices
             if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_PUMP
         ]
 
         self._blowers = [
-            GeckoBlower(self, device["device"], GeckoConstants.DEVICES[device["device"]])
+            GeckoBlower(self, device["device"],
+                        GeckoConstants.DEVICES[device["device"]])
             for device in self.actual_user_devices
             if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_BLOWER
         ]
 
         self._lights = [
-            GeckoLight(self, device["device"], GeckoConstants.DEVICES[device["device"]])
+            GeckoLight(self, device["device"],
+                       GeckoConstants.DEVICES[device["device"]])
             for device in self.actual_user_devices
             if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_LIGHT
         ]
@@ -268,7 +275,10 @@ class GeckoFacade(Observable):
     @property
     def reminders(self):
         """ Get the reminders list """
-        return []
+        remi = self._reminders.reminders
+        if remi is None:
+            return []
+        return remi
 
     def _update_thread_func(self):
         while self.spa.isopen:
@@ -279,6 +289,12 @@ class GeckoFacade(Observable):
             if self._water_care.active_mode is None:
                 self.spa.wait(0.1)
                 continue
+
+            self._reminders.update()
+            if self._reminders.reminders is None:
+                self.spa.wait(0.1)
+                continue
+
             self.spa.wait(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
 
         logger.info("Facade update thread finished")
