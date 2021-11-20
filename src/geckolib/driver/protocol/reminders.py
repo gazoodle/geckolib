@@ -56,14 +56,11 @@ class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
         # Otherwise must be RMREQ
         rest = reminder
         while (len(rest) > 0):
-            (t, days_low, days_high, push, rest) = struct.unpack(
-                '>BBBB{}s'.format(len(rest)-4), rest)
-            _LOGGER.debug(
-                f"T:{t}, Days:{days_low}, Dummy:{days_high}, Push:{push}, Rest:{rest}")
-            days = days_low + days_high * 256
+            (t, days, push, rest) = struct.unpack(
+                '<BhB{}s'.format(len(rest)-4), rest)
+            _LOGGER.debug(f"T:{t}, Days:{days}, Push:{push}, Rest:{rest}")
             if (t > 0):
                 _LOGGER.debug(f"{desc[t]} {days} days")
-
             self.reminders.append(tuple((desc[t], days)))
 
         self._should_remove_handler = True
