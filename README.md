@@ -316,15 +316,16 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Connection retry needed when pings fail
  - A missing spa is an unusual event not a critical failure, retry connection
  - Find mechanism to get more recent SpaPackStruct.xml.
-   o V19 available from Gecko
-   o V24 can be dug out of Android APK assemblies using some C#
-   o V28 is obfuscated in latest version (Xamarin compression apparently)
-   o V33 is downloaded from https portal, investigation ongoing.
+   * V19 available from Gecko
+   * V24 can be dug out of Android APK assemblies using some C#
+   * V28 is obfuscated in latest version (Xamarin compression apparently)
+   * V33 is downloaded from https portal, investigation ongoing.
    Contact initiated with Gecko .. still ongoing.
  - Handle inMix for lighting control
 
 ## Done/Fixed in 0.3.21
-
+ - Removed some benign debugging data that clutters log files
+ - Replaced "config" and "live" with "accessors" commands in shell to clean direct access to XML
 
 ## Done/Fixed in 0.3.20
  - Merge changes for variable speed pumps. Thanks https://github.com/los93sol

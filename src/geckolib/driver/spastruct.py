@@ -46,11 +46,11 @@ class GeckoStructure:
         self, handler: GeckoStatusBlockProtocolHandler, socket, sender
     ):
         if not self._next_expected == handler.sequence:
-            logger.warning(
+            logger.debug(
                 "Out-of-sequence status block segment %d - ignored", handler.sequence
             )
             if handler.next == 0:
-                logger.warning("Retry status block request")
+                logger.debug("Retry status block request")
                 self._next_expected = 0
                 self._status_block_segments = []
                 if not handler.retry(socket):

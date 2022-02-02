@@ -1,5 +1,5 @@
 # This library
-SpaPackStruct.xml
+SpaPackStruct*.xml
 sample*.py
 
 # Byte-compiled / optimized / DLL files

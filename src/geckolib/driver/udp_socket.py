@@ -313,7 +313,7 @@ class GeckoUdpSocket:
                 except Exception:
                     _LOGGER.exception("Unhandled exception in receive_handler func")
             else:
-                _LOGGER.warning("Couldn't find new handler for %s", received_bytes)
+                _LOGGER.debug("Couldn't find new handler for %s", received_bytes)
 
     def _process_received_data(self):
         with GeckoUdpSocket._BusyLock(self):

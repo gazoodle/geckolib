@@ -183,41 +183,15 @@ class GeckoShell(GeckoCmd):
         for version_str in self.version_strings:
             print(version_str)
 
-    def do_config(self, arg):
-        """Display the configuration data from the spa : config"""
+    def do_accessors(self, arg):
+        """Display the data from the accessors : accessors """
         del arg
-        print("Configuration Settings")
-        print("======================")
+        print("Accessors")
+        print("=========")
         print("")
-        for element in self.facade.spa.config_xml.findall("./*"):
-            if "Pos" in element.attrib:
-                continue
-            print(element.tag)
-            print("-" * len(element.tag))
-            for child in element.findall("./*"):
-                print(
-                    "  {0}: {1}".format(
-                        child.tag, self.facade.spa.accessors[child.tag].value
-                    )
-                )
-            print("")
-
-    def do_live(self, arg):
-        """Display the live settings from the spa : live"""
-        del arg
-        print("Live Settings")
-        print("=============")
+        for key in self.facade.spa.accessors:
+            print("   {0}: {1}".format(key, self.facade.spa.accessors[key].value))
         print("")
-        for element in self.facade.spa.log_xml.findall("./*"):
-            print(element.tag)
-            print("-" * len(element.tag))
-            for child in element.findall("./*"):
-                print(
-                    "  {0}: {1}".format(
-                        child.tag, self.facade.spa.accessors[child.tag].value
-                    )
-                )
-            print("")
 
     def do_about(self, arg):
         """Display information about this client program and support library : about"""
