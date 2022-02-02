@@ -67,3 +67,9 @@ class GeckoWaterCare(GeckoAutomationBase):
         if self.active_mode is None:
             return f"{self.name}: Waiting..."
         return f"{self.name}: {GeckoConstants.WATERCARE_MODE_STRING[self.active_mode]}"
+
+    @property
+    def monitor(self):
+        if self.active_mode is None:
+            return f"WC: ?"
+        return f"WC: {self.active_mode}"

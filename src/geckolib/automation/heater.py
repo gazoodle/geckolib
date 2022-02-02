@@ -172,3 +172,7 @@ class GeckoWaterHeater(GeckoAutomationBase):
                 f"{self.current_operation}"
             )
         return f"{self.name}: Not present"
+
+    @property
+    def monitor(self):
+        return f"HTR: {self.format_temperature(self.current_temperature)} SET: {self.format_temperature(self.real_target_temperature)}"

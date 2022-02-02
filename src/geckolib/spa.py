@@ -74,6 +74,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
 
         self.descriptor = descriptor
         self.on_connected = None
+        self.is_in_error = False
 
         self.add_receive_handler(GeckoPacketProtocolHandler())
         self.add_receive_handler(
@@ -148,6 +149,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
 
         # We can't carry on without information on how the STATV data block is formed
         if self.gecko_pack_xml is None:
+            self.is_in_error = True
             raise Exception(
                 GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
                     handler.plateform_key
@@ -160,6 +162,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
             GeckoConstants.SPA_PACK_CONFIG_XPATH.format(self.config_version)
         )
         if self.config_xml is None:
+            self.is_in_error = True
             raise Exception(
                 f"Cannot find XML configuraton for {handler.plateform_key}"
                 f" v{self.config_version}"
@@ -169,6 +172,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
             GeckoConstants.SPA_PACK_LOG_XPATH.format(self.log_version)
         )
         if self.log_xml is None:
+            self.is_in_error = True
             raise Exception(
                 f"Cannot find XML log for {handler.plateform_key} v{self.log_version}"
             )
@@ -273,6 +277,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
     def _final_connect(self):
         logger.debug("Connected, build accessors")
         if self.config_xml is None or self.log_xml is None:
+            self.is_in_error = True
             raise AttributeError("Config or Log XML is None")
         self.struct.build_accessors([self.config_xml, self.log_xml])
         self.pack = self.accessors[GeckoConstants.KEY_PACK_TYPE].value
@@ -316,6 +321,7 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
             time.monotonic() - self._connection_started
             > GeckoConstants.CONNECTION_TIMEOUT_IN_SECONDS
         ):
+            self.is_in_error = True
             raise RuntimeError("Spa took too long to connect ...")
         return False
 

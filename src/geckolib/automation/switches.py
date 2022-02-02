@@ -48,3 +48,7 @@ class GeckoSwitch(GeckoAutomationBase):
 
     def __str__(self):
         return f"{self.name}: {self._state_sensor.state}"
+
+    @property
+    def monitor(self):
+        return f"{self.ui_key}: {self._state_sensor.state}"

@@ -42,6 +42,10 @@ class GeckoSensor(GeckoAutomationBase):
     def __repr__(self):
         return f"{self.name} = {self.state}"
 
+    @property
+    def monitor(self):
+        return f"{self.accessor.tag}: {self.state}"
+
 
 ########################################################################################
 class GeckoBinarySensor(GeckoSensor):

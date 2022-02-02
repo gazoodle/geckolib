@@ -326,6 +326,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 ## Done/Fixed in 0.3.21
  - Removed some benign debugging data that clutters log files
  - Replaced "config" and "live" with "accessors" commands in shell to clean direct access to XML
+ - Added "monitor" command in shell to give a live view of changes from other sources e.g. control panel or app
+ 
 
 ## Done/Fixed in 0.3.20
  - Merge changes for variable speed pumps. Thanks https://github.com/los93sol

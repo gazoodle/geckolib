@@ -2,6 +2,7 @@
 
 import sys, traceback
 import logging
+import datetime
 from .shared_command import GeckoCmd
 from .. import GeckoConstants, GeckoLocator, GeckoPump, VERSION
 
@@ -161,6 +162,48 @@ class GeckoShell(GeckoCmd):
         print(self.facade.water_care)
         for sensor in [*self.facade.sensors, *self.facade.binary_sensors]:
             print(sensor)
+
+    def monitor_get_states(self):
+
+        states = [
+            self.facade.water_heater,
+            *self.facade.pumps,
+            *self.facade.blowers,
+            *self.facade.lights,
+            *self.facade.reminders,
+            self.facade.water_care,
+            *self.facade.sensors,
+            *self.facade.binary_sensors,
+        ]
+
+        return [f"{state.monitor}" for state in states]
+
+    def monitor_compare_states(self, states):
+        local_state = self.monitor_get_states()
+        return local_state != states
+
+    def monitor_print_states(self, states):
+        print(f"{datetime.datetime.now()} : {' '.join(states)}")
+
+    def do_monitor(self, arg):
+        """Monitor the state of the managed spa outputting a new line for each change : monitor"""
+        del arg
+        if self.facade is None:
+            print("Must be connected to a spa")
+            return
+
+        print("Monitoring spa ... CTRL+C to stop")
+        current_state = []
+        while True:
+            try:
+                if self.monitor_compare_states(current_state):
+                    current_state = self.monitor_get_states()
+                    self.monitor_print_states(current_state)
+                self.facade.wait(1)
+            except KeyboardInterrupt:
+                print("")
+                print("Monitor stopped")
+                break
 
     @property
     def version_strings(self):

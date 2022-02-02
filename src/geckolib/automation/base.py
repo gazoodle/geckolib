@@ -33,5 +33,10 @@ class GeckoAutomationBase(Observable):
         """ Return the facade that is associated with this automation object """
         return self._facade
 
+    @property
+    def monitor(self):
+        """An abbreviated string for the monitor processin the shell"""
+        return f"{self}"
+
     def __repr__(self):
         return f"{super().__repr__()}(name={self.name}, key={self.key})"

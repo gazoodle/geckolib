@@ -1,6 +1,7 @@
 # This library
 SpaPackStruct*.xml
 sample*.py
+tests/packgen.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -69,8 +69,14 @@ class GeckoFacade(Observable):
             return False
         return self._facade_ready
 
+    @property
+    def is_in_error(self):
+        return self._spa.is_in_error
+
     def wait(self, timeout):
         self.spa.wait(timeout)
+        if self.is_in_error:
+            raise Exception("Facade in error from previous exception")
 
     def scan_outputs(self):
         """ Scan the spa outputs to decide what user options are available """

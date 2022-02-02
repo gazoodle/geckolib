@@ -7,6 +7,7 @@ from .sensors import GeckoSensor
 
 logger = logging.getLogger(__name__)
 
+
 class GeckoPump(GeckoAutomationBase):
     """ Pumps are similar to switches, but might have variable speeds too """
 
@@ -30,7 +31,7 @@ class GeckoPump(GeckoAutomationBase):
     def mode(self):
         return self._state_sensor.state
 
-    def set_mode(self, mode):        
+    def set_mode(self, mode):
         try:
             logger.debug("%s set mode %s", self.name, mode)
             self.facade.spa.accessors[self._user_demand["demand"]].value = mode
@@ -39,3 +40,7 @@ class GeckoPump(GeckoAutomationBase):
 
     def __str__(self):
         return f"{self.name}: {self._state_sensor.state}"
+
+    @property
+    def monitor(self):
+        return f"{self.ui_key}: {self._state_sensor.state}"
