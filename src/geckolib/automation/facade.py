@@ -74,16 +74,11 @@ class GeckoFacade(Observable):
 
     def scan_outputs(self):
         """ Scan the spa outputs to decide what user options are available """
-        # Get list of outputs from the configuration
-        all_outputs = [
-            element.tag
-            for xpath in GeckoConstants.PACK_OUTPUTS_XPATHS
-            for element in self._spa.config_xml.findall(xpath)
-        ]
-        logger.debug("All outputs are %s", all_outputs)
+        logger.debug("All outputs are %s", self._spa.struct.all_outputs)
         # Workout what (if anything) the outputs are connected to
         all_output_connections = {
-            output: self._spa.accessors[output].value for output in all_outputs
+            output: self._spa.accessors[output].value
+            for output in self._spa.struct.all_outputs
         }
         logger.debug("Output connections are %s", all_output_connections)
         # Reduce the dictionary to those that are not set to NA (Not Applicable)
@@ -91,40 +86,33 @@ class GeckoFacade(Observable):
             tag: val for (tag, val) in all_output_connections.items() if val != "NA"
         }
         logger.debug("Actual connections are %s", actual_connections)
-        # Get collection of possible devices, including lights
-        all_devices = [
-            element.tag
-            for element in self._spa.log_xml.findall(
-                GeckoConstants.SPA_PACK_DEVICE_XPATH
-            )
-        ] + ["LI"]
-        logger.debug("All devices are %s", all_devices)
+
+        logger.debug("All devices are %s", self._spa.struct.all_devices)
         # If any of the actual connection values starts with any of the devices,
         # then the device is present
         actual_devices = set(
             [
                 device
-                for device in all_devices
+                for device in self._spa.struct.all_devices
                 for val in actual_connections.values()
                 if val.startswith(device)
             ]
         )
         logger.debug("Actual devices are %s", actual_devices)
-        # User devices are those that have a Ud in the tag name
-        user_demands = [
-            element.tag
-            for element in self._spa.log_xml.findall(
-                GeckoConstants.SPA_PACK_USER_DEMANDS
-            )
-            if element.tag.startswith("Ud")
-        ]
-        logger.debug("Possible user demands are %s", user_demands)
+
+        logger.debug("Possible user demands are %s", self._spa.struct.user_demands)
         # Actual user devices are those where the actual device has a corresponding
         # user demand
         self.actual_user_devices = [
-            { "device": device, "user_demand" : { "demand": self._spa.accessors[f"{ud}"].tag, "options": self._spa.accessors[f"{ud}"].items } }
+            {
+                "device": device,
+                "user_demand": {
+                    "demand": self._spa.accessors[f"{ud}"].tag,
+                    "options": self._spa.accessors[f"{ud}"].items,
+                },
+            }
             for device in actual_devices
-            for ud in user_demands
+            for ud in self._spa.struct.user_demands
             if f"Ud{device}".upper() == ud.upper()
         ]
         logger.debug("Actual user devices are %s", self.actual_user_devices)
@@ -144,23 +132,32 @@ class GeckoFacade(Observable):
         ]
         logger.debug("Handled user devices are %s", self.actual_user_devices)
 
-
         self._pumps = [
-            GeckoPump(self, device["device"], GeckoConstants.DEVICES[device["device"]], device["user_demand"])
+            GeckoPump(
+                self,
+                device["device"],
+                GeckoConstants.DEVICES[device["device"]],
+                device["user_demand"],
+            )
             for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_PUMP
+            if GeckoConstants.DEVICES[device["device"]][3]
+            == GeckoConstants.DEVICE_CLASS_PUMP
         ]
 
         self._blowers = [
-            GeckoBlower(self, device["device"], GeckoConstants.DEVICES[device["device"]])
+            GeckoBlower(
+                self, device["device"], GeckoConstants.DEVICES[device["device"]]
+            )
             for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_BLOWER
+            if GeckoConstants.DEVICES[device["device"]][3]
+            == GeckoConstants.DEVICE_CLASS_BLOWER
         ]
 
         self._lights = [
             GeckoLight(self, device["device"], GeckoConstants.DEVICES[device["device"]])
             for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_LIGHT
+            if GeckoConstants.DEVICES[device["device"]][3]
+            == GeckoConstants.DEVICE_CLASS_LIGHT
         ]
 
         self._sensors = [

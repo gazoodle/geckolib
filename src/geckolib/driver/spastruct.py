@@ -17,6 +17,9 @@ class GeckoStructure:
     def __init__(self, on_set_value):
         self._status_block = b"\x00" * 1024
         self.accessors = {}
+        self.all_outputs = []
+        self.all_devices = []
+        self.user_demands = []
         self.had_at_least_one_block = False
         self._on_set_value = on_set_value
 
@@ -88,6 +91,29 @@ class GeckoStructure:
         logger.debug("Temperature keys to decorate %s", temp_keys)
         for key in temp_keys:
             self.accessors[key] = GeckoTemperatureDecorator(self, self.accessors[key])
+
+        # Get all outputs
+        self.all_outputs = [
+            element.tag
+            for xpath in GeckoConstants.PACK_OUTPUTS_XPATHS
+            for xml in xmllist
+            for element in xml.findall(xpath)
+        ]
+
+        # Get collection of possible devices, including lights
+        self.all_devices = [
+            element.tag
+            for xml in xmllist
+            for element in xml.findall(GeckoConstants.SPA_PACK_DEVICE_XPATH)
+        ] + ["LI"]
+
+        # User devices are those that have a Ud in the tag name
+        self.user_demands = [
+            element.tag
+            for xml in xmllist
+            for element in xml.findall(GeckoConstants.SPA_PACK_USER_DEMANDS)
+            if element.tag.startswith("Ud")
+        ]
 
     def retry_request(
         self,
