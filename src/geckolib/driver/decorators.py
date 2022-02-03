@@ -9,7 +9,17 @@ class GeckoTemperatureDecorator(GeckoStructAccessor):
     from freezing are handled"""
 
     def __init__(self, struct_, accessor):
-        super().__init__(struct_, accessor.element)
+        super().__init__(
+            struct_,
+            accessor.tag,
+            accessor.pos,
+            accessor.type,
+            accessor.bitpos,
+            accessor.items,
+            accessor.length,
+            accessor.maxitems,
+            accessor.read_write,
+        )
 
     def _get_value(self, status_block=None):
         """ Get the temperature """

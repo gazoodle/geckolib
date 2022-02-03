@@ -71,49 +71,17 @@ class GeckoStructure:
                 self.had_at_least_one_block = True
                 handler._should_remove_handler = True
 
-    def build_accessors(self, xmllist):
-        self.accessors = {
-            element.tag: GeckoStructAccessor(self, element)
-            for xml in xmllist
-            for element in xml.findall(
-                GeckoConstants.SPA_PACK_STRUCT_POS_ELEMENTS_XPATH
-            )
-        }
+    def build_accessors(self, config_class, log_class):
+        self.accessors = dict(config_class.accessors, **log_class.accessors)
         # Fix temperature accessors ...
-        temp_keys = {
-            element.tag
-            for xml in xmllist
-            for element in xml.findall(
-                GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE_ELEMENTS_XPATH
-            )
-            if "temp" in element.tag.lower() or "setpoint" in element.tag.lower()
-        }
-        logger.debug("Temperature keys to decorate %s", temp_keys)
-        for key in temp_keys:
+        for key in [*config_class.temperature_keys, *log_class.temperature_keys]:
             self.accessors[key] = GeckoTemperatureDecorator(self, self.accessors[key])
-
         # Get all outputs
-        self.all_outputs = [
-            element.tag
-            for xpath in GeckoConstants.PACK_OUTPUTS_XPATHS
-            for xml in xmllist
-            for element in xml.findall(xpath)
-        ]
-
-        # Get collection of possible devices, including lights
-        self.all_devices = [
-            element.tag
-            for xml in xmllist
-            for element in xml.findall(GeckoConstants.SPA_PACK_DEVICE_XPATH)
-        ] + ["LI"]
-
+        self.all_outputs = config_class.output_keys
+        # Get collection of possible devices
+        self.all_devices = log_class.all_device_keys
         # User devices are those that have a Ud in the tag name
-        self.user_demands = [
-            element.tag
-            for xml in xmllist
-            for element in xml.findall(GeckoConstants.SPA_PACK_USER_DEMANDS)
-            if element.tag.startswith("Ud")
-        ]
+        self.user_demands = log_class.user_demand_keys
 
     def retry_request(
         self,

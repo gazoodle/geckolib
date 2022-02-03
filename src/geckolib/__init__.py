@@ -33,9 +33,12 @@ from .driver import (
     GeckoRemindersProtocolHandler,
     GeckoPackCommandProtocolHandler,
     #
-    GeckoSpaPack,
     GeckoStructure,
     GeckoStructAccessor,
+    GeckoByteStructAccessor,
+    GeckoWordStructAccessor,
+    GeckoBoolStructAccessor,
+    GeckoEnumStructAccessor,
     GeckoTemperatureDecorator,
     Observable,
 )
@@ -89,9 +92,12 @@ __all__ = [
     "GeckoRemindersProtocolHandler",
     "GeckoPackCommandProtocolHandler",
     #
-    "GeckoSpaPack",
     "GeckoStructure",
     "GeckoStructAccessor",
+    "GeckoByteStructAccessor",
+    "GeckoWordStructAccessor",
+    "GeckoBoolStructAccessor",
+    "GeckoEnumStructAccessor",
     "GeckoUdpProtocolHandler",
     "GeckoUdpSocket",
 ]

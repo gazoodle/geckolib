@@ -3,6 +3,7 @@
 import logging
 import threading
 import time
+import importlib
 
 from .const import GeckoConstants
 from .driver import (
@@ -17,7 +18,6 @@ from .driver import (
     GeckoPartialStatusBlockProtocolHandler,
     GeckoPackCommandProtocolHandler,
     # Rest
-    GeckoSpaPack,
     GeckoStructure,
 )
 from .automation import GeckoFacade
@@ -61,16 +61,15 @@ class GeckoSpaDescriptor:
         return f"{self.name}({self.identifier_as_string})"
 
 
-class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
+class GeckoSpa(GeckoUdpSocket):
     """
     GeckoSpa class manages an instance of a spa, and is the main point of contact for
-    control and monitoring. Uses the declarations found in SpaPackStruct.xml to build
+    control and monitoring. Uses the declarations found in pack/* to build
     an object that exposes the properties and capabilities of your spa. This class
     should only be used via a Facade which hides the implementation details"""
 
     def __init__(self, descriptor):
         super().__init__()
-        GeckoSpaPack.__init__(self)
 
         self.descriptor = descriptor
         self.on_connected = None
@@ -92,11 +91,8 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         self.intouch_version_en = ""
         self.intouch_version_co = ""
 
-        self.gecko_pack_xml = None
         self.config_version = 0
-        self.config_xml = None
         self.log_version = 0
-        self.log_xml = None
         self.pack_type = None
         self._is_connected = False
         self._connection_started = None
@@ -104,6 +100,10 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         self.version = None
         self.config_number = None
         self.struct = GeckoStructure(self._on_set_value)
+
+        self.new_pack_class = None
+        self.new_log_class = None
+        self.new_config_class = None
 
     def complete(self):
         """ Complete the use of this spa class """
@@ -138,17 +138,18 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         )
 
     def _on_config_received(self, handler, socket, sender):
-        # XML is case-sensitive, but the platform from the config isn't formed the same,
-        # so we manually search the Plateform nodes to find the one we're interested in
-        for plateform in self.xml.findall(GeckoConstants.SPA_PACK_PLATEFORM_XPATH):
-            if (
-                plateform.attrib[GeckoConstants.SPA_PACK_NAME_ATTRIB].lower()
-                == handler.plateform_key.lower()
-            ):
-                self.gecko_pack_xml = plateform
 
-        # We can't carry on without information on how the STATV data block is formed
-        if self.gecko_pack_xml is None:
+        # Stash the config and log structure declarations
+        self.config_version = handler.config_version
+        self.log_version = handler.log_version
+
+        plateform_key = handler.plateform_key.lower()
+        pack_module_name = f"geckolib.driver.packs.{plateform_key}"
+        try:
+            GeckoPack = importlib.import_module(pack_module_name).GeckoPack
+            self.new_pack_class = GeckoPack(self.struct)
+            self.pack_type = self.new_pack_class.type
+        except ModuleNotFoundError:
             self.is_in_error = True
             raise Exception(
                 GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
@@ -156,29 +157,32 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
                 )
             )
 
-        # Stash the config and log structure declarations
-        self.config_version = handler.config_version
-        self.config_xml = self.gecko_pack_xml.find(
-            GeckoConstants.SPA_PACK_CONFIG_XPATH.format(self.config_version)
+        config_module_name = (
+            f"geckolib.driver.packs.{plateform_key}-cfg-{self.config_version}"
         )
-        if self.config_xml is None:
+        try:
+            GeckoConfigStruct = importlib.import_module(
+                config_module_name
+            ).GeckoConfigStruct
+            self.new_config_class = GeckoConfigStruct(self.struct)
+        except ModuleNotFoundError:
             self.is_in_error = True
             raise Exception(
-                f"Cannot find XML configuraton for {handler.plateform_key}"
-                f" v{self.config_version}"
+                f"Cannot find GeckoConfigStruct module for {handler.plateform_key} v{self.config_version}"
             )
-        self.log_version = handler.log_version
-        self.log_xml = self.gecko_pack_xml.find(
-            GeckoConstants.SPA_PACK_LOG_XPATH.format(self.log_version)
+
+        log_module_name = (
+            f"geckolib.driver.packs.{plateform_key}-log-{self.log_version}"
         )
-        if self.log_xml is None:
+        try:
+            GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
+            self.new_log_class = GeckoLogStruct(self.struct)
+        except ModuleNotFoundError:
             self.is_in_error = True
             raise Exception(
-                f"Cannot find XML log for {handler.plateform_key} v{self.log_version}"
+                f"Cannot find GeckoLogStruct module for {handler.plateform_key} v{self.log_version}"
             )
-        self.pack_type = int(
-            self.gecko_pack_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_TYPE_ATTRIB]
-        )
+
         logger.debug(
             "Got spa configuration Type %s - CFG %s/LOG %s, now ask for initial "
             "status block",
@@ -231,6 +235,11 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
         )
 
     @property
+    def revision(self):
+        """ Get the revision of the spa pack structure used to generate the pack modules """
+        return self.new_pack_class.revision
+
+    @property
     def sendparms(self):
         return (
             self.descriptor.destination[0],
@@ -276,10 +285,11 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
 
     def _final_connect(self):
         logger.debug("Connected, build accessors")
-        if self.config_xml is None or self.log_xml is None:
+        if self.new_config_class is None or self.new_log_class is None:
             self.is_in_error = True
-            raise AttributeError("Config or Log XML is None")
-        self.struct.build_accessors([self.config_xml, self.log_xml])
+            raise AttributeError("Config or Log class is None")
+        self.struct.build_accessors(self.new_config_class, self.new_log_class)
+
         self.pack = self.accessors[GeckoConstants.KEY_PACK_TYPE].value
         self.version = "{0} v{1}.{2}".format(
             self.accessors[GeckoConstants.KEY_PACK_CONFIG_ID].value,
@@ -334,8 +344,8 @@ class GeckoSpa(GeckoUdpSocket, GeckoSpaPack):
             self,
             GeckoStatusBlockProtocolHandler.request(
                 self.get_and_increment_sequence_counter(),
-                int(self.log_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_BEGIN_ATTRIB]),
-                int(self.log_xml.attrib[GeckoConstants.SPA_PACK_STRUCT_END_ATTRIB]),
+                self.new_log_class.begin,
+                self.new_log_class.end,
                 parms=self.sendparms,
             ),
             self.sendparms,

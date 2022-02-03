@@ -1,5 +1,6 @@
 """ Structure accessor """
 
+import string
 import struct
 import logging
 
@@ -10,35 +11,33 @@ logger = logging.getLogger(__name__)
 
 
 class GeckoStructAccessor(Observable):
-    """Class to access the spa data structure according to the declaration
-    in SpaPackStruct.xml"""
+    """Class to access the spa data structure according to the declaration in the specific modules"""
 
-    def __init__(self, struct_, element):
+    def __init__(self, struct_, tag, pos, type, bitpos, items, size, maxitems, rw):
         super().__init__()
-        self.element = element
-        self.tag = element.tag
-        self.struct = struct_
-        self.pos = int(element.attrib[GeckoConstants.SPA_PACK_STRUCT_POS_ATTRIB])
-        self.type = element.attrib[GeckoConstants.SPA_PACK_STRUCT_TYPE_ATTRIB]
-        self.bitpos = None
 
-        if GeckoConstants.SPA_PACK_STRUCT_BITPOS_ATTRIB in element.attrib:
-            self.bitpos = int(
-                element.attrib[GeckoConstants.SPA_PACK_STRUCT_BITPOS_ATTRIB]
-            )
+        self.tag = tag
+        self.struct = struct_
+        self.pos = pos
+        self.type = type
+        self.bitpos = bitpos
+        self.items = items
+        self.maxitems = maxitems
+
+        if bitpos is not None:
             self.bitmask = 1
-        if GeckoConstants.SPA_PACK_STRUCT_ITEMS_ATTRIB in element.attrib:
-            self.items = element.attrib[
-                GeckoConstants.SPA_PACK_STRUCT_ITEMS_ATTRIB
-            ].split("|")
+
+        if items is not None:
+            if isinstance(items, str):
+                self.items = items.split("|")
+            else:
+                self.items = items
 
         self.length = 1
         self.format = ">B"
 
-        if GeckoConstants.SPA_PACK_STRUCT_SIZE_ATTRIB in element.attrib:
-            self.length = int(
-                element.attrib[GeckoConstants.SPA_PACK_STRUCT_SIZE_ATTRIB]
-            )
+        if size is not None:
+            self.length = size
             if self.length == 2:
                 self.format = ">H"
 
@@ -48,21 +47,17 @@ class GeckoStructAccessor(Observable):
         ):
             self.length = 2
             self.format = ">H"
-        if GeckoConstants.SPA_PACK_STRUCT_MAXITEMS_ATTRIB in element.attrib:
-            self.maxitems = int(
-                element.attrib[GeckoConstants.SPA_PACK_STRUCT_MAXITEMS_ATTRIB]
-            )
+
+        if maxitems is not None:
+            self.maxitems = int(maxitems)
             if self.maxitems > 8:
                 self.bitmask = 15
             elif self.maxitems > 4:
                 self.bitmask = 7
             elif self.maxitems > 2:
                 self.bitmask = 3
-        self.read_write = None
-        if GeckoConstants.SPA_PACK_STRUCT_READ_WRITE_ATTRIB in element.attrib:
-            self.read_write = element.attrib[
-                GeckoConstants.SPA_PACK_STRUCT_READ_WRITE_ATTRIB
-            ]
+
+        self.read_write = rw
 
     def status_block_changed(self, offset, len, previous):
         # Does the notified range intersect us, if not then we don't care!
@@ -139,6 +134,18 @@ class GeckoStructAccessor(Observable):
         if self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             logger.debug("Enum accessor %s adjusted from %s", self.tag, newvalue)
             newvalue = self.items.index(newvalue)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE and isinstance(
+            newvalue, str
+        ):
+            newvalue = int(newvalue)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE and isinstance(
+            newvalue, str
+        ):
+            newvalue = int(newvalue)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE and isinstance(
+            newvalue, str
+        ):
+            newvalue = newvalue.lower() == "true"
 
         # If it is a bitpos, then mask it with the existing value
         existing = struct.unpack(
@@ -187,3 +194,28 @@ class GeckoStructAccessor(Observable):
 
     def __repr__(self):
         return f"{self.tag!r}: {self.value!r}"
+
+
+class GeckoByteStructAccessor(GeckoStructAccessor):
+    def __init__(self, struct_, tag, pos, rw):
+        super().__init__(struct_, tag, pos, "Byte", None, None, None, None, rw)
+
+
+class GeckoWordStructAccessor(GeckoStructAccessor):
+    def __init__(self, struct_, tag, pos, rw):
+        super().__init__(struct_, tag, pos, "Word", None, None, None, None, rw)
+
+
+class GeckoTimeStructAccessor(GeckoStructAccessor):
+    def __init__(self, struct_, tag, pos, rw):
+        super().__init__(struct_, tag, pos, "Time", None, None, None, None, rw)
+
+
+class GeckoBoolStructAccessor(GeckoStructAccessor):
+    def __init__(self, struct_, tag, pos, bitpos, rw):
+        super().__init__(struct_, tag, pos, "Bool", bitpos, None, None, None, rw)
+
+
+class GeckoEnumStructAccessor(GeckoStructAccessor):
+    def __init__(self, struct_, tag, pos, bitpos, items, size, maxitems, rw):
+        super().__init__(struct_, tag, pos, "Enum", bitpos, items, size, maxitems, rw)

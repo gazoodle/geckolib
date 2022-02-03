@@ -3,8 +3,6 @@
 import cmd
 import logging
 
-from ..driver import GeckoSpaPack
-
 LICENSE = """
 #
 #   Copyright (C) 2020, Gazoodle (https://github.com/gazoodle)
@@ -100,8 +98,3 @@ class GeckoCmd(cmd.Cmd):
         """Display the license details : license"""
         del arg
         print(LICENSE)
-
-    def do_download(self, arg):
-        """Download the SpaPackStruct.xml from Gecko : download"""
-        del arg
-        GeckoSpaPack.download()

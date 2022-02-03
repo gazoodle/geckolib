@@ -26,11 +26,6 @@ class GeckoShell(GeckoCmd):
         tested every setting and it might be that you prevent your spa pack from
         operating as it used to do.
 
-        Configuration is declared in the file SpaPackStruct.xml which is downloaded the
-        first time you run this program. Settings marked as RW="ALL" seem to indicate
-        that any process can write them, so you ought to be able to revert the settings
-        to their original ones.
-
         I strongly suggest dumping the configuration values with the "config" command
         and recording them somewhere safe.
 
@@ -265,7 +260,7 @@ class GeckoShell(GeckoCmd):
             key, val = arg.split("=")
             self.facade.spa.accessors[key].value = val
         except Exception:  # pylint: disable=broad-except
-            logger.exception("Exception handling setting %s=%s", key, val)
+            logger.exception("Exception handling 'set %s'", arg)
 
     def do_watercare(self, arg):
         """Set the active watercare mode to one of {0} : WATERCARE <mode>"""
