@@ -319,6 +319,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Include Temp decorator in new generator so it's not runtime ...
  - Update unit tests to remove XML requirement
 
+## Done/Fixed in 0.3.22
+
+
 ## Done/Fixed in 0.3.21
  - Demoted some benign debugging data that clutters log files
  - Replaced "config" and "live" with "accessors" commands in shell to reduce direct access to XML
