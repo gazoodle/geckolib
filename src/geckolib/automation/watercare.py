@@ -43,6 +43,8 @@ class GeckoWaterCare(GeckoAutomationBase):
             ),
             self._spa.sendparms,
         )
+        if new_mode != self.active_mode:
+            self.active_mode = new_mode
 
     def _on_watercare(self, handler, socket, sender):
         if self.active_mode != handler.mode:

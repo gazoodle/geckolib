@@ -65,9 +65,13 @@ class GeckoFacade(Observable):
 
     @property
     def is_connected(self):
-        if not self._spa.is_connected:
+        try:
+            if not self._spa.is_connected:
+                return False
+            return self._facade_ready
+        except Exception as e:
+            logger.exception(e)
             return False
-        return self._facade_ready
 
     @property
     def is_in_error(self):

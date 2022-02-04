@@ -17,7 +17,7 @@ class GeckoConstants:
     # Maximum time to wait for full discovery if no spas have responded
     DISCOVERY_TIMEOUT_IN_SECONDS = 10
     # Maximum time to wait for full connection for a responding spa
-    CONNECTION_TIMEOUT_IN_SECONDS = 30
+    CONNECTION_TIMEOUT_IN_SECONDS = 45
     PING_TIMEOUT_IN_SECONDS = 4
     PING_FREQUENCY_IN_SECONDS = 15
     PING_DEVICE_NOT_RESPONDING_TIMEOUT = 60
