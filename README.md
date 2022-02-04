@@ -320,7 +320,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Update unit tests to remove XML requirement
 
 ## Done/Fixed in 0.3.22
-
+ - Increase connection timeout to help with laggy tubs and busy networks
+ - Watercare setting updated locally rather than wait for tub response to
+   improve HA UI responsiveness
 
 ## Done/Fixed in 0.3.21
  - Demoted some benign debugging data that clutters log files
