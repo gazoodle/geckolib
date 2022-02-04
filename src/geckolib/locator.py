@@ -69,6 +69,8 @@ class GeckoLocator:
                 self._has_found_spa = True
             if descriptor.identifier == self._spa_to_find:
                 self._has_found_spa = True
+        if self._static_ip is not None:
+            self._has_found_spa = True
 
     @property
     def age(self):
@@ -114,7 +116,9 @@ class GeckoLocator:
             if self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
                 self._socket.queue_send(
                     GeckoHelloProtocolHandler.broadcast(),
-                    GeckoHelloProtocolHandler.broadcast_address(static_ip=self._static_ip),
+                    GeckoHelloProtocolHandler.broadcast_address(
+                        static_ip=self._static_ip
+                    ),
                 )
             self._socket.wait(1)
         logger.debug("Locator retry thread stopped")
