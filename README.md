@@ -319,6 +319,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Include Temp decorator in new generator so it's not runtime ...
  - Update unit tests to remove XML requirement
 
+## Done/Fixed in 0.3.23
+ - Demoted some INFO logging to DEBUG to reduce HA log file clutter
+
 ## Done/Fixed in 0.3.22
  - Increase connection timeout to help with laggy tubs and busy networks
  - Watercare setting updated locally rather than wait for tub response to

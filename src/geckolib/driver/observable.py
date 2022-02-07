@@ -21,7 +21,7 @@ class Observable:
 
     def _on_change(self, sender, old_value, new_value):
         """ Trigger the change notification for all observers """
-        logger.info(f"{sender} changed from {old_value} to {new_value}")
+        logger.debug(f"{sender} changed from {old_value} to {new_value}")
         for observer in self._observers:
             observer(sender, old_value, new_value)
 

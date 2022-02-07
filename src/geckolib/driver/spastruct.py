@@ -64,7 +64,9 @@ class GeckoStructure:
             # When we get the last partial segment, we can assume the spa is
             # connected and we can report on status
             if handler.next == 0:
-                logger.info("Status block segments complete, update and remove handler")
+                logger.debug(
+                    "Status block segments complete, update and remove handler"
+                )
                 self.replace_status_block_segment(
                     self._status_block_offset, b"".join(self._status_block_segments)
                 )
