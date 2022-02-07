@@ -320,7 +320,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Update unit tests to remove XML requirement
 
 ## Done/Fixed in 0.3.24
-
+ - Fix error found by Github workflow
 
 ## Done/Fixed in 0.3.23
  - Demoted some INFO logging to DEBUG to reduce HA log file clutter

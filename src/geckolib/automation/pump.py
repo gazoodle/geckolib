@@ -36,7 +36,9 @@ class GeckoPump(GeckoAutomationBase):
             logger.debug("%s set mode %s", self.name, mode)
             self.facade.spa.accessors[self._user_demand["demand"]].value = mode
         except Exception:  # pylint: disable=broad-except
-            logger.exception("Exception handling setting %s=%s", key, val)
+            logger.exception(
+                "Exception handling setting %s=%s", self._user_demand["demand"], mode
+            )
 
     def __str__(self):
         return f"{self.name}: {self._state_sensor.state}"
