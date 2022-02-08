@@ -359,6 +359,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Added extra logging into to find out more about issue #28
  - Removed readline library as it isn't supported on Windows and it wasn't really doing anything
  - Added some extra doc for issue #18
+ - Added RFERR handler to client and simulator to start investigations
 
 ## Done/Fixed in 0.3.23
  - Demoted some INFO logging to DEBUG to reduce HA log file clutter
