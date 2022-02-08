@@ -1,7 +1,6 @@
 """ GeckoSimulator class """
 
 import logging
-import readline
 import os
 import glob
 import random
@@ -50,7 +49,6 @@ class GeckoSimulator(GeckoCmd):
             "Welcome to the Gecko simulator. Type help or ? to list commands.\n"
         )
         self.prompt = "(GeckoSim) "
-        readline.set_completer_delims(" \r\n")
 
     def __exit__(self, *args):
         self._socket.close()
