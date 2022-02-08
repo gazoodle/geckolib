@@ -5,6 +5,8 @@ import os
 import glob
 import random
 
+from black import T
+
 from .shared_command import GeckoCmd
 from ..driver import (
     GeckoHelloProtocolHandler,
@@ -18,6 +20,7 @@ from ..driver import (
     GeckoWatercareProtocolHandler,
     GeckoUpdateFirmwareProtocolHandler,
     GeckoRemindersProtocolHandler,
+    GeckoRFErrProtocolHandler,
     GeckoPackCommandProtocolHandler,
     GeckoStructure,
     GeckoUdpSocket,
@@ -41,6 +44,7 @@ class GeckoSimulator(GeckoCmd):
         self.structure = GeckoStructure(self._on_set_value)
         self.snapshot = None
         self._reliability = 1.0
+        self._do_rferr = False
         random.seed()
 
         super().__init__(first_commands)
@@ -97,6 +101,11 @@ class GeckoSimulator(GeckoCmd):
             return
         self._reliability = min(1.0, max(0.0, float(args)))
 
+    def do_rferr(self, args):
+        """Set the simulator to response with RFERR if the parameter is True"""
+        self._do_rferr = args.lower() == "true"
+        print(f"RFERR mode set to {self._do_rferr}")
+
     def complete_parse(self, text, line, start_idx, end_idx):
         return self._complete_path(text)
 
@@ -118,7 +127,15 @@ class GeckoSimulator(GeckoCmd):
         self.snapshot = snapshot
         self.structure.replace_status_block_segment(0, self.snapshot.bytes)
 
-    def _should_ignore(self, handler, sender):
+    def _should_ignore(self, handler, socket, sender, respect_rferr=True):
+        if respect_rferr and self._do_rferr:
+            socket.queue_send(
+                GeckoRFErrProtocolHandler.response(parms=sender),
+                sender,
+            )
+            # Always ignore responses because we've already replied with RFERR
+            return True
+
         should_ignore = random.random() > self._reliability
         if should_ignore:
             print(f"Unreliable simulator ignoring request for {handler} from {sender}")
@@ -163,7 +180,7 @@ class GeckoSimulator(GeckoCmd):
 
     def _on_hello(self, handler: GeckoHelloProtocolHandler, socket, sender):
         if handler.was_broadcast_discovery:
-            if self._should_ignore(handler, sender):
+            if self._should_ignore(handler, socket, sender, False):
                 return
             socket.queue_send(self._hello_handler, sender)
         elif handler.client_identifier is not None:
@@ -171,7 +188,7 @@ class GeckoSimulator(GeckoCmd):
             pass
 
     def _on_ping(self, handler: GeckoPingProtocolHandler, socket, sender):
-        if self._should_ignore(handler, sender):
+        if self._should_ignore(handler, socket, sender):
             return
         socket.queue_send(
             GeckoPingProtocolHandler.response(parms=sender),
@@ -179,7 +196,7 @@ class GeckoSimulator(GeckoCmd):
         )
 
     def _on_version(self, handler: GeckoVersionProtocolHandler, socket, sender):
-        if self._should_ignore(handler, sender):
+        if self._should_ignore(handler, socket, sender):
             return
         socket.queue_send(
             GeckoVersionProtocolHandler.response(
@@ -191,7 +208,7 @@ class GeckoSimulator(GeckoCmd):
         )
 
     def _on_get_channel(self, handler: GeckoGetChannelProtocolHandler, socket, sender):
-        if self._should_ignore(handler, sender):
+        if self._should_ignore(handler, socket, sender):
             return
         socket.queue_send(
             GeckoGetChannelProtocolHandler.response(10, 33, parms=sender),
@@ -199,7 +216,7 @@ class GeckoSimulator(GeckoCmd):
         )
 
     def _on_config_file(self, handler: GeckoConfigFileProtocolHandler, socket, sender):
-        if self._should_ignore(handler, sender):
+        if self._should_ignore(handler, socket, sender):
             return
         socket.queue_send(
             GeckoConfigFileProtocolHandler.response(
@@ -212,7 +229,7 @@ class GeckoSimulator(GeckoCmd):
         )
 
     def _on_watercare(self, handler: GeckoWatercareProtocolHandler, socket, sender):
-        if self._should_ignore(handler, sender):
+        if self._should_ignore(handler, socket, sender):
             return
         if handler.schedule:
             socket.queue_send(
@@ -226,7 +243,7 @@ class GeckoSimulator(GeckoCmd):
     def _on_update_firmware(
         self, handler: GeckoUpdateFirmwareProtocolHandler, socket, sender
     ):
-        if self._should_ignore(handler, sender):
+        if self._should_ignore(handler, socket, sender):
             return
         socket.queue_send(
             GeckoUpdateFirmwareProtocolHandler.response(parms=sender), sender
@@ -258,14 +275,14 @@ class GeckoSimulator(GeckoCmd):
             )
 
     def _on_get_reminders(self, handler: GeckoRemindersProtocolHandler, socket, sender):
-        if self._should_ignore(handler, sender):
+        if self._should_ignore(handler, socket, sender):
             return
         socket.queue_send(GeckoRemindersProtocolHandler.response(parms=sender), sender)
 
     def _on_pack_command(
         self, handler: GeckoPackCommandProtocolHandler, socket, sender
     ):
-        if self._should_ignore(handler, sender):
+        if self._should_ignore(handler, socket, sender):
             return
         socket.queue_send(
             GeckoPackCommandProtocolHandler.response(parms=sender), sender

@@ -5,6 +5,8 @@ import threading
 import time
 import importlib
 
+from geckolib.driver.protocol.rferr import GeckoRFErrProtocolHandler
+
 from .const import GeckoConstants
 from .driver import (
     GeckoUdpSocket,
@@ -267,6 +269,7 @@ class GeckoSpa(GeckoUdpSocket):
         self._ping_thread.start()
         # Get the intouch version
         logger.info("Starting spa connection handshake...")
+        self.add_receive_handler(GeckoRFErrProtocolHandler())
         version_handler = GeckoVersionProtocolHandler.request(
             self.get_and_increment_sequence_counter(),
             parms=self.sendparms,

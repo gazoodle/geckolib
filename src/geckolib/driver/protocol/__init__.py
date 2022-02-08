@@ -8,6 +8,7 @@ from .packcommand import GeckoPackCommandProtocolHandler
 from .packet import GeckoPacketProtocolHandler
 from .ping import GeckoPingProtocolHandler
 from .reminders import GeckoRemindersProtocolHandler
+from .rferr import GeckoRFErrProtocolHandler
 from .statusblock import (
     GeckoStatusBlockProtocolHandler,
     GeckoPartialStatusBlockProtocolHandler,
@@ -37,6 +38,8 @@ __all__ = [
     "GeckoUpdateFirmwareProtocolHandler",
     # From reminders
     "GeckoRemindersProtocolHandler",
+    # From rferr
+    "GeckoRfErrProtocolHandler",
     # From packcommand
     "GeckoPackCommandProtocolHandler",
 ]
