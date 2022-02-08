@@ -199,6 +199,41 @@ with GeckoLocator(CLIENT_ID) as locator:
         time.sleep(2)
 ```
 
+An example to just read the state of various items, see the files in ./automation
+folder for properties of these items for getting state and controlling them
+
+```python
+""" Sample client demonstrating use of geckolib """
+
+from context import GeckoLocator
+
+# Replace with your own UUID, see https://www.uuidgenerator.net/>
+CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
+
+print("Locating spas on your network")
+with GeckoLocator(CLIENT_ID) as locator:
+
+    print(f"Connecting to first spa {locator.spas[0]}")
+    with locator.spas[0].get_facade() as facade:
+
+        # Get state of water heater
+        print(facade.water_heater)
+
+        # Get state of the pumps
+        for pump in facade.pumps:
+            print(pump)
+
+        # Check that pump 1 is off
+        if facade.pumps[0].mode == "OFF":
+            print("Pump 1 is off!")
+
+        # Print all the automatable devices
+        print("** All automation devices **")
+        for device in facade.all_automation_devices:
+            print(device)
+
+```
+
 A more complex example 
 
 ```python
@@ -317,11 +352,13 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - A missing spa is an unusual event not a critical failure, retry connection
  - Handle inMix for lighting control
  - Include Temp decorator in new generator so it's not runtime ...
- - Update unit tests to remove XML requirement
+ - Add API documentation
 
 ## Done/Fixed in 0.3.24
  - Fix error found by Github workflow
  - Added extra logging into to find out more about issue #28
+ - Removed readline library as it isn't supported on Windows and it wasn't really doing anything
+ - Added some extra doc for issue #18
 
 ## Done/Fixed in 0.3.23
  - Demoted some INFO logging to DEBUG to reduce HA log file clutter
