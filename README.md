@@ -360,6 +360,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Removed readline library as it isn't supported on Windows and it wasn't really doing anything
  - Added some extra doc for issue #18
  - Added RFERR handler to client and simulator to start investigations
+ - Handle Watercare index out of range
+ - Accessors can now deal with Time type entries
 
 ## Done/Fixed in 0.3.23
  - Demoted some INFO logging to DEBUG to reduce HA log file clutter
