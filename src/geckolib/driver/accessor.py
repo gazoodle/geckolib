@@ -125,6 +125,8 @@ class GeckoStructAccessor(Observable):
                     self.items,
                     data,
                 )
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
+            data = f"{int(data/256):02}:{data%256:02}"
         return data
 
     def _set_value(self, newvalue):
@@ -137,6 +139,10 @@ class GeckoStructAccessor(Observable):
         if self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             logger.debug("Enum accessor %s adjusted from %s", self.tag, newvalue)
             newvalue = self.items.index(newvalue)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
+            logger.debug(f"Time accessor {self.tag} adjusted from {newvalue}")
+            bits = newvalue.split(":")
+            newvalue = (int(bits[0]) * 256) + (int(bits[1]) % 256)
         elif self.type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE and isinstance(
             newvalue, str
         ):

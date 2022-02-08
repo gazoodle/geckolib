@@ -68,6 +68,8 @@ class GeckoWaterCare(GeckoAutomationBase):
     def __str__(self):
         if self.active_mode is None:
             return f"{self.name}: Waiting..."
+        if self.active_mode > len(GeckoConstants.WATERCARE_MODE_STRING):
+            return f"Unknown Water care mode (index:{self.active_mode}"
         return f"{self.name}: {GeckoConstants.WATERCARE_MODE_STRING[self.active_mode]}"
 
     @property
