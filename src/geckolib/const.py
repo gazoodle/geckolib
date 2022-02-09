@@ -120,7 +120,7 @@ class GeckoConstants:
     DEVICE_CLASS_SWITCH = "SWITCH"
     DEVICE_CLASS_OTHER = "OTHER"
 
-    ECON_ACTIVE_DESCRIPTION = "EcoMode"
+    ECON_ACTIVE_DESCRIPTION = "Economy Mode"
 
     # Spa devices and accessories, dictionary of tuples
     #   ID: Description, keypad, structure key, class
