@@ -5,8 +5,6 @@ import os
 import glob
 import random
 
-from black import T
-
 from .shared_command import GeckoCmd
 from ..driver import (
     GeckoHelloProtocolHandler,
