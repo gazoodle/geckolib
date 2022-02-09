@@ -362,6 +362,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Added RFERR handler to client and simulator to start investigations
  - Handle Watercare index out of range
  - Accessors can now deal with Time type entries
+ - Added diag.py to aid tracking issue#27
 
 ## Done/Fixed in 0.3.23
  - Demoted some INFO logging to DEBUG to reduce HA log file clutter
