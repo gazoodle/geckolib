@@ -157,6 +157,7 @@ class GeckoShell(GeckoCmd):
         print(self.facade.water_care)
         for sensor in [*self.facade.sensors, *self.facade.binary_sensors]:
             print(sensor)
+        print(self.facade.eco_mode)
 
     def monitor_get_states(self):
 
@@ -169,6 +170,7 @@ class GeckoShell(GeckoCmd):
             self.facade.water_care,
             *self.facade.sensors,
             *self.facade.binary_sensors,
+            self.facade.eco_mode,
         ]
 
         return [f"{state.monitor}" for state in states]
@@ -272,6 +274,13 @@ class GeckoShell(GeckoCmd):
     def do_setpoint(self, arg):
         """Set the spa setpoint temperature : setpoint <temp>"""
         self.facade.water_heater.set_target_temperature(float(arg))
+
+    def do_eco(self, arg):
+        """Set the spa eco mode : eco on|off"""
+        if arg.lower() == "off":
+            self.facade.eco_mode.turn_off()
+        else:
+            self.facade.eco_mode.turn_on()
 
     def do_snapshot(self, arg):
         """Take a snapshot of the spa data structure with a descriptive

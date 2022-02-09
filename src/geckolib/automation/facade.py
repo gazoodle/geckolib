@@ -9,6 +9,7 @@ from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
+from .switches import GeckoSwitch
 from .sensors import GeckoSensor, GeckoBinarySensor
 from .watercare import GeckoWaterCare
 from ..driver import Observable
@@ -30,6 +31,7 @@ class GeckoFacade(Observable):
         self._water_heater = None
         self._water_care = None
         self._keypad = None
+        self._ecomode = None
         self._update_thread = threading.Thread(
             target=self._update_thread_func, daemon=True
         )
@@ -184,6 +186,11 @@ class GeckoFacade(Observable):
             if binary_sensor[1] in self._spa.accessors
         ]
 
+        if "EconActive" in self._spa.accessors:
+            self._ecomode = GeckoSwitch(
+                self, "EconActive", ("EcoMode", 0, "EconActive", "SWITCH")
+            )
+
     @property
     def unique_id(self):
         """ A unique id for the facade """
@@ -245,6 +252,11 @@ class GeckoFacade(Observable):
         return self._binary_sensors
 
     @property
+    def eco_mode(self):
+        """ Get the Eco Mode switch """
+        return self._ecomode
+
+    @property
     def all_user_devices(self):
         """ Get all the user controllable devices as a list """
         return self._pumps + self._blowers + self._lights
@@ -256,7 +268,7 @@ class GeckoFacade(Observable):
             self.all_user_devices
             + self.sensors
             + self.binary_sensors
-            + [self.water_heater, self.water_care, self.keypad]
+            + [self.water_heater, self.water_care, self.keypad, self.eco_mode]
         )
 
     def get_device(self, key):

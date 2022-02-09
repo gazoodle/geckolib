@@ -363,6 +363,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Handle Watercare index out of range
  - Accessors can now deal with Time type entries
  - Added diag.py to aid tracking issue#27
+ - Added eco mode control to facade and shell
 
 ## Done/Fixed in 0.3.23
  - Demoted some INFO logging to DEBUG to reduce HA log file clutter
