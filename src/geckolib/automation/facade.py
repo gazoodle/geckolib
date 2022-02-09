@@ -186,9 +186,16 @@ class GeckoFacade(Observable):
             if binary_sensor[1] in self._spa.accessors
         ]
 
-        if "EconActive" in self._spa.accessors:
+        if GeckoConstants.KEY_ECON_ACTIVE in self._spa.accessors:
             self._ecomode = GeckoSwitch(
-                self, "EconActive", ("EcoMode", 0, "EconActive", "SWITCH")
+                self,
+                GeckoConstants.KEY_ECON_ACTIVE,
+                (
+                    GeckoConstants.ECON_ACTIVE_DESCRIPTION,
+                    GeckoConstants.KEYPAD_ECOMODE,
+                    GeckoConstants.KEY_ECON_ACTIVE,
+                    GeckoConstants.DEVICE_CLASS_SWITCH,
+                ),
             )
 
     @property

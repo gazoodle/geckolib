@@ -78,6 +78,7 @@ class GeckoConstants:
     KEY_SWM_RISK = "SwmRisk"
     KEY_FILTER_PURGE = "Purge"
     KEY_FILTER_CLEAN = "Clean"
+    KEY_ECON_ACTIVE = "EconActive"
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 
@@ -102,6 +103,7 @@ class GeckoConstants:
     KEYPAD_UP = 21
     KEYPAD_DOWN = 22
     KEYPAD_WATERFALL = 23
+    KEYPAD_ECOMODE = 0
 
     # Pack outputs
     PACK_OUTPUTS_XPATHS = [
@@ -115,7 +117,10 @@ class GeckoConstants:
     DEVICE_CLASS_PUMP = "PUMP"
     DEVICE_CLASS_BLOWER = "BLOWER"
     DEVICE_CLASS_LIGHT = "LIGHT"
+    DEVICE_CLASS_SWITCH = "SWITCH"
     DEVICE_CLASS_OTHER = "OTHER"
+
+    ECON_ACTIVE_DESCRIPTION = "EcoMode"
 
     # Spa devices and accessories, dictionary of tuples
     #   ID: Description, keypad, structure key, class
