@@ -1,6 +1,5 @@
 """ Structure accessor """
 
-import string
 import struct
 import logging
 
@@ -11,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class GeckoStructAccessor(Observable):
-    """Class to access the spa data structure according to the declaration in the specific modules"""
+    """Class to access the spa data structure according to the declaration in the
+    specific modules"""
 
     def __init__(self, struct_, tag, pos, type, bitpos, items, size, maxitems, rw):
         super().__init__()

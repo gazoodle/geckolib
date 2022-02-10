@@ -2,10 +2,8 @@
 
 import logging
 
-from ..const import GeckoConstants
 from .protocol import GeckoStatusBlockProtocolHandler
 from .udp_socket import GeckoUdpSocket
-from .accessor import GeckoStructAccessor
 
 logger = logging.getLogger(__name__)
 

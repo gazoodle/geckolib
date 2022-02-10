@@ -1,6 +1,7 @@
 """ GeckoShell class """
 
-import sys, traceback
+import sys
+import traceback
 import logging
 import datetime
 from .shared_command import GeckoCmd
@@ -136,7 +137,7 @@ class GeckoShell(GeckoCmd):
         print("Set pump {0} {1}".format(device.name, arg))
         try:
             device.set_mode(arg)
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
 
     def do_state(self, arg):
