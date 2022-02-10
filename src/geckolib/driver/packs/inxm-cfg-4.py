@@ -9,6 +9,7 @@ from . import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 # Constants for this class
@@ -869,10 +870,7 @@ ZUQEXL = "".join(
     chr(c) for c in [76, 105, 103, 104, 116, 84, 105, 109, 101, 79, 117, 116]
 )
 BIAMJM = [FJBIAM, JBIAMJ]
-CHWDAF = [IAMJMA]
-CQFFTT = [ACQFFT, OUSPBW, PIPIVL]
-DAFIKJ = []
-HWDAFI = [
+CHWDAF = [
     BMJVHF,
     ICXQIE,
     XQIEFX,
@@ -887,6 +885,8 @@ HWDAFI = [
     MCBFEG,
     BFEGZU,
 ]
+CQFFTT = [ACQFFT, OUSPBW, PIPIVL]
+HWDAFI = [VLASSA]
 JEUTOP = [HTBJEU, TBJEUT, JVHFTH, BJEUTO]
 JMCBFE = [
     JVHFTH,
@@ -960,7 +960,7 @@ USPBWJ = [PIPIVL, OUSPBW]
 UTYEKC = [UJUTYE, JUTYEK]
 WAJVDQ = [ILXWAJ, LXWAJV, XWAJVD, LRAHEO]
 WBSIRY = [OAWBSI, AWBSIR]
-WDAFIK = [VLASSA]
+WDAFIK = []
 XEKVKZ = [NMHXEK, MHXEKV, JVHFTH, HXEKVK]
 YGDSBD = [UBYGDS, BYGDSB]
 YLJUIK = [QFYLJU, FYLJUI]
@@ -976,12 +976,8 @@ class GeckoConfigStruct:
         return JTACCP
 
     @property
-    def temperature_keys(self):
-        return CHWDAF
-
-    @property
     def output_keys(self):
-        return HWDAFI
+        return CHWDAF
 
     @property
     def accessors(self):
@@ -1099,7 +1095,7 @@ class GeckoConfigStruct:
             SIFJBI: GeckoEnumStructAccessor(
                 self.struct, SIFJBI, IFJBIA, TYEKCW, BIAMJM, None, TYEKCW, QBMJVH
             ),
-            IAMJMA: GeckoWordStructAccessor(self.struct, IAMJMA, AMJMAO, QBMJVH),
+            IAMJMA: GeckoTempStructAccessor(self.struct, IAMJMA, AMJMAO, QBMJVH),
             MJMAOA: GeckoEnumStructAccessor(
                 self.struct, MJMAOA, JMAOAW, None, USPBWJ, None, None, QBMJVH
             ),

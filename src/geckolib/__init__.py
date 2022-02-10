@@ -39,7 +39,6 @@ from .driver import (
     GeckoWordStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
-    GeckoTemperatureDecorator,
     Observable,
 )
 from ._version import VERSION
@@ -77,7 +76,6 @@ __all__ = [
     "GeckoSimulator",
     "GeckoSnapshot",
     # From driver
-    "GeckoTemperatureDecorator",
     "Observable",
     "GeckoHelloProtocolHandler",
     "GeckoPacketProtocolHandler",

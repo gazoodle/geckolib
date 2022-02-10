@@ -9,6 +9,7 @@ from . import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 # Constants for this class
@@ -848,10 +849,24 @@ INEJNI = [RKINEJ, KINEJN]
 IUXFEF = [YYLIUX, YLIUXF, LIUXFE]
 IVDNQG = [IYWSKW, YWSKWI, WSKWIV, SKWIVD, KWIVDN, WIVDNQ]
 JEUTOP = [JVHFTH, BJEUTO]
-JPUNRJ = [MAOAWB]
+JPUNRJ = [
+    BMJVHF,
+    ICXQIE,
+    XQIEFX,
+    IEFXQG,
+    FXQGLR,
+    QGLRAH,
+    SOKPHU,
+    KPHUOJ,
+    HUOJRJ,
+    OJRJHI,
+    RJHIUS,
+    MCBFEG,
+    EGZUQE,
+    UQEXLS,
+]
 KLGQPL = [JYKLGQ, YKLGQP]
 NQJYMO = [UYNQJY, YNQJYM]
-NRJZTA = []
 OUNBLK = [YMOUNB, MOUNBL]
 PBWJYK = [JVHFTH, SPBWJY, PIPIVL]
 PICXQI = [
@@ -882,22 +897,7 @@ PICXQI = [
     XPICXQ,
 ]
 POUYNQ = [PQIPOU, QIPOUY, IPOUYN]
-PUNRJZ = [
-    BMJVHF,
-    ICXQIE,
-    XQIEFX,
-    IEFXQG,
-    FXQGLR,
-    QGLRAH,
-    SOKPHU,
-    KPHUOJ,
-    HUOJRJ,
-    OJRJHI,
-    RJHIUS,
-    MCBFEG,
-    EGZUQE,
-    UQEXLS,
-]
+PUNRJZ = [BFEGZU]
 QLAIID = [VDQLAI, DQLAII]
 QPLSPF = [PIPIVL, SPBWJY]
 RAHEOC = [
@@ -918,7 +918,7 @@ RAHEOC = [
     LRAHEO,
 ]
 SIRYXB = [WBSIRY, BSIRYX]
-UNRJZT = [BFEGZU]
+UNRJZT = []
 ZUQEXL = [
     JVHFTH,
     VHFTHE,
@@ -957,12 +957,8 @@ class GeckoConfigStruct:
         return XTIACQ
 
     @property
-    def temperature_keys(self):
-        return JPUNRJ
-
-    @property
     def output_keys(self):
-        return PUNRJZ
+        return JPUNRJ
 
     @property
     def accessors(self):
@@ -1073,7 +1069,7 @@ class GeckoConfigStruct:
             JBIAMJ: GeckoByteStructAccessor(self.struct, JBIAMJ, BIAMJM, QBMJVH),
             IAMJMA: GeckoByteStructAccessor(self.struct, IAMJMA, AMJMAO, QBMJVH),
             MJMAOA: GeckoByteStructAccessor(self.struct, MJMAOA, JMAOAW, QBMJVH),
-            MAOAWB: GeckoWordStructAccessor(self.struct, MAOAWB, AOAWBS, QBMJVH),
+            MAOAWB: GeckoTempStructAccessor(self.struct, MAOAWB, AOAWBS, QBMJVH),
             OAWBSI: GeckoEnumStructAccessor(
                 self.struct, OAWBSI, AWBSIR, KCWAON, SIRYXB, None, KCWAON, QBMJVH
             ),

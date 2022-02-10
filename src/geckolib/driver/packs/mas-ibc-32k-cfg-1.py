@@ -9,6 +9,7 @@ from . import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 # Constants for this class
@@ -76,10 +77,6 @@ class GeckoConfigStruct:
     @property
     def version(self):
         return CTHBSK
-
-    @property
-    def temperature_keys(self):
-        return HEOCTH
 
     @property
     def output_keys(self):

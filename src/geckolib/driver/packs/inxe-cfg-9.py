@@ -9,6 +9,7 @@ from . import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 # Constants for this class
@@ -38,6 +39,7 @@ FEFJTA = "".join(chr(c) for c in [78, 105, 103, 104, 116])
 FEGZUQ = 16
 FJTACC = "".join(chr(c) for c in [78, 98, 80, 104, 97, 115, 101, 115])
 FTHECV = "".join(chr(c) for c in [80, 50, 72])
+FTSIFJ = 9
 FXQGLR = "".join(chr(c) for c in [79, 117, 116, 50, 67, 117, 114])
 GLRAHE = 25
 GQPLSP = "".join(
@@ -112,6 +114,7 @@ LKXSJW = "".join(
     for c in [83, 111, 97, 107, 79, 110, 67, 117, 115, 116, 111, 109, 75, 101, 121]
 )
 LRAHEO = "".join(chr(c) for c in [79, 117, 116, 52, 67, 117, 114])
+LSPFTS = "".join(chr(c) for c in [76, 73])
 LSXUJU = "".join(chr(c) for c in [79, 51, 84, 121, 112, 101])
 MCBFEG = "".join(
     chr(c)
@@ -211,7 +214,6 @@ SOOQNR = "".join(chr(c) for c in [79, 84, 84, 114, 105, 103, 103, 101, 114, 71])
 SPBWJY = "".join(
     chr(c) for c in [78, 111, 66, 108, 111, 119, 101, 114, 79, 110, 73, 50, 67]
 )
-SPFTSI = "".join(chr(c) for c in [76, 73])
 SSAKQX = 10
 SXUJUT = 18
 TACCPQ = "".join(
@@ -219,7 +221,6 @@ TACCPQ = "".join(
 )
 THBSKS = 29
 THECVY = "".join(chr(c) for c in [80, 50, 76])
-TSIFJB = 9
 TYEKCW = 46
 UJUTYE = "".join(chr(c) for c in [84, 111, 103, 103, 108, 101])
 UNBLKX = 54
@@ -266,7 +267,6 @@ ZMJIGY = "".join(
 BLKXSJ = [JVHFTH, NBLKXS]
 BWJYKL = [SPBWJY, PBWJYK]
 EFJTAC = [XUJUTY, FEFJTA]
-FTSIFJ = []
 IGYOUS = [ZMJIGY, MJIGYO, JIGYOU]
 JRJHIU = [HUOJRJ, UOJRJH, OJRJHI]
 JUTYEK = [XUJUTY, UJUTYE]
@@ -293,9 +293,8 @@ LASSAK = [
     VLASSA,
 ]
 LGQPLS = [JVHFTH, YKLGQP, KLGQPL]
-LSPFTS = [BMJVHF, ASSAKQ, SAKQXP, KQXPIC, XPICXQ, ICXQIE]
-PFTSIF = [SPFTSI]
-PLSPFT = [IUSOOQ, YEKCWA, YYLIUX, LIUXFE]
+PFTSIF = []
+PLSPFT = [BMJVHF, ASSAKQ, SAKQXP, KQXPIC, XPICXQ, ICXQIE]
 PYYLIU = [ONPYYL, NPYYLI]
 QIEFXQ = [
     JVHFTH,
@@ -315,6 +314,7 @@ QIEFXQ = [
     XQIEFX,
 ]
 QIPOUY = [XUJUTY, PQIPOU]
+SPFTSI = [LSPFTS]
 XLSXUJ = [PIPIVL, EXLSXU]
 ZUQEXL = [EGZUQE, GZUQEX]
 
@@ -325,15 +325,11 @@ class GeckoConfigStruct:
 
     @property
     def version(self):
-        return TSIFJB
-
-    @property
-    def temperature_keys(self):
-        return PLSPFT
+        return FTSIFJ
 
     @property
     def output_keys(self):
-        return LSPFTS
+        return PLSPFT
 
     @property
     def accessors(self):
@@ -373,7 +369,7 @@ class GeckoConfigStruct:
             RJHIUS: GeckoBoolStructAccessor(
                 self.struct, RJHIUS, JHIUSO, HIUSOO, QBMJVH
             ),
-            IUSOOQ: GeckoWordStructAccessor(self.struct, IUSOOQ, USOOQN, QBMJVH),
+            IUSOOQ: GeckoTempStructAccessor(self.struct, IUSOOQ, USOOQN, QBMJVH),
             SOOQNR: GeckoByteStructAccessor(self.struct, SOOQNR, OOQNRS, QBMJVH),
             OQNRSJ: GeckoWordStructAccessor(self.struct, OQNRSJ, QNRSJM, QBMJVH),
             NRSJMC: GeckoWordStructAccessor(self.struct, NRSJMC, RSJMCB, QBMJVH),
@@ -389,15 +385,15 @@ class GeckoConfigStruct:
                 self.struct, LSXUJU, SXUJUT, None, JUTYEK, None, None, QBMJVH
             ),
             UTYEKC: GeckoByteStructAccessor(self.struct, UTYEKC, TYEKCW, QBMJVH),
-            YEKCWA: GeckoWordStructAccessor(self.struct, YEKCWA, EKCWAO, QBMJVH),
+            YEKCWA: GeckoTempStructAccessor(self.struct, YEKCWA, EKCWAO, QBMJVH),
             KCWAON: GeckoEnumStructAccessor(
                 self.struct, KCWAON, CWAONP, None, XLSXUJ, None, None, QBMJVH
             ),
             WAONPY: GeckoEnumStructAccessor(
                 self.struct, WAONPY, AONPYY, None, PYYLIU, None, None, QBMJVH
             ),
-            YYLIUX: GeckoWordStructAccessor(self.struct, YYLIUX, YLIUXF, QBMJVH),
-            LIUXFE: GeckoWordStructAccessor(self.struct, LIUXFE, IUXFEF, QBMJVH),
+            YYLIUX: GeckoTempStructAccessor(self.struct, YYLIUX, YLIUXF, QBMJVH),
+            LIUXFE: GeckoTempStructAccessor(self.struct, LIUXFE, IUXFEF, QBMJVH),
             UXFEFJ: GeckoEnumStructAccessor(
                 self.struct, UXFEFJ, XFEFJT, None, EFJTAC, None, None, QBMJVH
             ),

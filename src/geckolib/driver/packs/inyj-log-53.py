@@ -9,6 +9,7 @@ from . import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 # Constants for this class
@@ -111,12 +112,13 @@ CBFEGZ = "".join(chr(c) for c in [85, 78, 76, 79, 67, 75])
 CCPQIP = "".join(chr(c) for c in [67, 80, 79, 84])
 CGETIX = 471
 CHWDAF = 452
+CMCVDS = 53
 CPQIPO = 274
 CQBMJV = 317
 CQFFTT = 294
 CRTFMN = "".join(chr(c) for c in [75, 101, 121, 112, 97, 100, 82, 101, 108])
 CTHBSK = 303
-CVDSSR = 256
+CVDSSR = 479
 CVYYPI = "".join(chr(c) for c in [83, 116, 105, 99, 107, 66, 97, 110, 107])
 CWAONP = 266
 CXQIEF = "".join(chr(c) for c in [85, 100, 80, 51])
@@ -381,7 +383,7 @@ LSXUJU = 263
 MAOAWB = "".join(chr(c) for c in [82, 104, 72, 119, 72, 76])
 MCBFEG = 310
 MCGETI = "".join(chr(c) for c in [67, 70, 71, 50, 51])
-MCVDSS = 53
+MCVDSS = 256
 MFZDGK = 464
 MHXEKV = 290
 MJIGYO = "".join(chr(c) for c in [67, 104, 101, 99, 107, 70, 108, 111])
@@ -411,7 +413,6 @@ NRSJMC = "".join(chr(c) for c in [77, 83, 84, 82, 95, 72, 69, 65, 84, 69, 82])
 NRXCHW = "".join(chr(c) for c in [67, 70, 71, 51])
 NXNKML = "".join(chr(c) for c in [83, 79, 117, 116, 52, 67, 117, 114])
 NZMJIG = 279
-OACMCV = "".join(chr(c) for c in [76, 73])
 OAWBSI = "".join(chr(c) for c in [82, 104, 82, 101, 103, 83, 108, 111, 112, 101])
 OCTHBS = "".join(chr(c) for c in [85, 100, 80, 117, 109, 112, 84, 105, 109, 101])
 OIHBXI = "".join(chr(c) for c in [67, 70, 71, 50, 56])
@@ -584,8 +585,8 @@ UXFEFJ = "".join(
 )
 UYNQJY = 313
 VDQLAI = "".join(chr(c) for c in [53, 79, 80])
-VDSSRU = 479
 VHFTHE = "".join(chr(c) for c in [78, 79, 82, 77, 65, 76])
+VOACMC = "".join(chr(c) for c in [76, 73])
 VUNXNK = "".join(chr(c) for c in [83, 79, 117, 116, 51, 67, 117, 114])
 VWVUBY = "".join(chr(c) for c in [82, 101, 115, 116, 114, 105, 99, 116, 101, 100])
 VXOIHB = "".join(chr(c) for c in [67, 70, 71, 50, 55])
@@ -696,22 +697,6 @@ ZTATDZ = 459
 ZUQEXL = 262
 ZXNQTM = "".join(chr(c) for c in [67, 70, 71, 49, 52])
 ACMCVD = [
-    OKPHUO,
-    OJRJHI,
-    JRJHIU,
-    RJHIUS,
-    JHIUSO,
-    USOOQN,
-    SOOQNR,
-    OOQNRS,
-    QNRSJM,
-    NRSJMC,
-    SJMCBF,
-    JMCBFE,
-    OACMCV,
-]
-AJVDQL = [USOOQN, WAJVDQ]
-CMCVDS = [
     ASSAKQ,
     PICXQI,
     CXQIEF,
@@ -725,6 +710,7 @@ CMCVDS = [
     BSKSOK,
     KSOKPH,
 ]
+AJVDQL = [USOOQN, WAJVDQ]
 EGZUQE = [CBFEGZ, BFEGZU, FEGZUQ]
 EXLSXU = [UQEXLS, QEXLSX]
 FXQGLR = [IVLASS, AKQXPI]
@@ -801,6 +787,21 @@ LNMHXE = [
 ]
 LXWAJV = [ZILXWA, ILXWAJ]
 NIBXTI = [IDNIBX, DNIBXT]
+OACMCV = [
+    OKPHUO,
+    OJRJHI,
+    JRJHIU,
+    RJHIUS,
+    JHIUSO,
+    USOOQN,
+    SOOQNR,
+    OOQNRS,
+    QNRSJM,
+    NRSJMC,
+    SJMCBF,
+    JMCBFE,
+    VOACMC,
+]
 QLAIID = [VDQLAI, DQLAII]
 SIRYXB = [HFTHEC, BSIRYX, BSIRYX, BSIRYX]
 TYEKCW = [SXUJUT, XUJUTY, UJUTYE, JUTYEK, UTYEKC]
@@ -824,7 +825,6 @@ VDNQGV = [
 ]
 VKZILX = [HXEKVK, XEKVKZ, EKVKZI, KVKZIL]
 VLASSA = [PIPIVL, IPIVLA, PIVLAS, IVLASS]
-VOACMC = []
 VUBYGD = [VWVUBY, WVUBYG]
 VYYPIP = [
     VHFTHE,
@@ -855,7 +855,7 @@ VYYPIP = [
     CVYYPI,
 ]
 WMNZMJ = [HFTHEC, JWMNZM, JWMNZM, JWMNZM]
-ZVOACM = [ZCQBMJ, LKXSJW, XSJWMN]
+ZVOACM = []
 
 
 class GeckoLogStruct:
@@ -864,32 +864,28 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return MCVDSS
+        return CMCVDS
 
     @property
     def begin(self):
-        return CVDSSR
+        return MCVDSS
 
     @property
     def end(self):
-        return VDSSRU
-
-    @property
-    def temperature_keys(self):
-        return ZVOACM
+        return CVDSSR
 
     @property
     def all_device_keys(self):
-        return ACMCVD
+        return OACMCV
 
     @property
     def user_demand_keys(self):
-        return CMCVDS
+        return ACMCVD
 
     @property
     def accessors(self):
         return {
-            ZCQBMJ: GeckoWordStructAccessor(self.struct, ZCQBMJ, CQBMJV, None),
+            ZCQBMJ: GeckoTempStructAccessor(self.struct, ZCQBMJ, CQBMJV, None),
             QBMJVH: GeckoByteStructAccessor(self.struct, QBMJVH, BMJVHF, None),
             MJVHFT: GeckoEnumStructAccessor(
                 self.struct, MJVHFT, JVHFTH, None, VYYPIP, None, None, None
@@ -995,8 +991,8 @@ class GeckoLogStruct:
             OUNBLK: GeckoBoolStructAccessor(self.struct, OUNBLK, MOUNBL, QIEFXQ, None),
             UNBLKX: GeckoWordStructAccessor(self.struct, UNBLKX, NBLKXS, None),
             BLKXSJ: GeckoBoolStructAccessor(self.struct, BLKXSJ, CPQIPO, LRAHEO, None),
-            LKXSJW: GeckoWordStructAccessor(self.struct, LKXSJW, KXSJWM, None),
-            XSJWMN: GeckoWordStructAccessor(self.struct, XSJWMN, SJWMNZ, None),
+            LKXSJW: GeckoTempStructAccessor(self.struct, LKXSJW, KXSJWM, None),
+            XSJWMN: GeckoTempStructAccessor(self.struct, XSJWMN, SJWMNZ, None),
             JWMNZM: GeckoEnumStructAccessor(
                 self.struct, JWMNZM, HIUSOO, RSJMCB, WMNZMJ, None, XPICXQ, None
             ),

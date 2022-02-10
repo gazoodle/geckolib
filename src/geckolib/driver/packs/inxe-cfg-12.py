@@ -9,13 +9,13 @@ from . import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 # Constants for this class
 ACCPQI = "".join(chr(c) for c in [78, 105, 103, 104, 116])
 AHEOCT = "".join(chr(c) for c in [79, 117, 116, 53, 67, 117, 114])
 AKQXPI = 11
-AMJMAO = 12
 AONPYY = "".join(chr(c) for c in [72, 101, 97, 116, 101, 114, 80, 117, 109, 112])
 ASSAKQ = "".join(chr(c) for c in [79, 117, 116, 50])
 BFEGZU = 45
@@ -67,6 +67,7 @@ FEGZUQ = "".join(
     chr(c)
     for c in [70, 105, 108, 116, 83, 117, 115, 112, 101, 110, 100, 84, 105, 109, 101]
 )
+FJBIAM = "".join(chr(c) for c in [76, 73])
 FJTACC = 53
 FTHECV = "".join(chr(c) for c in [80, 50, 72])
 FXQGLR = "".join(chr(c) for c in [79, 117, 116, 50, 67, 117, 114])
@@ -78,6 +79,7 @@ HECVYY = "".join(chr(c) for c in [80, 51, 72])
 HEOCTH = 29
 HFTHEC = "".join(chr(c) for c in [80, 49, 76])
 HUOJRJ = 37
+IAMJMA = 12
 ICXQIE = "".join(chr(c) for c in [79, 117, 116, 72, 116, 114])
 IEFXQG = "".join(chr(c) for c in [79, 117, 116, 49, 67, 117, 114])
 IGYOUS = "".join(
@@ -115,7 +117,6 @@ IUXFEF = "".join(
     chr(c) for c in [67, 111, 111, 108, 100, 111, 119, 110, 84, 105, 109, 101]
 )
 IVLASS = "".join(chr(c) for c in [])
-JBIAMJ = "".join(chr(c) for c in [76, 73])
 JHIUSO = "".join(chr(c) for c in [70, 105, 108, 116, 80, 49])
 JIGYOU = 1
 JMCBFE = "".join(
@@ -273,11 +274,10 @@ ZCQBMJ = "".join(
 )
 ZMJIGY = 57
 ZUQEXL = 17
-BIAMJM = [JBIAMJ]
+BIAMJM = []
 BWJYKL = [USPBWJ, SPBWJY, PBWJYK]
 CCPQIP = [UTYEKC, ACCPQI]
 EXLSXU = [UQEXLS, QEXLSX]
-FJBIAM = [BMJVHF, ASSAKQ, SAKQXP, KQXPIC, XPICXQ, ICXQIE, CTHBSK]
 FTSIFJ = [JVHFTH, SPFTSI, PFTSIF]
 HBSKSO = [
     JVHFTH,
@@ -294,8 +294,8 @@ HBSKSO = [
     PIPIVL,
 ]
 HIUSOO = [JRJHIU, RJHIUS, JHIUSO]
-IAMJMA = []
-IFJBIA = [OOQNRS, CWAONP, XFEFJT, EFJTAC]
+IFJBIA = [BMJVHF, ASSAKQ, SAKQXP, KQXPIC, XPICXQ, ICXQIE, CTHBSK]
+JBIAMJ = [FJBIAM]
 LASSAK = [
     JVHFTH,
     VHFTHE,
@@ -349,15 +349,11 @@ class GeckoConfigStruct:
 
     @property
     def version(self):
-        return AMJMAO
-
-    @property
-    def temperature_keys(self):
-        return IFJBIA
+        return IAMJMA
 
     @property
     def output_keys(self):
-        return FJBIAM
+        return IFJBIA
 
     @property
     def accessors(self):
@@ -400,7 +396,7 @@ class GeckoConfigStruct:
             IUSOOQ: GeckoBoolStructAccessor(
                 self.struct, IUSOOQ, USOOQN, SOOQNR, QBMJVH
             ),
-            OOQNRS: GeckoWordStructAccessor(self.struct, OOQNRS, OQNRSJ, QBMJVH),
+            OOQNRS: GeckoTempStructAccessor(self.struct, OOQNRS, OQNRSJ, QBMJVH),
             QNRSJM: GeckoByteStructAccessor(self.struct, QNRSJM, NRSJMC, QBMJVH),
             RSJMCB: GeckoWordStructAccessor(self.struct, RSJMCB, SJMCBF, QBMJVH),
             JMCBFE: GeckoWordStructAccessor(self.struct, JMCBFE, MCBFEG, QBMJVH),
@@ -416,7 +412,7 @@ class GeckoConfigStruct:
                 self.struct, UJUTYE, JUTYEK, None, YEKCWA, None, None, QBMJVH
             ),
             EKCWAO: GeckoByteStructAccessor(self.struct, EKCWAO, KCWAON, QBMJVH),
-            CWAONP: GeckoWordStructAccessor(self.struct, CWAONP, WAONPY, QBMJVH),
+            CWAONP: GeckoTempStructAccessor(self.struct, CWAONP, WAONPY, QBMJVH),
             AONPYY: GeckoEnumStructAccessor(
                 self.struct, AONPYY, ONPYYL, None, XUJUTY, None, None, QBMJVH
             ),
@@ -424,8 +420,8 @@ class GeckoConfigStruct:
                 self.struct, NPYYLI, PYYLIU, None, LIUXFE, None, None, QBMJVH
             ),
             IUXFEF: GeckoByteStructAccessor(self.struct, IUXFEF, UXFEFJ, QBMJVH),
-            XFEFJT: GeckoWordStructAccessor(self.struct, XFEFJT, FEFJTA, QBMJVH),
-            EFJTAC: GeckoWordStructAccessor(self.struct, EFJTAC, FJTACC, QBMJVH),
+            XFEFJT: GeckoTempStructAccessor(self.struct, XFEFJT, FEFJTA, QBMJVH),
+            EFJTAC: GeckoTempStructAccessor(self.struct, EFJTAC, FJTACC, QBMJVH),
             JTACCP: GeckoEnumStructAccessor(
                 self.struct, JTACCP, TACCPQ, None, CCPQIP, None, None, QBMJVH
             ),

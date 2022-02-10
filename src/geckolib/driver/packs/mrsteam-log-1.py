@@ -9,6 +9,7 @@ from . import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 # Constants for this class
@@ -171,10 +172,6 @@ class GeckoLogStruct:
     @property
     def end(self):
         return IUXFEF
-
-    @property
-    def temperature_keys(self):
-        return PYYLIU
 
     @property
     def all_device_keys(self):

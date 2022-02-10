@@ -9,6 +9,7 @@ from . import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 # Constants for this class
@@ -54,10 +55,6 @@ class GeckoConfigStruct:
     @property
     def version(self):
         return SAKQXP
-
-    @property
-    def temperature_keys(self):
-        return LASSAK
 
     @property
     def output_keys(self):

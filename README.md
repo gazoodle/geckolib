@@ -351,7 +351,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Connection retry needed when pings fail
  - A missing spa is an unusual event not a critical failure, retry connection
  - Handle inMix for lighting control
- - Include Temp decorator in new generator so it's not runtime ...
  - Add API documentation
 
 ## Done/Fixed in 0.3.24
@@ -364,6 +363,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Accessors can now deal with Time type entries
  - Added diag.py to aid tracking issue#27
  - Added eco mode control to facade and shell
+ - Temperature accessor in new generator as it doesn't need to be handled at runtime
+ - Removed decorators.py
 
 ## Done/Fixed in 0.3.23
  - Demoted some INFO logging to DEBUG to reduce HA log file clutter

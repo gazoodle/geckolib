@@ -6,7 +6,6 @@ from ..const import GeckoConstants
 from .protocol import GeckoStatusBlockProtocolHandler
 from .udp_socket import GeckoUdpSocket
 from .accessor import GeckoStructAccessor
-from .decorators import GeckoTemperatureDecorator
 
 logger = logging.getLogger(__name__)
 
@@ -75,9 +74,6 @@ class GeckoStructure:
 
     def build_accessors(self, config_class, log_class):
         self.accessors = dict(config_class.accessors, **log_class.accessors)
-        # Fix temperature accessors ...
-        for key in [*config_class.temperature_keys, *log_class.temperature_keys]:
-            self.accessors[key] = GeckoTemperatureDecorator(self, self.accessors[key])
         # Get all outputs
         self.all_outputs = config_class.output_keys
         # Get collection of possible devices

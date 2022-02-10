@@ -5,6 +5,7 @@ from ..accessor import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "GeckoTimeStructAccessor",
     "GeckoBoolStructAccessor",
     "GeckoEnumStructAccessor",
+    "GeckoTempStructAccessor",
 ]

@@ -5,7 +5,6 @@
 
 import xml.etree.ElementTree as ET
 import os
-import random
 
 # The XML file to process
 # XML_FILE = "../src/geckolib/SpaPackStruct.v00.xml"
@@ -19,6 +18,7 @@ IMPORTED_CLASSES = [
     "GeckoTimeStructAccessor",
     "GeckoBoolStructAccessor",
     "GeckoEnumStructAccessor",
+    "GeckoTempStructAccessor",
 ]
 
 OBFUSCATE_CONSTANTS = True
@@ -257,14 +257,6 @@ def generate_accessor_constants(xml):
         if "RW" in element.attrib:
             element.attrib["RW"] = add_constant(f'"{element.attrib["RW"]}"')
 
-    temp_keys = [
-        element.tag
-        for xml in xml
-        for element in xml.findall('.//*[@Type="Word"]')
-        if "temp" in element.tag.lower() or "setpoint" in element.tag.lower()
-    ]
-    xml.attrib["TempKeys"] = add_constant(temp_keys)
-
     output_paths = [
         './HCOutputConfig/*[@Type="Enum"]',
         './LCOutputConfig/*[@Type="Enum"]',
@@ -348,9 +340,15 @@ def write_get_accessors(file, xml):
             assert size == None
             assert bitpos == None
             assert maxitems == None
-            file.write(
-                f"GeckoWordStructAccessor(self.struct, {add_constant(tag)}, {pos}, {rw}),\n"
-            )
+
+            if "temp" in element.tag.lower() or "setpoint" in element.tag.lower():
+                file.write(
+                    f"GeckoTempStructAccessor(self.struct, {add_constant(tag)}, {pos}, {rw}),\n"
+                )
+            else:
+                file.write(
+                    f"GeckoWordStructAccessor(self.struct, {add_constant(tag)}, {pos}, {rw}),\n"
+                )
         elif type == '"Enum"':
             assert items != None
             file.write(
@@ -370,13 +368,6 @@ def write_get_accessors(file, xml):
             )
 
     file.write("        }\n")
-
-
-def write_temp_keys(file, xml):
-    file.write("\n")
-    file.write("    @property\n")
-    file.write("    def temperature_keys(self):\n")
-    file.write(f"        return {xml.attrib['TempKeys']}\n")
 
 
 def write_output_keys(file, xml):
@@ -406,7 +397,6 @@ def build_log_struct(plateform_name, logstruct):
     module = f"{CODE_PATH}/{plateform_name.lower()}-log-{logstruct.attrib['LibRev']}.py"
     with open(module, "w") as file:
         write_log_preamble(file, plateform_name, logstruct)
-        write_temp_keys(file, logstruct)
         write_all_device_keys(file, logstruct)
         write_user_demand_keys(file, logstruct)
         write_get_accessors(file, logstruct)
@@ -420,7 +410,6 @@ def build_config_struct(plateform_name, configstruct):
     )
     with open(module, "w") as file:
         write_cfg_preamble(file, plateform_name, configstruct)
-        write_temp_keys(file, configstruct)
         write_output_keys(file, configstruct)
         write_get_accessors(file, configstruct)
 

@@ -9,6 +9,7 @@ from . import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 # Constants for this class
@@ -1043,11 +1044,24 @@ AHEOCT = [
 ]
 BQSNQL = [NIBXYB, IBXYBQ, BXYBQS, XYBQSN, YBQSNQ, RAHEOC, RAHEOC, RAHEOC]
 BYGDSB = [VUBYGD, UBYGDS]
-CRTFMN = [BDJQRJ]
+CRTFMN = [
+    BMJVHF,
+    CXQIEF,
+    QIEFXQ,
+    EFXQGL,
+    XQGLRA,
+    GLRAHE,
+    HEOCTH,
+    BSKSOK,
+    KSOKPH,
+    OKPHUO,
+    PHUOJR,
+    UOJRJH,
+    HIUSOO,
+]
 EJNIBX = [INEJNI, NEJNIB]
 FEFJTA = [UXFEFJ, XFEFJT]
 FJBIAM = [TSIFJB, SIFJBI, IFJBIA]
-FMNHTB = []
 IACQFF = [TIACQF, LKXSJW, PIPIVL]
 IBXTIA = [DNIBXT, NIBXTI]
 ICXQIE = [
@@ -1102,23 +1116,9 @@ LIUXFE = [YYLIUX, YLIUXF]
 MCBFEG = [SJMCBF, JMCBFE]
 NPYYLI = [AONPYY, ONPYYL]
 RKINEJ = [FWRKIN, WRKINE]
-RTFMNH = [
-    BMJVHF,
-    CXQIEF,
-    QIEFXQ,
-    EFXQGL,
-    XQGLRA,
-    GLRAHE,
-    HEOCTH,
-    BSKSOK,
-    KSOKPH,
-    OKPHUO,
-    PHUOJR,
-    UOJRJH,
-    HIUSOO,
-]
+RTFMNH = [VLASSA]
 SBDJQR = [GDSBDJ, DSBDJQ]
-TFMNHT = [VLASSA]
+TFMNHT = []
 THBSKS = [OCTHBS, CTHBSK]
 UJUTYE = [XLSXUJ, LSXUJU, SXUJUT, XUJUTY]
 VDQLAI = [WAJVDQ, AJVDQL, JVDQLA, RAHEOC]
@@ -1135,12 +1135,8 @@ class GeckoConfigStruct:
         return CBFEGZ
 
     @property
-    def temperature_keys(self):
-        return CRTFMN
-
-    @property
     def output_keys(self):
-        return RTFMNH
+        return CRTFMN
 
     @property
     def accessors(self):
@@ -1338,7 +1334,7 @@ class GeckoConfigStruct:
             YGDSBD: GeckoEnumStructAccessor(
                 self.struct, YGDSBD, XWAJVD, HBSKSO, SBDJQR, None, HBSKSO, QBMJVH
             ),
-            BDJQRJ: GeckoWordStructAccessor(self.struct, BDJQRJ, DJQRJJ, QBMJVH),
+            BDJQRJ: GeckoTempStructAccessor(self.struct, BDJQRJ, DJQRJJ, QBMJVH),
             JQRJJJ: GeckoByteStructAccessor(self.struct, JQRJJJ, QRJJJV, QBMJVH),
             RJJJVY: GeckoBoolStructAccessor(
                 self.struct, RJJJVY, XTIACQ, CBFEGZ, QBMJVH

@@ -1,6 +1,5 @@
 """ Gecko driver """
 
-from .decorators import GeckoTemperatureDecorator
 from .protocol import (
     GeckoHelloProtocolHandler,
     GeckoPacketProtocolHandler,
@@ -26,13 +25,12 @@ from .accessor import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 from .spastruct import GeckoStructure
 from .udp_socket import GeckoUdpProtocolHandler, GeckoUdpSocket
 
 __all__ = [
-    "GeckoTemperatureDecorator",
-    #
     "GeckoHelloProtocolHandler",
     "GeckoPacketProtocolHandler",
     "GeckoPingProtocolHandler",
@@ -56,6 +54,7 @@ __all__ = [
     "GeckoTimeStructAccessor",
     "GeckoBoolStructAccessor",
     "GeckoEnumStructAccessor",
+    "GeckoTempStructAccessor",
     "GeckoUdpProtocolHandler",
     "GeckoUdpSocket",
 ]

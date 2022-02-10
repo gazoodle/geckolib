@@ -9,6 +9,7 @@ from . import (
     GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoTempStructAccessor,
 )
 
 # Constants for this class
@@ -1044,7 +1045,7 @@ ICXQIE = [
 ]
 IRYXBQ = [WBSIRY, BSIRYX, JVHFTH, SIRYXB]
 JTACCP = [XFEFJT, FEFJTA, EFJTAC, FJTACC]
-KMLOIJ = [VLASSA]
+KMLOIJ = []
 KVKZIL = [XEKVKZ, EKVKZI]
 LSXUJU = [EXLSXU, XLSXUJ]
 MCBFEG = [
@@ -1066,9 +1067,20 @@ MCBFEG = [
     VLASSA,
 ]
 MHXEKV = [LNMHXE, NMHXEK]
-MLOIJU = []
 NBLKXS = [OUNBLK, UNBLKX]
-NKMLOI = [
+NKMLOI = [VLASSA]
+QFYLJU = [YXBQFY, XBQFYL, BQFYLJ]
+QSNQLN = [YBQSNQ, BQSNQL]
+SUHBVW = [UBSSUH, BSSUHB, SSUHBV, RAHEOC]
+TBJEUT = [RAHEOC, PIPIVL, BWJYKL]
+TTIDUB = [ACQFFT, CQFFTT, QFFTTI, FFTTID, FTTIDU, RAHEOC, RAHEOC, RAHEOC]
+UGTYIY = [PHUGTY, HUGTYI]
+UNXNKM = [JVHFTH, QGVUNX, GVUNXN, VUNXNK]
+UTOPHU = [JEUTOP, EUTOPH]
+WIVDNQ = [SKWIVD, KWIVDN]
+WJYKLG = [PBWJYK, BWJYKL, PIPIVL, RAHEOC]
+WVUBYG = [HBVWVU, BVWVUB, JVHFTH, VWVUBY]
+XNKMLO = [
     BMJVHF,
     CXQIEF,
     QIEFXQ,
@@ -1084,18 +1096,6 @@ NKMLOI = [
     FEGZUQ,
     UQEXLS,
 ]
-QFYLJU = [YXBQFY, XBQFYL, BQFYLJ]
-QSNQLN = [YBQSNQ, BQSNQL]
-SUHBVW = [UBSSUH, BSSUHB, SSUHBV, RAHEOC]
-TBJEUT = [RAHEOC, PIPIVL, BWJYKL]
-TTIDUB = [ACQFFT, CQFFTT, QFFTTI, FFTTID, FTTIDU, RAHEOC, RAHEOC, RAHEOC]
-UGTYIY = [PHUGTY, HUGTYI]
-UNXNKM = [JVHFTH, QGVUNX, GVUNXN, VUNXNK]
-UTOPHU = [JEUTOP, EUTOPH]
-WIVDNQ = [SKWIVD, KWIVDN]
-WJYKLG = [PBWJYK, BWJYKL, PIPIVL, RAHEOC]
-WVUBYG = [HBVWVU, BVWVUB, JVHFTH, VWVUBY]
-XNKMLO = [GTYIYW]
 XTIACQ = [IBXTIA, BXTIAC]
 YGDSBD = [UBYGDS, BYGDSB]
 YMOUNB = [QJYMOU, JYMOUN]
@@ -1111,12 +1111,8 @@ class GeckoConfigStruct:
         return XUJUTY
 
     @property
-    def temperature_keys(self):
-        return XNKMLO
-
-    @property
     def output_keys(self):
-        return NKMLOI
+        return XNKMLO
 
     @property
     def accessors(self):
@@ -1326,7 +1322,7 @@ class GeckoConfigStruct:
             OPHUGT: GeckoEnumStructAccessor(
                 self.struct, OPHUGT, DUBSSU, XUJUTY, UGTYIY, None, XUJUTY, QBMJVH
             ),
-            GTYIYW: GeckoWordStructAccessor(self.struct, GTYIYW, TYIYWS, QBMJVH),
+            GTYIYW: GeckoTempStructAccessor(self.struct, GTYIYW, TYIYWS, QBMJVH),
             YIYWSK: GeckoByteStructAccessor(self.struct, YIYWSK, IYWSKW, QBMJVH),
             YWSKWI: GeckoBoolStructAccessor(
                 self.struct, YWSKWI, DSBDJQ, SXUJUT, QBMJVH
