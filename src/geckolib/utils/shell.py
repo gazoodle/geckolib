@@ -255,6 +255,14 @@ class GeckoShell(GeckoCmd):
         except Exception:  # pylint: disable=broad-except
             logger.exception("Exception getting '%s'", arg)
 
+    def do_peek(self, arg):
+        """Get the byte value from the structure at the specified position : peek <pos>"""
+        try:
+            pos = int(arg)
+            print(f"Byte at {pos} = {self.facade.spa.struct.status_block[pos]}")
+        except Exception:  # pylint: disable=broad-except
+            logger.exception("Exception peeking at '%s'", arg)
+
     def do_set(self, arg):
         """Set the value of the specified spa pack structure
         element : set <Element>=<value>"""
