@@ -155,7 +155,7 @@ class GeckoUdpSocket:
     """
 
     _PORT = 10022
-    _SOCKET_TIMEOUT = 0.05
+    _SOCKET_TIMEOUT = 0.5
     _MAX_PACKET_SIZE = 8192
     _SENDING_THROTTLE_RATE_PER_SECOND = 50
 

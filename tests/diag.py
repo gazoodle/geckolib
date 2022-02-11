@@ -3,6 +3,7 @@
     Diag tool for geckolib
 """
 
+import sys
 import logging
 from context import (
     GeckoUdpSocket,
@@ -36,8 +37,11 @@ def _on_ping(handler, socket, sender):
     PING_DONE = True
 
 
-def comms_diag():
-    _LOGGER.info("Start comms diag")
+def comms_diag(arg):
+    _LOGGER.info("Start comms diag with %s", arg)
+    if len(arg) == 1:
+        global STATIC_IP
+        STATIC_IP = arg[0]
 
     _LOGGER.info("Discovery process started, create socket")
     _socket = GeckoUdpSocket()
@@ -108,5 +112,5 @@ if __name__ == "__main__":
     )
     logging.getLogger().addHandler(stream_logger)
     logging.getLogger().setLevel(logging.DEBUG)
-    comms_diag()
+    comms_diag(sys.argv[1:])
     _LOGGER.info("*** DIAG COMPLETE ***")
