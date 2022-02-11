@@ -11,6 +11,7 @@ from .driver import (
 from .const import GeckoConstants
 from .spa import GeckoSpaDescriptor
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -146,9 +147,15 @@ class GeckoLocator:
             return None
 
     @staticmethod
-    def find_spa(client_uuid, spa_identifier):
-        with GeckoLocator(client_uuid, spa_to_find=spa_identifier) as locator:
+    def find_spa(client_uuid, spa_identifier, spa_address=None):
+        with GeckoLocator(
+            client_uuid, spa_to_find=spa_identifier, static_ip=spa_address
+        ) as locator:
             return locator.get_spa_from_identifier(spa_identifier)
+
+    @staticmethod
+    def get_facade(client_uuid, spa_id, spa_address=None):
+        return GeckoLocator.find_spa(client_uuid, spa_id, spa_address).get_facade(False)
 
     def __repr__(self):
         return (
