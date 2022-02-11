@@ -1,6 +1,7 @@
 # This library
 SpaPackStruct*.xml
 sample*.py
+sample.ini
 tests/fetch_spapackstruct.py
 
 # Byte-compiled / optimized / DLL files
