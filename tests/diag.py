@@ -75,10 +75,12 @@ def comms_diag(arg):
     _socket.add_receive_handler(GeckoPacketProtocolHandler())
 
     client_id = CLIENT_IDENTIFIER_1.encode("Latin1")
-    _socket.queue_send(
-        GeckoHelloProtocolHandler.client(client_id),
-        SPA_DESTINATION,
-    )
+    # Do 5 of these to make sure the in.touch2 module hears us
+    for idx in range(5):
+        _socket.queue_send(
+            GeckoHelloProtocolHandler.client(client_id),
+            SPA_DESTINATION,
+        )
 
     # Install ping handler
     _LOGGER.debug("Connection started, install ping handler")
