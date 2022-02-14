@@ -155,7 +155,7 @@ class GeckoUdpSocket:
     """
 
     _PORT = 10022
-    _SOCKET_TIMEOUT = 0.5
+    _SOCKET_TIMEOUT = 0.05
     _MAX_PACKET_SIZE = 8192
     _SENDING_THROTTLE_RATE_PER_SECOND = 50
 
@@ -323,7 +323,6 @@ class GeckoUdpSocket:
                 )
                 self.dispatch_recevied_data(received_bytes, remote_end)
             except socket.timeout:
-                _LOGGER.debug("socket timeout during socket receive")
                 return
             except OSError as e:
                 _LOGGER.debug("OS Exception %s during socket receive", e)
