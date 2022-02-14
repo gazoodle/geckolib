@@ -28,7 +28,8 @@ from .accessor import (
     GeckoTempStructAccessor,
 )
 from .spastruct import GeckoStructure
-from .udp_socket import GeckoUdpProtocolHandler, GeckoUdpSocket
+from .udp_protocol_handler import GeckoUdpProtocolHandler
+from .udp_socket import GeckoUdpSocket
 
 __all__ = [
     "GeckoHelloProtocolHandler",
