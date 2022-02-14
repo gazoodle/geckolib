@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """ Complete sample client
 
     This sample is built as a complete async client demonstrating all 
@@ -16,6 +17,7 @@
 import time
 
 from context import GeckoLocator
+from tui import init_tui
 import logging
 import configparser
 
@@ -141,6 +143,7 @@ def connect_spa(spa_id, spa_address):
 #                                       Entry point
 if __name__ == "__main__":
     install_logging()
+    init_tui()
     _LOGGER.debug("Read config")
     _CONFIG.read(CONFIG_FILE)
 
