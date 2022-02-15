@@ -4,7 +4,7 @@ import logging
 
 
 from .const import GeckoConstants
-from .automation import GeckoFacade
+#from .automation import GeckoFacade
 from .spa import GeckoSpa
 
 logger = logging.getLogger(__name__)

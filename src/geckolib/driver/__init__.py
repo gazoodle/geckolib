@@ -29,7 +29,7 @@ from .accessor import (
 )
 from .spastruct import GeckoStructure
 from .udp_protocol_handler import GeckoUdpProtocolHandler
-from .udp_socket import GeckoUdpSocket
+from .udp_socket import GeckoUdpSocket, GeckoAsyncUdpProtocol
 
 __all__ = [
     "GeckoHelloProtocolHandler",
@@ -58,4 +58,5 @@ __all__ = [
     "GeckoTempStructAccessor",
     "GeckoUdpProtocolHandler",
     "GeckoUdpSocket",
+    "GeckoAsyncUdpProtocol"
 ]

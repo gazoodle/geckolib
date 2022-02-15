@@ -2,7 +2,7 @@
 
 from .base import GeckoAutomationBase
 from .blower import GeckoBlower
-from .facade import GeckoFacade
+from .facade import GeckoFacade, GeckoAsyncFacade
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
@@ -15,6 +15,7 @@ __all__ = [
     "GeckoAutomationBase",
     "GeckoBlower",
     "GeckoFacade",
+    "GeckoAsyncFacade",
     "GeckoWaterHeater",
     "GeckoKeypad",
     "GeckoLight",

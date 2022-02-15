@@ -16,10 +16,11 @@
 """
 import time
 
-from context import GeckoLocator
+from context import GeckoAsyncLocator
 from tui import init_tui
 import logging
 import configparser
+import asyncio
 
 # Replace with your own UUID, see https://www.uuidgenerator.net/>
 CLIENT_ID = "1eca3a27-9b00-476a-9645-d13f4b1f9b56"
@@ -69,21 +70,18 @@ def save_config():
 #   persistent configuration so that you can find it again without having to go through
 #   this process
 #
-def locate_spa(force_address=None):
+async def locate_spa(force_address=None):
 
     print("Locating spas on your network ", end="", flush=True)
 
-    locator = GeckoLocator(CLIENT_ID, static_ip=force_address)
-    locator.start_discovery()
+    locator = GeckoAsyncLocator(CLIENT_ID, static_ip=force_address)
+    locator.discover(asyncio.get_running_loop())
 
     # We can perform other operations while this is progressing, like output a dot
     while not locator.has_had_enough_time:
-        # Could also be `await asyncio.sleep(1)`
-        locator.wait(1)
+        await asyncio.sleep(1)
         print(".", end="", flush=True)
 
-    # Always complete a locator to terminate the thread and close the socket
-    locator.complete()
     print("")
 
     if len(locator.spas) == 0:
@@ -137,11 +135,12 @@ def connect_spa(spa_id, spa_address):
         print(".", end="", flush=True)
     print(" connected")
 
-
 ########################################################################################
 #
-#                                       Entry point
-if __name__ == "__main__":
+#
+
+
+async def main():
     install_logging()
     init_tui()
     _LOGGER.debug("Read config")
@@ -149,16 +148,22 @@ if __name__ == "__main__":
 
     # We have not previously run the client, we need to run a discovery
     if CK_SPA_ID not in _CONFIG[CK_DEFAULT]:
-        if not locate_spa():
-            exit
+        if not await locate_spa():
+            return
 
     # Get the spa info from the config block
     spa_id = _CONFIG[CK_DEFAULT][CK_SPA_ID]
     spa_addr = _CONFIG[CK_DEFAULT][CK_SPA_ADDR]
-    connect_spa(spa_id, spa_addr)
+    #connect_spa(spa_id, spa_addr)
 
-    for item in _FACADE.all_automation_devices:
-        print(item)
+    #for item in _FACADE.all_automation_devices:
+    #    print(item)
+
+########################################################################################
+#
+#                                       Entry point
+if __name__ == "__main__":
+    asyncio.run(main())
 
 if False:
 

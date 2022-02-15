@@ -7,6 +7,7 @@ from .automation import (
     GeckoAutomationBase,
     GeckoBlower,
     GeckoFacade,
+    GeckoAsyncFacade,
     GeckoWaterHeater,
     GeckoKeypad,
     GeckoLight,
@@ -16,7 +17,7 @@ from .automation import (
     GeckoSwitch,
     GeckoWaterCare,
 )
-from .locator import GeckoLocator
+from .locator import GeckoLocator, GeckoAsyncLocator
 from .driver import (
     GeckoUdpProtocolHandler,
     GeckoUdpSocket,
@@ -55,6 +56,7 @@ __all__ = [
     "GeckoAutomationBase",
     "GeckoBlower",
     "GeckoFacade",
+    "GeckoAsyncFacade",
     "GeckoWaterHeater",
     "GeckoKeypad",
     "GeckoLight",
@@ -69,6 +71,7 @@ __all__ = [
     "GeckoFacade",
     # From locator
     "GeckoLocator",
+    "GeckoAsyncLocator",
     # From _version
     "VERSION",
     # From utils

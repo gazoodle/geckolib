@@ -2,6 +2,7 @@
 
 import logging
 import threading
+import asyncio
 
 from .blower import GeckoBlower
 from ..const import GeckoConstants
@@ -13,8 +14,10 @@ from .switches import GeckoSwitch
 from .sensors import GeckoSensor, GeckoBinarySensor
 from .watercare import GeckoWaterCare
 from ..driver import Observable
+from ..locator import GeckoAsyncLocator
 
 logger = logging.getLogger(__name__)
+
 
 
 class GeckoFacade(Observable):
@@ -308,3 +311,38 @@ class GeckoFacade(Observable):
             self.spa.wait(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
 
         logger.info("Facade update thread finished")
+
+
+
+class GeckoAsyncFacade(Observable):
+    def __init__(self, client_id):
+        super().__init__()
+        self.client_id = client_id
+        self._sensors = []
+        self._binary_sensors = []
+        self._water_heater = None
+        self._water_care = None
+        self._pumps = None
+        self._keypad = None
+        self._ecomode = None
+        self._facade_ready = False
+
+    async def discover(self, address=None):
+        locator = GeckoAsyncLocator(self.client_id, static_ip=address)
+        await locator.discover(asyncio.get_running_loop())
+        return locator.spas
+
+    async def connect_to(self, spa):
+        await asyncio.sleep(1)
+
+    @property
+    def water_heater(self):
+        """ Get the water heater handler """
+        return self._water_heater
+
+    @property
+    def pumps(self):
+        """ Get the pumps list """
+        return self._pumps
+
+ 
