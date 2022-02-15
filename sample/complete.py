@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """ Complete sample client
 
-    This sample is built as a complete async client demonstrating all 
+    This sample is built as a complete async client demonstrating all
     the code that might be needed in a full client of the library,
     e.g. in a home automation system.
 

@@ -9,7 +9,7 @@ from .driver import (
     GeckoHelloProtocolHandler,
 )
 from .const import GeckoConstants
-from .spa import GeckoSpaDescriptor
+from .spa_descriptor import GeckoSpaDescriptor
 
 
 logger = logging.getLogger(__name__)
