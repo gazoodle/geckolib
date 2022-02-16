@@ -15,6 +15,7 @@ from .sensors import GeckoSensor, GeckoBinarySensor
 from .watercare import GeckoWaterCare
 from ..driver import Observable
 from ..locator import GeckoAsyncLocator
+from ..spa import GeckoAsyncSpa
 
 logger = logging.getLogger(__name__)
 
@@ -315,9 +316,11 @@ class GeckoFacade(Observable):
 
 
 class GeckoAsyncFacade(Observable):
-    def __init__(self, client_id):
+    def __init__(self, client_uuid):
         super().__init__()
-        self.client_id = client_id
+        self.client_id = GeckoConstants.FORMAT_CLIENT_IDENTIFIER.format(
+            client_uuid
+        ).encode(GeckoConstants.MESSAGE_ENCODING)
         self._sensors = []
         self._binary_sensors = []
         self._water_heater = None
@@ -330,15 +333,17 @@ class GeckoAsyncFacade(Observable):
         self._spa = None
 
     async def discover(self, address=None):
+        """Discover all the spas on the network (optionally with a
+        specific address in case of subnet with no broadcast)"""
         locator = GeckoAsyncLocator(self.client_id, static_ip=address)
         await locator.discover(asyncio.get_running_loop())
         return locator.spas
 
-    async def connect_to(self, spa_description):
-        
-
-
-        await asyncio.sleep(1)
+    async def connect_to(self, spa_id, address=None):
+        """Connect to the specified spa on the network, optionally
+        with a specific address in case of subnet with no broadcast"""
+        self._spa = GeckoAsyncSpa(self.client_id, spa_id, address)
+        await self._spa.connect(asyncio.get_running_loop())
 
     @property
     def water_heater(self):

@@ -2,6 +2,7 @@
 
 import logging
 import threading
+import asyncio
 import time
 import importlib
 
@@ -330,8 +331,17 @@ class GeckoSpa(GeckoUdpSocket):
             self.sendparms,
         )
 
-class GeckoAsyncSpa():
-    
-    def __init__(self, client_id):
-        self._client_id = client_id
 
+class GeckoAsyncSpa():
+    """GeckoSpa class manages an instance of a spa, and is the main point of contact for
+    control and monitoring. Uses the declarations found in pack/* to build
+    an object that exposes the properties and capabilities of your spa. This class
+    should only be used via a Facade which hides the implementation details"""
+    
+    def __init__(self, client_id, spa_id, address=None):
+        self._client_id = client_id
+        self._spa_id = spa_id
+        self._spa_address = address
+
+    async def connect(self, loop):
+        await asyncio.sleep(1)

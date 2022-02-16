@@ -60,13 +60,11 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
             return True
         return self._busy_count > 0
 
-    def add_receive_handler(self, protocol_handler: GeckoUdpProtocolHandler):
+    async def add_receive_handler(self, protocol_handler: GeckoUdpProtocolHandler):
         """Add a receive handler to the list of available handlers"""
         self._receive_handlers.append(protocol_handler)
-
-    def remove_receive_handler(self, protocol_handler: GeckoUdpProtocolHandler):
-        """Remove a receive handler from the list of available handlers"""
-        self._receive_handlers.remove(protocol_handler)
+        while self.isopen:
+            await asyncio.sleep(0.1)
 
     def queue_send(self, protocol_handler: GeckoUdpProtocolHandler, destination: tuple):
         """Queue a message to be sent async later"""
@@ -98,11 +96,11 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
                     handler.handled(self, addr)
                 except Exception:
                     _LOGGER.exception("Unhandled exception in receive_handler func")
-                return
+                finally:
+                    self._cleanup_handlers()
+                    return
 
         _LOGGER.debug("Couldn't find new handler for %s", data)
-        self._cleanup_handlers()
-        self._loop_func()
 
     def _cleanup_handlers(self):
         remove_handlers = []
@@ -126,10 +124,6 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
 
             if remove_handlers:
                 _LOGGER.debug("Remaining handlers %s", self._receive_handlers)
-
-    def _loop_func(self):
-        # Opportunity for sub-class to get a loop if needed
-        pass
 
     def __repr__(self):
         return (

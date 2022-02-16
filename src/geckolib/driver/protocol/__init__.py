@@ -39,7 +39,7 @@ __all__ = [
     # From reminders
     "GeckoRemindersProtocolHandler",
     # From rferr
-    "GeckoRfErrProtocolHandler",
+    "GeckoRFErrProtocolHandler",
     # From packcommand
     "GeckoPackCommandProtocolHandler",
 ]

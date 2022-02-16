@@ -12,7 +12,7 @@ from .driver import (
     GeckoAsyncUdpProtocol,
 )
 from .const import GeckoConstants
-from .spa_descriptor import GeckoSpaDescriptor
+from .spa_descriptor import GeckoSpaDescriptor, GeckoAsyncSpaDescriptor
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,14 +21,9 @@ class GeckoAsyncLocator:
     """
     GeckoAsyncLocator class locates in.touch2 devices on your local LAN
     """
-    def __init__(self, client_uuid, **kwargs):
-        self.client_identifier = GeckoConstants.FORMAT_CLIENT_IDENTIFIER.format(
-            client_uuid
-        ).encode(GeckoConstants.MESSAGE_ENCODING)
+    def __init__(self, **kwargs):
         self.spas = []
         self.spa_identifiers = []
-        self._on_found = kwargs.get("on_found", None)
-        self._spa_to_find = kwargs.get("spa_to_find", None)
         self._static_ip = kwargs.get("static_ip", None)
         if self._static_ip == "":
             self._static_ip = None
@@ -39,20 +34,12 @@ class GeckoAsyncLocator:
         if handler.spa_identifier in self.spa_identifiers:
             return
         self.spa_identifiers.append(handler.spa_identifier)
-        descriptor = GeckoSpaDescriptor(
-            self.client_identifier,
+        descriptor = GeckoAsyncSpaDescriptor(
             handler.spa_identifier,
             handler.spa_name,
             sender,
         )
         self.spas.append(descriptor)
-        if self._on_found is not None:
-            self._on_found(descriptor)
-        if self._spa_to_find is not None:
-            if descriptor.identifier_as_string == self._spa_to_find:
-                self._has_found_spa = True
-            if descriptor.identifier == self._spa_to_find:
-                self._has_found_spa = True
         if self._static_ip is not None:
             self._has_found_spa = True
       
@@ -66,7 +53,7 @@ class GeckoAsyncLocator:
 
     async def discover(self, loop):
         self._started = time.monotonic()
-        on_con_lost = loop.create_future()        
+        on_con_lost = loop.create_future()
         transport, protocol = await loop.create_datagram_endpoint(
             lambda: GeckoAsyncUdpProtocol(on_con_lost),
             family=socket.AF_INET, allow_broadcast=True)
