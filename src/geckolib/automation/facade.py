@@ -327,12 +327,17 @@ class GeckoAsyncFacade(Observable):
         self._ecomode = None
         self._facade_ready = False
 
+        self._spa = None
+
     async def discover(self, address=None):
         locator = GeckoAsyncLocator(self.client_id, static_ip=address)
         await locator.discover(asyncio.get_running_loop())
         return locator.spas
 
-    async def connect_to(self, spa):
+    async def connect_to(self, spa_description):
+        
+
+
         await asyncio.sleep(1)
 
     @property

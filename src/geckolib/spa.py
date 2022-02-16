@@ -329,3 +329,9 @@ class GeckoSpa(GeckoUdpSocket):
             ),
             self.sendparms,
         )
+
+class GeckoAsyncSpa():
+    
+    def __init__(self, client_id):
+        self._client_id = client_id
+
