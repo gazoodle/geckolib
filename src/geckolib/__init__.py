@@ -17,7 +17,8 @@ from .automation import (
     GeckoSwitch,
     GeckoWaterCare,
 )
-from .locator import GeckoLocator, GeckoAsyncLocator
+from .locator import GeckoLocator
+from .async_locator import GeckoAsyncLocator
 from .driver import (
     GeckoUdpProtocolHandler,
     GeckoUdpSocket,
@@ -35,6 +36,7 @@ from .driver import (
     GeckoPackCommandProtocolHandler,
     #
     GeckoStructure,
+    GeckoAsyncStructure,
     GeckoStructAccessor,
     GeckoByteStructAccessor,
     GeckoWordStructAccessor,
@@ -94,6 +96,7 @@ __all__ = [
     "GeckoPackCommandProtocolHandler",
     #
     "GeckoStructure",
+    "GeckoAsyncStructure",
     "GeckoStructAccessor",
     "GeckoByteStructAccessor",
     "GeckoWordStructAccessor",

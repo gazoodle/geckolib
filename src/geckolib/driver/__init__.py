@@ -17,7 +17,6 @@ from .protocol import (
 )
 from .observable import Observable
 
-# from .spapack import GeckoSpaPack
 from .accessor import (
     GeckoStructAccessor,
     GeckoByteStructAccessor,
@@ -28,8 +27,10 @@ from .accessor import (
     GeckoTempStructAccessor,
 )
 from .spastruct import GeckoStructure
+from .async_spastruct import GeckoAsyncStructure
 from .udp_protocol_handler import GeckoUdpProtocolHandler
-from .udp_socket import GeckoUdpSocket, GeckoAsyncUdpProtocol
+from .udp_socket import GeckoUdpSocket
+from .async_udp_protocol import GeckoAsyncUdpProtocol
 
 __all__ = [
     "GeckoHelloProtocolHandler",
@@ -49,6 +50,7 @@ __all__ = [
     #
     # "GeckoSpaPack",
     "GeckoStructure",
+    "GeckoAsyncStructure",
     "GeckoStructAccessor",
     "GeckoByteStructAccessor",
     "GeckoWordStructAccessor",

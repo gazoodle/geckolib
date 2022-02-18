@@ -3,7 +3,8 @@
 import logging
 import re
 
-from ..udp_socket import GeckoUdpProtocolHandler
+from ..udp_protocol_handler import GeckoUdpProtocolHandler
+from ..udp_socket import GeckoUdpSocket
 
 PACKET_OPEN = b"<PACKT>"
 PACKET_CLOSE = b"</PACKT>"
@@ -86,7 +87,10 @@ class GeckoPacketProtocolHandler(GeckoUdpProtocolHandler):
         ) = self._extract_packet_parts(received_bytes[7:-8])
         self._parms = (sender[0], sender[1], src_identifier, dest_identifier)
         if socket is not None:
-            socket.dispatch_recevied_data(self._packet_content, self._parms)
+            if isinstance(socket, GeckoUdpSocket):
+                socket.dispatch_recevied_data(self._packet_content, self._parms)
+            else:
+                socket.datagram_received(self._packet_content, self._parms)
 
     @property
     def packet_content(self):
