@@ -1,5 +1,6 @@
 """ Gecko <HELLO> handlers """
 
+import asyncio
 import logging
 from ..udp_socket import GeckoUdpProtocolHandler
 from ...const import GeckoConstants

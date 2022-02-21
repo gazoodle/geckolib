@@ -82,6 +82,17 @@ class GeckoUdpProtocolHandler:
         if self._on_handled is not None:
             self._on_handled(self, socket, sender)
 
+    async def consume(self, socket, queue):
+        """Async coroutine to handle datagram. Uses the sync versions to
+        manage this at present"""
+        while True:
+            if queue.head is not None:
+                data, sender = queue.head
+                if self.can_handle(data, sender):
+                    self.handle(socket, data, sender)
+                    self.handled(socket, data, sender)
+
+
     ##########################################################################
     #
     #                         LIFETIME MANAGEMENT

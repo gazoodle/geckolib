@@ -27,7 +27,7 @@ from .driver import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoAsyncSpa():
+class GeckoAsyncSpa:
     """GeckoSpa class manages an instance of a spa, and is the main point of contact for
     control and monitoring. Uses the declarations found in pack/* to build
     an object that exposes the properties and capabilities of your spa. This class
@@ -41,8 +41,11 @@ class GeckoAsyncSpa():
         self._transport = None
         self._protocol = None
 
-
         self.struct = GeckoAsyncStructure(self._on_set_value)
+
+    async def keep_alive(self):
+        """Task to keep the spa connection alive"""
+
 
 
     @property
@@ -70,14 +73,7 @@ class GeckoAsyncSpa():
            )
         ))
 
-
-
-        #ping_response_task = asyncio.create_task(self._protocol.add_receive_handler(ping_handler))
-
-
         ping_task = asyncio.create_task(self.ping_loop())
-
-
 
         return [packet_task, ping_task]
 

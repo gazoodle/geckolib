@@ -57,13 +57,11 @@ class GeckoAsyncLocator:
             lambda: GeckoAsyncUdpProtocol(on_con_lost),
             family=socket.AF_INET, allow_broadcast=True)
 
-        hello_task = asyncio.create_task(protocol.add_receive_handler(
-            GeckoHelloProtocolHandler.broadcast(on_handled=self._on_discovered)
-        ))
+        hello_handler = GeckoHelloProtocolHandler.broadcast(on_handled=self._on_discovered)
 
         while self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
             protocol.queue_send(
-                GeckoHelloProtocolHandler.broadcast(),
+                hello_handler,
                 GeckoHelloProtocolHandler.broadcast_address(
                     static_ip=self._static_ip
                 ),
@@ -78,4 +76,4 @@ class GeckoAsyncLocator:
             await asyncio.sleep(1)
 
         transport.close()
-        await hello_task
+        await hello_

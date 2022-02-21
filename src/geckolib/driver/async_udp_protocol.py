@@ -5,6 +5,7 @@ import asyncio
 import logging
 import time
 from .udp_protocol_handler import GeckoUdpProtocolHandler
+from .async_peekablequeue import AsyncPeekableQueue
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +31,8 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self._sequence_counter = 0
         self._last_send_time = time.monotonic()
 
+        self._queue = AsyncPeekableQueue()
+
     def connection_made(self, transport):
         _LOGGER.debug("GeckoAsyncUdpProtocol: connection made to %s", transport)
         self.transport = transport
@@ -53,6 +56,9 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     def disconnect(self):
         self.connection_lost(None)
 
+    @property
+    def queue(self):
+        return self._queue
 
     @property
     def isbusy(self):
@@ -63,7 +69,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
             return True
         return self._busy_count > 0
 
-    async def add_receive_handler(self, protocol_handler: GeckoUdpProtocolHandler):
+    async def obsolete_add_receive_handler(self, protocol_handler: GeckoUdpProtocolHandler):
         """Add a receive handler to the list of available handlers"""
         self._receive_handlers.append(protocol_handler)
         while self.transport is not None:
@@ -97,7 +103,10 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
             return self._sequence_counter % 256
 
     def datagram_received(self, data, addr):
-        _LOGGER.debug("Received %s from %s", data, addr)
+        _LOGGER.debug("Received %s from %s, add to queue", data, addr)
+        self.queue.put_nowait((data, addr))
+        return
+
         for handler in self._receive_handlers:
             if handler.can_handle(data, addr):
                 try:
