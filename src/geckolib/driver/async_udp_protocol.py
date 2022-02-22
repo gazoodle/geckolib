@@ -26,7 +26,6 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self.transport = None
         self._on_connection_lost = on_connection_lost
 
-        self._receive_handlers = []
         self._busy_count = 0
         self._sequence_counter = 0
         self._last_send_time = time.monotonic()
@@ -65,21 +64,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         """Check to see if the socket is busy"""
         if self._send_handlers:
             return True
-        if self._receive_handlers:
-            return True
         return self._busy_count > 0
-
-    async def obsolete_add_receive_handler(self, protocol_handler: GeckoUdpProtocolHandler):
-        """Add a receive handler to the list of available handlers"""
-        self._receive_handlers.append(protocol_handler)
-        while self.transport is not None:
-
-
-            await asyncio.sleep(0)
-
-        # Remove it now it's no longer needed
-        self._receive_handlers.remove(protocol_handler)
-        _LOGGER.debug("add_received_handler for %s stopped", protocol_handler)
 
     def queue_send(self, protocol_handler: GeckoUdpProtocolHandler, destination: tuple):
         """Queue a message to be sent async later"""
@@ -103,50 +88,12 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
             return self._sequence_counter % 256
 
     def datagram_received(self, data, addr):
-        _LOGGER.debug("Received %s from %s, add to queue", data, addr)
+        _LOGGER.debug("Received %s from %s", data, addr)
         self.queue.put_nowait((data, addr))
-        return
-
-        for handler in self._receive_handlers:
-            if handler.can_handle(data, addr):
-                try:
-                    handler.handle(self, data, addr)
-                    handler.handled(self, addr)
-                except Exception:
-                    _LOGGER.exception("Unhandled exception in receive_handler func")
-                finally:
-                    self._cleanup_handlers()
-                    return
-
-        _LOGGER.debug("Couldn't find new handler for %s", data)
-
-    def _cleanup_handlers(self):
-        remove_handlers = []
-
-        # Build list of handlers that need to be removed
-        remove_handlers = [
-            handler
-            for handler in self._receive_handlers
-            if handler.should_remove_handler
-        ]
-
-        if remove_handlers:
-            _LOGGER.debug("Removed timedout handlers %s", remove_handlers)
-
-            # Remove them from the collection
-            self._receive_handlers = [
-                handler
-                for handler in self._receive_handlers
-                if handler not in remove_handlers
-            ]
-
-            if remove_handlers:
-                _LOGGER.debug("Remaining handlers %s", self._receive_handlers)
 
     def __repr__(self):
         return (
             f"{self.__class__.__name__} on {self.transport!r}\n"
-            f"  receive_handlers={self._receive_handlers!r},\n"
-            f"  isopen: {self.isopen}"
+            f" isopen: {self.isopen}"
             f" isbusy: {self.isbusy}"
         )

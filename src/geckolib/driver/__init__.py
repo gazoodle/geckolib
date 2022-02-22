@@ -14,6 +14,7 @@ from .protocol import (
     GeckoRemindersProtocolHandler,
     GeckoPackCommandProtocolHandler,
     GeckoRFErrProtocolHandler,
+    GeckoUnhandledProtocolHandler,
 )
 from .observable import Observable
 
@@ -46,6 +47,7 @@ __all__ = [
     "GeckoRemindersProtocolHandler",
     "GeckoRFErrProtocolHandler",
     "GeckoPackCommandProtocolHandler",
+    "GeckoUnhandledProtocolHandler",
     "Observable",
     #
     # "GeckoSpaPack",

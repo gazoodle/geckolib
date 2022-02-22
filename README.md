@@ -352,6 +352,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - A missing spa is an unusual event not a critical failure, retry connection
  - Handle inMix for lighting control
  - Add API documentation
+ - RF signal strength for EN(Home) -> CO(Spa)
 
 ## Done/Fixed in 0.3.24
  - Fix error found by Github workflow

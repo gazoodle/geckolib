@@ -1,5 +1,6 @@
 import logging
 import time
+import asyncio
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,14 +84,21 @@ class GeckoUdpProtocolHandler:
             self._on_handled(self, socket, sender)
 
     async def consume(self, socket, queue):
-        """Async coroutine to handle datagram. Uses the sync versions to
+        """Async coroutine to handle datagram. Uses the sync functions to
         manage this at present"""
         while True:
             if queue.head is not None:
                 data, sender = queue.head
                 if self.can_handle(data, sender):
+                    queue.pop()
                     self.handle(socket, data, sender)
-                    self.handled(socket, data, sender)
+                    self.handled(socket, sender)
+            await asyncio.sleep(0)
+
+            # Here is where retry and so on are handled in async world...
+            if self.should_remove_handler:
+                _LOGGER.debug("%s needs to be stopped")
+                break
 
 
     ##########################################################################

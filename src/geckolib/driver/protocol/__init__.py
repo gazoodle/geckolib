@@ -13,6 +13,7 @@ from .statusblock import (
     GeckoStatusBlockProtocolHandler,
     GeckoPartialStatusBlockProtocolHandler,
 )
+from .unhandled import GeckoUnhandledProtocolHandler
 from .version import GeckoVersionProtocolHandler
 from .watercare import GeckoWatercareProtocolHandler
 

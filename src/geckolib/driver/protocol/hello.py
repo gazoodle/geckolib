@@ -1,6 +1,5 @@
 """ Gecko <HELLO> handlers """
 
-import asyncio
 import logging
 from ..udp_socket import GeckoUdpProtocolHandler
 from ...const import GeckoConstants
@@ -48,7 +47,7 @@ class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
             HELLO_CLOSE
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    def handle(self, _socket, received_bytes: bytes, _sender: tuple):
         content = received_bytes[7:-8]
         self.was_broadcast_discovery = False
         self.client_identifier = self.spa_identifier = self.spa_name = None
