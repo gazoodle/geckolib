@@ -2,6 +2,7 @@
 
 import logging
 
+from .async_tasks import AsyncTasks
 from .const import GeckoConstants
 from .automation import (
     GeckoAutomationBase,
@@ -54,6 +55,7 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 __version__ = VERSION
 
 __all__ = [
+    "AsyncTasks",
     # From automation
     "GeckoAutomationBase",
     "GeckoBlower",

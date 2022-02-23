@@ -30,6 +30,8 @@ class GeckoAsyncLocator(AsyncTasks):
             self._static_ip = None
         self._has_found_spa = False
         self._started = None
+        self._transport = None
+        self._protocol = None
 
     async def __aenter__(self):
         await self.discover()
@@ -58,19 +60,23 @@ class GeckoAsyncLocator(AsyncTasks):
     def has_had_enough_time(self):
         return self.age > GeckoConstants.DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS
 
+    @property
+    def is_running(self) -> bool:
+        return self._protocol is not None
+
     async def discover(self):
         self._started = time.monotonic()
         loop = asyncio.get_running_loop()
         on_con_lost = loop.create_future()
-        transport, protocol = await loop.create_datagram_endpoint(
+        self._transport, self._protocol = await loop.create_datagram_endpoint(
             lambda: GeckoAsyncUdpProtocol(on_con_lost),
             family=socket.AF_INET, allow_broadcast=True)
 
         hello_handler = GeckoHelloProtocolHandler.broadcast(on_handled=self._on_discovered)
-        self.add_task(hello_handler.consume(None, protocol.queue))
+        self.add_task(hello_handler.consume(None, self._protocol.queue), "Hello handler")
 
         while self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
-            protocol.queue_send(
+            self._protocol.queue_send(
                 hello_handler,
                 GeckoHelloProtocolHandler.broadcast_address(
                     static_ip=self._static_ip
@@ -84,4 +90,18 @@ class GeckoAsyncLocator(AsyncTasks):
             if self._has_found_spa:
                 break
 
-        transport.close()
+        _LOGGER.debug("Discovery complete, close transport")
+        self._transport.close()
+        self._transport = None
+        self._protocol = None
+
+    @property
+    def status_line(self) -> str:
+        if self.is_running:
+            return "Discovering spas"
+        elif self._started is None:
+            return "Locator initializing"
+        elif len(self.spas) == 0:
+            return "No spas found on your network"
+        else:
+            return "Choose spa to connect to"

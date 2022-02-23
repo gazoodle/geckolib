@@ -15,25 +15,18 @@
 
 """
 import time
+import os
 
 from context import GeckoAsyncLocator
-from tui import init_tui
+from cui import CUI
+from curses import wrapper
+
 import logging
-import configparser
 import asyncio
 
-# Replace with your own UUID, see https://www.uuidgenerator.net/>
-CLIENT_ID = "1eca3a27-9b00-476a-9645-d13f4b1f9b56"
-
-# Configuration file constants
-CONFIG_FILE = "sample.ini"
-CK_DEFAULT = "DEFAULT"
-CK_SPA_ID = "SPA_ID"
-CK_SPA_ADDR = "SPA_ADDR"
 
 # Module globals
 _LOGGER = logging.getLogger(__name__)
-_CONFIG = configparser.ConfigParser()
 _FACADE = None
 
 
@@ -43,19 +36,21 @@ _FACADE = None
 #
 def install_logging():
     """ Everyone needs logging, you say when, you say where, you say how much"""
-    stream_logger = logging.StreamHandler()
-    stream_logger.setLevel(logging.DEBUG)
-    stream_logger.setFormatter(
-        logging.Formatter("%(asctime)s> %(levelname)s %(message)s")
+    #stream_logger = logging.StreamHandler()
+    #stream_logger.setLevel(logging.DEBUG)
+    #stream_logger.setFormatter(
+    #    logging.Formatter("%(asctime)s> %(levelname)s %(message)s")
+    #)
+    #logging.getLogger().addHandler(stream_logger)
+
+    os.remove("cui.log")
+    file_logger = logging.FileHandler("cui.log")
+    file_logger.setLevel(logging.DEBUG)
+    file_logger.setFormatter(
+        logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
     )
-    logging.getLogger().addHandler(stream_logger)
-    logging.getLogger().setLevel(logging.WARNING)
-
-
-def save_config():
-    """Save the current configuration state to the persistent file in CONFIG_FILE"""
-    with open(CONFIG_FILE, "w") as configfile:
-        _CONFIG.write(configfile)
+    logging.getLogger().addHandler(file_logger)
+    logging.getLogger().setLevel(logging.DEBUG)
 
 
 ########################################################################################
@@ -108,9 +103,10 @@ async def locate_spa(force_address=None):
     # address too since it speeds up the initial find, but this is done
     # knowing that on my LAN (and many others) the in.touch2 module gets the
     # same IP address. If this isn't the case, don't provide the address
-    _CONFIG[CK_DEFAULT][CK_SPA_ID] = spa.identifier_as_string
-    _CONFIG[CK_DEFAULT][CK_SPA_ADDR] = spa.ipaddress
-    save_config()
+
+    #_CONFIG[CK_DEFAULT][CK_SPA_ID] = spa.identifier_as_string
+    #_CONFIG[CK_DEFAULT][CK_SPA_ADDR] = spa.ipaddress
+    #save_config()
 
 
 ########################################################################################
@@ -139,21 +135,25 @@ def connect_spa(spa_id, spa_address):
 #
 #
 
+async def amain(stdscr):
+    async with CUI(stdscr):
+        await asyncio.sleep(0)
 
-async def main():
+def main(stdscr):
+
     install_logging()
-    init_tui()
-    _LOGGER.debug("Read config")
-    _CONFIG.read(CONFIG_FILE)
+    asyncio.run(amain(stdscr))
+
+    #return
 
     # We have not previously run the client, we need to run a discovery
-    if CK_SPA_ID not in _CONFIG[CK_DEFAULT]:
-        if not await locate_spa():
-            return
+    #if CK_SPA_ID not in _CONFIG[CK_DEFAULT]:
+    #    if not await locate_spa():
+    #        return
 
     # Get the spa info from the config block
-    spa_id = _CONFIG[CK_DEFAULT][CK_SPA_ID]
-    spa_addr = _CONFIG[CK_DEFAULT][CK_SPA_ADDR]
+    #spa_id = _CONFIG[CK_DEFAULT][CK_SPA_ID]
+    #spa_addr = _CONFIG[CK_DEFAULT][CK_SPA_ADDR]
     #connect_spa(spa_id, spa_addr)
 
     #for item in _FACADE.all_automation_devices:
@@ -163,26 +163,4 @@ async def main():
 #
 #                                       Entry point
 if __name__ == "__main__":
-    asyncio.run(main())
-
-if False:
-
-    # Do some things with the facade
-    print(f"Water heater : {facade.water_heater}")
-
-    def pump_1_change(sender, old_value, new_value):
-        print(f"Pump 1 changed from {old_value} to {new_value}")
-
-    # Watch pump 1 for changes and report on them
-    facade.pumps[0].watch(pump_1_change)
-
-    print("Turn pump 1 on")
-    facade.pumps[0].turn_on()
-
-    time.sleep(5)
-
-    print("Turning pump 1 off")
-    facade.pumps[0].turn_off()
-
-    time.sleep(2)
-    facade.complete()
+    wrapper(main)

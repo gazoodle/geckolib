@@ -35,12 +35,22 @@ class GeckoAsyncFacade(Observable):
         self._facade_ready = False
 
         self._spa = None
+        self._locator = None
 
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, *exc_info):
         await self.gather()
+
+    async def discover(self, static_ip=None):
+        """Use the locator to find spas on the network"""
+        self._locator = GeckoAsyncLocator(static_ip=static_ip)
+        await self._locator.discover()
+
+    @property
+    def locator(self) -> GeckoAsyncLocator:
+        return self._locator
 
     async def connect_to(self, spa_descriptor):
         """Connect to the specified spa on the network, using the
@@ -55,8 +65,9 @@ class GeckoAsyncFacade(Observable):
 
     def disconnect(self):
         _LOGGER.debug("Disconnect facade")
-        self._spa.disconnect()
-        self._spa = None
+        if self._spa is not None:
+            self._spa.disconnect()
+            self._spa = None
 
     @property
     def water_heater(self):
@@ -68,4 +79,11 @@ class GeckoAsyncFacade(Observable):
         """ Get the pumps list """
         return self._pumps
 
- 
+    @property
+    def status_line(self) -> str:
+        """Get a human readable status line showing the current state of the facade"""
+        if self._spa is not None:
+            return "Has spa object"
+        if self._locator is not None:
+            return self._locator.status_line
+        return "Initializing"

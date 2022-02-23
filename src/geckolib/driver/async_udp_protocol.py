@@ -17,11 +17,6 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     it's a good deal more simple that its predecessor
     """
 
-    _PORT = 10022
-    _SOCKET_TIMEOUT = 0.05
-    _MAX_PACKET_SIZE = 8192
-    _SENDING_THROTTLE_RATE_PER_SECOND = 50
-
     def __init__(self, on_connection_lost=None):
         self.transport = None
         self._on_connection_lost = on_connection_lost

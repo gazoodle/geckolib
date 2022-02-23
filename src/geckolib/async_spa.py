@@ -80,8 +80,8 @@ class GeckoAsyncSpa(AsyncTasks):
             lambda: GeckoAsyncUdpProtocol(self._con_lost),
             family=socket.AF_INET)
 
-        self.add_task(GeckoUnhandledProtocolHandler().consume(None, self._protocol.queue))
-        self.add_task(GeckoPacketProtocolHandler().consume(self._protocol, self._protocol.queue))
+        self.add_task(GeckoUnhandledProtocolHandler().consume(None, self._protocol.queue), "Unhandled packet")
+        self.add_task(GeckoPacketProtocolHandler().consume(self._protocol, self._protocol.queue), "Packet handler")
 
         #packet_task = asyncio.create_task(self._protocol.add_receive_handler(GeckoPacketProtocolHandler()))
         #partial_status_task = asyncio.create_task(self._protocol.add_receive_handler(
@@ -91,7 +91,7 @@ class GeckoAsyncSpa(AsyncTasks):
         #))
 
         #ping_task = asyncio.create_task(self.ping_loop())
-        self.add_task(self.ping_loop())
+        self.add_task(self.ping_loop(), "Ping loop")
 
         await asyncio.sleep(3)
         _LOGGER.debug("Connected!")
@@ -123,7 +123,7 @@ class GeckoAsyncSpa(AsyncTasks):
             parms=self.sendparms, on_handled=self._on_ping_response
         )
 
-        self.add_task(ping_handler.consume(None, self._protocol.queue))
+        self.add_task(ping_handler.consume(None, self._protocol.queue), "Ping handler")
 
         while self.isopen:
             self._protocol.queue_send(ping_handler, self.sendparms)
