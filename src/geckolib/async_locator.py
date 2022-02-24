@@ -33,8 +33,8 @@ class GeckoAsyncLocator(Observable):
         if self._spa_identifier == "":
             self._spa_identifier = None
 
-        self.spas = []
-        self.spa_identifiers = []
+        self.spas: GeckoAsyncSpaDescriptor = None
+        self._spa_identifiers = []
 
         self._has_found_spa = False
         self._started = None
@@ -42,23 +42,27 @@ class GeckoAsyncLocator(Observable):
         self._protocol = None
 
     def _on_discovered(self, handler, _socket, sender):
-        if handler.spa_identifier in self.spa_identifiers:
+        if handler.spa_identifier in self._spa_identifiers:
             return
 
         _LOGGER.debug("Discovered spa %s", handler.spa_identifier)
         if self._spa_identifier is not None:
-            if self._spa_identifier != handler.spa_identifier:
+            if self._spa_identifier != handler.spa_identifier.decode(
+                GeckoConstants.MESSAGE_ENCODING
+            ):
                 _LOGGER.debug("But we're not interested in that, so ignore it")
                 return
 
         self._on_change(self)
-        self.spa_identifiers.append(handler.spa_identifier)
+        self._spa_identifiers.append(handler.spa_identifier)
         descriptor = GeckoAsyncSpaDescriptor(
             handler.spa_identifier,
             handler.spa_name,
             sender,
         )
 
+        if self.spas is None:
+            self.spas = []
         self.spas.append(descriptor)
 
         if self._spa_address is not None or self._spa_identifier is not None:
@@ -108,7 +112,7 @@ class GeckoAsyncLocator(Observable):
             )
             await asyncio.sleep(1)
             if self.has_had_enough_time:
-                if len(self.spas) > 0:
+                if self.spas is not None and len(self.spas) > 0:
                     _LOGGER.info("Found %d spas ... %s", len(self.spas), self.spas)
                     break
             if self._has_found_spa:
@@ -124,7 +128,7 @@ class GeckoAsyncLocator(Observable):
     def status_line(self) -> str:
         if self.is_running:
             return "Discovering spas"
-        elif len(self.spas) == 0:
+        elif self.spas is None:
             return "No spas found on your network"
         else:
             return "Choose spa to connect to"

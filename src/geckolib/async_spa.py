@@ -25,30 +25,30 @@ from .driver import (
     GeckoUnhandledProtocolHandler,
     # Rest
     GeckoAsyncStructure,
+    Observable,
 )
-from .async_tasks import AsyncTasks
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoSpaConnectionState(Enum):
-    DISCONNECTED = 1,
+    DISCONNECTED = (1,)
 
     CONNECTED = 10
 
 
-
-class GeckoAsyncSpa(AsyncTasks):
-    """GeckoSpa class manages an instance of a spa, and is the main point of contact for
+class GeckoAsyncSpa(Observable):
+    """GeckoAsyncSpa class manages an instance of a spa, and is the main point of contact for
     control and monitoring. Uses the declarations found in pack/* to build
     an object that exposes the properties and capabilities of your spa. This class
     should only be used via a Facade which hides the implementation details"""
-    
-    def __init__(self, client_id, spa_descriptor):
+
+    def __init__(self, client_id, spa_descriptor, taskman):
         super().__init__()
 
         self.client_id = client_id
         self.descriptor = spa_descriptor
+        self._taskman = taskman
 
         self._con_lost = None
         self._transport = None
@@ -56,7 +56,6 @@ class GeckoAsyncSpa(AsyncTasks):
         self._connection_state = GeckoSpaConnectionState.DISCONNECTED
 
         self.struct = GeckoAsyncStructure(self._on_set_value)
-
 
     @property
     def sendparms(self):
@@ -77,29 +76,35 @@ class GeckoAsyncSpa(AsyncTasks):
         self._con_lost = loop.create_future()
 
         self._transport, self._protocol = await loop.create_datagram_endpoint(
-            lambda: GeckoAsyncUdpProtocol(self._con_lost),
-            family=socket.AF_INET)
+            lambda: GeckoAsyncUdpProtocol(self._con_lost), family=socket.AF_INET
+        )
 
-        self.add_task(GeckoUnhandledProtocolHandler().consume(None, self._protocol.queue), "Unhandled packet")
-        self.add_task(GeckoPacketProtocolHandler().consume(self._protocol, self._protocol.queue), "Packet handler")
+        self._taskman.add_task(
+            GeckoUnhandledProtocolHandler().consume(None, self._protocol.queue),
+            "Unhandled packet",
+        )
+        self._taskman.add_task(
+            GeckoPacketProtocolHandler().consume(self._protocol, self._protocol.queue),
+            "Packet handler",
+        )
 
-        #packet_task = asyncio.create_task(self._protocol.add_receive_handler(GeckoPacketProtocolHandler()))
-        #partial_status_task = asyncio.create_task(self._protocol.add_receive_handler(
+        # packet_task = asyncio.create_task(self._protocol.add_receive_handler(GeckoPacketProtocolHandler()))
+        # partial_status_task = asyncio.create_task(self._protocol.add_receive_handler(
         #    GeckoPartialStatusBlockProtocolHandler(
         #      on_handled=self._on_partial_status_update
         #   )
-        #))
+        # ))
 
-        #ping_task = asyncio.create_task(self.ping_loop())
-        self.add_task(self.ping_loop(), "Ping loop")
+        # ping_task = asyncio.create_task(self.ping_loop())
+        self._taskman.add_task(self.ping_loop(), "Ping loop")
 
         await asyncio.sleep(3)
         _LOGGER.debug("Connected!")
 
-        #while self.connection_state != GeckoSpaConnectionState.CONNECTED:
+        # while self.connection_state != GeckoSpaConnectionState.CONNECTED:
         #    await asyncio.sleep(0)
 
-        #return [packet_task, ping_task]
+        # return [packet_task, ping_task]
 
     def disconnect(self):
         self._protocol.disconnect()
@@ -123,11 +128,15 @@ class GeckoAsyncSpa(AsyncTasks):
             parms=self.sendparms, on_handled=self._on_ping_response
         )
 
-        self.add_task(ping_handler.consume(None, self._protocol.queue), "Ping handler")
+        self._taskman.add_task(
+            ping_handler.consume(None, self._protocol.queue), "Ping handler"
+        )
 
         while self.isopen:
             self._protocol.queue_send(ping_handler, self.sendparms)
-            await asyncio.wait( [self._con_lost], timeout=GeckoConstants.PING_FREQUENCY_IN_SECONDS)
+            await asyncio.wait(
+                [self._con_lost], timeout=GeckoConstants.PING_FREQUENCY_IN_SECONDS
+            )
 
             if (
                 time.monotonic() - self._last_ping
@@ -140,7 +149,6 @@ class GeckoAsyncSpa(AsyncTasks):
 
         _LOGGER.info("Ping loop finished")
 
-
     def _on_partial_status_update(self, handler, socket, sender):
         for change in handler.changes:
             self.struct.replace_status_block_segment(change[0], change[1])
@@ -149,7 +157,9 @@ class GeckoAsyncSpa(AsyncTasks):
 
     async def _on_set_value(self, pos, length, newvalue):
         # We issue a pack command to acheive this ...
-        pack_command_task = asyncio.asyncio.create_task(self._protocol.add_receive_handler(GeckoPackCommandProtocolHandler()))
+        pack_command_task = asyncio.asyncio.create_task(
+            self._protocol.add_receive_handler(GeckoPackCommandProtocolHandler())
+        )
         self._protocol.queue_send(
             GeckoPackCommandProtocolHandler.set_value(
                 self.get_and_increment_sequence_counter(),

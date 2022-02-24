@@ -65,7 +65,11 @@ class CUI(AbstractDisplay, AsyncTasks):
         self._counter = 0
         self._last_char = None
 
-        self._facade = GeckoAsyncFacade(CLIENT_ID)
+        self._facade = GeckoAsyncFacade(
+            CLIENT_ID,
+            spa_address=self._config.spa_address,
+            spa_identifier=self._config.spa_id,
+        )
         self._facade.watch(self._on_facade_changed)
 
     async def __aenter__(self):

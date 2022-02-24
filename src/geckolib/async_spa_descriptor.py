@@ -22,6 +22,8 @@ class GeckoAsyncSpaDescriptor:
 
     @property
     def identifier_as_string(self):
+        """The spa identifier as a string. Useful for storing in configuration and
+        then passing as spa_identifier to the facade"""
         return self.identifier.decode(GeckoConstants.MESSAGE_ENCODING)
 
     @property

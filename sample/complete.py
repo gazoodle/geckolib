@@ -35,13 +35,13 @@ _FACADE = None
 #                               Utility functions
 #
 def install_logging():
-    """ Everyone needs logging, you say when, you say where, you say how much"""
-    #stream_logger = logging.StreamHandler()
-    #stream_logger.setLevel(logging.DEBUG)
-    #stream_logger.setFormatter(
+    """Everyone needs logging, you say when, you say where, you say how much"""
+    # stream_logger = logging.StreamHandler()
+    # stream_logger.setLevel(logging.DEBUG)
+    # stream_logger.setFormatter(
     #    logging.Formatter("%(asctime)s> %(levelname)s %(message)s")
-    #)
-    #logging.getLogger().addHandler(stream_logger)
+    # )
+    # logging.getLogger().addHandler(stream_logger)
 
     os.remove("cui.log")
     file_logger = logging.FileHandler("cui.log")
@@ -104,9 +104,9 @@ async def locate_spa(force_address=None):
     # knowing that on my LAN (and many others) the in.touch2 module gets the
     # same IP address. If this isn't the case, don't provide the address
 
-    #_CONFIG[CK_DEFAULT][CK_SPA_ID] = spa.identifier_as_string
-    #_CONFIG[CK_DEFAULT][CK_SPA_ADDR] = spa.ipaddress
-    #save_config()
+    # _CONFIG[CK_DEFAULT][CK_SPA_ID] = spa.identifier_as_string
+    # _CONFIG[CK_DEFAULT][CK_SPA_ADDR] = spa.ipaddress
+    # save_config()
 
 
 ########################################################################################
@@ -131,33 +131,37 @@ def connect_spa(spa_id, spa_address):
         print(".", end="", flush=True)
     print(" connected")
 
+
 ########################################################################################
 #
 #
 
-async def amain(stdscr):
+
+async def async_main(stdscr):
     async with CUI(stdscr):
         await asyncio.sleep(0)
+
 
 def main(stdscr):
 
     install_logging()
-    asyncio.run(amain(stdscr))
+    asyncio.run(async_main(stdscr))
 
-    #return
+    # return
 
     # We have not previously run the client, we need to run a discovery
-    #if CK_SPA_ID not in _CONFIG[CK_DEFAULT]:
+    # if CK_SPA_ID not in _CONFIG[CK_DEFAULT]:
     #    if not await locate_spa():
     #        return
 
     # Get the spa info from the config block
-    #spa_id = _CONFIG[CK_DEFAULT][CK_SPA_ID]
-    #spa_addr = _CONFIG[CK_DEFAULT][CK_SPA_ADDR]
-    #connect_spa(spa_id, spa_addr)
+    # spa_id = _CONFIG[CK_DEFAULT][CK_SPA_ID]
+    # spa_addr = _CONFIG[CK_DEFAULT][CK_SPA_ADDR]
+    # connect_spa(spa_id, spa_addr)
 
-    #for item in _FACADE.all_automation_devices:
+    # for item in _FACADE.all_automation_devices:
     #    print(item)
+
 
 ########################################################################################
 #
