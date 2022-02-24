@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class GeckoAsyncSpaDescriptor:
-    """ A descriptor class for spas that have been discovered on the network """
+    """A descriptor class for spas that have been discovered on the network"""
 
     def __init__(
         self,

@@ -30,13 +30,13 @@ def main_menu(stdscr):
     stdscr.clear()
     stdscr.refresh()
     stdscr.border(0)
-    #curses.mousemask(1)
+    # curses.mousemask(1)
 
     # Start colors in curses
-    #curses.start_color()
-    #curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
-    #curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-    #curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    # curses.start_color()
+    # curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
+    # curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
+    # curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
     # Loop where k is the last character pressed
     while k != ord("q"):
@@ -52,7 +52,6 @@ def main_menu(stdscr):
 
 
 class CUI(AbstractDisplay, AsyncTasks):
-
     def __init__(self, stdscr: "_curses._CursesWindow"):
         AbstractDisplay.__init__(self, stdscr)
         AsyncTasks.__init__(self)
@@ -70,8 +69,8 @@ class CUI(AbstractDisplay, AsyncTasks):
         self._facade.watch(self._on_facade_changed)
 
     async def __aenter__(self):
-        self.add_task(self._counter_loop(), "Counter")
-        self.add_task(self._timer_loop(), "Timer")
+        # self.add_task(self._counter_loop(), "Counter")
+        # self.add_task(self._timer_loop(), "Timer")
         self.add_task(self._sequence_pump(), "Sequence pump")
         await self._facade.__aenter__()
         await self.run()
@@ -95,21 +94,18 @@ class CUI(AbstractDisplay, AsyncTasks):
     async def _sequence_pump(self) -> None:
         while True:
             # If we don't have a config ID, then trigger a find
-            if self._config.spa_id is None:
-                if self._facade.locator is None:
-                    await self._facade.discover()
-                    _LOGGER.debug("Discovery complete")
+            # if self._config.spa_id is None:
+            #    if self._facade.locator is None:
+            #        await self._facade.discover()
+            #        _LOGGER.debug("Discovery complete")
             await asyncio.sleep(0)
 
-    def _on_facade_changed(self) -> None:
+    def _on_facade_changed(self, *args) -> None:
         self.make_display()
 
-    def make_title(self, maxy : int, maxx : int) -> None:
+    def make_title(self, maxy: int, maxx: int) -> None:
         title = "Gecko Async Sample App"
-        self.stdscr.addstr(
-            0, int((maxx - len(title)) / 2), title
-        )
-
+        self.stdscr.addstr(0, int((maxx - len(title)) / 2), title)
 
     def make_display(self) -> None:
         try:
@@ -119,25 +115,19 @@ class CUI(AbstractDisplay, AsyncTasks):
 
             self.make_title(maxy, maxx)
 
-            
-
-
             msg1 = "Resize at will"
             msg2 = "Press 'q' to exit"
             msg3 = f"It is now {datetime.now()}"
 
+            self.stdscr.addstr(int(maxy / 2) - 1, int((maxx - len(msg1)) / 2), msg1)
+            self.stdscr.addstr(int(maxy / 2), int((maxx - len(msg3)) / 2), msg3)
+            self.stdscr.addstr(int(maxy / 2) + 1, int((maxx - len(msg2)) / 2), msg2)
+            self.stdscr.addstr(
+                maxy - 2,
+                1,
+                f"Hello {self._counter}, Status: {self._facade.status_line}, char: {self._last_char}",
+            )
 
-            self.stdscr.addstr(
-                int(maxy / 2) - 1, int((maxx - len(msg1)) / 2), msg1
-            )
-            self.stdscr.addstr(
-                int(maxy/2), int((maxx - len(msg3)) / 2), msg3
-            )
-            self.stdscr.addstr(
-                int(maxy / 2) + 1, int((maxx - len(msg2)) / 2), msg2
-            )
-            self.stdscr.addstr(maxy-2, 1, f"Hello {self._counter}, Status: {self._facade.status_line}, char: {self._last_char}")
-        
         except _curses.error:
             # If window gets too small, we won't output anything
             _LOGGER.warning("Screen too small")
@@ -145,11 +135,10 @@ class CUI(AbstractDisplay, AsyncTasks):
 
         self.stdscr.refresh()
 
-        #window = curses.newwin(5, 20, 10, 10)
-        #window.box()
-        #window.addstr(2, 2, "Window")
-        #window.refresh()
-
+        # window = curses.newwin(5, 20, 10, 10)
+        # window.box()
+        # window.addstr(2, 2, "Window")
+        # window.refresh()
 
     def handle_char(self, char: int) -> None:
         if chr(char) == "q":

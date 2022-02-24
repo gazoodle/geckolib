@@ -10,7 +10,7 @@ class GeckoConstants:
     """
 
     INCLUDE_DUMMY_SPA = False
-    INTOUCH2_PORT = 10023
+    INTOUCH2_PORT = 10022
     MAX_PACKET_SIZE = 8192
     # Mininum time to wait for initial spa discovery even if one spa has responded
     DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS = 4
