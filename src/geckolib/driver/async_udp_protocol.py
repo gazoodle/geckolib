@@ -17,13 +17,12 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     it's a good deal more simple that its predecessor
     """
 
-    def __init__(self, on_connection_lost=None):
+    def __init__(self, on_connection_lost, destination):
         self.transport = None
         self._on_connection_lost = on_connection_lost
+        self._destination = destination
 
         self._sequence_counter = 0
-        self._last_send_time = time.monotonic()
-
         self._queue = AsyncPeekableQueue()
 
     def connection_made(self, transport):
@@ -54,22 +53,15 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     def queue(self):
         return self._queue
 
-    def queue_send(self, protocol_handler: GeckoUdpProtocolHandler, destination: tuple):
+    def queue_send(self, protocol_handler: GeckoUdpProtocolHandler, destination=None):
         """Queue a message to be sent async later"""
         if destination is None:
-            raise AssertionError(
-                f"Cannot have destination set to None for {protocol_handler}"
-            )
-        # For convenience, the entire destination sometimes gets passed in,
-        # this fixes it to be just the address and port
-        if len(destination) > 2:
-            destination = (destination[0], destination[1])
+            destination = self._destination
         protocol_handler.last_destination = destination
 
         send_bytes = protocol_handler.send_bytes
         _LOGGER.debug("Sending %s to %s", send_bytes, destination)
         self.transport.sendto(send_bytes, destination)
-        self._last_send_time = time.monotonic()
 
     def get_and_increment_sequence_counter(self):
         self._sequence_counter += 1
@@ -79,9 +71,30 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         _LOGGER.debug("Received %s from %s", data, addr)
         self.queue.put_nowait((data, addr))
 
+    async def get(self, create_func, destination=None, retry_count=10):
+
+        _LOGGER.debug("async get started")
+        while retry_count > 0:
+
+            # Create the request
+            request = create_func()
+
+            # Queue it for delivery
+            self.queue_send(request, destination)
+
+            # Wait for a response up to a certain amount of time
+            if await request.wait_for_response(self):
+                # If handled, then return the handler which ought
+                # to contain the information as requested
+                return request
+
+            # Loop for retry
+            retry_count -= 1
+
+        return None
+
     def __repr__(self):
         return (
             f"{self.__class__.__name__} on {self.transport!r}\n"
             f" isopen: {self.isopen}"
-            f" isbusy: {self.isbusy}"
         )

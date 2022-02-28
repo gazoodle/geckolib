@@ -12,6 +12,7 @@ from .rferr import GeckoRFErrProtocolHandler
 from .statusblock import (
     GeckoStatusBlockProtocolHandler,
     GeckoPartialStatusBlockProtocolHandler,
+    GeckoAsyncPartialStatusBlockProtocolHandler,
 )
 from .unhandled import GeckoUnhandledProtocolHandler
 from .version import GeckoVersionProtocolHandler
@@ -33,6 +34,7 @@ __all__ = [
     # From statusblock
     "GeckoStatusBlockProtocolHandler",
     "GeckoPartialStatusBlockProtocolHandler",
+    "GeckoAsyncPartialStatusBlockProtocolHandler",
     # From watercare
     "GeckoWatercareProtocolHandler",
     # From firmware

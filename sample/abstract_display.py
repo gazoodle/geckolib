@@ -17,7 +17,7 @@ class AbstractDisplay(ABC):
         pass
 
     @abstractmethod
-    def handle_char(self, char: int) -> None:
+    async def handle_char(self, char: int) -> None:
         pass
 
     def set_exit(self) -> None:
@@ -36,4 +36,4 @@ class AbstractDisplay(ABC):
             elif char == KEY_RESIZE:
                 self.make_display()
             else:
-                self.handle_char(char)
+                await self.handle_char(char)

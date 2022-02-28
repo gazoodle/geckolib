@@ -9,9 +9,11 @@
 import asyncio
 import curses
 import _curses
+import inspect
 import logging
 import time
 from datetime import datetime
+from typing import Coroutine
 from abstract_display import AbstractDisplay
 from config import Config
 from context import AsyncTasks, GeckoAsyncFacade
@@ -160,14 +162,17 @@ class CUI(AbstractDisplay, AsyncTasks):
                     lines.append("Press 'b' to toggle blower")
                     if self._facade.blowers[0].is_on:
                         self._commands["b"] = lambda: {
-                            self._facade.blowers[0].turn_off()
+                            self._facade.blowers[0].async_turn_off()
                         }
                     else:
                         self._commands["b"] = lambda: {
-                            self._facade.blowers[0].turn_on()
+                            self._facade.blowers[0].async_turn_on()
                         }
                 lines.append("Press 'r' to rescan")
                 self._commands["r"] = self._clear_spa
+
+            lines.append("Press 'a' to run async")
+            self._commands["a"] = self.do_async
 
             lines.append("Press 'q' to exit")
             self._commands["q"] = self.set_exit
@@ -197,8 +202,15 @@ class CUI(AbstractDisplay, AsyncTasks):
         # window.addstr(2, 2, "Window")
         # window.refresh()
 
-    def handle_char(self, char: int) -> None:
+    async def do_async(self):
+        await asyncio.sleep(1)
+
+    async def handle_char(self, char: int) -> None:
         cmd = chr(char)
         if cmd in self._commands:
-            self._commands[cmd]()
+            func = self._commands[cmd]
+            if inspect.iscoroutinefunction(func):
+                await func()
+            else:
+                func()
         self._last_char = char

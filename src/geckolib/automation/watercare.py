@@ -10,7 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoWaterCare(GeckoAutomationBase):
-    """ Watercare manangement class """
+    """Watercare manangement class"""
 
     def __init__(self, facade):
         super().__init__(facade, "WaterCare", "WATERCARE")
@@ -19,12 +19,12 @@ class GeckoWaterCare(GeckoAutomationBase):
 
     @property
     def mode(self):
-        """ Return the active water care mode """
+        """Return the active water care mode"""
         return self.active_mode
 
     @property
     def modes(self):
-        """ Return all the possible water care modes """
+        """Return all the possible water care modes"""
         return GeckoConstants.WATERCARE_MODE_STRING
 
     def set_mode(self, new_mode):
@@ -64,6 +64,12 @@ class GeckoWaterCare(GeckoAutomationBase):
         )
         self._spa.add_receive_handler(self._water_care_handler)
         self._spa.queue_send(self._water_care_handler, self._spa.sendparms)
+
+    def set_watercare_mode(self, new_mode):
+        if self.active_mode != new_mode:
+            old_mode = self.active_mode
+            self.active_mode = new_mode
+            self._on_change(self, old_mode, self.active_mode)
 
     def __str__(self):
         if self.active_mode is None:

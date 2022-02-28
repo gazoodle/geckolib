@@ -9,6 +9,7 @@ from .protocol import (
     GeckoConfigFileProtocolHandler,
     GeckoStatusBlockProtocolHandler,
     GeckoPartialStatusBlockProtocolHandler,
+    GeckoAsyncPartialStatusBlockProtocolHandler,
     GeckoWatercareProtocolHandler,
     GeckoUpdateFirmwareProtocolHandler,
     GeckoRemindersProtocolHandler,
@@ -42,6 +43,7 @@ __all__ = [
     "GeckoConfigFileProtocolHandler",
     "GeckoStatusBlockProtocolHandler",
     "GeckoPartialStatusBlockProtocolHandler",
+    "GeckoAsyncPartialStatusBlockProtocolHandler",
     "GeckoWatercareProtocolHandler",
     "GeckoUpdateFirmwareProtocolHandler",
     "GeckoRemindersProtocolHandler",
@@ -62,5 +64,5 @@ __all__ = [
     "GeckoTempStructAccessor",
     "GeckoUdpProtocolHandler",
     "GeckoUdpSocket",
-    "GeckoAsyncUdpProtocol"
+    "GeckoAsyncUdpProtocol",
 ]

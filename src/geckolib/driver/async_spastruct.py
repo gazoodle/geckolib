@@ -1,29 +1,26 @@
 """ Async Spa Structure block """
 
 import logging
-import asyncio
 
 from geckolib.async_tasks import AsyncTasks
 
 from .protocol import GeckoStatusBlockProtocolHandler
 from .async_udp_protocol import GeckoAsyncUdpProtocol
 
-logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class GeckoAsyncStructure:
     """Class to host/manage the raw data block for a spa structure"""
 
-    def __init__(self, on_set_value):
+    def __init__(self, on_set_value, on_async_set_value):
         self._status_block = b"\x00" * 1024
         self.accessors = {}
         self.all_outputs = []
         self.all_devices = []
         self.user_demands = []
-        self.had_at_least_one_block = False
         self._on_set_value = on_set_value
-
-        # Install a set of handlers
+        self._on_async_set_value = on_async_set_value
 
     def replace_status_block_segment(self, offset, segment):
         """Replace a segment of the status block"""
@@ -45,34 +42,6 @@ class GeckoAsyncStructure:
     def set_status_block(self, block):
         self._status_block = block
 
-    def _on_status_block_received(
-        self, handler: GeckoStatusBlockProtocolHandler, socket, sender
-    ):
-        if not self._next_expected == handler.sequence:
-            logger.debug(
-                "Out-of-sequence status block segment %d - ignored", handler.sequence
-            )
-            if handler.next == 0:
-                logger.debug("Retry status block request")
-                self._next_expected = 0
-                self._status_block_segments = []
-                if not handler.retry(socket):
-                    raise RuntimeError("Too many retries")
-        else:
-            self._status_block_segments.append(handler.data)
-            self._next_expected = handler.next
-            # When we get the last partial segment, we can assume the spa is
-            # connected and we can report on status
-            if handler.next == 0:
-                logger.debug(
-                    "Status block segments complete, update and remove handler"
-                )
-                self.replace_status_block_segment(
-                    self._status_block_offset, b"".join(self._status_block_segments)
-                )
-                self.had_at_least_one_block = True
-                handler._should_remove_handler = True
-
     def build_accessors(self, config_class, log_class):
         self.accessors = dict(config_class.accessors, **log_class.accessors)
         # Get all outputs
@@ -82,20 +51,64 @@ class GeckoAsyncStructure:
         # User devices are those that have a Ud in the tag name
         self.user_demands = log_class.user_demand_keys
 
-    def retry_request(
-        self,
-        protocol_: GeckoAsyncUdpProtocol,
-        taskman_: AsyncTasks,
-        request: GeckoStatusBlockProtocolHandler,
-        sender: tuple,
-    ):
-        request._on_handled = self._on_status_block_received
-        self._status_block_offset = request.start
-        taskman_.add_task(request.consume(protocol_), "Status block handler")
-        self._next_expected = 0
-        self._status_block_segments = []
-        protocol_.queue_send(request, sender)
+    async def get(self, protocol, create_func, retry_count=10):
+        while retry_count > 0:
+
+            # Create the request
+            request = create_func()
+
+            # Queue it for delivery
+            protocol.queue_send(request)
+
+            # Setup some controls for the multiple responses expected
+            next_expected = 0
+            segments = []
+
+            while True:
+
+                # Wait for a response up to a certain amount of time
+                if await request.wait_for_response(protocol):
+
+                    if next_expected == request.sequence:
+
+                        segments.append(request.data)
+                        next_expected = request.next
+
+                        if request.next == 0:
+
+                            _LOGGER.debug(
+                                "Status block segments complete, update and complete"
+                            )
+
+                            self.replace_status_block_segment(
+                                request.start,
+                                b"".join(segments),
+                            )
+
+                            return True
+
+                    else:
+
+                        _LOGGER.debug(
+                            "Out-of-sequence status block segment %d - ignored",
+                            request.sequence,
+                        )
+
+                        if request.next == 0:
+                            break
+
+                else:
+
+                    _LOGGER.debug("timeout waiting for any block")
+                    break
+
+            retry_count -= 1
+        return False
 
     def set_value(self, pos, length, newvalue):
         # Delegate this
         self._on_set_value(pos, length, newvalue)
+
+    async def async_set_value(self, pos, length, newvalue):
+        # Delegate this
+        await self._on_async_set_value(pos, length, newvalue)

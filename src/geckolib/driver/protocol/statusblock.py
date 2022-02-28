@@ -65,6 +65,7 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
                 REQUEST_FORMAT, remainder
             )
             return  # Stay in the handler list
+
         # Otherwise must be STATV
         self.sequence, self.next, self.length = struct.unpack(
             RESPONSE_FORMAT, remainder[0:3]
@@ -118,6 +119,44 @@ class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
                 sender,
             )
         change_count = struct.unpack(">B", remainder[0:1])[0]
+        for i in range(change_count):
+            pos = struct.unpack(">H", remainder[1 + (i * 4) : 3 + (i * 4)])[0]
+            self.changes.append((pos, remainder[3 + (i * 4) : 5 + (i * 4)]))
+
+
+class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.changes = []
+
+    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
+        return received_bytes.startswith(STATQ_VERB) or received_bytes.startswith(
+            STATP_VERB
+        )
+
+    def handle(self, socket, received_bytes: bytes, sender: tuple) -> bool:
+        remainder = received_bytes[5:]
+        if received_bytes.startswith(STATQ_VERB):
+            (self.sequence,) = struct.unpack(">B", remainder)
+            return  # Stay in the handler list
+
+        # Otherwise must be STATP
+        if socket is not None:
+            socket.queue_send(
+                GeckoPartialStatusBlockProtocolHandler(
+                    content=b"".join(
+                        [
+                            STATQ_VERB,
+                            struct.pack(
+                                ">B", socket.get_and_increment_sequence_counter()
+                            ),
+                        ]
+                    ),
+                    parms=sender,
+                ),
+            )
+        change_count = struct.unpack(">B", remainder[0:1])[0]
+        self.changes = []
         for i in range(change_count):
             pos = struct.unpack(">H", remainder[1 + (i * 4) : 3 + (i * 4)])[0]
             self.changes.append((pos, remainder[3 + (i * 4) : 5 + (i * 4)]))

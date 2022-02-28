@@ -14,7 +14,7 @@ from .sensors import GeckoSensor, GeckoBinarySensor
 from .watercare import GeckoWaterCare
 from ..driver import Observable
 from ..async_locator import GeckoAsyncLocator
-from ..async_spa import GeckoAsyncSpa
+from ..async_spa import GeckoAsyncSpa, GeckoSpaConnectionState
 from ..async_tasks import AsyncTasks
 
 _LOGGER = logging.getLogger(__name__)
@@ -152,6 +152,8 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                     # The UI can again clear this, so deal with it
                     if self._spa is None:
                         continue
+                    if self._spa.connection_state != GeckoSpaConnectionState.CONNECTED:
+                        continue
 
                     _LOGGER.debug("Facade knows spa is connected")
 
@@ -162,6 +164,11 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                     # Install change notifications
                     for device in self.all_automation_devices:
                         device.watch(self._on_change)
+
+                    self.water_care.set_watercare_mode(
+                        await self.spa.async_get_watercare()
+                    )
+
                     _LOGGER.debug("Facade is now ready")
                     self._ready = True
 

@@ -89,7 +89,7 @@ class GeckoAsyncLocator(Observable):
         loop = asyncio.get_running_loop()
         on_con_lost = loop.create_future()
         self._transport, self._protocol = await loop.create_datagram_endpoint(
-            lambda: GeckoAsyncUdpProtocol(on_con_lost),
+            lambda: GeckoAsyncUdpProtocol(on_con_lost, None),
             family=socket.AF_INET,
             allow_broadcast=True,
         )

@@ -84,6 +84,24 @@ class GeckoUdpProtocolHandler:
         if self._on_handled is not None:
             self._on_handled(self, socket, sender)
 
+    async def wait_for_response(self, protocol):
+        """Wait for a response that this command can handle, return True if handled, False if timed-out"""
+        _LOGGER.debug("Starting wait for response for %s", self)
+        while True:
+            if protocol.queue.head is not None:
+                data, sender = protocol.queue.head
+                if self.can_handle(data, sender):
+                    protocol.queue.pop()
+                    self.handle(protocol, data, sender)
+                    self._reset_timeout()
+                    return True
+
+            if self.has_timedout:
+                _LOGGER.debug("Handler %s timed out", self)
+                return False
+
+            await asyncio.sleep(0)
+
     async def consume(self, protocol):
         """Async coroutine to handle datagram. Uses the sync functions to
         manage this at present"""
@@ -108,7 +126,7 @@ class GeckoUdpProtocolHandler:
                     _LOGGER.debug(
                         "Retry handler %s retry count %d", self, self._retry_count
                     )
-                    protocol.queue_send(self, self.last_destination)
+                    protocol.queue_send(self)
 
             if self.should_remove_handler:
                 _LOGGER.debug("%s will be removed, consume loop terminating", self)
