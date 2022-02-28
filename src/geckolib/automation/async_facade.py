@@ -80,7 +80,6 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
         self._pumps = None
         self._keypad = None
         self._ecomode = None
-        self._facade_ready = False
 
         self._spa = None
         self._locator = None
@@ -92,6 +91,13 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
 
     async def __aexit__(self, *exc_info):
         await AsyncTasks.__aexit__(self, exc_info)
+
+    def set_spa_info(self, spa_id, spa_address):
+        self._spa_identifier = spa_id
+        self._spa_address = spa_address
+        self._locator = None
+        self._spa = None
+        self._ready = False
 
     async def _facade_pump(self):
         _LOGGER.debug("Facade pump started %s", self)
@@ -112,9 +118,17 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                     self._locator.watch(self._on_change)
                     await self._locator.discover()
 
+                # It is possible for the UI to clear the locator, if so we
+                # must start this loop again
+                if self._locator is None:
+                    continue
+
                 # If there was no identifier specified, then we've completed
                 # discovery and the facade is ready
                 if self._spa_identifier is None:
+                    _LOGGER.debug(
+                        "Facade is ready as there was no spa identifier, and we should have scanned for them"
+                    )
                     self._ready = True
                     continue
 
@@ -135,6 +149,10 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                     self._spa.watch(self._on_change)
                     await self._spa.connect()
 
+                    # The UI can again clear this, so deal with it
+                    if self._spa is None:
+                        continue
+
                     _LOGGER.debug("Facade knows spa is connected")
 
                     self._water_heater = GeckoWaterHeater(self)
@@ -154,23 +172,6 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
     async def ready(self):
         while not self._ready:
             await asyncio.sleep(0)
-
-    @property
-    def locator(self) -> GeckoAsyncLocator:
-        return self._locator
-
-    async def NOTUSED_connect_to(self, spa_descriptor):
-        """Connect to the specified spa on the network, using the
-        descriptor provided"""
-        self._spa = GeckoAsyncSpa(self.client_id, spa_descriptor)
-        await self._spa.connect()
-        self._water_heater = GeckoWaterHeater(self)
-
-    def NOTUSED_disconnect(self):
-        _LOGGER.debug("Disconnect facade")
-        if self._spa is not None:
-            self._spa.disconnect()
-            self._spa = None
 
     def scan_outputs(self):
         """Scan the spa outputs to decide what user options are available"""
@@ -287,6 +288,10 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
             )
 
     @property
+    def is_ready(self):
+        return self._ready
+
+    @property
     def unique_id(self):
         """A unique id for the facade"""
         return f"{self.identifier.replace(':', '')}"
@@ -305,6 +310,10 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
     def spa(self):
         """Get the spa implementation class"""
         return self._spa
+
+    @property
+    def locator(self) -> GeckoAsyncLocator:
+        return self._locator
 
     @property
     def water_heater(self):

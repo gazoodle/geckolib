@@ -62,8 +62,8 @@ class CUI(AbstractDisplay, AsyncTasks):
         self._config = Config()
 
         self._last_update = time.monotonic()
-        self._counter = 0
         self._last_char = None
+        self._commands = {}
 
         self._facade = GeckoAsyncFacade(
             CLIENT_ID,
@@ -73,7 +73,6 @@ class CUI(AbstractDisplay, AsyncTasks):
         self._facade.watch(self._on_facade_changed)
 
     async def __aenter__(self):
-        # self.add_task(self._counter_loop(), "Counter")
         self.add_task(self._timer_loop(), "Timer")
         self.add_task(self._sequence_pump(), "Sequence pump")
         await self._facade.__aenter__()
@@ -83,12 +82,6 @@ class CUI(AbstractDisplay, AsyncTasks):
     async def __aexit__(self, *exc_info):
         await self._facade.__aexit__(exc_info)
         return await super().__aexit__(*exc_info)
-
-    async def _counter_loop(self) -> None:
-        while True:
-            self._counter = self._counter + 1
-            self.make_display()
-            await asyncio.sleep(5)
 
     async def _timer_loop(self) -> None:
         while True:
@@ -107,6 +100,18 @@ class CUI(AbstractDisplay, AsyncTasks):
     def _on_facade_changed(self, *args) -> None:
         self.make_display()
 
+    def _select_spa(self, spa):
+        self._config.set_spa_id(spa.identifier_as_string)
+        self._config.set_spa_address(spa.ipaddress)
+        self._config.save()
+        self._facade.set_spa_info(spa.identifier_as_string, spa.ipaddress)
+
+    def _clear_spa(self):
+        self._config.set_spa_id(None)
+        self._config.set_spa_address(None)
+        self._config.save()
+        self._facade.set_spa_info(None, None)
+
     def make_title(self, maxy: int, maxx: int) -> None:
         title = "Gecko Async Sample App"
         self.stdscr.addstr(0, int((maxx - len(title)) / 2), title)
@@ -119,17 +124,55 @@ class CUI(AbstractDisplay, AsyncTasks):
 
             self.make_title(maxy, maxx)
 
-            msg1 = "Resize at will"
-            msg2 = "Press 'q' to exit"
-            msg3 = f"It is now {datetime.now()}"
+            lines = []
+            self._commands = {}
 
-            self.stdscr.addstr(int(maxy / 2) - 1, int((maxx - len(msg1)) / 2), msg1)
-            self.stdscr.addstr(int(maxy / 2), int((maxx - len(msg3)) / 2), msg3)
-            self.stdscr.addstr(int(maxy / 2) + 1, int((maxx - len(msg2)) / 2), msg2)
+            if self._facade.is_ready:
+
+                if self._facade.spa is not None:
+                    lines.append(f"{self._facade.name} is ready")
+                    lines.append("")
+                    lines.append(f"{self._facade.water_heater}")
+                    for pump in self._facade.pumps:
+                        lines.append(f"{pump}")
+                    for blower in self._facade.blowers:
+                        lines.append(f"{blower}")
+                    for light in self._facade.lights:
+                        lines.append(f"{light}")
+                    for reminder in self._facade.reminders:
+                        lines.append(f"{reminder}")
+                    lines.append(f"{self._facade.water_care}")
+                    for sensor in [*self._facade.sensors, *self._facade.binary_sensors]:
+                        lines.append(f"{sensor}")
+                    lines.append(f"{self._facade.eco_mode}")
+
+                elif self._facade.locator is not None:
+                    if self._facade.locator.spas is not None:
+                        for idx, spa in enumerate(self._facade.locator.spas, start=1):
+                            lines.append(f"{idx}. {spa.name} at {spa.ipaddress}")
+                            self._commands[
+                                f"{idx}"
+                            ] = lambda self=self, spa=spa: self._select_spa(spa)
+
+            lines.append("")
+            if self._facade.spa is not None:
+                lines.append("Press 'r' to rescan")
+                self._commands["r"] = self._clear_spa
+
+            lines.append("Press 'q' to exit")
+            self._commands["q"] = self.set_exit
+
+            half = int(len(lines) / 2)
+
+            for idx, line in enumerate(lines):
+                self.stdscr.addstr(
+                    int(maxy / 2) - half + idx, int((maxx - len(line)) / 2), line
+                )
+
             self.stdscr.addstr(
                 maxy - 2,
                 1,
-                f"Hello {self._counter}, Status: {self._facade.status_line}, char: {self._last_char}",
+                f"{datetime.now():%x %X} - Status: {self._facade.status_line}",
             )
 
         except _curses.error:
@@ -145,6 +188,7 @@ class CUI(AbstractDisplay, AsyncTasks):
         # window.refresh()
 
     def handle_char(self, char: int) -> None:
-        if chr(char) == "q":
-            self.set_exit()
+        cmd = chr(char)
+        if cmd in self._commands:
+            self._commands[cmd]()
         self._last_char = char

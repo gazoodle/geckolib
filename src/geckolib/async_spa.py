@@ -204,7 +204,8 @@ class GeckoAsyncSpa(Observable):
         self._taskman.add_task(
             GeckoPackCommandProtocolHandler().consume(
                 self._protocol, self._protocol.queue
-            )
+            ),
+            "Pack command handler",
         )
         self._protocol.queue_send(
             GeckoPackCommandProtocolHandler.set_value(

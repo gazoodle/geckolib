@@ -34,8 +34,20 @@ class Config:
             return self._config[CK_DEFAULT][CK_SPA_ID]
         return None
 
+    def set_spa_id(self, spa_id) -> None:
+        if spa_id is None:
+            self._config.remove_option(CK_DEFAULT, CK_SPA_ID)
+        else:
+            self._config[CK_DEFAULT][CK_SPA_ID] = spa_id
+
     @property
     def spa_address(self) -> str:
         if CK_SPA_ADDR in self._config[CK_DEFAULT]:
             return self._config[CK_DEFAULT][CK_SPA_ADDR]
         return None
+
+    def set_spa_address(self, spa_address) -> None:
+        if spa_address is None:
+            self._config.remove_option(CK_DEFAULT, CK_SPA_ADDR)
+        else:
+            self._config[CK_DEFAULT][CK_SPA_ADDR] = spa_address
