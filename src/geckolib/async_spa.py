@@ -117,7 +117,9 @@ class GeckoAsyncSpa(Observable):
             "Unhandled packet",
         )
         self._taskman.add_task(
-            GeckoPacketProtocolHandler().consume(self._protocol),
+            GeckoPacketProtocolHandler(on_handled=self._on_packet).consume(
+                self._protocol
+            ),
             "Packet handler",
         )
         self._taskman.add_task(
@@ -159,6 +161,9 @@ class GeckoAsyncSpa(Observable):
         if self._protocol is None:
             return False
         return self._protocol.isopen
+
+    def _on_packet(self, handler, socket, sender):
+        self._protocol.datagram_received(handler.packet_content, handler.parms)
 
     def _on_ping_response(self, _handler, _socket, _sender):
         self._last_ping = time.monotonic()

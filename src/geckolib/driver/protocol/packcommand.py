@@ -42,6 +42,9 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                     data,
                 ]
             ),
+            timeout=2,
+            retry_count=10,
+            on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )
 
@@ -56,6 +59,9 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                     ),
                 ]
             ),
+            timeout=2,
+            retry_count=10,
+            on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )
 

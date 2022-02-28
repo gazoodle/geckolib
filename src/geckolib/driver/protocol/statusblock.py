@@ -24,7 +24,9 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
             content=b"".join(
                 [STATU_VERB, struct.pack(REQUEST_FORMAT, seq, start, length)]
             ),
+            timeout=2,
             retry_count=5,
+            on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )
 

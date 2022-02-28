@@ -14,7 +14,7 @@ import time
 from datetime import datetime
 from abstract_display import AbstractDisplay
 from config import Config
-from context import AsyncTasks, GeckoAsyncFacade, GeckoAsyncLocator
+from context import AsyncTasks, GeckoAsyncFacade
 
 # Replace with your own UUID, see https://www.uuidgenerator.net/>
 CLIENT_ID = "1eca3a27-9b00-476a-9645-d13f4b1f9b56"

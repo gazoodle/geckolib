@@ -105,11 +105,13 @@ class GeckoUdpProtocolHandler:
                 else:
                     self._retry_count -= 1
                     self._reset_timeout()
-                    _LOGGER.debug("Handler %s retry count %d", self, self._retry_count)
+                    _LOGGER.debug(
+                        "Retry handler %s retry count %d", self, self._retry_count
+                    )
                     protocol.queue_send(self, self.last_destination)
 
             if self.should_remove_handler:
-                _LOGGER.debug("%s needs to be stopped", self)
+                _LOGGER.debug("%s will be removed, consume loop terminating", self)
                 if self._on_complete is not None:
                     self._on_complete(self, protocol)
                 break

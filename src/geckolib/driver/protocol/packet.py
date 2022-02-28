@@ -89,8 +89,6 @@ class GeckoPacketProtocolHandler(GeckoUdpProtocolHandler):
         if socket is not None:
             if isinstance(socket, GeckoUdpSocket):
                 socket.dispatch_recevied_data(self._packet_content, self._parms)
-            else:
-                socket.datagram_received(self._packet_content, self._parms)
 
     @property
     def packet_content(self):
