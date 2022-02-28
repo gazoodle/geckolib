@@ -21,7 +21,6 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self.transport = None
         self._on_connection_lost = on_connection_lost
 
-        self._busy_count = 0
         self._sequence_counter = 0
         self._last_send_time = time.monotonic()
 
@@ -54,13 +53,6 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     @property
     def queue(self):
         return self._queue
-
-    @property
-    def isbusy(self):
-        """Check to see if the socket is busy"""
-        if self._send_handlers:
-            return True
-        return self._busy_count > 0
 
     def queue_send(self, protocol_handler: GeckoUdpProtocolHandler, destination: tuple):
         """Queue a message to be sent async later"""
