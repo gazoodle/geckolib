@@ -84,23 +84,34 @@ class GeckoUdpProtocolHandler:
         if self._on_handled is not None:
             self._on_handled(self, socket, sender)
 
-    async def consume(self, socket, queue):
+    async def consume(self, protocol):
         """Async coroutine to handle datagram. Uses the sync functions to
         manage this at present"""
         while True:
-            if queue.head is not None:
-                data, sender = queue.head
+            if protocol.queue.head is not None:
+                data, sender = protocol.queue.head
                 if self.can_handle(data, sender):
-                    queue.pop()
-                    self.handle(socket, data, sender)
-                    self.handled(socket, sender)
+                    protocol.queue.pop()
+                    self.handle(protocol, data, sender)
+                    self.handled(protocol, sender)
             await asyncio.sleep(0)
 
-            # Here is where retry and so on are handled in async world...
+            if self.has_timedout:
+                _LOGGER.debug("Handler %s has timed out", self)
+                if self._retry_count == 0:
+                    _LOGGER.debug("Too many retries for %s, retry failed", self)
+                    if self._on_retry_failed is not None:
+                        self._on_retry_failed(self, protocol)
+                else:
+                    self._retry_count -= 1
+                    self._reset_timeout()
+                    _LOGGER.debug("Handler %s retry count %d", self, self._retry_count)
+                    protocol.queue_send(self, self.last_destination)
+
             if self.should_remove_handler:
                 _LOGGER.debug("%s needs to be stopped", self)
                 if self._on_complete is not None:
-                    self._on_complete(self, socket, queue)
+                    self._on_complete(self, protocol)
                 break
 
     ##########################################################################

@@ -14,35 +14,19 @@
     sure is not needed in the async world ... time will tell
 
 """
-import time
 import os
-
-from context import GeckoAsyncLocator
-from cui import CUI
-from curses import wrapper
-
 import logging
 import asyncio
 
+from cui import CUI
+from curses import wrapper
 
-# Module globals
+
 _LOGGER = logging.getLogger(__name__)
-_FACADE = None
 
 
-########################################################################################
-#
-#                               Utility functions
-#
 def install_logging():
     """Everyone needs logging, you say when, you say where, you say how much"""
-    # stream_logger = logging.StreamHandler()
-    # stream_logger.setLevel(logging.DEBUG)
-    # stream_logger.setFormatter(
-    #    logging.Formatter("%(asctime)s> %(levelname)s %(message)s")
-    # )
-    # logging.getLogger().addHandler(stream_logger)
-
     os.remove("cui.log")
     file_logger = logging.FileHandler("cui.log")
     file_logger.setLevel(logging.DEBUG)
@@ -53,114 +37,16 @@ def install_logging():
     logging.getLogger().setLevel(logging.DEBUG)
 
 
-########################################################################################
-#
-#   Integration phase. This is when the user elects to manage a spa with their
-#   automation system. You can either scan the network for all suitable spas, or if the
-#   is on an a subnet that doesn't support broadcast, you can provide an IP address to
-#   work with.
-#
-#   Once the spa has been found, or you've prompted the user to select it from a list
-#   you store the address (and optionally the IP address) in the automation system
-#   persistent configuration so that you can find it again without having to go through
-#   this process
-#
-async def locate_spa(force_address=None):
-
-    print("Locating spas on your network ", end="", flush=True)
-
-    locator = GeckoAsyncLocator(CLIENT_ID, static_ip=force_address)
-    locator.discover(asyncio.get_running_loop())
-
-    # We can perform other operations while this is progressing, like output a dot
-    while not locator.has_had_enough_time:
-        await asyncio.sleep(1)
-        print(".", end="", flush=True)
-
-    print("")
-
-    if len(locator.spas) == 0:
-        print("Sorry, cannot continue as there were no spas detected on your network")
-        return False
-
-    # For simplicity sake we take the first spa, but your UI ought to offer
-    # to choose one of them. This is a list of GeckoSpaDescriptor. The class
-    # offers the following properties needed to establish a connection to the
-    # spa
-    #
-    #   GeckoSpaDescriptor.client_identifier    - A client identifier
-    #   GeckoSpaDescriptor.identifier           - The spa identifier (binary)
-    #   GeckoSpaDescriptor.identifier_as_string - The spa identifier (string)
-    #   GeckoSpaDescriptor.name                 - The spa name
-    #   GeckoSpaDescriptor.ipaddress            - The in.touch2 module ip address
-    #   GeckoSpaDescriptor.port                 - The UDP port of the in.touch2 module
-    spa = locator.spas[0]
-
-    print(f"Located spa '{spa}' at {spa.ipaddress}:{spa.port} to use")
-
-    # Save the information about the chosen spa to the config block. The only
-    # mandatory piece of information is the identifier. I choose to save the
-    # address too since it speeds up the initial find, but this is done
-    # knowing that on my LAN (and many others) the in.touch2 module gets the
-    # same IP address. If this isn't the case, don't provide the address
-
-    # _CONFIG[CK_DEFAULT][CK_SPA_ID] = spa.identifier_as_string
-    # _CONFIG[CK_DEFAULT][CK_SPA_ADDR] = spa.ipaddress
-    # save_config()
-
-
-########################################################################################
-#
-#   Automation start phase. This is when the automation system is starting and you will
-#   get the persistence informatioin about the spa that you had previously stored in the
-#   automation configuration system and try to reconnect to it.
-#
-
-
-def connect_spa(spa_id, spa_address):
-    print(f"Connecting to spa {spa_id} at {spa_address}")
-
-    global _FACADE
-    _FACADE = GeckoLocator.get_facade(CLIENT_ID, spa_id, spa_addr)
-
-    # Now we have a facade, wait for it to be connected
-    print(f"Connecting to {_FACADE.name} ", end="", flush=True)
-    while not _FACADE.is_connected:
-        # Could also be `await asyncio.sleep(1)`
-        _FACADE.wait(1)
-        print(".", end="", flush=True)
-    print(" connected")
-
-
-########################################################################################
-#
-#
-
-
 async def async_main(stdscr):
+    """Async main manages the console UI"""
     async with CUI(stdscr):
         await asyncio.sleep(0)
 
 
 def main(stdscr):
-
+    """This main installs logging and then runs the async loop"""
     install_logging()
     asyncio.run(async_main(stdscr))
-
-    # return
-
-    # We have not previously run the client, we need to run a discovery
-    # if CK_SPA_ID not in _CONFIG[CK_DEFAULT]:
-    #    if not await locate_spa():
-    #        return
-
-    # Get the spa info from the config block
-    # spa_id = _CONFIG[CK_DEFAULT][CK_SPA_ID]
-    # spa_addr = _CONFIG[CK_DEFAULT][CK_SPA_ADDR]
-    # connect_spa(spa_id, spa_addr)
-
-    # for item in _FACADE.all_automation_devices:
-    #    print(item)
 
 
 ########################################################################################

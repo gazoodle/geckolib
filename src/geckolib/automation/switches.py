@@ -10,10 +10,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoSwitch(GeckoAutomationBase):
-    """ A switch can turn something on or off, and can report the current state """
+    """A switch can turn something on or off, and can report the current state"""
 
     def __init__(self, facade, key, props):
-        """ props is a tuple of (name, keypad_button, state_key, device_class) """
+        """props is a tuple of (name, keypad_button, state_key, device_class)"""
         super().__init__(facade, props[0], key)
         self.ui_key = key
         self._accessor = self._spa.accessors[props[2]]
@@ -24,13 +24,13 @@ class GeckoSwitch(GeckoAutomationBase):
 
     @property
     def is_on(self):
-        """ True if the device is ON, False otherwise """
+        """True if the device is ON, False otherwise"""
         if self._accessor.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
             return self._state_sensor.state
         return self._state_sensor.state != "OFF"
 
     def turn_on(self):
-        """ Turn the device ON, but does nothing if it is already ON """
+        """Turn the device ON, but does nothing if it is already ON"""
         _LOGGER.debug("%s turn ON", self.name)
         if self.is_on:
             _LOGGER.debug("%s request to turn ON ignored, it's already on!", self.name)
@@ -42,7 +42,7 @@ class GeckoSwitch(GeckoAutomationBase):
         self._accessor.value = True
 
     def turn_off(self):
-        """ Turn the device OFF, but does nothing if it is already OFF """
+        """Turn the device OFF, but does nothing if it is already OFF"""
         _LOGGER.debug("%s turn OFF", self.name)
         if not self.is_on:
             _LOGGER.debug(

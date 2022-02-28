@@ -6,7 +6,7 @@ import logging
 from ..const import GeckoConstants
 from .observable import Observable
 
-logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class GeckoStructAccessor(Observable):
@@ -66,15 +66,6 @@ class GeckoStructAccessor(Observable):
         if intersection_end - intersection_start <= 0:
             return
 
-        logger.debug(
-            "Accessor %s @ %d-%d notified of change at %d-%d",
-            self.tag,
-            self.pos,
-            self.pos + self.length,
-            offset,
-            offset + len,
-        )
-
         old_value = self._get_value(previous)
         new_value = self.value
 
@@ -82,7 +73,7 @@ class GeckoStructAccessor(Observable):
         if new_value == old_value:
             return
 
-        logger.info(
+        _LOGGER.info(
             "Value for %s changed from %s to %s", self.tag, old_value, new_value
         )
 
@@ -96,30 +87,19 @@ class GeckoStructAccessor(Observable):
         data = struct.unpack(
             self.format, status_block[self.pos : self.pos + self.length]
         )[0]
-        logger.debug(
-            "Accessor %s @ %s, %s raw data = %x", self.tag, self.pos, self.type, data
-        )
         if self.bitpos is not None:
             data = (data >> self.bitpos) & self.bitmask
-            logger.debug(
-                "BitPos %s accessor %s adjusted data = %x",
-                (self.bitpos, self.bitmask),
-                self.tag,
-                data,
-            )
         return data
 
     def _get_value(self, status_block=None):
         data = self._get_raw_value(status_block)
         if self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
             data = data == 1
-            logger.debug("Bool accessor %s adjusted data = %s", self.tag, data)
         elif self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             try:
                 data = self.items[data]
-                logger.debug("Enum accessor %s adjusted data = %s", self.tag, data)
             except IndexError:
-                logger.exception(
+                _LOGGER.exception(
                     "Enum accessor %s out-of-range for %s. Value is %s",
                     self.tag,
                     self.items,
@@ -130,17 +110,15 @@ class GeckoStructAccessor(Observable):
         return data
 
     def _set_value(self, newvalue):
-        """ Set a value in the pack structure using the initialized declaration """
+        """Set a value in the pack structure using the initialized declaration"""
         if self.read_write is None:
             raise Exception(
                 GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag)
             )
 
         if self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
-            logger.debug("Enum accessor %s adjusted from %s", self.tag, newvalue)
             newvalue = self.items.index(newvalue)
         elif self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
-            logger.debug(f"Time accessor {self.tag} adjusted from {newvalue}")
             bits = newvalue.split(":")
             newvalue = (int(bits[0]) * 256) + (int(bits[1]) % 256)
         elif self.type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE and isinstance(
@@ -161,17 +139,11 @@ class GeckoStructAccessor(Observable):
             self.format, self.struct.status_block[self.pos : self.pos + self.length]
         )[0]
         if self.bitpos is not None:
-            logger.debug(
-                "Bitpos %s accessor %s adjusted from %s",
-                (self.bitpos, self.bitmask),
-                self.tag,
-                newvalue,
-            )
             newvalue = (existing & ~(self.bitmask << self.bitpos)) | (
                 (newvalue & self.bitmask) << self.bitpos
             )
 
-        logger.debug(
+        _LOGGER.debug(
             "Accessor %s @ %s, %s setting value to %s, existing value was %s. "
             "Length is %d",
             self.tag,
@@ -187,7 +159,7 @@ class GeckoStructAccessor(Observable):
 
     @property
     def value(self):
-        """ Get a value from the pack structure using the initialized declaration """
+        """Get a value from the pack structure using the initialized declaration"""
         return self._get_value()
 
     @property
@@ -198,7 +170,7 @@ class GeckoStructAccessor(Observable):
 
     @value.setter
     def value(self, newvalue):
-        """ Set a value in the pack structure using the initialized declaration """
+        """Set a value in the pack structure using the initialized declaration"""
         self._set_value(newvalue)
 
     def __repr__(self):
@@ -235,7 +207,7 @@ class GeckoTempStructAccessor(GeckoWordStructAccessor):
     from freezing are handled"""
 
     def _get_value(self, status_block=None):
-        """ Get the temperature """
+        """Get the temperature"""
         # Internally, temp is in farenheight tenths, offset from freezing point
         temp = super()._get_value(status_block)
         units = self.struct.accessors[GeckoConstants.KEY_TEMP_UNITS].value
@@ -246,7 +218,7 @@ class GeckoTempStructAccessor(GeckoWordStructAccessor):
         return temp
 
     def _set_value(self, temp):
-        """ Set the temperature """
+        """Set the temperature"""
         units = self.struct.accessors[GeckoConstants.KEY_TEMP_UNITS].value
         if units == "C":
             temp = float(temp) * 18.0

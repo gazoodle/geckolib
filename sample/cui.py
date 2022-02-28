@@ -156,6 +156,16 @@ class CUI(AbstractDisplay, AsyncTasks):
 
             lines.append("")
             if self._facade.spa is not None:
+                if self._facade.is_ready:
+                    lines.append("Press 'b' to toggle blower")
+                    if self._facade.blowers[0].is_on:
+                        self._commands["b"] = lambda: {
+                            self._facade.blowers[0].turn_off()
+                        }
+                    else:
+                        self._commands["b"] = lambda: {
+                            self._facade.blowers[0].turn_on()
+                        }
                 lines.append("Press 'r' to rescan")
                 self._commands["r"] = self._clear_spa
 

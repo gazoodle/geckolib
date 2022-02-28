@@ -91,9 +91,7 @@ class GeckoAsyncStructure:
     ):
         request._on_handled = self._on_status_block_received
         self._status_block_offset = request.start
-        taskman_.add_task(
-            request.consume(protocol_, protocol_.queue), "Status block handler"
-        )
+        taskman_.add_task(request.consume(protocol_), "Status block handler")
         self._next_expected = 0
         self._status_block_segments = []
         protocol_.queue_send(request, sender)

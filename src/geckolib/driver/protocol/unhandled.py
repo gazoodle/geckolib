@@ -14,17 +14,17 @@ class GeckoUnhandledProtocolHandler(GeckoUdpProtocolHandler):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    async def consume(self, socket, queue):
+    async def consume(self, protocol):
         while True:
-            if queue.head is not None:
+            if protocol.queue.head is not None:
                 # First time we see this, we mark the queue
-                queue.mark()
+                protocol.queue.mark()
                 # Allow the rest of the tasks to operate
                 await asyncio.sleep(0)
                 # If we get here then no one processed the datagram
                 # so we can remove it and moan about it
-                if queue.is_marked:
-                    data, sender = queue.head
-                    queue.pop()
+                if protocol.queue.is_marked:
+                    data, sender = protocol.queue.head
+                    protocol.queue.pop()
                     _LOGGER.debug("No handler for %s from %s found", data, sender)
             await asyncio.sleep(0)

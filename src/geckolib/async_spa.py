@@ -44,6 +44,7 @@ class GeckoSpaConnectionState(Enum):
     CANNOT_FIND_SPA_PACK = 99
     CANNOT_FIND_CONFIG_VERSION = 98
     CANNOT_FIND_LOG_VERSION = 97
+    NO_PING_RESPONSE = 96
 
 
 class GeckoAsyncSpa(Observable):
@@ -112,24 +113,25 @@ class GeckoAsyncSpa(Observable):
         self._on_change(self)
 
         self._taskman.add_task(
-            GeckoUnhandledProtocolHandler().consume(None, self._protocol.queue),
+            GeckoUnhandledProtocolHandler().consume(self._protocol),
             "Unhandled packet",
         )
         self._taskman.add_task(
-            GeckoPacketProtocolHandler().consume(self._protocol, self._protocol.queue),
+            GeckoPacketProtocolHandler().consume(self._protocol),
             "Packet handler",
         )
         self._taskman.add_task(
             GeckoPartialStatusBlockProtocolHandler(
                 on_handled=self._on_partial_status_update
-            ).consume(self._protocol, self._protocol.queue),
+            ).consume(self._protocol),
             "Partial status block handler",
         )
         self._taskman.add_task(
-            GeckoRFErrProtocolHandler().consume(self._protocol, self._protocol.queue),
+            GeckoRFErrProtocolHandler().consume(self._protocol),
             "RFErr handler",
         )
         self._taskman.add_task(self.ping_loop(), "Ping loop")
+        self._taskman.add_task(self.refresh_loop(), "Refresh loop")
         self._set_connection_state(GeckoSpaConnectionState.PING_STARTED)
 
         version_handler = GeckoVersionProtocolHandler.request(
@@ -138,7 +140,7 @@ class GeckoAsyncSpa(Observable):
             on_handled=self._on_version_received,
         )
         self._taskman.add_task(
-            version_handler.consume(self._protocol, self._protocol.queue),
+            version_handler.consume(self._protocol),
             "Version handler",
         )
         self._protocol.queue_send(version_handler, self.sendparms)
@@ -170,7 +172,7 @@ class GeckoAsyncSpa(Observable):
         )
 
         self._taskman.add_task(
-            ping_handler.consume(None, self._protocol.queue), "Ping response handler"
+            ping_handler.consume(self._protocol), "Ping response handler"
         )
 
         while self.isopen:
@@ -187,11 +189,28 @@ class GeckoAsyncSpa(Observable):
 
         _LOGGER.info("Ping loop finished")
 
+    async def refresh_loop(self):
+        _LOGGER.info("Refresh loop started")
+        while self.isopen:
+            if self.connection_state == GeckoSpaConnectionState.CONNECTED:
+                """Refresh the live spa data block"""
+                self.struct.retry_request(
+                    self._protocol,
+                    self._taskman,
+                    GeckoStatusBlockProtocolHandler.request(
+                        self._protocol.get_and_increment_sequence_counter(),
+                        self.log_class.begin,
+                        self.log_class.end,
+                        parms=self.sendparms,
+                    ),
+                    self.sendparms,
+                )
+                await asyncio.sleep(5)
+            await asyncio.sleep(0)
+
     def _handle_no_ping_response(self):
-        _LOGGER.warning(
-            # TODO
-            "TODO: Spa is not responding to pings, need to consider what to do"
-        )
+        _LOGGER.warning("Spa is not responding to pings")
+        self._set_connection_state(GeckoSpaConnectionState.NO_PING_RESPONSE)
 
     def _on_partial_status_update(self, handler, socket, sender):
         for change in handler.changes:
@@ -202,9 +221,7 @@ class GeckoAsyncSpa(Observable):
     def _on_set_value(self, pos, length, newvalue):
         # We issue a pack command to acheive this ...
         self._taskman.add_task(
-            GeckoPackCommandProtocolHandler().consume(
-                self._protocol, self._protocol.queue
-            ),
+            GeckoPackCommandProtocolHandler().consume(self._protocol),
             "Pack command handler",
         )
         self._protocol.queue_send(
@@ -241,7 +258,7 @@ class GeckoAsyncSpa(Observable):
             on_handled=self._on_channel_received,
         )
         self._taskman.add_task(
-            get_channel_handler.consume(self._protocol, self._protocol.queue),
+            get_channel_handler.consume(self._protocol),
             "Get channel handler",
         )
         self._protocol.queue_send(
@@ -262,7 +279,7 @@ class GeckoAsyncSpa(Observable):
         )
 
         self._taskman.add_task(
-            config_file_handler.consume(self._protocol, self._protocol.queue),
+            config_file_handler.consume(self._protocol),
             "Config file handler",
         )
         self._protocol.queue_send(config_file_handler, sender)
@@ -344,7 +361,7 @@ class GeckoAsyncSpa(Observable):
             sender,
         )
 
-    def _on_status_block_complete(self, _handler, _protocol, _queue):
+    def _on_status_block_complete(self, _handler, _protocol):
         _LOGGER.debug("Status block was completed, so spa can be connected")
 
         self.struct.build_accessors(self.config_class, self.log_class)
@@ -364,6 +381,22 @@ class GeckoAsyncSpa(Observable):
     def accessors(self):
         return self.struct.accessors
 
+    def press(self, keypad):
+        """Simulate a button press"""
+        self._taskman.add_task(
+            GeckoPackCommandProtocolHandler().consume(self._protocol),
+            "Pack command handler",
+        )
+        self._protocol.queue_send(
+            GeckoPackCommandProtocolHandler.keypress(
+                self._protocol.get_and_increment_sequence_counter(),
+                self.pack_type,
+                keypad,
+                parms=self.sendparms,
+            ),
+            self.sendparms,
+        )
+
     @property
     def status_line(self) -> str:
         if self.connection_state == GeckoSpaConnectionState.DISCONNECTED:
@@ -378,5 +411,15 @@ class GeckoAsyncSpa(Observable):
             return "Got config files"
         elif self.connection_state == GeckoSpaConnectionState.CONNECTED:
             return f"Connected, last ping {int(time.monotonic() - self._last_ping)} seconds ago"
+        elif self.connection_state == GeckoSpaConnectionState.NO_PING_RESPONSE:
+            return "Spa not responding to pings"
+        elif self.connection_state == GeckoSpaConnectionState.CANNOT_FIND_SPA_PACK:
+            return "Cannot find spa pack"
+        elif (
+            self.connection_state == GeckoSpaConnectionState.CANNOT_FIND_CONFIG_VERSION
+        ):
+            return "Cannot find config version"
+        elif self.connection_state == GeckoSpaConnectionState.CANNOT_FIND_LOG_VERSION:
+            return "Cannot find log version"
         else:
             return "Uknown spa connection state"
