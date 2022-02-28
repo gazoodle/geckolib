@@ -3,6 +3,8 @@
 import logging
 import asyncio
 
+from geckolib.async_tasks import AsyncTasks
+
 from .protocol import GeckoStatusBlockProtocolHandler
 from .async_udp_protocol import GeckoAsyncUdpProtocol
 
@@ -24,7 +26,7 @@ class GeckoAsyncStructure:
         # Install a set of handlers
 
     def replace_status_block_segment(self, offset, segment):
-        """ Replace a segment of the status block """
+        """Replace a segment of the status block"""
         previous_block = self._status_block
         segment_len = len(segment)
         self._status_block = (
@@ -80,20 +82,22 @@ class GeckoAsyncStructure:
         # User devices are those that have a Ud in the tag name
         self.user_demands = log_class.user_demand_keys
 
-    async def retry_request(
+    def retry_request(
         self,
         protocol_: GeckoAsyncUdpProtocol,
+        taskman_: AsyncTasks,
         request: GeckoStatusBlockProtocolHandler,
         sender: tuple,
     ):
         request._on_handled = self._on_status_block_received
         self._status_block_offset = request.start
-        request_task = asyncio.create_task(protocol_.add_receive_handler(request))
+        taskman_.add_task(
+            request.consume(protocol_, protocol_.queue), "Status block handler"
+        )
         self._next_expected = 0
         self._status_block_segments = []
         protocol_.queue_send(request, sender)
-        await request_task
 
-    async def set_value(self, pos, length, newvalue):
+    def set_value(self, pos, length, newvalue):
         # Delegate this
-        await self._on_set_value(pos, length, newvalue)
+        self._on_set_value(pos, length, newvalue)

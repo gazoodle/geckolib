@@ -74,7 +74,7 @@ class CUI(AbstractDisplay, AsyncTasks):
 
     async def __aenter__(self):
         # self.add_task(self._counter_loop(), "Counter")
-        # self.add_task(self._timer_loop(), "Timer")
+        self.add_task(self._timer_loop(), "Timer")
         self.add_task(self._sequence_pump(), "Sequence pump")
         await self._facade.__aenter__()
         await self.run()

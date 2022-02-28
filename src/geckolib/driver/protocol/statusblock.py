@@ -75,8 +75,6 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
             self.length,
             self.data,
         )
-        # Only allow handler to get removed when we've processed the last block
-        # self._should_remove_handler = self.next == 0
 
     def __repr__(self):
         return (

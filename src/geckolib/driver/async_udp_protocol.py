@@ -32,7 +32,9 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self.transport = transport
 
     def connection_lost(self, exc):
-        _LOGGER.debug("GeckoAsyncUdpProtocol: connection lost from %s (%s)", self.transport, exc)
+        _LOGGER.debug(
+            "GeckoAsyncUdpProtocol: connection lost from %s (%s)", self.transport, exc
+        )
         self.transport = None
         if self._on_connection_lost is not None:
             self._on_connection_lost.set_result(True)
@@ -40,7 +42,6 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     def error_received(self, exc):
         _LOGGER.exception("GeckoAsyncUdpProtocol: Exception received %s", exc)
         # TODO: What do we want to do with this?
-
 
     @property
     def isopen(self):
@@ -65,7 +66,8 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         """Queue a message to be sent async later"""
         if destination is None:
             raise AssertionError(
-                f"Cannot have destination set to None for {protocol_handler}")
+                f"Cannot have destination set to None for {protocol_handler}"
+            )
         # For convenience, the entire destination sometimes gets passed in,
         # this fixes it to be just the address and port
         if len(destination) > 2:
@@ -78,9 +80,8 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self._last_send_time = time.monotonic()
 
     def get_and_increment_sequence_counter(self):
-        with self._lock:
-            self._sequence_counter += 1
-            return self._sequence_counter % 256
+        self._sequence_counter += 1
+        return self._sequence_counter % 256
 
     def datagram_received(self, data, addr):
         _LOGGER.debug("Received %s from %s", data, addr)

@@ -44,6 +44,7 @@ class GeckoUdpProtocolHandler:
         self._timeout_in_seconds = kwargs.get("timeout", 0)
         self._retry_count = kwargs.get("retry_count", 0)
         self._on_retry_failed = kwargs.get("on_retry_failed", None)
+        self._on_complete = kwargs.get("on_complete", None)
         self._should_remove_handler = False
 
     ##########################################################################
@@ -97,9 +98,10 @@ class GeckoUdpProtocolHandler:
 
             # Here is where retry and so on are handled in async world...
             if self.should_remove_handler:
-                _LOGGER.debug("%s needs to be stopped")
+                _LOGGER.debug("%s needs to be stopped", self)
+                if self._on_complete is not None:
+                    self._on_complete(self, socket, queue)
                 break
-
 
     ##########################################################################
     #
@@ -137,7 +139,7 @@ class GeckoUdpProtocolHandler:
         return True
 
     def loop(self, socket):
-        """ Executed each time around the socket loop """
+        """Executed each time around the socket loop"""
         if not self.has_timedout:
             return
         _LOGGER.debug("Handler has timed out")
