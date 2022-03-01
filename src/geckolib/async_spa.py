@@ -335,6 +335,9 @@ class GeckoAsyncSpa(Observable):
         while self.isopen:
             if self.connection_state == GeckoSpaConnectionState.CONNECTED:
                 """Refresh the live spa data block"""
+                await asyncio.sleep(
+                    GeckoConstants.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS
+                )
                 if not await self.struct.get(
                     self._protocol,
                     lambda: GeckoStatusBlockProtocolHandler.request(
@@ -347,9 +350,6 @@ class GeckoAsyncSpa(Observable):
                     self._set_connection_state(
                         GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED
                     )
-                await asyncio.sleep(
-                    GeckoConstants.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS
-                )
             await asyncio.sleep(0)
 
     def _on_partial_status_update(self, handler, socket, sender):
