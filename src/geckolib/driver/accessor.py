@@ -219,7 +219,7 @@ class GeckoStructAccessor(Observable):
         )
 
         # We can't handle this here, we must delegate via the structure
-        self.struct.async_set_value(self.pos, self.length, newvalue)
+        await self.struct.async_set_value(self.pos, self.length, newvalue)
 
     def __repr__(self):
         return f"{self.tag!r}: {self.value!r}"

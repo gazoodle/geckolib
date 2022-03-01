@@ -7,12 +7,9 @@ import socket
 import time
 from enum import Enum
 
-
 from .const import GeckoConstants
 from .driver import (
-    GeckoUdpSocket,
     GeckoAsyncUdpProtocol,
-    GeckoHelloProtocolHandler,
     GeckoPacketProtocolHandler,
     GeckoPingProtocolHandler,
     GeckoVersionProtocolHandler,
@@ -296,7 +293,14 @@ class GeckoAsyncSpa(Observable):
         return self._protocol.isopen
 
     def _on_packet(self, handler, socket, sender):
-        self._protocol.datagram_received(handler.packet_content, handler.parms)
+        if handler.parms == self.sendparms:
+            self._protocol.datagram_received(handler.packet_content, handler.parms)
+        else:
+            _LOGGER.warning(
+                "Dropping packet from %s because it didn't match %s",
+                handler.parms,
+                self.sendparms,
+            )
 
     async def ping_loop(self):
         _LOGGER.info("Ping loop started")
@@ -413,6 +417,18 @@ class GeckoAsyncSpa(Observable):
             return None
 
         return get_watercare_handler.mode
+
+    async def async_set_watercare(self, new_mode) -> None:
+        set_watercare_handler = await self._protocol.get(
+            lambda: GeckoWatercareProtocolHandler.set(
+                self._protocol.get_and_increment_sequence_counter(),
+                new_mode,
+                parms=self.sendparms,
+            )
+        )
+
+        if set_watercare_handler is None:
+            self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
 
     @property
     def status_line(self) -> str:

@@ -165,12 +165,13 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                     for device in self.all_automation_devices:
                         device.watch(self._on_change)
 
-                    self.water_care.set_watercare_mode(
+                    self.water_care.change_watercare_mode(
                         await self.spa.async_get_watercare()
                     )
 
                     _LOGGER.debug("Facade is now ready")
                     self._ready = True
+                    self._on_change(self, False, True)
 
             finally:
                 # Keep everything running
