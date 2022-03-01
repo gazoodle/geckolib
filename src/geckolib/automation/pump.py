@@ -9,10 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 class GeckoPump(GeckoAutomationBase):
-    """ Pumps are similar to switches, but might have variable speeds too """
+    """Pumps are similar to switches, but might have variable speeds too"""
 
     def __init__(self, facade, key, props, user_demand):
-        """ props is a tuple of (name, keypad_button, state_key, device_class) """
+        """props is a tuple of (name, keypad_button, state_key, device_class)"""
         super().__init__(facade, props[0], key)
         self.ui_key = key
         self._state_sensor = GeckoSensor(
@@ -35,6 +35,17 @@ class GeckoPump(GeckoAutomationBase):
         try:
             logger.debug("%s set mode %s", self.name, mode)
             self.facade.spa.accessors[self._user_demand["demand"]].value = mode
+        except Exception:  # pylint: disable=broad-except
+            logger.exception(
+                "Exception handling setting %s=%s", self._user_demand["demand"], mode
+            )
+
+    async def async_set_mode(self, mode):
+        try:
+            logger.debug("%s async set mode %s", self.name, mode)
+            await self.facade.spa.accessors[
+                self._user_demand["demand"]
+            ].async_set_value(mode)
         except Exception:  # pylint: disable=broad-except
             logger.exception(
                 "Exception handling setting %s=%s", self._user_demand["demand"], mode
