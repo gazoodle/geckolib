@@ -97,6 +97,11 @@ class GeckoAsyncSpa(Observable):
     def connection_state(self):
         return self._connection_state
 
+    @property
+    def revision(self):
+        """Get the revision of the spa pack structure used to generate the pack modules"""
+        return self.pack_class.revision
+
     def _set_connection_state(self, state: GeckoSpaConnectionState):
         old_state = self._connection_state
         self._connection_state = state

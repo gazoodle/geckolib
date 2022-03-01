@@ -273,3 +273,12 @@ class GeckoTempStructAccessor(GeckoWordStructAccessor):
         else:
             temp = (float(temp) * 10.0) - 320
         super()._set_value(int(temp))
+
+    async def async_set_value(self, temp):
+        """Set the temperature"""
+        units = self.struct.accessors[GeckoConstants.KEY_TEMP_UNITS].value
+        if units == "C":
+            temp = float(temp) * 18.0
+        else:
+            temp = (float(temp) * 10.0) - 320
+        await super().async_set_value(int(temp))
