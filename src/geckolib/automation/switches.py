@@ -43,14 +43,14 @@ class GeckoSwitch(GeckoAutomationBase):
 
     async def async_turn_on(self):
         """Turn the device ON, but does nothing if it is already ON"""
-        _LOGGER.debug("%s turn ON", self.name)
+        _LOGGER.debug("%s async turn ON", self.name)
         if self.is_on:
             _LOGGER.debug("%s request to turn ON ignored, it's already on!", self.name)
             return
         if self._keypad_button != 0:
             await self._spa.async_press(self._keypad_button)
             return
-        _LOGGER.debug("Set state on accessor")
+        _LOGGER.debug("Set async state on accessor")
         await self._accessor.async_set_value(True)
 
     def turn_off(self):
@@ -69,7 +69,7 @@ class GeckoSwitch(GeckoAutomationBase):
 
     async def async_turn_off(self):
         """Turn the device OFF, but does nothing if it is already OFF"""
-        _LOGGER.debug("%s turn OFF", self.name)
+        _LOGGER.debug("%s async turn OFF", self.name)
         if not self.is_on:
             _LOGGER.debug(
                 "%s request to turn OFF ignored, it's already off!", self.name
@@ -78,7 +78,7 @@ class GeckoSwitch(GeckoAutomationBase):
         if self._keypad_button != 0:
             await self._spa.async_press(self._keypad_button)
             return
-        _LOGGER.debug("Set state on accessor")
+        _LOGGER.debug("Set async state on accessor")
         await self._accessor.async_set_value(False)
 
     def state_sensor(self):

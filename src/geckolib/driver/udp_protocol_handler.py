@@ -103,6 +103,9 @@ class GeckoUdpProtocolHandler:
             await asyncio.sleep(0)
 
     async def consume(self, protocol):
+        if self._timeout_in_seconds > 0:
+            raise RuntimeError("Cannot use consume on handler with timeout")
+
         """Async coroutine to handle datagram. Uses the sync functions to
         manage this at present"""
         while True:
@@ -113,20 +116,6 @@ class GeckoUdpProtocolHandler:
                     self.handle(protocol, data, sender)
                     self.handled(protocol, sender)
             await asyncio.sleep(0)
-
-            if self.has_timedout:
-                _LOGGER.debug("Handler %s has timed out", self)
-                if self._retry_count == 0:
-                    _LOGGER.debug("Too many retries for %s, retry failed", self)
-                    if self._on_retry_failed is not None:
-                        self._on_retry_failed(self, protocol)
-                else:
-                    self._retry_count -= 1
-                    self._reset_timeout()
-                    _LOGGER.debug(
-                        "Retry handler %s retry count %d", self, self._retry_count
-                    )
-                    protocol.queue_send(self)
 
             if self.should_remove_handler:
                 _LOGGER.debug("%s will be removed, consume loop terminating", self)

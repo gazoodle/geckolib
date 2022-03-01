@@ -52,58 +52,62 @@ class GeckoAsyncStructure:
         self.user_demands = log_class.user_demand_keys
 
     async def get(self, protocol, create_func, retry_count=10):
-        while retry_count > 0:
+        _LOGGER.debug("Async get for struct, acquire the lock")
+        async with protocol.Lock:
+            _LOGGER.debug("Lock acquired")
 
-            # Create the request
-            request = create_func()
+            while retry_count > 0:
 
-            # Queue it for delivery
-            protocol.queue_send(request)
+                # Create the request
+                request = create_func()
 
-            # Setup some controls for the multiple responses expected
-            next_expected = 0
-            segments = []
+                # Queue it for delivery
+                protocol.queue_send(request)
 
-            while True:
+                # Setup some controls for the multiple responses expected
+                next_expected = 0
+                segments = []
 
-                # Wait for a response up to a certain amount of time
-                if await request.wait_for_response(protocol):
+                while True:
 
-                    if next_expected == request.sequence:
+                    # Wait for a response up to a certain amount of time
+                    if await request.wait_for_response(protocol):
 
-                        segments.append(request.data)
-                        next_expected = request.next
+                        if next_expected == request.sequence:
 
-                        if request.next == 0:
+                            segments.append(request.data)
+                            next_expected = request.next
+
+                            if request.next == 0:
+
+                                _LOGGER.debug(
+                                    "Status block segments complete, update and complete"
+                                )
+
+                                self.replace_status_block_segment(
+                                    request.start,
+                                    b"".join(segments),
+                                )
+
+                                return True
+
+                        else:
 
                             _LOGGER.debug(
-                                "Status block segments complete, update and complete"
+                                "Out-of-sequence status block segment %d - ignored",
+                                request.sequence,
                             )
 
-                            self.replace_status_block_segment(
-                                request.start,
-                                b"".join(segments),
-                            )
-
-                            return True
+                            if request.next == 0:
+                                break
 
                     else:
 
-                        _LOGGER.debug(
-                            "Out-of-sequence status block segment %d - ignored",
-                            request.sequence,
-                        )
+                        _LOGGER.debug("timeout waiting for any block")
+                        break
 
-                        if request.next == 0:
-                            break
-
-                else:
-
-                    _LOGGER.debug("timeout waiting for any block")
-                    break
-
-            retry_count -= 1
-        return False
+                retry_count -= 1
+            return False
 
     def set_value(self, pos, length, newvalue):
         # Delegate this

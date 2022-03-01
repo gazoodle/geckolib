@@ -24,6 +24,11 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
 
         self._sequence_counter = 0
         self._queue = AsyncPeekableQueue()
+        self._lock = asyncio.Lock()
+
+    @property
+    def Lock(self):
+        return self._lock
 
     def connection_made(self, transport):
         _LOGGER.debug("GeckoAsyncUdpProtocol: connection made to %s", transport)
@@ -73,25 +78,28 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
 
     async def get(self, create_func, destination=None, retry_count=10):
 
-        _LOGGER.debug("async get started")
-        while retry_count > 0:
+        _LOGGER.debug("Async get started, acquire the lock")
+        async with self.Lock:
+            _LOGGER.debug("Lock acquired")
 
-            # Create the request
-            request = create_func()
+            while retry_count > 0:
 
-            # Queue it for delivery
-            self.queue_send(request, destination)
+                # Create the request
+                request = create_func()
 
-            # Wait for a response up to a certain amount of time
-            if await request.wait_for_response(self):
-                # If handled, then return the handler which ought
-                # to contain the information as requested
-                return request
+                # Queue it for delivery
+                self.queue_send(request, destination)
 
-            # Loop for retry
-            retry_count -= 1
+                # Wait for a response up to a certain amount of time
+                if await request.wait_for_response(self):
+                    # If handled, then return the handler which ought
+                    # to contain the information as requested
+                    return request
 
-        return None
+                # Loop for retry
+                retry_count -= 1
+
+            return None
 
     def __repr__(self):
         return (

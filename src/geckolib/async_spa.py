@@ -383,6 +383,7 @@ class GeckoAsyncSpa(Observable):
         return self.struct.accessors
 
     async def async_press(self, keypad):
+        """Simulate a button press async"""
         pack_command_handler = await self._protocol.get(
             lambda: GeckoPackCommandProtocolHandler.keypress(
                 self._protocol.get_and_increment_sequence_counter(),
