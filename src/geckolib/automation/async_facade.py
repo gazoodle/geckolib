@@ -10,7 +10,12 @@ from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
 from .switches import GeckoSwitch
-from .sensors import GeckoSensor, GeckoBinarySensor
+from .sensors import (
+    GeckoSensor,
+    GeckoBinarySensor,
+    GeckoFacadeStatusSensor,
+    GeckoFacadePingSensor,
+)
 from .watercare import GeckoWaterCare
 from ..driver import Observable
 from ..async_locator import GeckoAsyncLocator
@@ -163,7 +168,8 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                     self.scan_outputs()
                     # Install change notifications
                     for device in self.all_automation_devices:
-                        device.watch(self._on_change)
+                        if not isinstance(device, GeckoFacadeStatusSensor):
+                            device.watch(self._on_change)
 
                     self.water_care.change_watercare_mode(
                         await self.spa.async_get_watercare()
@@ -273,6 +279,9 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
             GeckoSensor(self, sensor[0], self._spa.accessors[sensor[1]])
             for sensor in GeckoConstants.SENSORS
             if sensor[1] in self._spa.accessors
+        ] + [
+            GeckoFacadeStatusSensor(self, "Status", "string"),
+            GeckoFacadePingSensor(self, "Last Ping", "date"),
         ]
 
         self._binary_sensors = [

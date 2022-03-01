@@ -1,5 +1,6 @@
 """ GeckoAsyncSpa class """
 
+from datetime import datetime
 import logging
 import asyncio
 import importlib
@@ -307,10 +308,15 @@ class GeckoAsyncSpa(Observable):
                 self.sendparms,
             )
 
+    @property
+    def last_ping_at(self):
+        return self._last_ping_at
+
     async def ping_loop(self):
         _LOGGER.info("Ping loop started")
 
         self._last_ping = time.monotonic()
+        self._last_ping_at = datetime.now()
 
         while self.isopen:
 
@@ -325,6 +331,8 @@ class GeckoAsyncSpa(Observable):
 
             if ping_handler is not None:
                 self._last_ping = time.monotonic()
+                self._last_ping_at = datetime.now()
+                self._on_change()
             elif (
                 time.monotonic() - self._last_ping
                 > GeckoConstants.PING_DEVICE_NOT_RESPONDING_TIMEOUT
@@ -448,7 +456,7 @@ class GeckoAsyncSpa(Observable):
         elif self.connection_state == GeckoSpaConnectionState.GOT_CONFIG_FILES:
             return "Got config files"
         elif self.connection_state == GeckoSpaConnectionState.CONNECTED:
-            return f"Connected, last ping {int(time.monotonic() - self._last_ping)} seconds ago"
+            return "Connected"
         elif self.connection_state == GeckoSpaConnectionState.NO_PING_RESPONSE:
             return "Spa not responding to pings"
         elif self.connection_state == GeckoSpaConnectionState.CANNOT_FIND_SPA_PACK:
