@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.9
 """ Complete sample client
 
     This sample is built as a complete async client demonstrating all

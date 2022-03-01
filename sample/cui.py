@@ -167,9 +167,6 @@ class CUI(AbstractDisplay, AsyncTasks):
                 lines.append("Press 'r' to rescan")
                 self._commands["r"] = self._clear_spa
 
-            lines.append("Press 'a' to run async")
-            self._commands["a"] = self.do_async
-
             lines.append("Press 'q' to exit")
             self._commands["q"] = self.set_exit
 
@@ -197,9 +194,6 @@ class CUI(AbstractDisplay, AsyncTasks):
         # window.box()
         # window.addstr(2, 2, "Window")
         # window.refresh()
-
-    async def do_async(self):
-        await asyncio.sleep(1)
 
     async def handle_char(self, char: int) -> None:
         cmd = chr(char)
