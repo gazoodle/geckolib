@@ -118,6 +118,16 @@ class CUI(AbstractDisplay, AsyncTasks):
         title = "Gecko Async Sample App"
         self.stdscr.addstr(0, int((maxx - len(title)) / 2), title)
 
+    async def increase_temp(self):
+        await self._facade.water_heater.async_set_target_temperature(
+            self._facade.water_heater.target_temperature + 0.5
+        )
+
+    async def decrease_temp(self):
+        await self._facade.water_heater.async_set_target_temperature(
+            self._facade.water_heater.target_temperature - 0.5
+        )
+
     def make_display(self) -> None:
         try:
             maxy, maxx = self.stdscr.getmaxyx()
@@ -164,6 +174,12 @@ class CUI(AbstractDisplay, AsyncTasks):
                         self._commands["b"] = self._facade.blowers[0].async_turn_off
                     else:
                         self._commands["b"] = self._facade.blowers[0].async_turn_on
+
+                    lines.append("Press '+' to increase setpoint")
+                    self._commands["+"] = self.increase_temp
+                    lines.append("Press '-' to decrease setpoint")
+                    self._commands["-"] = self.decrease_temp
+
                 lines.append("Press 'r' to rescan")
                 self._commands["r"] = self._clear_spa
 
