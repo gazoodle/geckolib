@@ -52,7 +52,7 @@ class GeckoLocator:
         """Finish using this locator if not used in a with context"""
         self.__exit__()
 
-    def _on_discovered(self, handler, socket, sender):
+    def _on_discovered(self, handler, sender):
         if handler.spa_identifier in self.spa_identifiers:
             return
         self.spa_identifiers.append(handler.spa_identifier)
@@ -125,7 +125,7 @@ class GeckoLocator:
         _LOGGER.debug("Locator retry thread stopped")
 
     def get_spa_from_identifier(self, identifier):
-        """ Locate a spa based on its identifier """
+        """Locate a spa based on its identifier"""
         try:
             if isinstance(identifier, bytes):
                 return next(spa for spa in self.spas if spa.identifier == identifier)
@@ -139,7 +139,7 @@ class GeckoLocator:
             return self.spas[0]
 
     def get_spa_from_name(self, name):
-        """ Locate a spa based on its name """
+        """Locate a spa based on its name"""
         try:
             return next(spa for spa in self.spas if spa.name == name)
         except StopIteration:

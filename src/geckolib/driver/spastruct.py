@@ -23,7 +23,7 @@ class GeckoStructure:
         # Install a set of handlers
 
     def replace_status_block_segment(self, offset, segment):
-        """ Replace a segment of the status block """
+        """Replace a segment of the status block"""
         previous_block = self._status_block
         segment_len = len(segment)
         self._status_block = (
@@ -43,7 +43,7 @@ class GeckoStructure:
         self._status_block = block
 
     def _on_status_block_received(
-        self, handler: GeckoStatusBlockProtocolHandler, socket, sender
+        self, handler: GeckoStatusBlockProtocolHandler, sender
     ):
         if not self._next_expected == handler.sequence:
             logger.debug(
@@ -53,7 +53,7 @@ class GeckoStructure:
                 logger.debug("Retry status block request")
                 self._next_expected = 0
                 self._status_block_segments = []
-                if not handler.retry(socket):
+                if not handler.retry(self._socket):
                     raise RuntimeError("Too many retries")
         else:
             self._status_block_segments.append(handler.data)
@@ -85,6 +85,7 @@ class GeckoStructure:
         request: GeckoStatusBlockProtocolHandler,
         sender: tuple,
     ):
+        self._socket = socket_
         request._on_handled = self._on_status_block_received
         self._status_block_offset = request.start
         socket_.add_receive_handler(request)

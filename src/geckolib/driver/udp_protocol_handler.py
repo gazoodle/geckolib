@@ -92,12 +92,12 @@ class GeckoUdpProtocolHandler(ABC):
         from the system, then you should set the `should_remove_handler`
         member."""
 
-    def handled(self, socket: Optional[GeckoUdpSocket], sender: tuple) -> None:
+    def handled(self, sender: tuple) -> None:
         """Base class implementation for when the data has been handled"""
         self._reset_timeout()
         assert self._async_on_handled is None
         if self._on_handled is not None:
-            self._on_handled(self, socket, sender)
+            self._on_handled(self, sender)
 
     ##########################################################################
     #

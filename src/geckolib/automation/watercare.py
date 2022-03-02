@@ -57,7 +57,7 @@ class GeckoWaterCare(GeckoAutomationBase):
         await self._spa.async_set_watercare(new_mode)
         self.change_watercare_mode(new_mode)
 
-    def _on_watercare(self, handler, socket, sender):
+    def _on_watercare(self, handler, sender):
         if self.active_mode != handler.mode:
             old_mode = self.active_mode
             self.active_mode = handler.mode

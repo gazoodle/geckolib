@@ -78,7 +78,7 @@ class GeckoSpa(GeckoUdpSocket):
     def accessors(self):
         return self.struct.accessors
 
-    def _on_partial_status_update(self, handler, socket, sender):
+    def _on_partial_status_update(self, handler, sender):
         for change in handler.changes:
             self.struct.replace_status_block_segment(change[0], change[1])
         else:
@@ -101,7 +101,7 @@ class GeckoSpa(GeckoUdpSocket):
             self.sendparms,
         )
 
-    def _on_config_received(self, handler, socket, sender):
+    def _on_config_received(self, handler, sender):
 
         # Stash the config and log structure declarations
         self.config_version = handler.config_version
@@ -158,24 +158,24 @@ class GeckoSpa(GeckoUdpSocket):
         self.struct.retry_request(
             self,
             GeckoStatusBlockProtocolHandler.full_request(
-                socket.get_and_increment_sequence_counter(), parms=sender
+                self.get_and_increment_sequence_counter(), parms=sender
             ),
             sender,
         )
 
-    def _on_channel_received(self, handler, socket, sender):
+    def _on_channel_received(self, handler, sender):
         self.channel = handler.channel
         self.signal = handler.signal_strength
         logger.debug("Got channel %s/%s, now get config", self.channel, self.signal)
         config_file_handler = GeckoConfigFileProtocolHandler.request(
-            socket.get_and_increment_sequence_counter(),
+            self.get_and_increment_sequence_counter(),
             parms=sender,
             on_handled=self._on_config_received,
         )
-        socket.add_receive_handler(config_file_handler)
-        socket.queue_send(config_file_handler, sender)
+        self.add_receive_handler(config_file_handler)
+        self.queue_send(config_file_handler, sender)
 
-    def _on_version_received(self, handler, socket, sender):
+    def _on_version_received(self, handler, sender):
         self.intouch_version_en = "{0} v{1}.{2}".format(
             handler.en_build, handler.en_major, handler.en_minor
         )
@@ -192,8 +192,8 @@ class GeckoSpa(GeckoUdpSocket):
             parms=sender,
             on_handled=self._on_channel_received,
         )
-        socket.add_receive_handler(get_channel_handler)
-        socket.queue_send(
+        self.add_receive_handler(get_channel_handler)
+        self.queue_send(
             get_channel_handler,
             sender,
         )
@@ -212,7 +212,7 @@ class GeckoSpa(GeckoUdpSocket):
             self.descriptor.client_identifier,
         )
 
-    def _on_ping_response(self, handler, socket, sender):
+    def _on_ping_response(self, handler, sender):
         self._last_ping = time.monotonic()
 
     def start_connect(self):

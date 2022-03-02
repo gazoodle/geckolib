@@ -22,16 +22,16 @@ PING_DONE = False
 _LOGGER = logging.getLogger(__name__)
 
 
-def _on_discovered(handler, socket, sender):
-    _LOGGER.info(f"_on_discovered: {handler}, {socket}, {sender}")
+def _on_discovered(handler, sender):
+    _LOGGER.info(f"_on_discovered: {handler}, {sender}")
     global SPA_ID, SPA_NAME, SPA_DESTINATION
     SPA_ID = handler.spa_identifier
     SPA_NAME = handler.spa_name
     SPA_DESTINATION = sender
 
 
-def _on_ping(handler, socket, sender):
-    _LOGGER.info(f"_on_ping: {handler}, {socket}, {sender}")
+def _on_ping(handler, sender):
+    _LOGGER.info(f"_on_ping: {handler}, {sender}")
     global PING_DONE
     PING_DONE = True
 
@@ -71,7 +71,7 @@ def comms_diag(arg):
         f"Found spa : {SPA_NAME} ({SPA_ID}) at {SPA_DESTINATION}, try to start connection"
     )
 
-    _socket.add_receive_handler(GeckoPacketProtocolHandler())
+    _socket.add_receive_handler(GeckoPacketProtocolHandler(socket=_socket))
 
     client_id = CLIENT_IDENTIFIER_1.encode("Latin1")
     # Do 5 of these to make sure the in.touch2 module hears us
