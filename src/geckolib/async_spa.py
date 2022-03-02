@@ -145,14 +145,14 @@ class GeckoAsyncSpa(Observable):
             "Unhandled packet",
         )
         self._taskman.add_task(
-            GeckoPacketProtocolHandler(on_handled=self._on_packet).consume(
+            GeckoPacketProtocolHandler(async_on_handled=self._async_on_packet).consume(
                 self._protocol
             ),
             "Packet handler",
         )
         self._taskman.add_task(
             GeckoAsyncPartialStatusBlockProtocolHandler(
-                on_handled=self._on_partial_status_update
+                async_on_handled=self._async_on_partial_status_update
             ).consume(self._protocol),
             "Partial status block handler",
         )
@@ -307,8 +307,8 @@ class GeckoAsyncSpa(Observable):
             return False
         return self._protocol.isopen
 
-    def _on_packet(
-        self, handler: GeckoPacketProtocolHandler, socket, sender: tuple
+    async def _async_on_packet(
+        self, handler: GeckoPacketProtocolHandler, sender: tuple
     ) -> None:
         if handler.parms == self.sendparms:
             assert self._protocol is not None
@@ -387,10 +387,9 @@ class GeckoAsyncSpa(Observable):
                     )
             await asyncio.sleep(0)
 
-    def _on_partial_status_update(
+    async def _async_on_partial_status_update(
         self,
         handler: GeckoAsyncPartialStatusBlockProtocolHandler,
-        socket,
         sender: tuple,
     ) -> None:
         for change in handler.changes:

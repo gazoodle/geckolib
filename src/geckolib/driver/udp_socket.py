@@ -1,7 +1,6 @@
 """ GeckoUdpSocket - Gecko UDP socket implementation """
 
 import socket
-import asyncio
 import logging
 import threading
 import time
@@ -91,7 +90,7 @@ class GeckoUdpSocket:
         return self._busy_count > 0
 
     def wait(self, timeout):
-        """ Wait for a timeout, respecting the exit event """
+        """Wait for a timeout, respecting the exit event"""
         self._exit_event.wait(timeout)
 
     def bind(self):
@@ -157,7 +156,7 @@ class GeckoUdpSocket:
                     _LOGGER.exception("Exception during send processing")
 
     def dispatch_recevied_data(self, received_bytes: bytes, remote_end: tuple):
-        """ Dispatch bytes to the handlers, maybe someone is interested! """
+        """Dispatch bytes to the handlers, maybe someone is interested!"""
         with GeckoUdpSocket._BusyLock(self):
             _LOGGER.debug("Received %s from %s", received_bytes, remote_end)
             receive_handler = None

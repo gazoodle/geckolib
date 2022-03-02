@@ -1,7 +1,8 @@
 """ Gecko <HELLO> handlers """
 
 import logging
-from ..udp_socket import GeckoUdpProtocolHandler
+from ..udp_socket import GeckoUdpSocket
+from ..udp_protocol_handler import GeckoUdpProtocolHandler
 from ...const import GeckoConstants
 
 from typing import Optional
@@ -67,14 +68,19 @@ class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
             HELLO_CLOSE
         )
 
-    def handle(self, _socket, received_bytes: bytes, _sender: tuple) -> None:
+    def handle(
+        self, _socket: GeckoUdpSocket, received_bytes: bytes, sender: tuple
+    ) -> None:
         content = received_bytes[7:-8]
         self.was_broadcast_discovery = False
         self._client_identifier = self._spa_identifier = self._spa_name = None
+
         if content == b"1":
             self.was_broadcast_discovery = True
+
         elif content.startswith(b"IOS") or content.startswith(b"AND"):
             self._client_identifier = content
+
         else:
             self._spa_identifier, spa_name = content.split(b"|")
             self._spa_name = spa_name.decode(GeckoConstants.MESSAGE_ENCODING)
@@ -82,6 +88,6 @@ class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
     def __repr__(self) -> str:
         return (
             f"{super().__repr__()} (was_broadcast={self.was_broadcast_discovery},"
-            f" client_id={self.client_identifier!r}, spa_id={self.spa_identifier!r},"
-            f" spa_name={self.spa_name} )"
+            f" client_id={self._client_identifier!r}, spa_id={self._spa_identifier!r},"
+            f" spa_name={self._spa_name} )"
         )

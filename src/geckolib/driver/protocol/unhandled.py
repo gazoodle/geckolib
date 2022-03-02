@@ -1,10 +1,8 @@
 """ Gecko handler for unhanded verbs """
 
 import asyncio
-from distutils.log import Log
 import logging
 from ..udp_socket import GeckoUdpProtocolHandler
-from ...const import GeckoConstants
 
 
 _LOGGER = logging.getLogger(__name__)

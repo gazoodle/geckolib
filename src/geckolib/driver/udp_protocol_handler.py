@@ -1,6 +1,15 @@
+"""GeckoUdpProtocolHandler base class"""
+
+from __future__ import annotations
 import logging
 import time
 import asyncio
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .udp_socket import GeckoUdpSocket
+    from .async_udp_protocol import GeckoAsyncUdpProtocol
+
 
 from abc import ABC, abstractmethod
 
@@ -40,13 +49,13 @@ class GeckoUdpProtocolHandler(ABC):
 
         # Receive functionality
         self._on_handled = kwargs.get("on_handled", None)
+        self._async_on_handled = kwargs.get("async_on_handled", None)
 
         # Lifetime functionality
         self._start_time = time.monotonic()
         self._timeout_in_seconds = kwargs.get("timeout", 0)
         self._retry_count = kwargs.get("retry_count", 0)
         self._on_retry_failed = kwargs.get("on_retry_failed", None)
-        self._on_complete = kwargs.get("on_complete", None)
         self._should_remove_handler = False
 
     ##########################################################################
@@ -77,26 +86,54 @@ class GeckoUdpProtocolHandler(ABC):
         return False
 
     @abstractmethod
-    def handle(self, socket, received_bytes: bytes, sender: tuple) -> None:
+    def handle(
+        self, socket: Optional[GeckoUdpSocket], received_bytes: bytes, sender: tuple
+    ) -> None:
         """Handle this data. This will only be called if you returned True
         from the `can_handle` function. If you wish to remove this handler
         from the system, then you should set the `should_remove_handler`
         member."""
 
-    def handled(self, socket, sender: tuple) -> None:
+    def handled(self, socket: Optional[GeckoUdpSocket], sender: tuple) -> None:
+        """Base class implementation for when the data has been handled"""
         self._reset_timeout()
+        assert self._async_on_handled is None
         if self._on_handled is not None:
             self._on_handled(self, socket, sender)
 
-    async def wait_for_response(self, protocol) -> bool:
-        """Wait for a response that this command can handle, return True if handled, False if timed-out"""
-        _LOGGER.debug("Starting wait for response for %s", self)
+    ##########################################################################
+    #
+    #                           ASYNC FUNCTIONALITY
+    #
+    ##########################################################################
+
+    async def async_handle(self, received_bytes: bytes, sender: tuple) -> None:
+        """Handle this data. This will only be called if you returned True
+        from the `can_handle` function. If you wish to remove this handler
+        from the system, then you should set the `should_remove_handler`
+        member."""
+        self.handle(None, received_bytes, sender)
+
+    async def async_handled(self, sender: tuple) -> None:
+        """Base class implementation for when the data has been handled"""
+        self._reset_timeout()
+        assert self._on_handled is None
+        if self._async_on_handled is not None:
+            await self._async_on_handled(self, sender)
+
+    async def wait_for_response(self, protocol: GeckoAsyncUdpProtocol) -> bool:
+        """Wait for a response that this command can handle, return True if handled,
+        False if timed-out.
+
+        This function doesn't respect the _on_handled functionality since its
+        use is for inline async stuff"""
+        assert self._timeout_in_seconds > 0
         while True:
             if protocol.queue.head is not None:
                 data, sender = protocol.queue.head
                 if self.can_handle(data, sender):
                     protocol.queue.pop()
-                    self.handle(protocol, data, sender)
+                    await self.async_handle(data, sender)
                     self._reset_timeout()
                     return True
 
@@ -106,25 +143,22 @@ class GeckoUdpProtocolHandler(ABC):
 
             await asyncio.sleep(0)
 
-    async def consume(self, protocol) -> None:
-        if self._timeout_in_seconds > 0:
-            raise RuntimeError("Cannot use consume on handler with timeout")
-
+    async def consume(self, protocol: GeckoAsyncUdpProtocol) -> None:
         """Async coroutine to handle datagram. Uses the sync functions to
         manage this at present"""
+
+        assert self._timeout_in_seconds == 0
         while True:
             if protocol.queue.head is not None:
                 data, sender = protocol.queue.head
                 if self.can_handle(data, sender):
                     protocol.queue.pop()
-                    self.handle(protocol, data, sender)
-                    self.handled(protocol, sender)
+                    await self.async_handle(data, sender)
+                    await self.async_handled(sender)
             await asyncio.sleep(0)
 
             if self.should_remove_handler:
                 _LOGGER.debug("%s will be removed, consume loop terminating", self)
-                if self._on_complete is not None:
-                    self._on_complete(self, protocol)
                 break
 
     ##########################################################################

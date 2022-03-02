@@ -5,7 +5,7 @@ import logging
 
 from .udp_protocol_handler import GeckoUdpProtocolHandler
 from .async_peekablequeue import AsyncPeekableQueue
-from typing import Optional, Callable, Type, TypeVar
+from typing import Optional, Callable, TypeVar
 
 _LOGGER = logging.getLogger(__name__)
 

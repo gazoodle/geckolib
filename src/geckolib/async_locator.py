@@ -42,8 +42,8 @@ class GeckoAsyncLocator(Observable):
         self._transport: Optional[asyncio.BaseTransport] = None
         self._protocol: Optional[GeckoAsyncUdpProtocol] = None
 
-    def _on_discovered(
-        self, handler: GeckoHelloProtocolHandler, _socket, sender: tuple
+    async def _async_on_discovered(
+        self, handler: GeckoHelloProtocolHandler, sender: tuple
     ) -> None:
         if handler.spa_identifier in self._spa_identifiers:
             return
@@ -103,7 +103,7 @@ class GeckoAsyncLocator(Observable):
         assert self._transport is not None
 
         hello_handler = GeckoHelloProtocolHandler.broadcast(
-            on_handled=self._on_discovered
+            async_on_handled=self._async_on_discovered
         )
         self._task_man.add_task(hello_handler.consume(self._protocol), "Hello handler")
 

@@ -5,8 +5,7 @@ import unittest.mock
 import time
 import socket
 
-
-from context import (
+from context import (  # type: ignore
     GeckoUdpProtocolHandler,
     GeckoUdpSocket,
 )
@@ -37,9 +36,19 @@ class MockSocket:
         self.last_data_sent = data
 
 
+class MockHandler(GeckoUdpProtocolHandler):
+    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
+        return True
+
+    def handle(
+        self, socket: GeckoUdpSocket, received_bytes: bytes, sender: tuple
+    ) -> None:
+        pass
+
+
 class TestUdpProtocolHandler(unittest.TestCase):
     def setUp(self):
-        self.base_handler = GeckoUdpProtocolHandler()
+        self.base_handler = MockHandler()
 
     def test_constructor(self):
         self.assertIsNotNone(self.base_handler)
@@ -55,7 +64,7 @@ class TestUdpProtocolHandler(unittest.TestCase):
         self.assertFalse(self.base_handler.has_timedout)
 
     def test_timedout(self):
-        handler = GeckoUdpProtocolHandler(timeout=0.005)
+        handler = MockHandler(timeout=0.005)
         self.assertFalse(handler.has_timedout)
         self.assertFalse(handler.should_remove_handler)
         time.sleep(0.005)
@@ -70,7 +79,7 @@ class TestUdpProtocolHandler(unittest.TestCase):
 
 
 class TestGeckoUdpSocket(unittest.TestCase):
-    """ Test the GeckoUdpSocket class """
+    """Test the GeckoUdpSocket class"""
 
     def setUp(self):
         class UdpSocketHelper(GeckoUdpSocket):
@@ -94,7 +103,7 @@ class TestGeckoUdpSocket(unittest.TestCase):
         self.assertTrue(self.socket.isopen)
 
     def test_send(self):
-        class Send(GeckoUdpProtocolHandler):
+        class Send(MockHandler):
             @property
             def send_bytes(self):
                 return b"REQUEST"

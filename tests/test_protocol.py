@@ -21,7 +21,7 @@ PARMS = (1, 2, b"SRCID", b"DESTID")
 
 
 class TestGeckoHelloHandler(unittest.TestCase):
-    """ Test the GeckoHelloProtocol classes """
+    """Test the GeckoHelloProtocol classes"""
 
     def setUp(self):
         self.handler = GeckoHelloProtocolHandler(b"")
@@ -47,23 +47,23 @@ class TestGeckoHelloHandler(unittest.TestCase):
     def test_recv_broadcast(self):
         self.assertFalse(self.handler.handle(None, b"<HELLO>1</HELLO>", None))
         self.assertTrue(self.handler.was_broadcast_discovery)
-        self.assertIsNone(self.handler.client_identifier)
-        self.assertIsNone(self.handler.spa_identifier)
-        self.assertIsNone(self.handler.spa_name)
+        self.assertIsNone(self.handler._client_identifier)
+        self.assertIsNone(self.handler._spa_identifier)
+        self.assertIsNone(self.handler._spa_name)
 
     def test_recv_client_ios(self):
         self.assertFalse(self.handler.handle(None, b"<HELLO>IOSCLIENT</HELLO>", None))
         self.assertFalse(self.handler.was_broadcast_discovery)
         self.assertEqual(self.handler.client_identifier, b"IOSCLIENT")
-        self.assertIsNone(self.handler.spa_identifier)
-        self.assertIsNone(self.handler.spa_name)
+        self.assertIsNone(self.handler._spa_identifier)
+        self.assertIsNone(self.handler._spa_name)
 
     def test_recv_client_android(self):
         self.assertFalse(self.handler.handle(None, b"<HELLO>ANDCLIENT</HELLO>", None))
         self.assertFalse(self.handler.was_broadcast_discovery)
         self.assertEqual(self.handler.client_identifier, b"ANDCLIENT")
-        self.assertIsNone(self.handler.spa_identifier)
-        self.assertIsNone(self.handler.spa_name)
+        self.assertIsNone(self.handler._spa_identifier)
+        self.assertIsNone(self.handler._spa_name)
 
     @unittest.expectedFailure
     def test_recv_client_unknown(self):
@@ -72,7 +72,7 @@ class TestGeckoHelloHandler(unittest.TestCase):
     def test_recv_response(self):
         self.assertFalse(self.handler.handle(None, b"<HELLO>SPA|Name</HELLO>", None))
         self.assertFalse(self.handler.was_broadcast_discovery)
-        self.assertIsNone(self.handler.client_identifier)
+        self.assertIsNone(self.handler._client_identifier)
         self.assertEqual(self.handler.spa_identifier, b"SPA")
         self.assertEqual(self.handler.spa_name, "Name")
 
@@ -408,7 +408,7 @@ class TestGeckoWatercareHandler(unittest.TestCase):
         )
 
     def test_send_construct_schedule(self):
-        handler = GeckoWatercareProtocolHandler.schedule(parms=PARMS)
+        handler = GeckoWatercareProtocolHandler.giveschedule(parms=PARMS)
         self.assertEqual(
             handler.send_bytes,
             b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN>"

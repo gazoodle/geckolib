@@ -92,5 +92,5 @@ class GeckoWaterCare(GeckoAutomationBase):
     @property
     def monitor(self):
         if self.active_mode is None:
-            return f"WC: ?"
+            return "WC: ?"
         return f"WC: {self.active_mode}"
