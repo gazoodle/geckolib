@@ -152,7 +152,7 @@ class GeckoAsyncSpa(Observable):
         )
         self._taskman.add_task(
             GeckoAsyncPartialStatusBlockProtocolHandler(
-                async_on_handled=self._async_on_partial_status_update
+                self._protocol, async_on_handled=self._async_on_partial_status_update
             ).consume(self._protocol),
             "Partial status block handler",
         )

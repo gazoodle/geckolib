@@ -266,6 +266,17 @@ class TestGeckoConfigFileHandler(unittest.TestCase):
         self.assertTrue(handler.handle(None, b"FILES,inXM_C09.xml,inYE_S09.xml", PARMS))
 
 
+class MockSocket:
+    def __init__(self):
+        self.sendbytes = None
+
+    def queue_send(self, handler, destination):
+        self.sendbytes = handler.send_bytes
+
+    def get_and_increment_sequence_counter(self):
+        return 1
+
+
 class TestGeckoStatusBlockHandler(unittest.TestCase):
     def test_send_construct_request(self):
         handler = GeckoStatusBlockProtocolHandler.request(1, 0, 637, parms=PARMS)
@@ -292,10 +303,12 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
         self.assertFalse(handler.can_handle(b"OTHER", PARMS))
 
     def test_recv_partial_can_handle(self):
-        handler = GeckoPartialStatusBlockProtocolHandler()
+        socket = MockSocket()
+        handler = GeckoPartialStatusBlockProtocolHandler(socket)
         self.assertTrue(handler.can_handle(b"STATP", PARMS))
         self.assertTrue(handler.can_handle(b"STATQ", PARMS))
         self.assertFalse(handler.can_handle(b"OTHER", PARMS))
+        self.assertIsNone(socket.sendbytes)
 
     def test_recv_handle_request(self):
         handler = GeckoStatusBlockProtocolHandler()
@@ -324,10 +337,15 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
         self.assertEqual(handler.data, b"\x01\x02\x03\x04")
 
     def test_recv_handle_partial(self):
-        handler = GeckoPartialStatusBlockProtocolHandler()
+        socket = MockSocket()
+        handler = GeckoPartialStatusBlockProtocolHandler(socket)
         handler.handle(None, b"STATV\x02\x01\x6d\x03\x84\x01\x6e\x84\x0c", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertListEqual(handler.changes, [(365, b"\x03\x84"), (366, b"\x84\x0c")])
+        self.assertEqual(
+            socket.sendbytes,
+            b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATQ\x01</DATAS></PACKT>",
+        )
 
 
 class TestGeckoPackCommandHandlers(unittest.TestCase):

@@ -87,8 +87,9 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
 
 
 class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
-    def __init__(self, **kwargs):
+    def __init__(self, socket, **kwargs):
         super().__init__(**kwargs)
+        self._socket = socket
         self.changes = []
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
@@ -96,28 +97,27 @@ class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
             STATP_VERB
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple) -> bool:
+    def handle(self, socket, received_bytes: bytes, sender: tuple) -> None:
         remainder = received_bytes[5:]
         if received_bytes.startswith(STATQ_VERB):
             (self.sequence,) = struct.unpack(">B", remainder)
             return  # Stay in the handler list
 
         # Otherwise must be STATP
-        if socket is not None:
-            socket.queue_send(
-                GeckoPartialStatusBlockProtocolHandler(
-                    content=b"".join(
-                        [
-                            STATQ_VERB,
-                            struct.pack(
-                                ">B", socket.get_and_increment_sequence_counter()
-                            ),
-                        ]
-                    ),
-                    parms=sender,
+        self._socket.queue_send(
+            GeckoPacketProtocolHandler(
+                content=b"".join(
+                    [
+                        STATQ_VERB,
+                        struct.pack(
+                            ">B", self._socket.get_and_increment_sequence_counter()
+                        ),
+                    ]
                 ),
-                sender,
-            )
+                parms=sender,
+            ),
+            sender,
+        )
         change_count = struct.unpack(">B", remainder[0:1])[0]
         for i in range(change_count):
             pos = struct.unpack(">H", remainder[1 + (i * 4) : 3 + (i * 4)])[0]
@@ -125,8 +125,9 @@ class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
 
 
 class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
-    def __init__(self, **kwargs):
+    def __init__(self, protocol, **kwargs):
         super().__init__(**kwargs)
+        self._protocol = protocol
         self.changes = []
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
@@ -134,27 +135,30 @@ class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
             STATP_VERB
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple) -> bool:
+    def handle(self, socket, received_bytes: bytes, sender: tuple):
+        pass
+
+    async def async_handle(self, received_bytes: bytes, sender: tuple) -> None:
         remainder = received_bytes[5:]
         if received_bytes.startswith(STATQ_VERB):
             (self.sequence,) = struct.unpack(">B", remainder)
             return  # Stay in the handler list
 
         # Otherwise must be STATP
-        if socket is not None:
-            socket.queue_send(
-                GeckoPartialStatusBlockProtocolHandler(
-                    content=b"".join(
-                        [
-                            STATQ_VERB,
-                            struct.pack(
-                                ">B", socket.get_and_increment_sequence_counter()
-                            ),
-                        ]
-                    ),
-                    parms=sender,
+        self._protocol.queue_send(
+            GeckoPacketProtocolHandler(
+                content=b"".join(
+                    [
+                        STATQ_VERB,
+                        struct.pack(
+                            ">B", self._protocol.get_and_increment_sequence_counter()
+                        ),
+                    ]
                 ),
-            )
+                parms=sender,
+            ),
+        )
+
         change_count = struct.unpack(">B", remainder[0:1])[0]
         self.changes = []
         for i in range(change_count):

@@ -43,7 +43,7 @@ class GeckoSpa(GeckoUdpSocket):
         self.add_receive_handler(GeckoPacketProtocolHandler())
         self.add_receive_handler(
             GeckoPartialStatusBlockProtocolHandler(
-                on_handled=self._on_partial_status_update
+                self, on_handled=self._on_partial_status_update
             )
         )
         self._last_ping = time.monotonic()
@@ -71,7 +71,7 @@ class GeckoSpa(GeckoUdpSocket):
         self.new_config_class = None
 
     def complete(self):
-        """ Complete the use of this spa class """
+        """Complete the use of this spa class"""
         super().close()
         self._ping_thread.join()
 
@@ -201,7 +201,7 @@ class GeckoSpa(GeckoUdpSocket):
 
     @property
     def revision(self):
-        """ Get the revision of the spa pack structure used to generate the pack modules """
+        """Get the revision of the spa pack structure used to generate the pack modules"""
         return self.new_pack_class.revision
 
     @property
@@ -217,7 +217,7 @@ class GeckoSpa(GeckoUdpSocket):
         self._last_ping = time.monotonic()
 
     def start_connect(self):
-        """ Connect to the in.touch2 module """
+        """Connect to the in.touch2 module"""
         self._connection_started = time.monotonic()
         # Identify self to the intouch module
         self.open()
@@ -269,7 +269,7 @@ class GeckoSpa(GeckoUdpSocket):
         logger.info("Spa is now connected")
 
     def _ping_thread_func(self):
-        """ Ping thread function """
+        """Ping thread function"""
         logger.info("Ping thread started, %r", self.isopen)
         while self.isopen:
             self.queue_send(self._ping_handler, self.sendparms)
@@ -286,7 +286,7 @@ class GeckoSpa(GeckoUdpSocket):
         logger.info("Ping thread finished")
 
     def get_buttons(self):
-        """ Get a list of buttons that can be pressed """
+        """Get a list of buttons that can be pressed"""
         return [button[0] for button in GeckoConstants.BUTTONS]
 
     @property
@@ -302,7 +302,7 @@ class GeckoSpa(GeckoUdpSocket):
         return False
 
     def refresh(self):
-        """ Refresh the live spa data block """
+        """Refresh the live spa data block"""
         if not self.is_connected:
             logger.debug("Can't refresh as we're not connected yet")
             return
@@ -318,7 +318,7 @@ class GeckoSpa(GeckoUdpSocket):
         )
 
     def press(self, keypad):
-        """ Simulate a button press """
+        """Simulate a button press"""
         self.add_receive_handler(GeckoPackCommandProtocolHandler())
         self.queue_send(
             GeckoPackCommandProtocolHandler.keypress(
