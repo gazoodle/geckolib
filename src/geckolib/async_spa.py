@@ -78,6 +78,7 @@ class GeckoAsyncSpa(Observable):
         self.config_number = 0
 
         self.struct = GeckoAsyncStructure(self._on_set_value, self._on_async_set_value)
+        self._last_ping_at: Optional[datetime] = None
 
     @property
     def sendparms(self) -> tuple:
@@ -139,6 +140,7 @@ class GeckoAsyncSpa(Observable):
         assert isinstance(_protocol, GeckoAsyncUdpProtocol)
         self._protocol = _protocol
         self._on_change(self)
+        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         self._taskman.add_task(
             GeckoUnhandledProtocolHandler().consume(self._protocol),
@@ -163,6 +165,7 @@ class GeckoAsyncSpa(Observable):
         self._taskman.add_task(self._ping_loop(), "Ping loop")
         self._taskman.add_task(self._refresh_loop(), "Refresh loop")
         self._set_connection_state(GeckoSpaConnectionState.PING_STARTED)
+        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         version_handler = await self._protocol.get(self._get_version_handler_func)
         if version_handler is None:
@@ -175,12 +178,13 @@ class GeckoAsyncSpa(Observable):
         self.intouch_version_co = "{0} v{1}.{2}".format(
             version_handler.co_build, version_handler.co_major, version_handler.co_minor
         )
-        self._set_connection_state(GeckoSpaConnectionState.GOT_FIRMWARE_VERSION)
         _LOGGER.debug(
             "Got in.touch2 firmware version EN(Home) %s/CO(Spa) %s, now get channel",
             self.intouch_version_en,
             self.intouch_version_co,
         )
+        self._set_connection_state(GeckoSpaConnectionState.GOT_FIRMWARE_VERSION)
+        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         get_channel_handler = await self._protocol.get(self._get_channel_handler_func)
         if get_channel_handler is None:
@@ -189,8 +193,9 @@ class GeckoAsyncSpa(Observable):
 
         self.channel = get_channel_handler.channel
         self.signal = get_channel_handler.signal_strength
-        self._set_connection_state(GeckoSpaConnectionState.GOT_CHANNEL)
         _LOGGER.debug("Got channel %s/%s, now get config", self.channel, self.signal)
+        self._set_connection_state(GeckoSpaConnectionState.GOT_CHANNEL)
+        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         config_file_handler = await self._protocol.get(
             self._get_config_file_handler_func
@@ -211,6 +216,7 @@ class GeckoAsyncSpa(Observable):
             self.log_version,
         )
         self._set_connection_state(GeckoSpaConnectionState.GOT_CONFIG_FILES)
+        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         pack_module_name = f"geckolib.driver.packs.{plateform_key}"
         try:
@@ -321,15 +327,14 @@ class GeckoAsyncSpa(Observable):
             )
 
     @property
-    def last_ping_at(self) -> datetime:
-        """The datetime of the last successful ping respons"""
+    def last_ping_at(self) -> Optional[datetime]:
+        """The datetime of the last successful ping response or None"""
         return self._last_ping_at
 
     async def _ping_loop(self) -> None:
         _LOGGER.info("Ping loop started")
 
         self._last_ping = time.monotonic()
-        self._last_ping_at = datetime.now()
 
         while self.isopen:
 

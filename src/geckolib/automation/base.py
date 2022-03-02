@@ -4,7 +4,7 @@ from ..driver import Observable
 
 
 class GeckoAutomationBase(Observable):
-    """ Base of all the automation helper classes """
+    """Base of all the automation helper classes"""
 
     def __init__(self, facade, name, key):
         super().__init__()
@@ -15,22 +15,22 @@ class GeckoAutomationBase(Observable):
 
     @property
     def name(self):
-        """ All automation items have a name """
+        """All automation items have a name"""
         return self._name
 
     @property
     def key(self):
-        """ Key into the spa pack """
+        """Key into the spa pack"""
         return self._key
 
     @property
     def unique_id(self):
-        """ A unique id for the property """
+        """A unique id for the property"""
         return f"{self._facade.unique_id}-{self._key}"
 
     @property
     def facade(self):
-        """ Return the facade that is associated with this automation object """
+        """Return the facade that is associated with this automation object"""
         return self._facade
 
     @property

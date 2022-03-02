@@ -26,7 +26,7 @@ class GeckoSensorBase(GeckoAutomationBase):
         return self._device_class
 
     def __repr__(self):
-        return f"{self.name} = {self.state}"
+        return f"{self.name}: {self.state}"
 
 
 ########################################################################################

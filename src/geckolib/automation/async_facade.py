@@ -86,6 +86,12 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
             self._spa_address,
         )
 
+        self._spa: Optional[GeckoAsyncSpa] = None
+        self._locator: Optional[GeckoAsyncLocator] = None
+
+        self._facade_status_sensor = GeckoFacadeStatusSensor(self, "Status", "string")
+        self._facade_ping_sensor: Optional[GeckoFacadePingSensor] = None
+
         self._sensors: List[GeckoSensorBase] = []
         self._binary_sensors: List[GeckoBinarySensor] = []
         self._water_heater: Optional[GeckoWaterHeater] = None
@@ -96,8 +102,6 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
         self._keypad: Optional[GeckoKeypad] = None
         self._ecomode: Optional[GeckoSwitch] = None
 
-        self._spa: Optional[GeckoAsyncSpa] = None
-        self._locator: Optional[GeckoAsyncLocator] = None
         self._ready = False
 
     async def __aenter__(self) -> GeckoAsyncFacade:
@@ -165,6 +169,9 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                 if self._spa is None:
                     self._spa = GeckoAsyncSpa(self.client_id, spa, self)
                     self._spa.watch(self._on_change)
+                    self._facade_ping_sensor = GeckoFacadePingSensor(
+                        self, "Last Ping", "date"
+                    )
                     await self._spa.connect()
 
                     # The UI can again clear this, so deal with it
@@ -299,9 +306,6 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
             GeckoSensor(self, sensor[0], self._spa.accessors[sensor[1]])
             for sensor in GeckoConstants.SENSORS
             if sensor[1] in self._spa.accessors
-        ] + [
-            GeckoFacadeStatusSensor(self, "Status", "string"),  # type: ignore
-            GeckoFacadePingSensor(self, "Last Ping", "date"),  # type: ignore
         ]
 
         self._binary_sensors = [
@@ -337,14 +341,15 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
     @property
     def name(self) -> str:
         """Get the spa name"""
-        assert self._spa is not None
+        if self._spa is None:
+            return self.identifier
         return self._spa.descriptor.name
 
     @property
     def identifier(self) -> str:
         """Get the spa identifier"""
-        assert self._spa is not None
-        return self._spa.descriptor.identifier_as_string
+        assert self._spa_identifier is not None
+        return self._spa_identifier
 
     @property
     def spa(self) -> Optional[GeckoAsyncSpa]:
@@ -389,7 +394,11 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
     @property
     def sensors(self) -> List[GeckoSensorBase]:
         """Get the sensor list"""
-        return self._sensors
+        all_sensors = list(self._sensors)
+        all_sensors.append(self._facade_status_sensor)
+        if self._facade_ping_sensor is not None:
+            all_sensors.append(self._facade_ping_sensor)
+        return all_sensors
 
     @property
     def binary_sensors(self) -> List[GeckoBinarySensor]:
@@ -400,6 +409,16 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
     def eco_mode(self) -> Optional[GeckoSwitch]:
         """Get the Eco Mode switch if available"""
         return self._ecomode
+
+    @property
+    def facade_status_sensor(self) -> GeckoFacadeStatusSensor:
+        """Get the facade status sensor"""
+        return self._facade_status_sensor
+
+    @property
+    def facade_ping_sensor(self) -> Optional(GeckoFacadePingSensor):
+        """Get the facade ping sensor"""
+        return self._facade_ping_sensor
 
     @property
     def all_user_devices(self) -> List[GeckoAutomationBase]:

@@ -37,6 +37,7 @@ class CUI(AbstractDisplay, AsyncTasks):
         self._last_update = time.monotonic()
         self._last_char = None
         self._commands = {}
+        self._watching_ping_sensor = False
 
         self._facade = GeckoAsyncFacade(
             CLIENT_ID,
@@ -44,6 +45,7 @@ class CUI(AbstractDisplay, AsyncTasks):
             spa_identifier=self._config.spa_id,
         )
         self._facade.watch(self._on_facade_changed)
+        self._facade.facade_status_sensor.watch(self._on_facade_status_changed)
 
     async def __aenter__(self):
         self.add_task(self._timer_loop(), "Timer")
@@ -71,6 +73,22 @@ class CUI(AbstractDisplay, AsyncTasks):
             await asyncio.sleep(0)
 
     def _on_facade_changed(self, *args) -> None:
+        if (
+            self._facade.facade_ping_sensor is not None
+            and not self._watching_ping_sensor
+        ):
+            self._facade.facade_ping_sensor.watch(self._on_facade_ping_changed)
+            self._watching_ping_sensor = True
+        self.make_display()
+
+    def _on_facade_status_changed(self, *args) -> None:
+        # Admittedly this will cause the entire screen to update
+        # but it demonstrates that we can watch these
+        self.make_display()
+
+    def _on_facade_ping_changed(self, *args) -> None:
+        # Admittedly this will cause the entire screen to update
+        # but it demonstrates that we can watch these
         self.make_display()
 
     def _select_spa(self, spa):

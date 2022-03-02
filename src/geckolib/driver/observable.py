@@ -14,6 +14,11 @@ class Observable:
 
     def watch(self, observer: Callable[[Any, Any, Any], None]) -> None:
         """Add an observer to this observable class"""
+        if observer in self._observers:
+            _LOGGER.warning(
+                "Observer %s already in list, not going to add again", observer
+            )
+            return
         self._observers.append(observer)
 
     def unwatch(self, observer: Callable[[Any, Any, Any], None]) -> None:
