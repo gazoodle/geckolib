@@ -460,12 +460,17 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Watercare needs regular refresh from facade
  - Publish sensors for connection status and ping time as soon as they are
    available so that they can be cliented during connection
+ - Add new connection status enum for when initial datablock is being gathered, with percentage in status line?
+ - Add sensor for reminders
+ - Add sensor for errors
 
 ## Done/Fixed in 0.4.0
  - Supports both sync and async clients. The sync clients ought to be backward
    compatible but there has been a huge chunk of refactoring to get the async
    built and even though I've run all the tests and clients, it's possible there
    are issues
+ - Sensor for connection status is available early in facade lifetime
+ - Ping sensor available after spa begins connection sequence
 
 ## Done/Fixed in 0.3.24
  - Fix error found by Github workflow

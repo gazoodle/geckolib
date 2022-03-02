@@ -78,6 +78,10 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
         self._spa_identifier: Optional[str] = kwargs.get("spa_identifier", None)
         if self._spa_identifier == "":
             self._spa_identifier = None
+        # spa_name is only used for a very brief period during startup
+        self._spa_name: Optional[str] = kwargs.get("spa_name", None)
+        if self._spa_name == "":
+            self._spa_name = None
 
         _LOGGER.debug(
             "Facade started with UUID:%r ID:%s ADDR:%s",
@@ -341,9 +345,15 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
     @property
     def name(self) -> str:
         """Get the spa name"""
-        if self._spa is None:
+        if self._spa is not None:
+            # If we have a spa, then get it from the descriptor name
+            return self._spa.descriptor.name
+        elif self._spa_name is not None:
+            # Otherwise, if we have an initial spa name, use that
+            return self._spa_name
+        else:
+            # Otherwise we use the identifier
             return self.identifier
-        return self._spa.descriptor.name
 
     @property
     def identifier(self) -> str:
