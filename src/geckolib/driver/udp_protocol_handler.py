@@ -4,10 +4,9 @@ from __future__ import annotations
 import logging
 import time
 import asyncio
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .udp_socket import GeckoUdpSocket
     from .async_udp_protocol import GeckoAsyncUdpProtocol
 
 

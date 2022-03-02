@@ -13,44 +13,15 @@ import inspect
 import logging
 import time
 from datetime import datetime
-from typing import Coroutine
 from abstract_display import AbstractDisplay
 from config import Config
-from context import AsyncTasks, GeckoAsyncFacade
+from context import AsyncTasks, GeckoAsyncFacade  # type: ignore
 
 # Replace with your own UUID, see https://www.uuidgenerator.net/>
 CLIENT_ID = "1eca3a27-9b00-476a-9645-d13f4b1f9b56"
 
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def main_menu(stdscr):
-    k = 0
-
-    # Clear and refresh the screen for a blank canvas
-    stdscr.clear()
-    stdscr.refresh()
-    stdscr.border(0)
-    # curses.mousemask(1)
-
-    # Start colors in curses
-    # curses.start_color()
-    # curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
-    # curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-    # curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
-
-    # Loop where k is the last character pressed
-    while k != ord("q"):
-
-        # Initialization
-        stdscr.erase()
-
-        # Refresh the screen
-        stdscr.refresh()
-
-        # Wait for next input
-        k = stdscr.getch()
 
 
 class CUI(AbstractDisplay, AsyncTasks):
@@ -165,6 +136,9 @@ class CUI(AbstractDisplay, AsyncTasks):
                             self._commands[
                                 f"{idx}"
                             ] = lambda self=self, spa=spa: self._select_spa(spa)
+                    else:
+                        lines.append("Press 'r' to rescan")
+                        self._commands["r"] = self._clear_spa
 
             lines.append("")
             if self._facade.spa is not None:

@@ -12,31 +12,35 @@ Home Assistant integration. This has now been released, in preview, and can be
 found at https://github.com/gazoodle/gecko-home-assistant, or from HACS by adding
 a new integration and seaching for Gecko_
 
-# HEADS-UP: Async Version Coming Soon
+# Async support
 
-I've decided to rewrite the core of the library to be async based. This is for several
+The core of the library has been rewritten to be async based. This is for several
 reasons;
 
   1) Home Assistant, my main client of the library prefers this pattern. I'd like to
      get away from the "can't connect", "not supported" pattern and have the spa
      connect immediately to the facade (which will do the handshake to the actual spa
-     asynchronously so that connection state can be shown in the UI if required). 
+     asynchronously so that connection state can be shown in the UI if required).
      This will improve HA startup performance and allow me to control
-     the retry connection pattern in the library without having to burden the HA 
+     the retry connection pattern in the library without having to burden the HA
      integration with this (HA doesn't like protocol in integrations)
   2) I've done loads of multi-threaded programming in my life and think I'm familiar
      with almost all kinds of problems this brings, but ... why bother when this isn't
      necessary
-  3) While trying to implement a feature that supports occasionally disconnected 
+  3) While trying to implement a feature that supports occasionally disconnected
      spas without generating reams of logging, I realized that I was fighting against
      the previous architecture, so it's time to refactor that.
   4) Every day is a school day. I've not seriously explored Python's async support :-)
 
-I think this might be a breaking change, so currently I'm doing this work in another
-branch and along side the existing code, so for a while the library will have both
-sync and async support ... but unless there is huge pushback, I will deprecate the sync
-code after a while as it's a pain to keep two streams alive in the same library ... or
-worse create a new library for the async ... yuck!
+Currently this isn't a breaking change, the sync library still has the functionality
+that it always had (albeit with some major refactoring). There is a completely parallel
+API and class set to support async clients.
+
+I'll update the HA integration to use the async version as it's much faster to start
+and it has more functionality. I know there are other automation clients using this
+library, so the sync API and classes will stay here for a while until those clients have
+had a chance to use the new async code, but I will deprecate them at some point,
+probably when the library goes to v1.0.0
 
 # Installation
 
@@ -193,7 +197,85 @@ reconnect from the start.
 Also, at present the simulator doesn't respond to any commands issued from the
 iOS and Android applications.
 
-# API Usage
+# Async API Usage
+
+```python
+""" Sample client demonstrating async use of geckolib """
+
+import asyncio
+import logging
+
+from context import GeckoAsyncFacade
+
+# Replace with your own UUID, see https://www.uuidgenerator.net/>
+CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
+# Replace with your spa IP address if on a sub-net
+SPA_ADDRESS = None
+
+
+async def main():
+
+    # Create a facade to locate spas on the network first, optionally using
+    # the specified spa address
+    print("Finding spas on your network")
+    spa = None
+    async with GeckoAsyncFacade(CLIENT_ID, spa_address=SPA_ADDRESS) as facade:
+        await facade.ready()
+        if facade.locator.spas is not None:
+            spa = facade.locator.spas[0]
+
+    # Check that we found a spa
+    if spa is None:
+        print("No spas found on your network")
+        return
+
+    print(f"Connecting to {spa} on {spa.destination}")
+    # Now connect to the facade using the information from the descriptor
+    async with GeckoAsyncFacade(
+        CLIENT_ID,
+        spa_address=spa.ipaddress,
+        spa_identifier=spa.identifier_as_string,
+    ) as facade:
+        # Hang around waiting for the facade to connect. You wouldn't normally
+        # do it like this, but this is a simple example
+        await facade.ready()
+
+        # Print some information out
+        print(facade.water_heater)
+
+        print("Turning pump 1 on")
+        await facade.pumps[0].async_set_mode("HI")
+
+        await asyncio.sleep(5)
+
+        print("Turning pump 1 off")
+        await facade.pumps[0].async_set_mode("OFF")
+
+        await asyncio.sleep(5)
+
+
+if __name__ == "__main__":
+    # Install logging
+    stream_logger = logging.StreamHandler()
+    stream_logger.setLevel(logging.DEBUG)
+    stream_logger.setFormatter(
+        logging.Formatter("%(asctime)s> %(levelname)s %(message)s")
+    )
+    logging.getLogger().addHandler(stream_logger)
+    logging.getLogger().setLevel(logging.WARNING)
+
+    asyncio.run(main())
+```
+
+# Complete sample
+
+There is also a complete async sample which can be found in the repo under
+the /sample folder. This can be run using `python3 complete.py`
+
+
+# Sync API Usage
+
+**WARNING** Sync functionality will be removed in a future release
 
 This first example is a trivial one to show how to minimally client this library
 
@@ -378,6 +460,12 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Watercare needs regular refresh from facade
  - Publish sensors for connection status and ping time as soon as they are
    available so that they can be cliented during connection
+
+## Done/Fixed in 0.4.0
+ - Supports both sync and async clients. The sync clients ought to be backward
+   compatible but there has been a huge chunk of refactoring to get the async
+   built and even though I've run all the tests and clients, it's possible there
+   are issues
 
 ## Done/Fixed in 0.3.24
  - Fix error found by Github workflow
