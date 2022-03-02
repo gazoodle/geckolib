@@ -17,5 +17,5 @@ class GeckoRFErrProtocolHandler(GeckoPacketProtocolHandler):
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
         return received_bytes.startswith(RFERR_VERB)
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, sender: tuple):
         _LOGGER.info("RF error, intouch2 module cannot communicate with spa")

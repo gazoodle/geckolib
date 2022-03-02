@@ -68,9 +68,7 @@ class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
             HELLO_CLOSE
         )
 
-    def handle(
-        self, _socket: GeckoUdpSocket, received_bytes: bytes, sender: tuple
-    ) -> None:
+    def handle(self, received_bytes: bytes, sender: tuple) -> None:
         content = received_bytes[7:-8]
         self.was_broadcast_discovery = False
         self._client_identifier = self._spa_identifier = self._spa_name = None

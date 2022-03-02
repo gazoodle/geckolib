@@ -17,7 +17,7 @@ class GeckoUnhandledProtocolHandler(GeckoUdpProtocolHandler):
     def can_handle(self, _received_bytes: bytes, _sender: tuple) -> bool:
         return True
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple) -> None:
+    def handle(self, received_bytes: bytes, sender: tuple) -> None:
         pass
 
     async def consume(self, protocol):

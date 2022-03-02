@@ -2,7 +2,6 @@
 
 import logging
 import threading
-import asyncio
 import time
 import importlib
 
@@ -40,7 +39,7 @@ class GeckoSpa(GeckoUdpSocket):
         self.on_connected = None
         self.is_in_error = False
 
-        self.add_receive_handler(GeckoPacketProtocolHandler())
+        self.add_receive_handler(GeckoPacketProtocolHandler(socket=self))
         self.add_receive_handler(
             GeckoPartialStatusBlockProtocolHandler(
                 self, on_handled=self._on_partial_status_update

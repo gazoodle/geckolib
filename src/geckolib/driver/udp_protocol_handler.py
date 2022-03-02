@@ -86,9 +86,7 @@ class GeckoUdpProtocolHandler(ABC):
         return False
 
     @abstractmethod
-    def handle(
-        self, socket: Optional[GeckoUdpSocket], received_bytes: bytes, sender: tuple
-    ) -> None:
+    def handle(self, received_bytes: bytes, sender: tuple) -> None:
         """Handle this data. This will only be called if you returned True
         from the `can_handle` function. If you wish to remove this handler
         from the system, then you should set the `should_remove_handler`
@@ -112,7 +110,7 @@ class GeckoUdpProtocolHandler(ABC):
         from the `can_handle` function. If you wish to remove this handler
         from the system, then you should set the `should_remove_handler`
         member."""
-        self.handle(None, received_bytes, sender)
+        self.handle(received_bytes, sender)
 
     async def async_handled(self, sender: tuple) -> None:
         """Base class implementation for when the data has been handled"""

@@ -49,7 +49,7 @@ class GeckoVersionProtocolHandler(GeckoPacketProtocolHandler):
             SVERS_VERB
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, sender: tuple):
         remainder = received_bytes[5:]
         if received_bytes.startswith(AVERS_VERB):
             self._sequence = struct.unpack(">B", remainder)[0]

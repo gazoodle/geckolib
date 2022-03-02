@@ -83,7 +83,7 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
             or received_bytes.startswith(REQWC_VERB)
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple) -> None:
+    def handle(self, received_bytes: bytes, sender: tuple) -> None:
         remainder = received_bytes[5:]
         if received_bytes.startswith(GETWC_VERB):
             self._sequence = struct.unpack(">B", remainder)[0]

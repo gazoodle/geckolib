@@ -58,7 +58,7 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
             STATV_VERB
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, sender: tuple):
         remainder = received_bytes[5:]
         if received_bytes.startswith(STATU_VERB):
             self.sequence, self.start, self.length = struct.unpack(
@@ -97,7 +97,7 @@ class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
             STATP_VERB
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple) -> None:
+    def handle(self, received_bytes: bytes, sender: tuple) -> None:
         remainder = received_bytes[5:]
         if received_bytes.startswith(STATQ_VERB):
             (self.sequence,) = struct.unpack(">B", remainder)
@@ -135,7 +135,7 @@ class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
             STATP_VERB
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, sender: tuple):
         pass
 
     async def async_handle(self, received_bytes: bytes, sender: tuple) -> None:

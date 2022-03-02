@@ -122,7 +122,7 @@ class TestGeckoUdpSocket(unittest.TestCase):
             def can_handle(self, received_bytes: bytes, sender: tuple):
                 return True
 
-            def handle(self, socket, received_bytes: bytes, sender: tuple):
+            def handle(self, received_bytes: bytes, sender: tuple):
                 self.received = received_bytes
                 self._should_remove_handler = True
 
@@ -153,7 +153,7 @@ class TestGeckoUdpSocket(unittest.TestCase):
             def can_handle(self, received_bytes: bytes, sender: tuple):
                 return True
 
-            def handle(self, socket, received_bytes: bytes, sender: tuple):
+            def handle(self, received_bytes: bytes, sender: tuple):
                 self._should_remove_handler = True
 
             def _reset_timeout(self):

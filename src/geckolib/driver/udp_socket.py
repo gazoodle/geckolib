@@ -168,7 +168,7 @@ class GeckoUdpSocket:
 
             if receive_handler:
                 try:
-                    receive_handler.handle(self, received_bytes, remote_end)
+                    receive_handler.handle(received_bytes, remote_end)
                     receive_handler.handled(self, remote_end)
                 except Exception:
                     _LOGGER.exception("Unhandled exception in receive_handler func")

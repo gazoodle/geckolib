@@ -83,7 +83,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
             PACKS_VERB
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, sender: tuple):
         remainder = received_bytes[5:]
         if received_bytes.startswith(PACKS_VERB):
             self._should_remove_handler = True
