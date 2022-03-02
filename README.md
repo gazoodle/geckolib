@@ -12,6 +12,32 @@ Home Assistant integration. This has now been released, in preview, and can be
 found at https://github.com/gazoodle/gecko-home-assistant, or from HACS by adding
 a new integration and seaching for Gecko_
 
+# HEADS-UP: Async Version Coming Soon
+
+I've decided to rewrite the core of the library to be async based. This is for several
+reasons;
+
+  1) Home Assistant, my main client of the library prefers this pattern. I'd like to
+     get away from the "can't connect", "not supported" pattern and have the spa
+     connect immediately to the facade (which will do the handshake to the actual spa
+     asynchronously so that connection state can be shown in the UI if required). 
+     This will improve HA startup performance and allow me to control
+     the retry connection pattern in the library without having to burden the HA 
+     integration with this (HA doesn't like protocol in integrations)
+  2) I've done loads of multi-threaded programming in my life and think I'm familiar
+     with almost all kinds of problems this brings, but ... why bother when this isn't
+     necessary
+  3) While trying to implement a feature that supports occasionally disconnected 
+     spas without generating reams of logging, I realized that I was fighting against
+     the previous architecture, so it's time to refactor that.
+  4) Every day is a school day. I've not seriously explored Python's async support :-)
+
+I think this might be a breaking change, so currently I'm doing this work in another
+branch and along side the existing code, so for a while the library will have both
+sync and async support ... but unless there is huge pushback, I will deprecate the sync
+code after a while as it's a pain to keep two streams alive in the same library ... or
+worse create a new library for the async ... yuck!
+
 # Installation
 
 This library is hosted on PyPI and can be installed with the following command-line

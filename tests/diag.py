@@ -3,6 +3,7 @@
     Diag tool for geckolib
 """
 
+import sys
 import logging
 from context import (
     GeckoUdpSocket,
@@ -15,8 +16,7 @@ STATIC_IP = None
 SPA_ID = None
 SPA_NAME = None
 SPA_DESTINATION = None
-CLIENT_IDENTIFIER_1 = "IOSe31808f4-0cac-462b-ade6-55ee716dad6e"
-CLIENT_IDENTIFIER_2 = "IOS05727646-e253-4019-bce4-7d57efe0bb14"
+CLIENT_IDENTIFIER_1 = "IOSE31808F4-0CAC-462B-ADE6-55EE716DAD6E"
 PING_DONE = False
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,8 +36,11 @@ def _on_ping(handler, socket, sender):
     PING_DONE = True
 
 
-def comms_diag():
-    _LOGGER.info("Start comms diag")
+def comms_diag(arg):
+    _LOGGER.info("Start comms diag with %s", arg)
+    if len(arg) == 1:
+        global STATIC_IP
+        STATIC_IP = arg[0]
 
     _LOGGER.info("Discovery process started, create socket")
     _socket = GeckoUdpSocket()
@@ -71,10 +74,12 @@ def comms_diag():
     _socket.add_receive_handler(GeckoPacketProtocolHandler())
 
     client_id = CLIENT_IDENTIFIER_1.encode("Latin1")
-    _socket.queue_send(
-        GeckoHelloProtocolHandler.client(client_id),
-        SPA_DESTINATION,
-    )
+    # Do 5 of these to make sure the in.touch2 module hears us
+    for idx in range(5):
+        _socket.queue_send(
+            GeckoHelloProtocolHandler.client(client_id),
+            SPA_DESTINATION,
+        )
 
     # Install ping handler
     _LOGGER.debug("Connection started, install ping handler")
@@ -108,5 +113,5 @@ if __name__ == "__main__":
     )
     logging.getLogger().addHandler(stream_logger)
     logging.getLogger().setLevel(logging.DEBUG)
-    comms_diag()
+    comms_diag(sys.argv[1:])
     _LOGGER.info("*** DIAG COMPLETE ***")

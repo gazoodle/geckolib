@@ -183,7 +183,13 @@ class GeckoUdpSocket:
                     self._MAX_PACKET_SIZE
                 )
                 self.dispatch_recevied_data(received_bytes, remote_end)
-            except (socket.timeout, OSError):
+            except socket.timeout:
+                return
+            except OSError as e:
+                _LOGGER.debug("OS Exception %s during socket receive", e)
+                return
+            except Exception as e:
+                _LOGGER.exception("Exception %s during receive processing", e)
                 return
             finally:
                 pass
