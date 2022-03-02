@@ -1,14 +1,14 @@
 # GeckoLib
 Library to interface with Gecko Alliance spa pack systems via in.touch2
 
-Written from the ground up using info gleaned from Wireshark captures to sniff 
+Written from the ground up using info gleaned from Wireshark captures to sniff
 the conversation between the iOS app and the inTouch2 home transmitter.
 
 Designed to be used by home automation systems such as Home Assistant or openHAB
 
 _This library is currently in Alpha, meaning that there may be large changes
 in library shape, class definitions, behaviours etc as I client it in my ongoing
-Home Assistant integration. This has now been released, in preview, and can be 
+Home Assistant integration. This has now been released, in preview, and can be
 found at https://github.com/gazoodle/gecko-home-assistant, or from HACS by adding
 a new integration and seaching for Gecko_
 
@@ -44,7 +44,7 @@ Lights: OFF
 WaterCare: Standard
 Welcome to the Gecko shell. Type help or ? to list commands.
 
-Spa$ 
+Spa$
 
 ```
 
@@ -69,8 +69,8 @@ Spa$ help
 Documented commands (type help <topic>):
 ========================================
 BL  P2      discover  get      list    refresh   snapshot  watercare
-LI  about   download  help     live    set       state   
-P1  config  exit      license  manage  setpoint  version 
+LI  about   download  help     live    set       state
+P1  config  exit      license  manage  setpoint  version
 
 Spa$ help watercare
 Set the active watercare mode to one of ['Away From Home', 'Standard', 'Energy Saving', 'Super Energy Saving', 'Weekender'] : WATERCARE <mode>
@@ -96,7 +96,7 @@ P2: OFF
 BL: OFF
 LI: OFF
 WaterCare: Standard
-Spa$ 
+Spa$
 
 ```
 
@@ -120,7 +120,7 @@ Spa$ logfile client.log
 ```
 
 
-The file `client.log` will contain diagnostic information that may be useful 
+The file `client.log` will contain diagnostic information that may be useful
 for tracking down issues
 
 If you want to start the client and point it at a specific IP address (maybe you have your SPA on a different subnet), you can issue the discovery command as part of the launch parameters
@@ -136,7 +136,7 @@ If you want to start the client and point it at a specific IP address (maybe you
 
 # Simulator Usage
 
-It's best if you download the repo for using the simulator. Once you've done that, 
+It's best if you download the repo for using the simulator. Once you've done that,
 open a terminal to your repo test folder (./tests)
 
 `python3 simulator.py`
@@ -146,7 +146,7 @@ You should see a prompt
 ```
 Welcome to the Gecko simulator. Type help or ? to list commands.
 
-(GeckoSim) 
+(GeckoSim)
 ```
 
 You should load the default snapshot at this point
@@ -156,7 +156,7 @@ You should load the default snapshot at this point
 (GeckoSim)
 ```
 
-Now you can run the client program, or indeed your iOS or Android app and then 
+Now you can run the client program, or indeed your iOS or Android app and then
 attempt to connect to the simulator. At present it only supports loading another
 snapshot to change the state. If the changes are too great, for example, if you've
 loaded a completly different spa then the iOS and Android apps may be confused.
@@ -234,7 +234,7 @@ with GeckoLocator(CLIENT_ID) as locator:
 
 ```
 
-A more complex example 
+A more complex example
 
 ```python
 """ Real world sample client demonstrating use of geckolib
@@ -333,26 +333,25 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Error handling
  - Better timeout/retry for multiple commands
  - Pythonize where possible
- - Download configuration so that a restore is possible
- - Factory reset spa pack if possible
  - APIs to support integration into automation systems (Ongoing)
-    * HVAC (Heating/Cooling/Setpoint/Modes)
-    * States (Pumps/Blowers/Lights)
-    * Support Devices States (Circulation Pump/Ozone/Filters)
-    * Operations (Pumps/Blowers/Lights)
     * Warnings/Errors
     * Reminders
     * Diagnostics
  - More unit tests
- - Show which parts of the status block are addressed by the SpaPackStruct.xml
-   so we can inspect the remainder to see if there is anything useful in there.
  - Handle other device types such as Waterfall
- - Handle multi/variable speed pumps
  - Connection retry needed when pings fail
  - A missing spa is an unusual event not a critical failure, retry connection
  - Handle inMix for lighting control
  - Add API documentation
  - RF signal strength for EN(Home) -> CO(Spa)
+ - Merge reminders branch from @kalinrow
+ - List property for User demands in pack classes
+ - List property for errors in pack classes
+ - Tidy up support files. One class per file
+ - Full sweep for typing hints - Ongoing
+ - Watercare needs regular refresh from facade
+ - Publish sensors for connection status and ping time as soon as they are
+   available so that they can be cliented during connection
 
 ## Done/Fixed in 0.3.24
  - Fix error found by Github workflow
@@ -402,7 +401,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 ## Done/Fixed in 0.3.16
  - More robust to missed packets during spa connection
  - Mechanism to access raw pack values from the facade, e.g. facade.pumps[0].state_sensor.accessor.raw_value
- - Add API to facade to get device by key, e.g. facade.get_device("P1") will return the first pump. 
+ - Add API to facade to get device by key, e.g. facade.get_device("P1") will return the first pump.
  - Add property to facade to get all device keys; facade.devices
 
 ## Done/Fixed in 0.3.15
@@ -435,7 +434,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Re-structure for better lifetime management and easier clienting
  - Merged PR from dukey32123 supplying waterfall constants ... need to find keypad code too.
  - flake8 and black formatting and tidy-up
- - Observable added to propagate change notification so we can be cliented as a 
+ - Observable added to propagate change notification so we can be cliented as a
    local-push integration in Home Assistant
  - Moved all the functionality out of client.py and put it into GeckoShell class
 
@@ -444,7 +443,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ## Done/Fixed in 0.3.9
  - Message encoding -> latin1 from utf-8 to avoid mangling raw bytes. This fixes
-   the turning pump 2 off when turning pump 1 on using `set UdP2=HI` then 
+   the turning pump 2 off when turning pump 1 on using `set UdP2=HI` then
    `set UdP1=HI`. There must be a better way to do this without switching between
    strings and bytes ...
  - Major source restructure to get ready for PyPI package

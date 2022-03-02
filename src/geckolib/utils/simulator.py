@@ -231,7 +231,7 @@ class GeckoSimulator(GeckoCmd):
             return
         if handler.schedule:
             socket.queue_send(
-                GeckoWatercareProtocolHandler.schedule(parms=sender), sender
+                GeckoWatercareProtocolHandler.giveschedule(parms=sender), sender
             )
         else:
             socket.queue_send(

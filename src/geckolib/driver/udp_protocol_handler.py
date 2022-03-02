@@ -2,10 +2,12 @@ import logging
 import time
 import asyncio
 
+from abc import ABC, abstractmethod
+
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoUdpProtocolHandler:
+class GeckoUdpProtocolHandler(ABC):
     """
     Protocol handlers manage both sides of a specific conversation part with
     a remote end.
@@ -31,7 +33,7 @@ class GeckoUdpProtocolHandler:
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         # Send functionality
         self._send_bytes = kwargs.get("send_bytes", None)
         self.last_destination = None
@@ -66,6 +68,7 @@ class GeckoUdpProtocolHandler:
     #
     ##########################################################################
 
+    @abstractmethod
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
         """Check if you can handle these bytes. If you return True, then your
         handle method will get called and no other handlers will be given a
@@ -73,18 +76,19 @@ class GeckoUdpProtocolHandler:
         suitable handler will continue"""
         return False
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    @abstractmethod
+    def handle(self, socket, received_bytes: bytes, sender: tuple) -> None:
         """Handle this data. This will only be called if you returned True
         from the `can_handle` function. If you wish to remove this handler
         from the system, then you should set the `should_remove_handler`
         member."""
 
-    def handled(self, socket, sender: tuple):
+    def handled(self, socket, sender: tuple) -> None:
         self._reset_timeout()
         if self._on_handled is not None:
             self._on_handled(self, socket, sender)
 
-    async def wait_for_response(self, protocol):
+    async def wait_for_response(self, protocol) -> bool:
         """Wait for a response that this command can handle, return True if handled, False if timed-out"""
         _LOGGER.debug("Starting wait for response for %s", self)
         while True:
@@ -102,7 +106,7 @@ class GeckoUdpProtocolHandler:
 
             await asyncio.sleep(0)
 
-    async def consume(self, protocol):
+    async def consume(self, protocol) -> None:
         if self._timeout_in_seconds > 0:
             raise RuntimeError("Cannot use consume on handler with timeout")
 
@@ -129,11 +133,11 @@ class GeckoUdpProtocolHandler:
     #
     ##########################################################################
     @property
-    def age(self):
+    def age(self) -> float:
         return time.monotonic() - self._start_time
 
     @property
-    def has_timedout(self):
+    def has_timedout(self) -> bool:
         return (
             self.age > self._timeout_in_seconds
             if self._timeout_in_seconds > 0
@@ -141,13 +145,13 @@ class GeckoUdpProtocolHandler:
         )
 
     @property
-    def should_remove_handler(self):
+    def should_remove_handler(self) -> bool:
         return self._should_remove_handler
 
-    def _reset_timeout(self):
+    def _reset_timeout(self) -> None:
         self._start_time = time.monotonic()
 
-    def retry(self, socket):
+    def retry(self, socket) -> bool:
         if self._retry_count == 0:
             return False
         self._retry_count -= 1
@@ -158,7 +162,7 @@ class GeckoUdpProtocolHandler:
             socket.queue_send(self, self.last_destination)
         return True
 
-    def loop(self, socket):
+    def loop(self, socket) -> None:
         """Executed each time around the socket loop"""
         if not self.has_timedout:
             return
@@ -169,12 +173,12 @@ class GeckoUdpProtocolHandler:
             self._on_retry_failed(self, socket)
 
     @staticmethod
-    def _default_retry_failed_handler(handler, socket):
+    def _default_retry_failed_handler(handler, socket) -> None:
         _LOGGER.debug("Default retry failed handler for %r being used", handler)
         handler._should_remove_handler = True
 
     # Pythonic methods
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}(send_bytes={self._send_bytes!r},"
             f" age={self.age}, has_timedout={self.has_timedout},"

@@ -5,6 +5,7 @@ import time
 import asyncio
 import socket
 
+from .async_tasks import AsyncTasks
 from .driver import (
     GeckoHelloProtocolHandler,
     GeckoAsyncUdpProtocol,
@@ -12,7 +13,7 @@ from .driver import (
 from .const import GeckoConstants
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .driver import Observable
-
+from typing import Optional, List
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,26 +23,28 @@ class GeckoAsyncLocator(Observable):
     GeckoAsyncLocator class locates in.touch2 devices on your local LAN
     """
 
-    def __init__(self, taskman, **kwargs):
+    def __init__(self, taskman: AsyncTasks, **kwargs: Optional[str]) -> None:
         super().__init__()
         # Get the arguments
-        self._task_man = taskman
-        self._spa_address = kwargs.get("spa_address", None)
+        self._task_man: AsyncTasks = taskman
+        self._spa_address: Optional[str] = kwargs.get("spa_address", None)
         if self._spa_address == "":
             self._spa_address = None
-        self._spa_identifier = kwargs.get("spa_identifier", None)
+        self._spa_identifier: Optional[str] = kwargs.get("spa_identifier", None)
         if self._spa_identifier == "":
             self._spa_identifier = None
 
-        self.spas: GeckoAsyncSpaDescriptor = None
-        self._spa_identifiers = []
+        self.spas: Optional[List[GeckoAsyncSpaDescriptor]] = None
+        self._spa_identifiers: List[bytes] = []
 
-        self._has_found_spa = False
-        self._started = None
-        self._transport = None
-        self._protocol = None
+        self._has_found_spa: bool = False
+        self._started: Optional[float] = None
+        self._transport: Optional[asyncio.BaseTransport] = None
+        self._protocol: Optional[GeckoAsyncUdpProtocol] = None
 
-    def _on_discovered(self, handler, _socket, sender):
+    def _on_discovered(
+        self, handler: GeckoHelloProtocolHandler, _socket, sender: tuple
+    ) -> None:
         if handler.spa_identifier in self._spa_identifiers:
             return
 
@@ -72,11 +75,13 @@ class GeckoAsyncLocator(Observable):
             self._has_found_spa = True
 
     @property
-    def age(self):
+    def age(self) -> float:
+        if self._started is None:
+            return 0
         return time.monotonic() - self._started
 
     @property
-    def has_had_enough_time(self):
+    def has_had_enough_time(self) -> bool:
         return self.age > GeckoConstants.DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS
 
     @property
@@ -85,14 +90,17 @@ class GeckoAsyncLocator(Observable):
             return True
         return self._protocol is not None
 
-    async def discover(self):
+    async def discover(self) -> None:
         loop = asyncio.get_running_loop()
         on_con_lost = loop.create_future()
-        self._transport, self._protocol = await loop.create_datagram_endpoint(
+        self._transport, _protocol = await loop.create_datagram_endpoint(
             lambda: GeckoAsyncUdpProtocol(on_con_lost, None),
             family=socket.AF_INET,
             allow_broadcast=True,
         )
+        assert isinstance(_protocol, GeckoAsyncUdpProtocol)
+        self._protocol = _protocol
+        assert self._transport is not None
 
         hello_handler = GeckoHelloProtocolHandler.broadcast(
             on_handled=self._on_discovered

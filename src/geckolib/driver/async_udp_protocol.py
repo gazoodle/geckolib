@@ -1,11 +1,11 @@
 """ GeckoAsyncUdpProtocol - Gecko Async UDP protocol implementation """
 
-import socket
 import asyncio
 import logging
-import time
+
 from .udp_protocol_handler import GeckoUdpProtocolHandler
 from .async_peekablequeue import AsyncPeekableQueue
+from typing import Optional, Callable, Type, TypeVar
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     it's a good deal more simple that its predecessor
     """
 
-    def __init__(self, on_connection_lost, destination):
+    def __init__(self, on_connection_lost, destination) -> None:
         self.transport = None
         self._on_connection_lost = on_connection_lost
         self._destination = destination
@@ -30,11 +30,11 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     def Lock(self):
         return self._lock
 
-    def connection_made(self, transport):
+    def connection_made(self, transport) -> None:
         _LOGGER.debug("GeckoAsyncUdpProtocol: connection made to %s", transport)
         self.transport = transport
 
-    def connection_lost(self, exc):
+    def connection_lost(self, exc) -> None:
         _LOGGER.debug(
             "GeckoAsyncUdpProtocol: connection lost from %s (%s)", self.transport, exc
         )
@@ -42,24 +42,29 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         if self._on_connection_lost is not None:
             self._on_connection_lost.set_result(True)
 
-    def error_received(self, exc):
+    def error_received(self, exc) -> None:
         _LOGGER.exception("GeckoAsyncUdpProtocol: Exception received %s", exc)
         # TODO: What do we want to do with this?
 
     @property
-    def isopen(self):
+    def isopen(self) -> bool:
         """Check to see if the transport is connected"""
         return self.transport is not None
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         self.connection_lost(None)
 
     @property
-    def queue(self):
+    def queue(self) -> AsyncPeekableQueue:
         return self._queue
 
-    def queue_send(self, protocol_handler: GeckoUdpProtocolHandler, destination=None):
+    def queue_send(
+        self, protocol_handler: GeckoUdpProtocolHandler, destination=None
+    ) -> None:
         """Queue a message to be sent async later"""
+        if not self.isopen:
+            raise RuntimeError("Cannot queue message as transport is closed")
+        assert self.transport is not None
         if destination is None:
             destination = self._destination
         protocol_handler.last_destination = destination
@@ -68,15 +73,22 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         _LOGGER.debug("Sending %s to %s", send_bytes, destination)
         self.transport.sendto(send_bytes, destination)
 
-    def get_and_increment_sequence_counter(self):
+    def get_and_increment_sequence_counter(self) -> int:
         self._sequence_counter += 1
         return self._sequence_counter % 256
 
-    def datagram_received(self, data, addr):
+    def datagram_received(self, data, addr) -> None:
         _LOGGER.debug("Received %s from %s", data, addr)
         self.queue.put_nowait((data, addr))
 
-    async def get(self, create_func, destination=None, retry_count=10):
+    T = TypeVar("T", bound="GeckoUdpProtocolHandler")
+
+    async def get(
+        self,
+        create_func: Callable[[], T],
+        destination: Optional[tuple] = None,
+        retry_count: int = 10,
+    ) -> Optional[T]:
 
         _LOGGER.debug("Async get started, acquire the lock")
         async with self.Lock:
@@ -86,7 +98,6 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
 
                 # Create the request
                 request = create_func()
-
                 # Queue it for delivery
                 self.queue_send(request, destination)
 
@@ -101,7 +112,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
 
             return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__} on {self.transport!r}\n"
             f" isopen: {self.isopen}"

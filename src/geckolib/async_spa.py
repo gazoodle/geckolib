@@ -6,7 +6,11 @@ import asyncio
 import importlib
 import socket
 import time
-from enum import Enum
+from typing import Optional
+
+from .spa_connection_state import GeckoSpaConnectionState
+from .async_spa_descriptor import GeckoAsyncSpaDescriptor
+from .async_tasks import AsyncTasks
 
 from .const import GeckoConstants
 from .driver import (
@@ -30,40 +34,30 @@ from .driver import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoSpaConnectionState(Enum):
-    DISCONNECTED = 1
-    PING_STARTED = 2
-    GOT_FIRMWARE_VERSION = 3
-    GOT_CHANNEL = 4
-    GOT_CONFIG_FILES = 5
-
-    CONNECTED = 10
-
-    # Error states
-    CANNOT_FIND_SPA_PACK = 99
-    CANNOT_FIND_CONFIG_VERSION = 98
-    CANNOT_FIND_LOG_VERSION = 97
-    NO_PING_RESPONSE = 96
-    PROTOCOL_RETRY_EXCEEDED = 95
-
-
 class GeckoAsyncSpa(Observable):
-    """GeckoAsyncSpa class manages an instance of a spa, and is the main point of contact for
-    control and monitoring. Uses the declarations found in pack/* to build
+    """GeckoAsyncSpa class manages an instance of a spa, and is the main point of
+    contact for control and monitoring. Uses the declarations found in pack/* to build
     an object that exposes the properties and capabilities of your spa. This class
     should only be used via a Facade which hides the implementation details"""
 
-    def __init__(self, client_id, spa_descriptor, taskman):
+    def __init__(
+        self,
+        client_id: bytes,
+        spa_descriptor: GeckoAsyncSpaDescriptor,
+        taskman: AsyncTasks,
+    ) -> None:
         super().__init__()
 
         self.client_id = client_id
         self.descriptor = spa_descriptor
         self._taskman = taskman
 
-        self._con_lost = None
-        self._transport = None
-        self._protocol = None
-        self._connection_state = GeckoSpaConnectionState.DISCONNECTED
+        self._con_lost: Optional[asyncio.Future] = None
+        self._transport: Optional[asyncio.BaseTransport] = None
+        self._protocol: Optional[GeckoAsyncUdpProtocol] = None
+        self._connection_state: GeckoSpaConnectionState = (
+            GeckoSpaConnectionState.DISCONNECTED
+        )
 
         self.intouch_version_en = ""
         self.intouch_version_co = ""
@@ -86,7 +80,7 @@ class GeckoAsyncSpa(Observable):
         self.struct = GeckoAsyncStructure(self._on_set_value, self._on_async_set_value)
 
     @property
-    def sendparms(self):
+    def sendparms(self) -> tuple:
         return (
             self.descriptor.destination[0],
             self.descriptor.destination[1],
@@ -95,30 +89,55 @@ class GeckoAsyncSpa(Observable):
         )
 
     @property
-    def connection_state(self):
+    def connection_state(self) -> GeckoSpaConnectionState:
         return self._connection_state
 
     @property
-    def revision(self):
-        """Get the revision of the spa pack structure used to generate the pack modules"""
-        return self.pack_class.revision
+    def revision(self) -> str:
+        """Get the revision of the spa pack structure used to generate
+        the pack modules"""
+        # TODO: Need to add base classes and type hinting to auto-generated
+        # pack code and remove type-hint suppression below
+        return self.pack_class.revision  # type: ignore
 
-    def _set_connection_state(self, state: GeckoSpaConnectionState):
+    def _set_connection_state(self, state: GeckoSpaConnectionState) -> None:
         old_state = self._connection_state
         self._connection_state = state
         self._on_change(self, old_state, self._connection_state)
 
-    async def connect(self):
+    def _get_version_handler_func(self) -> GeckoVersionProtocolHandler:
+        assert self._protocol is not None
+        return GeckoVersionProtocolHandler.request(
+            self._protocol.get_and_increment_sequence_counter(), parms=self.sendparms
+        )
+
+    def _get_channel_handler_func(self) -> GeckoGetChannelProtocolHandler:
+        assert self._protocol is not None
+        return GeckoGetChannelProtocolHandler.request(
+            self._protocol.get_and_increment_sequence_counter(),
+            parms=self.sendparms,
+        )
+
+    def _get_config_file_handler_func(self) -> GeckoConfigFileProtocolHandler:
+        assert self._protocol is not None
+        return GeckoConfigFileProtocolHandler.request(
+            self._protocol.get_and_increment_sequence_counter(),
+            parms=self.sendparms,
+        )
+
+    async def connect(self) -> None:
         loop = asyncio.get_running_loop()
         self._con_lost = loop.create_future()
 
-        self._transport, self._protocol = await loop.create_datagram_endpoint(
+        self._transport, _protocol = await loop.create_datagram_endpoint(
             lambda: GeckoAsyncUdpProtocol(
                 self._con_lost,
                 (self.descriptor.destination[0], self.descriptor.destination[1]),
             ),
             family=socket.AF_INET,
         )
+        assert isinstance(_protocol, GeckoAsyncUdpProtocol)
+        self._protocol = _protocol
         self._on_change(self)
 
         self._taskman.add_task(
@@ -141,16 +160,11 @@ class GeckoAsyncSpa(Observable):
             GeckoRFErrProtocolHandler().consume(self._protocol),
             "RFErr handler",
         )
-        self._taskman.add_task(self.ping_loop(), "Ping loop")
-        self._taskman.add_task(self.refresh_loop(), "Refresh loop")
+        self._taskman.add_task(self._ping_loop(), "Ping loop")
+        self._taskman.add_task(self._refresh_loop(), "Refresh loop")
         self._set_connection_state(GeckoSpaConnectionState.PING_STARTED)
 
-        version_handler = await self._protocol.get(
-            lambda: GeckoVersionProtocolHandler.request(
-                self._protocol.get_and_increment_sequence_counter(),
-                parms=self.sendparms,
-            )
-        )
+        version_handler = await self._protocol.get(self._get_version_handler_func)
         if version_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
             return
@@ -168,13 +182,7 @@ class GeckoAsyncSpa(Observable):
             self.intouch_version_co,
         )
 
-        get_channel_handler = await self._protocol.get(
-            lambda: GeckoGetChannelProtocolHandler.request(
-                self._protocol.get_and_increment_sequence_counter(),
-                parms=self.sendparms,
-            )
-        )
-
+        get_channel_handler = await self._protocol.get(self._get_channel_handler_func)
         if get_channel_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
             return
@@ -185,12 +193,8 @@ class GeckoAsyncSpa(Observable):
         _LOGGER.debug("Got channel %s/%s, now get config", self.channel, self.signal)
 
         config_file_handler = await self._protocol.get(
-            lambda: GeckoConfigFileProtocolHandler.request(
-                self._protocol.get_and_increment_sequence_counter(),
-                parms=self.sendparms,
-            )
+            self._get_config_file_handler_func
         )
-
         if config_file_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
             return
@@ -212,7 +216,9 @@ class GeckoAsyncSpa(Observable):
         try:
             GeckoPack = importlib.import_module(pack_module_name).GeckoPack
             self.pack_class = GeckoPack(self.struct)
-            self.pack_type = self.pack_class.type
+            # TODO: Need to add base classes and type hinting to auto-generated
+            # pack code and remove type-hint suppression below
+            self.pack_type = self.pack_class.type  # type: ignore
         except ModuleNotFoundError:
             self._set_connection_state(GeckoSpaConnectionState.CANNOT_FIND_SPA_PACK)
             _LOGGER.warning(
@@ -287,19 +293,25 @@ class GeckoAsyncSpa(Observable):
         self._set_connection_state(GeckoSpaConnectionState.CONNECTED)
         _LOGGER.debug("Spa connected")
 
-    def disconnect(self):
-        self._protocol.disconnect()
-        self._protocol = None
+    def disconnect(self) -> None:
+        """Disconnect the spa from the async protocol"""
+        if self._protocol is not None:
+            self._protocol.disconnect()
+            self._protocol = None
         self._transport = None
 
     @property
-    def isopen(self):
+    def isopen(self) -> bool:
+        """Return True if the spa has a UDP socket with the in.touch EN module"""
         if self._protocol is None:
             return False
         return self._protocol.isopen
 
-    def _on_packet(self, handler, socket, sender):
+    def _on_packet(
+        self, handler: GeckoPacketProtocolHandler, socket, sender: tuple
+    ) -> None:
         if handler.parms == self.sendparms:
+            assert self._protocol is not None
             self._protocol.datagram_received(handler.packet_content, handler.parms)
         else:
             _LOGGER.warning(
@@ -309,10 +321,11 @@ class GeckoAsyncSpa(Observable):
             )
 
     @property
-    def last_ping_at(self):
+    def last_ping_at(self) -> datetime:
+        """The datetime of the last successful ping respons"""
         return self._last_ping_at
 
-    async def ping_loop(self):
+    async def _ping_loop(self) -> None:
         _LOGGER.info("Ping loop started")
 
         self._last_ping = time.monotonic()
@@ -320,6 +333,7 @@ class GeckoAsyncSpa(Observable):
 
         while self.isopen:
 
+            assert self._protocol is not None
             ping_handler = await self._protocol.get(
                 lambda: GeckoPingProtocolHandler.request(
                     parms=self.sendparms,
@@ -344,7 +358,17 @@ class GeckoAsyncSpa(Observable):
 
         _LOGGER.info("Ping loop finished")
 
-    async def refresh_loop(self):
+    def _get_status_block_handler_func(self) -> GeckoStatusBlockProtocolHandler:
+        assert self._protocol is not None
+        assert self.log_class is not None
+        return GeckoStatusBlockProtocolHandler.request(
+            self._protocol.get_and_increment_sequence_counter(),
+            self.log_class.begin,
+            self.log_class.end,
+            parms=self.sendparms,
+        )
+
+    async def _refresh_loop(self) -> None:
         """The refresh loop is simply to ensure that our understanding
         of the live parts of the spastruct are always up-to-date. We
         shouldn't need to do this, but this is belt and braces stuff"""
@@ -356,27 +380,27 @@ class GeckoAsyncSpa(Observable):
                     GeckoConstants.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS
                 )
                 if not await self.struct.get(
-                    self._protocol,
-                    lambda: GeckoStatusBlockProtocolHandler.request(
-                        self._protocol.get_and_increment_sequence_counter(),
-                        self.log_class.begin,
-                        self.log_class.end,
-                        parms=self.sendparms,
-                    ),
+                    self._protocol, self._get_status_block_handler_func
                 ):
                     self._set_connection_state(
                         GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED
                     )
             await asyncio.sleep(0)
 
-    def _on_partial_status_update(self, handler, socket, sender):
+    def _on_partial_status_update(
+        self,
+        handler: GeckoAsyncPartialStatusBlockProtocolHandler,
+        socket,
+        sender: tuple,
+    ) -> None:
         for change in handler.changes:
             self.struct.replace_status_block_segment(change[0], change[1])
 
-    async def _on_async_set_value(self, pos, length, newvalue):
+    async def _on_async_set_value(self, pos, length, newvalue) -> None:
+        assert self._protocol is not None
         pack_command_handler = await self._protocol.get(
             lambda: GeckoPackCommandProtocolHandler.set_value(
-                self._protocol.get_and_increment_sequence_counter(),
+                self._protocol.get_and_increment_sequence_counter(),  # type: ignore
                 self.pack_type,
                 self.config_version,
                 self.log_version,
@@ -390,20 +414,21 @@ class GeckoAsyncSpa(Observable):
         if pack_command_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
 
-    def _on_set_value(self, pos, length, newvalue):
+    def _on_set_value(self, pos, length, newvalue) -> None:
         self._taskman.add_task(
             self._on_async_set_value(pos, length, newvalue), "Set value task"
         )
 
     @property
-    def accessors(self):
+    def accessors(self) -> dict:
         return self.struct.accessors
 
-    async def async_press(self, keypad):
+    async def async_press(self, keypad) -> None:
         """Simulate a button press async"""
+        assert self._protocol is not None
         pack_command_handler = await self._protocol.get(
             lambda: GeckoPackCommandProtocolHandler.keypress(
-                self._protocol.get_and_increment_sequence_counter(),
+                self._protocol.get_and_increment_sequence_counter(),  # type: ignore
                 self.pack_type,
                 keypad,
                 parms=self.sendparms,
@@ -413,16 +438,21 @@ class GeckoAsyncSpa(Observable):
         if pack_command_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
 
-    def press(self, keypad):
+    def press(self, keypad) -> None:
         """Simulate a button press"""
         self._taskman.add_task(self.async_press(keypad), "Button press task")
 
-    async def async_get_watercare(self):
+    def _get_watercare_handler_func(self) -> GeckoWatercareProtocolHandler:
+        assert self._protocol is not None
+        return GeckoWatercareProtocolHandler.request(
+            self._protocol.get_and_increment_sequence_counter(),
+            parms=self.sendparms,
+        )
+
+    async def async_get_watercare(self) -> Optional[int]:
+        assert self._protocol is not None
         get_watercare_handler = await self._protocol.get(
-            lambda: GeckoWatercareProtocolHandler.request(
-                self._protocol.get_and_increment_sequence_counter(),
-                parms=self.sendparms,
-            )
+            self._get_watercare_handler_func
         )
 
         if get_watercare_handler is None:
@@ -432,9 +462,10 @@ class GeckoAsyncSpa(Observable):
         return get_watercare_handler.mode
 
     async def async_set_watercare(self, new_mode) -> None:
+        assert self._protocol is not None
         set_watercare_handler = await self._protocol.get(
             lambda: GeckoWatercareProtocolHandler.set(
-                self._protocol.get_and_increment_sequence_counter(),
+                self._protocol.get_and_increment_sequence_counter(),  # type: ignore
                 new_mode,
                 parms=self.sendparms,
             )

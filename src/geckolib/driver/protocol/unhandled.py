@@ -11,8 +11,16 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoUnhandledProtocolHandler(GeckoUdpProtocolHandler):
-    def __init__(self, **kwargs):
+    """Protocol handler to deal with unhandled or unsolicited messages"""
+
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+
+    def can_handle(self, _received_bytes: bytes, _sender: tuple) -> bool:
+        return True
+
+    def handle(self, socket, received_bytes: bytes, sender: tuple) -> None:
+        pass
 
     async def consume(self, protocol):
         while True:
@@ -26,5 +34,7 @@ class GeckoUnhandledProtocolHandler(GeckoUdpProtocolHandler):
                 if protocol.queue.is_marked:
                     data, sender = protocol.queue.head
                     protocol.queue.pop()
-                    _LOGGER.debug("No handler for %s from %s found", data, sender)
+                    _LOGGER.warning(
+                        "No handler for %s from %s found, message ignored", data, sender
+                    )
             await asyncio.sleep(0)
