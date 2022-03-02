@@ -2,10 +2,6 @@
 
 import logging
 
-from geckolib.async_tasks import AsyncTasks
-
-from .protocol import GeckoStatusBlockProtocolHandler
-from .async_udp_protocol import GeckoAsyncUdpProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,7 +77,10 @@ class GeckoAsyncStructure:
                             if request.next == 0:
 
                                 _LOGGER.debug(
-                                    "Status block segments complete, update and complete"
+                                    (
+                                        "Status block segments complete, "
+                                        "update and complete"
+                                    )
                                 )
 
                                 self.replace_status_block_segment(

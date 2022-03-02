@@ -38,7 +38,7 @@ class GeckoConfigFileProtocolHandler(GeckoPacketProtocolHandler):
             **kwargs,
         )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.plateform_key = self.config_version = self.log_version = None
 
@@ -47,7 +47,7 @@ class GeckoConfigFileProtocolHandler(GeckoPacketProtocolHandler):
             FILES_VERB
         )
 
-    def handle(self, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, sender: tuple) -> None:
         remainder = received_bytes[5:]
         if received_bytes.startswith(SFILE_VERB):
             self._sequence = struct.unpack(">B", remainder)[0]
