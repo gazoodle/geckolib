@@ -31,11 +31,8 @@ class AsyncTasks:
             task.cancel()
         # Wait for all tasks to complete
         _results = await asyncio.gather(*self._tasks, return_exceptions=True)
-        _LOGGER.debug("Async tasks results %s", _results)
         for item in zip(self._tasks, _results):
-            _LOGGER.debug(
-                "    Task %s result `%s` (%s)", item[0].get_name(), item[1], item[0]
-            )
+            _LOGGER.debug("    Task %s result `%r`", item[0].get_name(), item[1])
 
     async def _tidy(self) -> None:
         while True:

@@ -330,8 +330,9 @@ class GeckoAsyncSpa(Observable):
         """Connection wrapper with exception safety"""
         try:
             await self._connect()
-        except:
+        except:  # noqa
             _LOGGER.exception("Exception during spa connection")
+            raise
 
     def disconnect(self) -> None:
         """Disconnect the spa from the async protocol"""
@@ -414,11 +415,12 @@ class GeckoAsyncSpa(Observable):
 
                 await asyncio.sleep(GeckoConstants.PING_FREQUENCY_IN_SECONDS)
 
-        except:
+        except:  # noqa
             _LOGGER.exception("Exception in ping loop")
-            self._set_connection_state(
-                GeckoSpaConnectionState.CATASTROPHIC_CODE_FAILURE
-            )
+            # self._set_connection_state(
+            #    GeckoSpaConnectionState.CATASTROPHIC_CODE_FAILURE
+            # )
+            raise
 
     def _get_status_block_handler_func(self) -> GeckoStatusBlockProtocolHandler:
         assert self._protocol is not None
