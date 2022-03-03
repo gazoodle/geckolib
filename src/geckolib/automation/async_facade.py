@@ -112,6 +112,7 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
     async def __aenter__(self) -> GeckoAsyncFacade:
         self.add_task(self._facade_pump(), "Facade pump", "FACADE")
         self.add_task(self._facade_health_monitor(), "Facade health monitor", "FACADE")
+        self.add_task(self._facade_update(), "Facade update", "FACADE")
         return self
 
     async def __aexit__(self, *exc_info) -> None:
@@ -248,6 +249,24 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
             finally:
                 # Keep everything running
                 await asyncio.sleep(0)
+
+    async def _facade_update(self) -> None:
+        _LOGGER.debug("Facade health monitor started")
+        while True:
+
+            try:
+                if not self._ready:
+                    continue
+
+                assert self._water_care is not None
+                assert self._spa is not None
+
+                self._water_care.change_watercare_mode(
+                    await self._spa.async_get_watercare()
+                )
+
+            finally:
+                await asyncio.sleep(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
 
     async def ready(self) -> None:
         """Coroutine to allow waiting for facade to be ready"""

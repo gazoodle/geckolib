@@ -438,8 +438,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
  - Reminders
  - Spa state (errors)
- - Error handling
- - Better timeout/retry for multiple commands
+ - Error handling (ongoing)
  - Pythonize where possible
  - APIs to support integration into automation systems (Ongoing)
     * Warnings/Errors
@@ -447,7 +446,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
     * Diagnostics
  - More unit tests
  - Handle other device types such as Waterfall
- - Connection retry needed when pings fail
  - A missing spa is an unusual event not a critical failure, retry connection
  - Handle inMix for lighting control
  - Add API documentation
@@ -457,15 +455,17 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - List property for errors in pack classes
  - Tidy up support files. One class per file
  - Full sweep for typing hints - Ongoing
- - Watercare needs regular refresh from facade
- - Publish sensors for connection status and ping time as soon as they are
-   available so that they can be cliented during connection
- - Add new connection status enum for when initial datablock is being gathered, with percentage in status line?
  - Add sensor for reminders
  - Add sensor for errors
  - Add switch for winterizing
  - Add sensor for RF signal strength
  - Add ability to set hours so we can implement a crude clock sync mechanism
+ - During work on the disconnect/reconnect mechanism, I've realised that there
+   is a bunch of self referential pointers going on which make it hard for the
+   GC to clean up. I need to remove this (observer) pattern and replace it with
+   something else, perhaps a pub/sub or a mediator.
+ - Think about a way to provide access to behaviour refresh frequencies so that
+   it can be customised
 
 ## Done/Fixed in 0.4.0
  - Supports both sync and async clients. The sync clients ought to be backward
@@ -478,6 +478,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
    loading and was useful when testing, but added it inside a try/catch block so
    it won't upset Windows clients
  - Manage ping failure and RF errors with retry mechanism
+ - Watercare regular refresh from facade
 
 ## Done/Fixed in 0.3.24
  - Fix error found by Github workflow
