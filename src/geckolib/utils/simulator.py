@@ -51,6 +51,12 @@ class GeckoSimulator(GeckoCmd):
             "Welcome to the Gecko simulator. Type help or ? to list commands.\n"
         )
         self.prompt = "(GeckoSim) "
+        try:
+            import readline
+
+            readline.set_completer_delims(" \r\n")
+        except ImportError:
+            pass
 
     def __exit__(self, *args):
         self._socket.close()
@@ -248,6 +254,8 @@ class GeckoSimulator(GeckoCmd):
         )
 
     def _on_status_block(self, handler: GeckoStatusBlockProtocolHandler, sender):
+        if self._should_ignore(handler, sender):
+            return
         for idx, start in enumerate(
             range(
                 handler.start,
@@ -260,6 +268,8 @@ class GeckoSimulator(GeckoCmd):
                 len(self.structure.status_block) - start,
             )
             next = (idx + 1) % ((handler.length // self._STATUS_BLOCK_SEGMENT_SIZE) + 1)
+            if self._should_ignore(handler, sender, False):
+                continue
             self._socket.queue_send(
                 GeckoStatusBlockProtocolHandler.response(
                     idx,

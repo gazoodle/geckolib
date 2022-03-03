@@ -463,6 +463,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Add new connection status enum for when initial datablock is being gathered, with percentage in status line?
  - Add sensor for reminders
  - Add sensor for errors
+ - Add switch for winterizing
+ - Add sensor for RF signal strength
+ - Add ability to set hours so we can implement a crude clock sync mechanism
 
 ## Done/Fixed in 0.4.0
  - Supports both sync and async clients. The sync clients ought to be backward
@@ -471,6 +474,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
    are issues
  - Sensor for connection status is available early in facade lifetime
  - Ping sensor available after spa begins connection sequence
+ - Re-added readline library to simulator as it was doing auto-complete for snapshot
+   loading and was useful when testing, but added it inside a try/catch block so
+   it won't upset Windows clients
+ - Manage ping failure and RF errors with retry mechanism
 
 ## Done/Fixed in 0.3.24
  - Fix error found by Github workflow

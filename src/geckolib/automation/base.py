@@ -1,6 +1,9 @@
 """ Automation interface support classes. """
+import logging
 
 from ..driver import Observable
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class GeckoAutomationBase(Observable):

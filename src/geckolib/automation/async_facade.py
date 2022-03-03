@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import asyncio
+import gc
 
 from geckolib.automation.base import GeckoAutomationBase
 
@@ -109,7 +110,8 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
         self._ready = False
 
     async def __aenter__(self) -> GeckoAsyncFacade:
-        self.add_task(self._facade_pump(), "Facade pump")
+        self.add_task(self._facade_pump(), "Facade pump", "FACADE")
+        self.add_task(self._facade_health_monitor(), "Facade health monitor", "FACADE")
         return self
 
     async def __aexit__(self, *exc_info) -> None:
@@ -122,6 +124,36 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
         self._spa = None
         self._ready = False
 
+    async def reconnect_spa(self) -> None:
+        if self._spa is None:
+            return
+        for device in self.all_automation_devices:
+            device.unwatchall()
+        self._spa.disconnect()
+        self._spa = None
+        self._ready = False
+        gc.collect()
+
+    async def _facade_health_monitor(self) -> None:
+        _LOGGER.debug("Facade health monitor started")
+        while True:
+
+            try:
+
+                if self._spa is None:
+                    continue
+
+                if self._spa.connection_state == GeckoSpaConnectionState.PING_RESTORED:
+                    _LOGGER.info(
+                        "Facade health monitor reconnecting spa after ping restored"
+                    )
+                    await self.reconnect_spa()
+
+            finally:
+                await asyncio.sleep(
+                    GeckoConstants.FACADE_HEALTH_MONITOR_DUTY_CYCLE_IN_SECONDS
+                )
+
     async def _facade_pump(self) -> None:
         _LOGGER.debug("Facade pump started %s", self)
         while True:
@@ -131,7 +163,8 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                 if self._ready:
                     continue
 
-                # Always run a discovery, it builds the descriptor needed
+                # Always run a discovery if needed, it builds the descriptor
+                # required for spa connection
                 if self._locator is None:
                     self._locator = GeckoAsyncLocator(
                         self,
@@ -141,13 +174,13 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                     self._locator.watch(self._on_change)
                     await self._locator.discover()
 
-                # It is possible for the UI to clear the locator, if so we
-                # must start this loop again
+                # It is possible for the locator to get cleared
                 if self._locator is None:
                     continue
 
                 # If there was no identifier specified, then we've completed
-                # discovery and the facade is ready
+                # discovery and the facade is ready - won't connect to any spa
+                # at this stage
                 if self._spa_identifier is None:
                     _LOGGER.debug(
                         (
@@ -158,7 +191,7 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                     self._ready = True
                     continue
 
-                # Check condition where we didn't find any spa but expected to
+                # Condition where we didn't find any spa but we expected to
                 if self._locator.spas is None:
                     _LOGGER.error(
                         "Failed to find spa %s at %s",
@@ -168,42 +201,48 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
                     self._ready = True
                     continue
 
-                spa = self._locator.spas[0]
+                # There ought to be only one spa at this point
+                assert len(self._locator.spas) == 1
+                spa_descriptor = self._locator.spas[0]
 
+                # So now we start the spa connection process
                 if self._spa is None:
-                    self._spa = GeckoAsyncSpa(self.client_id, spa, self)
+                    self._spa = GeckoAsyncSpa(self.client_id, spa_descriptor, self)
                     self._spa.watch(self._on_change)
                     self._facade_ping_sensor = GeckoFacadePingSensor(
                         self, "Last Ping", "date"
                     )
                     await self._spa.connect()
 
-                    # The UI can again clear this, so deal with it
+                    # The spa can be cleared so we have to cope with this state
                     if self._spa is None:
                         continue
-                    # TODO: This needs attention ... how are we to recover from this?
+
+                    # The connection phase completed or timed-out, but we're not
+                    # in a connected state, so we cannot continue around this loop
                     if self._spa.connection_state != GeckoSpaConnectionState.CONNECTED:
-                        _LOGGER.warning(
-                            "Spa didn't connect, but this class is now stalled"
-                        )
                         continue
 
-                    _LOGGER.debug("Facade knows spa is connected")
-
+                    _LOGGER.debug(
+                        "Facade knows spa is connected, build automation helpers"
+                    )
                     self._water_heater = GeckoWaterHeater(self)
                     self._water_care = GeckoWaterCare(self)
                     self._keypad = GeckoKeypad(self)
                     self._scan_outputs()
+
                     # Install change notifications
                     for device in self.all_automation_devices:
                         device.watch(self._on_change)
 
+                    # Run an inital watercare process
                     self._water_care.change_watercare_mode(
                         await self._spa.async_get_watercare()
                     )
 
                     _LOGGER.debug("Facade is now ready")
                     self._ready = True
+                    # Report that state
                     self._on_change(self, False, True)
 
             finally:
@@ -344,16 +383,31 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
 
     @property
     def name(self) -> str:
-        """Get the spa name"""
+        """Get the spa name.
+
+        Will return the most up-to-date name if available (i.e. the spa has
+        responded to an initial handshake.
+
+        If this is not available, it will use a name given during initial
+        setup (which might be out of date)
+
+        If this isn't available, it will use the spa identifier, which is
+        very unhelpful,
+
+        If none of the above is available, it will return an emtpy string
+        """
         if self._spa is not None:
             # If we have a spa, then get it from the descriptor name
             return self._spa.descriptor.name
         elif self._spa_name is not None:
             # Otherwise, if we have an initial spa name, use that
             return self._spa_name
-        else:
-            # Otherwise we use the identifier
+        elif self._spa_identifier:
+            # Not the best option, we use the identifier
             return self.identifier
+        else:
+            # Finally we got nothing ...
+            return ""
 
     @property
     def identifier(self) -> str:

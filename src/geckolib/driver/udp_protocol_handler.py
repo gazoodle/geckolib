@@ -141,8 +141,7 @@ class GeckoUdpProtocolHandler(ABC):
             await asyncio.sleep(0)
 
     async def consume(self, protocol: GeckoAsyncUdpProtocol) -> None:
-        """Async coroutine to handle datagram. Uses the sync functions to
-        manage this at present"""
+        """Async coroutine to handle datagram."""
 
         assert self._timeout_in_seconds == 0
         while True:
@@ -152,6 +151,7 @@ class GeckoUdpProtocolHandler(ABC):
                     protocol.queue.pop()
                     await self.async_handle(data, sender)
                     await self.async_handled(sender)
+
             await asyncio.sleep(0)
 
             if self.should_remove_handler:

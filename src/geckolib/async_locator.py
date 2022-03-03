@@ -105,7 +105,9 @@ class GeckoAsyncLocator(Observable):
         hello_handler = GeckoHelloProtocolHandler.broadcast(
             async_on_handled=self._async_on_discovered
         )
-        self._task_man.add_task(hello_handler.consume(self._protocol), "Hello handler")
+        self._task_man.add_task(
+            hello_handler.consume(self._protocol), "Hello handler", "LOC"
+        )
 
         self._started = time.monotonic()
         self._on_change(self)

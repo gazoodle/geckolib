@@ -9,13 +9,20 @@ _LOGGER = logging.getLogger(__name__)
 class AsyncTasks:
     def __init__(self):
         self._tasks = []
-        self.add_task(self._tidy(), "Tidy tasks")
+        self.add_task(self._tidy(), "Tidy tasks", "ASYNC")
 
     async def __aexit__(self, *exc_info) -> None:
         await self.gather()
 
-    def add_task(self, coroutine, name_: str) -> None:
-        self._tasks.append(asyncio.create_task(coroutine, name=name_))
+    def add_task(self, coroutine, name_: str, key_: str) -> None:
+        task = asyncio.create_task(coroutine, name=f"{key_}:{name_}")
+        self._tasks.append(task)
+
+    def cancel_key_tasks(self, key_: str) -> None:
+        for task in self._tasks:
+            if task.get_name().startswith(f"{key_}:"):
+                _LOGGER.debug("Cancel task %s", task)
+                task.cancel()
 
     async def gather(self) -> None:
         # Cancel all tasks
@@ -23,8 +30,12 @@ class AsyncTasks:
             _LOGGER.debug("Cancel task %s", task)
             task.cancel()
         # Wait for all tasks to complete
-        task_results = await asyncio.gather(*self._tasks, return_exceptions=True)
-        _LOGGER.debug("Async tasks: results %s", task_results)
+        _results = await asyncio.gather(*self._tasks, return_exceptions=True)
+        _LOGGER.debug("Async tasks results %s", _results)
+        for item in zip(self._tasks, _results):
+            _LOGGER.debug(
+                "    Task %s result `%s` (%s)", item[0].get_name(), item[1], item[0]
+            )
 
     async def _tidy(self) -> None:
         while True:

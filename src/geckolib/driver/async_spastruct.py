@@ -10,13 +10,10 @@ class GeckoAsyncStructure:
     """Class to host/manage the raw data block for a spa structure"""
 
     def __init__(self, on_set_value, on_async_set_value):
-        self._status_block = b"\x00" * 1024
-        self.accessors = {}
-        self.all_outputs = []
-        self.all_devices = []
-        self.user_demands = []
         self._on_set_value = on_set_value
         self._on_async_set_value = on_async_set_value
+        self.accessors = {}
+        self.reset()
 
     def replace_status_block_segment(self, offset, segment):
         """Replace a segment of the status block"""
@@ -46,6 +43,16 @@ class GeckoAsyncStructure:
         self.all_devices = log_class.all_device_keys
         # User devices are those that have a Ud in the tag name
         self.user_demands = log_class.user_demand_keys
+
+    def reset(self) -> None:
+        """Reset this status block to initialization state"""
+        for accessor in self.accessors.values():
+            accessor.unwatchall()
+        self.accessors = {}
+        self.all_outputs = []
+        self.all_devices = []
+        self.user_demands = []
+        self._status_block = b"\x00" * 1024
 
     async def get(self, protocol, create_func, retry_count=10):
         _LOGGER.debug("Async get for struct, acquire the lock")

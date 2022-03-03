@@ -48,8 +48,8 @@ class CUI(AbstractDisplay, AsyncTasks):
         self._facade.facade_status_sensor.watch(self._on_facade_status_changed)
 
     async def __aenter__(self):
-        self.add_task(self._timer_loop(), "Timer")
-        self.add_task(self._sequence_pump(), "Sequence pump")
+        self.add_task(self._timer_loop(), "Timer", "CUI")
+        self.add_task(self._sequence_pump(), "Sequence pump", "CUI")
         await self._facade.__aenter__()
         await self.run()
         return self
@@ -77,6 +77,7 @@ class CUI(AbstractDisplay, AsyncTasks):
             self._facade.facade_ping_sensor is not None
             and not self._watching_ping_sensor
         ):
+            # TODO: This needs work as second time around it wont clean up
             self._facade.facade_ping_sensor.watch(self._on_facade_ping_changed)
             self._watching_ping_sensor = True
         self.make_display()
@@ -155,8 +156,16 @@ class CUI(AbstractDisplay, AsyncTasks):
                                 f"{idx}"
                             ] = lambda self=self, spa=spa: self._select_spa(spa)
                     else:
-                        lines.append("Press 'r' to rescan")
-                        self._commands["r"] = self._clear_spa
+                        lines.append("Press 's' to scan for spas")
+                        self._commands["s"] = self._clear_spa
+
+            else:
+
+                # Spa isn't ready yet, but ...
+                if not self._facade.name == "":
+                    lines.append(f"{self._facade.name} is connecting")
+                    lines.append("")
+                lines.append(f"{self._facade.facade_status_sensor.state}")
 
             lines.append("")
             if self._facade.spa is not None:
@@ -172,8 +181,10 @@ class CUI(AbstractDisplay, AsyncTasks):
                     lines.append("Press '-' to decrease setpoint")
                     self._commands["-"] = self.decrease_temp
 
-                lines.append("Press 'r' to rescan")
-                self._commands["r"] = self._clear_spa
+                lines.append("Press 's' to rescan")
+                self._commands["s"] = self._clear_spa
+                lines.append("Press 'r' to reconnect to spa")
+                self._commands["r"] = self._facade.reconnect_spa
 
             lines.append("Press 'q' to exit")
             self._commands["q"] = self.set_exit

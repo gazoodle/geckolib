@@ -25,6 +25,10 @@ class Observable:
         """Remove an observer to this observable class"""
         self._observers.remove(observer)
 
+    def unwatchall(self) -> None:
+        """Remove all observers from this class"""
+        self._observers.clear()
+
     def _on_change(
         self, sender: Any = None, old_value: Any = None, new_value: Any = None
     ) -> None:

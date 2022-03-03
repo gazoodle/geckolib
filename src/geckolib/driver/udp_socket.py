@@ -187,8 +187,8 @@ class GeckoUdpSocket:
             except OSError as e:
                 _LOGGER.debug("OS Exception %s during socket receive", e)
                 return
-            except Exception as e:
-                _LOGGER.exception("Exception %s during receive processing", e)
+            except Exception:
+                _LOGGER.exception("Exception during receive processing")
                 return
             finally:
                 pass

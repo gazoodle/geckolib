@@ -63,7 +63,8 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     ) -> None:
         """Queue a message to be sent async later"""
         if not self.isopen:
-            raise RuntimeError("Cannot queue message as transport is closed")
+            _LOGGER.warning("Cannot queue message as transport is closed")
+            return
         assert self.transport is not None
         if destination is None:
             destination = self._destination
