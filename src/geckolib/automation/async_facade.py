@@ -499,7 +499,7 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
         return self._facade_status_sensor
 
     @property
-    def facade_ping_sensor(self) -> Optional(GeckoFacadePingSensor):
+    def facade_ping_sensor(self) -> Optional[GeckoFacadePingSensor]:
         """Get the facade ping sensor"""
         return self._facade_ping_sensor
 

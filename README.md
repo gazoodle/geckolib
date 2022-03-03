@@ -466,6 +466,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
    something else, perhaps a pub/sub or a mediator.
  - Think about a way to provide access to behaviour refresh frequencies so that
    it can be customised
+ - Add accessor get/set commands to simulator for investigating other spas
+ - Look into getting shell & simulator using async API so that there are no
+   internal dependencies on the sync code any longer
 
 ## Done/Fixed in 0.4.0
  - Supports both sync and async clients. The sync clients ought to be backward
