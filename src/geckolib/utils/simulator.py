@@ -62,9 +62,8 @@ class GeckoSimulator(GeckoCmd):
         self._socket.close()
         self._socket = None
 
-    def do_about(self, arg):
+    def do_about(self, _arg):
         """Display information about this client program and support library : about"""
-        del arg
         print("")
         print(
             "GeckoSimulator: A python program using GeckoLib library to simulate Gecko"

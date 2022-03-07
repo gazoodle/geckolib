@@ -78,9 +78,8 @@ class GeckoShell(GeckoCmd):
         if number_of_spas == 1:
             self.onecmd("manage 1")
 
-    def do_list(self, arg):
+    def do_list(self, _arg):
         """List the spas that are available to manage : list"""
-        del arg
         for idx, spa in enumerate(self.spas):
             print("{0}. {1}".format(idx + 1, spa.name))
 
@@ -140,9 +139,8 @@ class GeckoShell(GeckoCmd):
         except Exception:
             traceback.print_exc()
 
-    def do_state(self, arg):
+    def do_state(self, _arg):
         """Show the state of the managed spa : state"""
-        del arg
         if self.facade is None:
             print("Must be connected to a spa")
             return
@@ -183,9 +181,8 @@ class GeckoShell(GeckoCmd):
     def monitor_print_states(self, states):
         print(f"{datetime.datetime.now()} : {' '.join(states)}")
 
-    def do_monitor(self, arg):
+    def do_monitor(self, _arg):
         """Monitor the state of the managed spa outputting a new line for each change : monitor"""
-        del arg
         if self.facade is None:
             print("Must be connected to a spa")
             return
@@ -218,15 +215,13 @@ class GeckoShell(GeckoCmd):
             f"Pack type {self.facade.spa.pack_type}",
         ]
 
-    def do_version(self, arg):
+    def do_version(self, _arg):
         """Show the version information : version"""
-        del arg
         for version_str in self.version_strings:
             print(version_str)
 
-    def do_accessors(self, arg):
-        """Display the data from the accessors : accessors """
-        del arg
+    def do_accessors(self, _arg):
+        """Display the data from the accessors : accessors"""
         print("Accessors")
         print("=========")
         print("")
@@ -234,9 +229,8 @@ class GeckoShell(GeckoCmd):
             print("   {0}: {1}".format(key, self.facade.spa.accessors[key].value))
         print("")
 
-    def do_about(self, arg):
+    def do_about(self, _arg):
         """Display information about this client program and support library : about"""
-        del arg
         print("")
         print(
             "GeckoShell: A python program using GeckoLib library to drive Gecko enabled"
@@ -244,9 +238,8 @@ class GeckoShell(GeckoCmd):
         )
         print("Library version v{0}".format(VERSION))
 
-    def do_refresh(self, arg):
+    def do_refresh(self, _arg):
         """Refresh the live data from your spa : refresh"""
-        del arg
         self.facade.spa.refresh()
 
     def do_get(self, arg):

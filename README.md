@@ -469,6 +469,11 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Add accessor get/set commands to simulator for investigating other spas
  - Look into getting shell & simulator using async API so that there are no
    internal dependencies on the sync code any longer
+ - Move to pytest unit test framework
+ - Use snapshots to generate some specific tests
+ - Build some documentation
+ - Add coverage to GitHub package workflow
+
 
 ## Done/Fixed in 0.4.0
  - Supports both sync and async clients. The sync clients ought to be backward

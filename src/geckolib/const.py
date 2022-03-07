@@ -9,7 +9,6 @@ class GeckoConstants:
     functions documented behaviour might not be here, e.g. 'rw' as a parameter to open()
     """
 
-    INCLUDE_DUMMY_SPA = False
     INTOUCH2_PORT = 10022
     MAX_PACKET_SIZE = 8192
     # Mininum time to wait for initial spa discovery even if one spa has responded

@@ -9,6 +9,8 @@ _LOGGER = logging.getLogger(__name__)
 class AsyncTasks:
     def __init__(self):
         self._tasks = []
+
+    async def __aenter__(self):
         self.add_task(self._tidy(), "Tidy tasks", "ASYNC")
 
     async def __aexit__(self, *exc_info) -> None:

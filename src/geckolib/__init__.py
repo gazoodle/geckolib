@@ -18,8 +18,10 @@ from .automation import (
     GeckoSwitch,
     GeckoWaterCare,
 )
-from .locator import GeckoLocator
 from .async_locator import GeckoAsyncLocator
+from .async_spa_descriptor import GeckoAsyncSpaDescriptor
+from .async_spa_manager import GeckoAsyncSpaMan
+from .locator import GeckoLocator
 from .driver import (
     GeckoUdpProtocolHandler,
     GeckoUdpSocket,
@@ -77,6 +79,7 @@ __all__ = [
     # From locator
     "GeckoLocator",
     "GeckoAsyncLocator",
+    "GeckoAsyncSpaDescriptor",
     # From _version
     "VERSION",
     # From utils
@@ -108,4 +111,6 @@ __all__ = [
     "GeckoEnumStructAccessor",
     "GeckoUdpProtocolHandler",
     "GeckoUdpSocket",
+    #
+    "GeckoAsyncSpaMan",
 ]
