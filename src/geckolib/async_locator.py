@@ -34,7 +34,7 @@ class GeckoAsyncLocator(Observable):
         if self._spa_identifier == "":
             self._spa_identifier = None
 
-        self.spas: Optional[List[GeckoAsyncSpaDescriptor]] = None
+        self._spas: Optional[List[GeckoAsyncSpaDescriptor]] = None
         self._spa_identifiers: List[bytes] = []
 
         self._has_found_spa: bool = False
@@ -64,9 +64,9 @@ class GeckoAsyncLocator(Observable):
             sender,
         )
 
-        if self.spas is None:
-            self.spas = []
-        self.spas.append(descriptor)
+        if self._spas is None:
+            self._spas = []
+        self._spas.append(descriptor)
 
         if self._spa_address is not None or self._spa_identifier is not None:
             _LOGGER.debug(
@@ -79,6 +79,10 @@ class GeckoAsyncLocator(Observable):
         if self._started is None:
             return 0
         return time.monotonic() - self._started
+
+    @property
+    def spas(self) -> Optional[List[GeckoAsyncSpaDescriptor]]:
+        return self._spas
 
     @property
     def has_had_enough_time(self) -> bool:
