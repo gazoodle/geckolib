@@ -336,7 +336,6 @@ class GeckoAsyncSpa(Observable):
 
     def disconnect(self) -> None:
         """Disconnect the spa from the async protocol"""
-        self.unwatchall()
         self.struct.reset()
         self._taskman.cancel_key_tasks("SPA")
         if self._protocol is not None:

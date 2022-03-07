@@ -46,8 +46,6 @@ class GeckoAsyncStructure:
 
     def reset(self) -> None:
         """Reset this status block to initialization state"""
-        for accessor in self.accessors.values():
-            accessor.unwatchall()
         self.accessors = {}
         self.all_outputs = []
         self.all_devices = []

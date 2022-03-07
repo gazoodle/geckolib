@@ -128,8 +128,6 @@ class GeckoAsyncFacade(Observable, AsyncTasks):
     async def reconnect_spa(self) -> None:
         if self._spa is None:
             return
-        for device in self.all_automation_devices:
-            device.unwatchall()
         self._spa.disconnect()
         self._spa = None
         self._ready = False
