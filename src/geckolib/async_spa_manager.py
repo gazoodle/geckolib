@@ -14,7 +14,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoAsyncSpaMan(ABC, AsyncTasks):
-    """GeckoAsyncSpaMan class manages the lifetime of an GeckoAsyncSpa and supporting classes
+    """GeckoAsyncSpaMan class manages the lifetime of an GeckoAsyncSpa and supporting
+    classes
 
     This class is deliberately an abstract because you must provide your own
     implementation to manage the essential events that are required during operation
@@ -36,6 +37,14 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         LOCATING_STARTED = 100
 
         LOCATING_FINISHED = 110
+
+        # Connecting to spas
+
+        # Error states that SpaMan can retry without
+        # intervention
+
+        # Terminal states that require subclasses to
+        # let go of the facade and all automation objects and reconnect
 
     def __init__(self) -> None:
         """Initialize a SpaMan class"""
@@ -73,7 +82,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             await self.handle_event(GeckoAsyncSpaMan.Event.LOCATING_STARTED)
             locator = GeckoAsyncLocator(self)
             await locator.discover()
-            return locator.spas
+            spa_descriptors = locator.spas
 
         finally:
             await self.handle_event(

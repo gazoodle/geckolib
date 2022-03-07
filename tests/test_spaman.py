@@ -1,6 +1,6 @@
 """ Unit tests for the SpaMan class """
 
-from unittest import IsolatedAsyncioTestCase, TestCase, main
+from unittest import IsolatedAsyncioTestCase, main
 from unittest.mock import patch
 
 from context import GeckoAsyncSpaMan, GeckoAsyncSpaDescriptor
@@ -43,44 +43,18 @@ class TestSpaMan(IsolatedAsyncioTestCase):
 
     #####################################################
 
-    async def test_startup(self):
-        # By the time we're here, the spa manager must be started, so
-        # lets just check the default state now
-        print(await self.spaman.async_locate_spas())
-        self.assertListEqual(self.spaman.events, [1, 2])
-        self.assertListEqual(await self.spaman.async_locate_spas(), ["Ib"])
-
-    async def test_again(self):
-        print(await self.spaman.async_locate_spas())
-        self.assertListEqual(self.spaman.events, [1, 2])
-
-
-class Inner:
-    def inner_func(self):
-        return 10
-
-    def another_inner_func(self):
-        return 11
-
-
-class Outer:
-    def outer_func(self):
-        inner = Inner()
-        return inner.inner_func()
-
-
-def mock_inner_func():
-    return 2
-
-
-class TestPatch(TestCase):
-    """ff"""
-
-    @patch("__main__.Inner.inner_func")
-    def test_it(self, mock_func):
-        mock_func.side_effect = mock_inner_func
-        item = Outer()
-        self.assertEqual(item.outer_func(), 2)
+    async def test_locate_spas(self):
+        spas = await self.spaman.async_locate_spas()
+        self.assertEqual(len(spas), 1)
+        self.assertEqual(spas[0].identifier_as_string, "TestID")
+        self.assertEqual(spas[0].name, "Test Name")
+        self.assertListEqual(
+            self.spaman.events,
+            [
+                GeckoAsyncSpaMan.Event.LOCATING_STARTED,
+                GeckoAsyncSpaMan.Event.LOCATING_FINISHED,
+            ],
+        )
 
 
 if __name__ == "__main__":
