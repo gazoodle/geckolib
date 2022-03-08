@@ -2,6 +2,7 @@
 
 import logging
 import asyncio
+from .const import TASK_TIDY_FREQUENCY_IN_SECONDS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,5 +40,5 @@ class AsyncTasks:
     async def _tidy(self) -> None:
         while True:
             # Run every five seconds
-            await asyncio.sleep(5)
+            await asyncio.sleep(TASK_TIDY_FREQUENCY_IN_SECONDS)
             self._tasks = [task for task in self._tasks if not task.done()]

@@ -17,6 +17,8 @@ class GeckoConstants:
     DISCOVERY_TIMEOUT_IN_SECONDS = 10
     # Maximum time to wait for full connection for a responding spa
     CONNECTION_TIMEOUT_IN_SECONDS = 45
+    # Time between task tidyup checks
+    TASK_TIDY_FREQUENCY_IN_SECONDS = 5
     PING_TIMEOUT_IN_SECONDS = 4
     PING_FREQUENCY_IN_SECONDS = 15
     PING_DEVICE_NOT_RESPONDING_TIMEOUT = 60
