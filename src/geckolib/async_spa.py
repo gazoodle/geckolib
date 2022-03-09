@@ -133,7 +133,7 @@ class GeckoAsyncSpa(Observable):
                 ),
                 self.descriptor.name,
             )
-            self.disconnect()
+            await self.disconnect()
             await self._event_handler(GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS)
 
     async def _connect(self) -> None:
@@ -259,7 +259,7 @@ class GeckoAsyncSpa(Observable):
             # pack code and remove type-hint suppression below
             self.pack_type = self.pack_class.type  # type: ignore
         except ModuleNotFoundError:
-            self.disconnect()
+            await self.disconnect()
             await self._event_handler(
                 GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK,
                 pack_module_name=pack_module_name,
@@ -278,7 +278,7 @@ class GeckoAsyncSpa(Observable):
             ).GeckoConfigStruct
             self.config_class = GeckoConfigStruct(self.struct)
         except ModuleNotFoundError:
-            self.disconnect()
+            await self.disconnect()
             await self._event_handler(
                 GeckoSpaEvent.CONNECTION_CANNOT_FIND_CONFIG_VERSION,
                 config_version=self.config_version,
@@ -297,7 +297,7 @@ class GeckoAsyncSpa(Observable):
             GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
             self.log_class = GeckoLogStruct(self.struct)
         except ModuleNotFoundError:
-            self.disconnect()
+            await self.disconnect()
             await self._event_handler(
                 GeckoSpaEvent.CONNECTION_CANNOT_FIND_LOG_VERSION,
                 log_version=self.log_version,
@@ -357,15 +357,16 @@ class GeckoAsyncSpa(Observable):
             _LOGGER.exception("Exception during spa connection")
             raise
 
-    def disconnect(self) -> None:
+    async def disconnect(self) -> None:
         """Disconnect the spa from the async protocol"""
+        self._is_connected = False
+        await self._event_handler(GeckoSpaEvent.RUNNING_SPA_DISCONNECTED)
         self.struct.reset()
         self._taskman.cancel_key_tasks("SPA")
         if self._protocol is not None:
             self._protocol.disconnect()
             self._protocol = None
         self._transport = None
-        self._is_connected = False
 
     @property
     def isopen(self) -> bool:

@@ -66,16 +66,28 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
     async def _sequence_pump(self) -> None:
         while True:
-            if self._config.spa_id is None and self._spas is None:
-                # If we don't have a config ID, then trigger a find
-                self._spas = await self.async_locate_spas()
+            if self.spa_state == GeckoSpaState.IDLE:
+                if self._config.spa_id is None:
+                    # If we don't have a config ID, then trigger a find
+                    self._spas = await self.async_locate_spas()
+                elif self._facade is None:
+                    # If we have an id, but no facade, try a connection
+                    self._facade = await self.async_connect(
+                        spa_address=self._config.spa_address,
+                        spa_identifier=self._config.spa_id,
+                    )
 
-            elif self._config.spa_id is not None and self._facade is None:
-                # If we have an id, but no facade, try a connection
-                self._facade = await self.async_connect(
-                    spa_address=self._config.spa_address,
-                    spa_identifier=self._config.spa_id,
-                )
+            if False:
+                if self._config.spa_id is None and self._spas is None:
+                    # If we don't have a config ID, then trigger a find
+                    self._spas = await self.async_locate_spas()
+
+                elif self._config.spa_id is not None and self._facade is None:
+                    # If we have an id, but no facade, try a connection
+                    self._facade = await self.async_connect(
+                        spa_address=self._config.spa_address,
+                        spa_identifier=self._config.spa_id,
+                    )
             await asyncio.sleep(0)
 
     async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:

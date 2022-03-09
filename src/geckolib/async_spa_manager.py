@@ -197,6 +197,11 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             if self._facade is not None:
                 self._spa_state = GeckoSpaState.CONNECTED
 
+        elif event == GeckoSpaEvent.RUNNING_SPA_DISCONNECTED:
+            self._facade = None
+            self._spa = None
+            self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
+
         elif event in (
             GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,
             GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED,

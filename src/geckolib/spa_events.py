@@ -73,6 +73,8 @@ class GeckoSpaEvent(Enum):
     """Running spa received a ping response"""
     RUNNING_PING_NO_RESPONSE = 301
     """Running spa not responding to pings """
+    RUNNING_SPA_DISCONNECTED = 302
+    """Running spa was disconnected"""
 
     # Error event that SpaMan can retry without ------------------------
     # intervention
