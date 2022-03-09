@@ -21,6 +21,7 @@ from .automation import (
 from .async_locator import GeckoAsyncLocator
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_spa_manager import GeckoAsyncSpaMan
+from .spa_connection_events import GeckoSpaConnectionEvent
 from .locator import GeckoLocator
 from .driver import (
     GeckoUdpProtocolHandler,
@@ -113,4 +114,5 @@ __all__ = [
     "GeckoUdpSocket",
     #
     "GeckoAsyncSpaMan",
+    "GeckoSpaConnectionEvent",
 ]

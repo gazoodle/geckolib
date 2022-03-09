@@ -473,6 +473,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Use snapshots to generate some specific tests
  - Build some documentation
  - Add coverage to GitHub package workflow
+ - Remove all the protocol logic from GeckoAsyncFacade ... it's a facade not a manager!
 
 
 ## Done/Fixed in 0.4.0

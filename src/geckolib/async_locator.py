@@ -12,6 +12,7 @@ from .driver import (
 )
 from .const import GeckoConstants
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
+from .spa_connection_events import GeckoSpaConnectionEvent
 from .driver import Observable
 from typing import Optional, List
 
@@ -23,10 +24,16 @@ class GeckoAsyncLocator(Observable):
     GeckoAsyncLocator class locates in.touch2 devices on your local LAN
     """
 
-    def __init__(self, taskman: AsyncTasks, **kwargs: Optional[str]) -> None:
+    def __init__(
+        self,
+        taskman: AsyncTasks,
+        event_handler: GeckoSpaConnectionEvent.CallBack,
+        **kwargs: Optional[str],
+    ) -> None:
         super().__init__()
         # Get the arguments
         self._task_man: AsyncTasks = taskman
+        self._event_handler: GeckoSpaConnectionEvent.CallBack = event_handler
         self._spa_address: Optional[str] = kwargs.get("spa_address", None)
         if self._spa_address == "":
             self._spa_address = None
@@ -67,6 +74,9 @@ class GeckoAsyncLocator(Observable):
         if self._spas is None:
             self._spas = []
         self._spas.append(descriptor)
+        await self._event_handler(
+            GeckoSpaConnectionEvent.LOCATING_DISCOVERED_SPA, spa_descriptor=descriptor
+        )
 
         if self._spa_address is not None or self._spa_identifier is not None:
             _LOGGER.debug(
@@ -91,8 +101,21 @@ class GeckoAsyncLocator(Observable):
     @property
     def is_running(self) -> bool:
         if self._started is None:
-            return True
+            return False
         return self._protocol is not None
+
+    async def _broadcast_loop(self, hello_handler) -> None:
+        """Send a discovery message every second"""
+        while True:
+            if self._protocol is not None:
+                self._protocol.queue_send(
+                    hello_handler,
+                    GeckoHelloProtocolHandler.broadcast_address(
+                        static_ip=self._spa_address
+                    ),
+                )
+                await asyncio.sleep(1)
+            await asyncio.sleep(0)
 
     async def discover(self) -> None:
         loop = asyncio.get_running_loop()
@@ -112,25 +135,24 @@ class GeckoAsyncLocator(Observable):
         self._task_man.add_task(
             hello_handler.consume(self._protocol), "Hello handler", "LOC"
         )
+        self._task_man.add_task(
+            self._broadcast_loop(hello_handler), "Broadcast loop", "LOC"
+        )
 
         self._started = time.monotonic()
         self._on_change(self)
+
         while self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
-            self._protocol.queue_send(
-                hello_handler,
-                GeckoHelloProtocolHandler.broadcast_address(
-                    static_ip=self._spa_address
-                ),
-            )
-            await asyncio.sleep(1)
             if self.has_had_enough_time:
                 if self.spas is not None and len(self.spas) > 0:
                     _LOGGER.info("Found %d spas ... %s", len(self.spas), self.spas)
                     break
             if self._has_found_spa:
                 break
+            await asyncio.sleep(0)
 
         _LOGGER.debug("Discovery complete, close transport")
+        self._task_man.cancel_key_tasks("LOC")
         self._transport.close()
         self._transport = None
         self._protocol = None
@@ -138,9 +160,15 @@ class GeckoAsyncLocator(Observable):
 
     @property
     def status_line(self) -> str:
-        if self.is_running:
+        if self.age > 0:
+            if self.spas is not None:
+                return "Choose spa to connect to"
+
             return "Discovering spas"
-        elif self.spas is None:
-            return "No spas found on your network"
         else:
-            return "Choose spa to connect to"
+            return "Initialized"
+        # if self.is_running:
+        #    return "Discovering spas"
+        # elif self.spas is None:
+        #    return "No spas found on your network"
+        # else:

@@ -3,25 +3,26 @@
 from unittest import IsolatedAsyncioTestCase, main
 from unittest.mock import patch
 
-from context import GeckoAsyncSpaMan, GeckoAsyncSpaDescriptor
+from context import GeckoAsyncSpaMan, GeckoAsyncSpaDescriptor, GeckoSpaConnectionEvent
 
 
 class SpaManImpl(GeckoAsyncSpaMan):
     """A Spa Manager to test with"""
 
     def __init__(self):
-        super().__init__()
+        super().__init__("CLIENT_UUID")
         self.events = []
 
-    async def handle_event(self, event: GeckoAsyncSpaMan.Event, **kwargs) -> None:
+    async def handle_event(self, event: GeckoSpaConnectionEvent, **kwargs) -> None:
         self.events.append(event)
 
 
-mock_spas = [GeckoAsyncSpaDescriptor(b"TestID", "Test Name", (1, 2))]
+mock_spa_descriptor = GeckoAsyncSpaDescriptor(b"TestID", "Test Name", (1, 2))
+mock_spas = [mock_spa_descriptor]
 
 
 async def mock_discover(self) -> None:
-    return
+    await self._event_handler(GeckoSpaConnectionEvent.LOCATING_DISCOVERED_SPA)
 
 
 @patch("context.GeckoAsyncLocator.discover", mock_discover)
@@ -43,6 +44,9 @@ class TestSpaMan(IsolatedAsyncioTestCase):
 
     #####################################################
 
+    def test_facade_on_start(self):
+        self.assertIsNone(self.spaman.facade)
+
     async def test_locate_spas(self):
         spas = await self.spaman.async_locate_spas()
         self.assertEqual(len(spas), 1)
@@ -51,10 +55,30 @@ class TestSpaMan(IsolatedAsyncioTestCase):
         self.assertListEqual(
             self.spaman.events,
             [
-                GeckoAsyncSpaMan.Event.LOCATING_STARTED,
-                GeckoAsyncSpaMan.Event.LOCATING_FINISHED,
+                GeckoSpaConnectionEvent.LOCATING_STARTED,
+                GeckoSpaConnectionEvent.LOCATING_DISCOVERED_SPA,
+                GeckoSpaConnectionEvent.LOCATING_FINISHED,
             ],
         )
+
+    async def test_connect_spa(self):
+        facade = await self.spaman.connect_to_spa(mock_spa_descriptor)
+        self.assertIsNotNone(facade)
+        self.assertListEqual(
+            self.spaman.events,
+            [
+                GeckoSpaConnectionEvent.LOCATING_STARTED,
+                GeckoSpaConnectionEvent.LOCATING_DISCOVERED_SPA,
+                GeckoSpaConnectionEvent.LOCATING_FINISHED,
+            ],
+        )
+
+    async def test_connect_twice_fails(self):
+        await self.spaman.connect_to_spa(mock_spa_descriptor)
+        with self.assertRaises(AssertionError):
+            await self.spaman.connect_to_spa(mock_spa_descriptor)
+
+        self.assertTrue(True)
 
 
 if __name__ == "__main__":

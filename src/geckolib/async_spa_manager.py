@@ -2,10 +2,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+
+from .automation import GeckoAsyncFacade
 from .async_locator import GeckoAsyncLocator
+from .async_spa import GeckoAsyncSpa
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_tasks import AsyncTasks
-from enum import Enum
+from .const import GeckoConstants
+from .spa_connection_events import GeckoSpaConnectionEvent
 
 import logging
 from typing import Optional, List
@@ -23,32 +27,22 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     The preferred pattern is to derive a class from SpaMan and then use it in
     an async with
 
-        ```async with MySpaMan() as SpaMan:
+        ```async with MySpaMan(client_uuid) as SpaMan:
             :
             :
         ```
 
     """
 
-    class Event(Enum):
-        """Event enumeration to let clients know what is going on"""
-
-        # Locating spas
-        LOCATING_STARTED = 100
-
-        LOCATING_FINISHED = 110
-
-        # Connecting to spas
-
-        # Error states that SpaMan can retry without
-        # intervention
-
-        # Terminal states that require subclasses to
-        # let go of the facade and all automation objects and reconnect
-
-    def __init__(self) -> None:
+    def __init__(self, client_uuid: str) -> None:
         """Initialize a SpaMan class"""
         AsyncTasks.__init__(self)
+        self._client_id = GeckoConstants.FORMAT_CLIENT_IDENTIFIER.format(
+            client_uuid
+        ).encode(GeckoConstants.MESSAGE_ENCODING)
+
+        self._facade: Optional[GeckoAsyncFacade] = None
+        self._spa: Optional[GeckoAsyncSpa] = None
 
     ########################################################################
     #
@@ -67,7 +61,9 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     #   Public methods
     #
 
-    async def async_locate_spas(self) -> Optional[List[GeckoAsyncSpaDescriptor]]:
+    async def async_locate_spas(
+        self, spa_address=None
+    ) -> Optional[List[GeckoAsyncSpaDescriptor]]:
         """Locate spas on this network
 
         This API will return a list of GeckoAsyncSpaDescriptor that were
@@ -79,28 +75,46 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         spa_descriptors: Optional[List[GeckoAsyncSpaDescriptor]] = None
 
         try:
-            await self.handle_event(GeckoAsyncSpaMan.Event.LOCATING_STARTED)
-            locator = GeckoAsyncLocator(self)
+            await self.handle_event(GeckoSpaConnectionEvent.LOCATING_STARTED)
+            locator = GeckoAsyncLocator(
+                self, self.handle_event, spa_address=spa_address
+            )
             await locator.discover()
             spa_descriptors = locator.spas
 
         finally:
             await self.handle_event(
-                GeckoAsyncSpaMan.Event.LOCATING_FINISHED,
+                GeckoSpaConnectionEvent.LOCATING_FINISHED,
                 spa_descriptors=spa_descriptors,
             )
 
         return spa_descriptors
 
-    def normal(self) -> None:
-        pass
+    async def connect_to_spa(self, spa_descriptor) -> Optional[GeckoAsyncFacade]:
+        assert self._facade is None
+
+        try:
+            await self.handle_event(GeckoSpaConnectionEvent.CONNECTION_STARTED)
+            self._spa = GeckoAsyncSpa(self._client_id, spa_descriptor, self)
+            await self._spa.connect()
+            self._facade = GeckoAsyncFacade(self._spa, self)
+
+        finally:
+            await self.handle_event(GeckoSpaConnectionEvent.CONNECTION_FINISHED)
+
+        # return facade
+        return self._facade
+
+    @property
+    def facade(self) -> Optional[GeckoAsyncFacade]:
+        return self._facade
 
     ########################################################################
     #
     #   Abstract methods
     #
     @abstractmethod
-    async def handle_event(self, event: Event, **kwargs) -> None:
+    async def handle_event(self, event: GeckoSpaConnectionEvent, **kwargs) -> None:
         pass
 
     ########################################################################
