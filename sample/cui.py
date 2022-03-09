@@ -23,6 +23,7 @@ from context import (  # type: ignore
 from typing import Optional
 
 from geckolib.automation.async_facade import GeckoAsyncFacade
+from geckolib.spa_state import GeckoSpaState
 
 # Replace with your own UUID, see https://www.uuidgenerator.net/>
 CLIENT_ID = "1eca3a27-9b00-476a-9645-d13f4b1f9b56"
@@ -47,14 +48,6 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         self._last_char = None
         self._commands = {}
         self._watching_ping_sensor = False
-
-        # self._facade = GeckoAsyncFacade(
-        #    CLIENT_ID,
-        #    spa_address=self._config.spa_address,
-        #    spa_identifier=self._config.spa_id,
-        # )
-        # self._facade.watch(self._on_facade_changed)
-        # self._facade.facade_status_sensor.watch(self._on_facade_status_changed)
 
     async def __aenter__(self):
         await GeckoAsyncSpaMan.__aenter__(self)
@@ -86,26 +79,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             await asyncio.sleep(0)
 
     async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
-        pass
-
-    def _on_facade_changed(self, *args) -> None:
-        if (
-            self._facade.facade_ping_sensor is not None
-            and not self._watching_ping_sensor
-        ):
-            # TODO: This needs work as second time around it wont clean up
-            self._facade.facade_ping_sensor.watch(self._on_facade_ping_changed)
-            self._watching_ping_sensor = True
-        self.make_display()
-
-    def _on_facade_status_changed(self, *args) -> None:
-        # Admittedly this will cause the entire screen to update
-        # but it demonstrates that we can watch these
-        self.make_display()
-
-    def _on_facade_ping_changed(self, *args) -> None:
-        # Admittedly this will cause the entire screen to update
-        # but it demonstrates that we can watch these
+        # Always rebuild the UI when there is an event
         self.make_display()
 
     def _select_spa(self, spa):
@@ -241,7 +215,9 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             if self._config.spa_id is not None:
                 lines.append("Press 's' to scan for spas")
                 self._commands["s"] = self._clear_spa
-
+            # if self.spa_state == GeckoSpaState.CONNECTED:
+            #    lines.append("Press 'r' to reconnect to spa")
+            #    self._commands["r"] = self._facade.reconnect_spa
             lines.append("Press 'q' to exit")
             self._commands["q"] = self.set_exit
 

@@ -149,7 +149,6 @@ class GeckoAsyncSpa(Observable):
         )
         assert isinstance(_protocol, GeckoAsyncUdpProtocol)
         self._protocol = _protocol
-        self._on_change(self)
         await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         self._taskman.add_task(
@@ -414,7 +413,7 @@ class GeckoAsyncSpa(Observable):
                 if ping_handler is not None:
                     self._last_ping = time.monotonic()
                     self._last_ping_at = datetime.now()
-                    self._event_handler(
+                    await self._event_handler(
                         GeckoSpaEvent.RUNNING_PING_RECEIVED,
                         last_ping_at=self._last_ping_at,
                     )
@@ -422,7 +421,7 @@ class GeckoAsyncSpa(Observable):
                     time.monotonic() - self._last_ping
                     > GeckoConstants.PING_DEVICE_NOT_RESPONDING_TIMEOUT
                 ):
-                    self._event_handler(
+                    await self._event_handler(
                         GeckoSpaEvent.RUNNING_PING_NO_RESPONSE,
                         last_ping_at=self._last_ping_at,
                     )

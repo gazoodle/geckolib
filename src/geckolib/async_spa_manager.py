@@ -152,6 +152,10 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         return self._facade
 
     @property
+    def spa_state(self) -> GeckoSpaState:
+        return self._spa_state
+
+    @property
     def status_line(self) -> str:
         return self._status_line
 
@@ -176,6 +180,9 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         # updating the status line
         if event == GeckoSpaEvent.LOCATING_STARTED:
             self._spa_state = GeckoSpaState.LOCATING_SPAS
+
+        elif event == GeckoSpaEvent.LOCATING_FINISHED:
+            self._spa_state = GeckoSpaState.IDLE
 
         elif event == GeckoSpaEvent.SPA_NOT_FOUND:
             self._spa_state = GeckoSpaState.ERROR_SPA_NOT_FOUND
