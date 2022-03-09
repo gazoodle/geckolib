@@ -12,7 +12,7 @@ from .driver import (
 )
 from .const import GeckoConstants
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
-from .spa_connection_events import GeckoSpaConnectionEvent
+from .spa_events import GeckoSpaEvent
 from .driver import Observable
 from typing import Optional, List
 
@@ -27,13 +27,13 @@ class GeckoAsyncLocator(Observable):
     def __init__(
         self,
         taskman: AsyncTasks,
-        event_handler: GeckoSpaConnectionEvent.CallBack,
+        event_handler: GeckoSpaEvent.CallBack,
         **kwargs: Optional[str],
     ) -> None:
         super().__init__()
         # Get the arguments
         self._task_man: AsyncTasks = taskman
-        self._event_handler: GeckoSpaConnectionEvent.CallBack = event_handler
+        self._event_handler: GeckoSpaEvent.CallBack = event_handler
         self._spa_address: Optional[str] = kwargs.get("spa_address", None)
         if self._spa_address == "":
             self._spa_address = None
@@ -48,6 +48,9 @@ class GeckoAsyncLocator(Observable):
         self._started: Optional[float] = None
         self._transport: Optional[asyncio.BaseTransport] = None
         self._protocol: Optional[GeckoAsyncUdpProtocol] = None
+
+    def __del__(self):
+        _LOGGER.debug("Locator deleted")
 
     async def _async_on_discovered(
         self, handler: GeckoHelloProtocolHandler, sender: tuple
@@ -75,7 +78,7 @@ class GeckoAsyncLocator(Observable):
             self._spas = []
         self._spas.append(descriptor)
         await self._event_handler(
-            GeckoSpaConnectionEvent.LOCATING_DISCOVERED_SPA, spa_descriptor=descriptor
+            GeckoSpaEvent.LOCATING_DISCOVERED_SPA, spa_descriptor=descriptor
         )
 
         if self._spa_address is not None or self._spa_identifier is not None:

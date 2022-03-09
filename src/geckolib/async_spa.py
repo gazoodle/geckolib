@@ -11,6 +11,7 @@ from typing import Optional
 from .spa_connection_state import GeckoSpaConnectionState
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_tasks import AsyncTasks
+from .spa_events import GeckoSpaEvent
 
 from .const import GeckoConstants
 from .driver import (
@@ -45,12 +46,14 @@ class GeckoAsyncSpa(Observable):
         client_id: bytes,
         spa_descriptor: GeckoAsyncSpaDescriptor,
         taskman: AsyncTasks,
+        event_handler: GeckoSpaEvent.CallBack,
     ) -> None:
         super().__init__()
 
         self.client_id = client_id
         self.descriptor = spa_descriptor
         self._taskman = taskman
+        self._event_handler: GeckoSpaEvent.CallBack = event_handler
 
         self._con_lost: Optional[asyncio.Future] = None
         self._transport: Optional[asyncio.BaseTransport] = None
@@ -140,6 +143,7 @@ class GeckoAsyncSpa(Observable):
             )
             self.disconnect()
             self._set_connection_state(GeckoSpaConnectionState.TOO_MANY_RF_ERRORS)
+            await self._event_handler(GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS)
 
     async def _connect(self) -> None:
         loop = asyncio.get_running_loop()
@@ -191,6 +195,9 @@ class GeckoAsyncSpa(Observable):
         version_handler = await self._protocol.get(self._get_version_handler_func)
         if version_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+            )
             return
 
         self.intouch_version_en = "{0} v{1}.{2}".format(
@@ -205,17 +212,30 @@ class GeckoAsyncSpa(Observable):
             self.intouch_version_co,
         )
         self._set_connection_state(GeckoSpaConnectionState.GOT_FIRMWARE_VERSION)
+        await self._event_handler(
+            GeckoSpaEvent.CONNECTION_GOT_FIRMWARE_VERSION,
+            intouch_version_en=self.intouch_version_en,
+            intouch_version_co=self.intouch_version_co,
+        )
         await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         get_channel_handler = await self._protocol.get(self._get_channel_handler_func)
         if get_channel_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+            )
             return
 
         self.channel = get_channel_handler.channel
         self.signal = get_channel_handler.signal_strength
         _LOGGER.debug("Got channel %s/%s, now get config", self.channel, self.signal)
         self._set_connection_state(GeckoSpaConnectionState.GOT_CHANNEL)
+        await self._event_handler(
+            GeckoSpaEvent.CONNECTION_GOT_CHANNEL,
+            channel=self.channel,
+            signal=self.signal,
+        )
         await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         config_file_handler = await self._protocol.get(
@@ -223,6 +243,9 @@ class GeckoAsyncSpa(Observable):
         )
         if config_file_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+            )
             return
 
         # Stash the config and log structure declarations
@@ -237,6 +260,12 @@ class GeckoAsyncSpa(Observable):
             self.log_version,
         )
         self._set_connection_state(GeckoSpaConnectionState.GOT_CONFIG_FILES)
+        await self._event_handler(
+            GeckoSpaEvent.CONNECTION_GOT_CONFIG_FILES,
+            plateform_key=plateform_key,
+            config_version=self.config_version,
+            log_version=self.log_version,
+        )
         await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         pack_module_name = f"geckolib.driver.packs.{plateform_key}"
@@ -249,6 +278,10 @@ class GeckoAsyncSpa(Observable):
         except ModuleNotFoundError:
             self.disconnect()
             self._set_connection_state(GeckoSpaConnectionState.CANNOT_FIND_SPA_PACK)
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK,
+                pack_module_name=pack_module_name,
+            )
             _LOGGER.error(
                 "Cannot find spa pack for %s", config_file_handler.plateform_key
             )
@@ -267,6 +300,10 @@ class GeckoAsyncSpa(Observable):
             self._set_connection_state(
                 GeckoSpaConnectionState.CANNOT_FIND_CONFIG_VERSION
             )
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_CONFIG_VERSION,
+                config_version=self.config_version,
+            )
             _LOGGER.error(
                 "Cannot find GeckoConfigStruct module for %s v%s",
                 config_file_handler.plateform_key,
@@ -283,6 +320,10 @@ class GeckoAsyncSpa(Observable):
         except ModuleNotFoundError:
             self.disconnect()
             self._set_connection_state(GeckoSpaConnectionState.CANNOT_FIND_LOG_VERSION)
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_LOG_VERSION,
+                log_version=self.log_version,
+            )
             _LOGGER.error(
                 "Cannot find GeckoLogStruct module for %s v%s",
                 config_file_handler.plateform_key,
@@ -299,6 +340,7 @@ class GeckoAsyncSpa(Observable):
         )
 
         self._set_connection_state(GeckoSpaConnectionState.INITIAL_DATA_REQUEST)
+        await self._event_handler(GeckoSpaEvent.CONNECTION_INITIAL_DATA_BLOCK_REQUEST)
         await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         if not await self.struct.get(
@@ -309,6 +351,10 @@ class GeckoAsyncSpa(Observable):
             ),
         ):
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+            )
+
             return
 
         _LOGGER.debug("Status block was completed, so spa can be connected")
@@ -324,6 +370,7 @@ class GeckoAsyncSpa(Observable):
         self.config_number = self.accessors[GeckoConstants.KEY_CONFIG_NUMBER].value
 
         self._set_connection_state(GeckoSpaConnectionState.CONNECTED)
+        await self._event_handler(GeckoSpaEvent.CONNECTION_SPA_COMPLETE)
         _LOGGER.debug("Spa connected")
 
     async def connect(self) -> None:
@@ -447,6 +494,9 @@ class GeckoAsyncSpa(Observable):
                 self._set_connection_state(
                     GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED
                 )
+                await self._event_handler(
+                    GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED
+                )
 
     async def _async_on_partial_status_update(
         self,
@@ -477,6 +527,7 @@ class GeckoAsyncSpa(Observable):
 
         if pack_command_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
 
     def _on_set_value(self, pos, length, newvalue) -> None:
         self._taskman.add_task(
@@ -505,6 +556,7 @@ class GeckoAsyncSpa(Observable):
 
         if pack_command_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
 
     def press(self, keypad) -> None:
         """Simulate a button press"""
@@ -529,6 +581,8 @@ class GeckoAsyncSpa(Observable):
 
         if get_watercare_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
+
             return None
 
         return get_watercare_handler.mode
@@ -549,6 +603,7 @@ class GeckoAsyncSpa(Observable):
 
         if set_watercare_handler is None:
             self._set_connection_state(GeckoSpaConnectionState.PROTOCOL_RETRY_EXCEEDED)
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
 
     @property
     def status_line(self) -> str:
