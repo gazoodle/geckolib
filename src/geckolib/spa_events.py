@@ -69,6 +69,10 @@ class GeckoSpaEvent(Enum):
     has the connected facade or None if some error occurred"""
 
     # Running spa ------------------------------------------------------
+    RUNNING_PING_RECEIVED = 300
+    """Running spa received a ping response"""
+    RUNNING_PING_NO_RESPONSE = 301
+    """Running spa not responding to pings """
 
     # Error event that SpaMan can retry without ------------------------
     # intervention

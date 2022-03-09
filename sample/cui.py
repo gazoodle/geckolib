@@ -73,10 +73,12 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
     async def _sequence_pump(self) -> None:
         while True:
-            # If we don't have a config ID, then trigger a find
             if self._config.spa_id is None and self._spas is None:
+                # If we don't have a config ID, then trigger a find
                 self._spas = await self.async_locate_spas()
+
             elif self._config.spa_id is not None and self._facade is None:
+                # If we have an id, but no facade, try a connection
                 self._facade = await self.async_connect(
                     spa_address=self._config.spa_address,
                     spa_identifier=self._config.spa_id,
@@ -116,7 +118,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         self._config.set_spa_id(None)
         self._config.set_spa_address(None)
         self._config.save()
-        self._facade.set_spa_info(None, None)
+        # self._facade.set_spa_info(None, None)
 
     def make_title(self, maxy: int, maxx: int) -> None:
         title = "Gecko Async Sample App"
@@ -235,6 +237,10 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                     self._commands["s"] = self._clear_spa
                     lines.append("Press 'r' to reconnect to spa")
                     self._commands["r"] = self._facade.reconnect_spa
+
+            if self._config.spa_id is not None:
+                lines.append("Press 's' to scan for spas")
+                self._commands["s"] = self._clear_spa
 
             lines.append("Press 'q' to exit")
             self._commands["q"] = self.set_exit

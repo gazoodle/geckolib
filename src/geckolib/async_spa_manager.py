@@ -176,15 +176,20 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         # updating the status line
         if event == GeckoSpaEvent.LOCATING_STARTED:
             self._spa_state = GeckoSpaState.LOCATING_SPAS
+
         elif event == GeckoSpaEvent.SPA_NOT_FOUND:
             self._spa_state = GeckoSpaState.ERROR_SPA_NOT_FOUND
+
         elif event == GeckoSpaEvent.CONNECTION_STARTED:
             self._spa_state = GeckoSpaState.CONNECTING
+
         elif event == GeckoSpaEvent.CONNECTION_SPA_COMPLETE:
             self._spa_state = GeckoSpaState.SPA_READY
+
         elif event == GeckoSpaEvent.CONNECTION_FINISHED:
             if self._facade is not None:
                 self._spa_state = GeckoSpaState.CONNECTED
+
         elif event in (
             GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,
             GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED,
@@ -192,6 +197,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         ):
             self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
 
+        # TODO: Better please
         self._status_line = f"State: {self._spa_state}, last event {event}"
 
         # Call the abstract method to allow derived classes to do useful work

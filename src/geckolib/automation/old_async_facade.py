@@ -25,7 +25,7 @@ from .sensors import (
 from .watercare import GeckoWaterCare
 from ..driver import Observable
 from ..async_locator import GeckoAsyncLocator
-from ..async_spa import GeckoAsyncSpa, GeckoSpaConnectionState
+from ..async_spa import GeckoAsyncSpa
 from ..async_tasks import AsyncTasks
 
 from typing import Optional, List
@@ -142,7 +142,9 @@ class OldGeckoAsyncFacade(Observable, AsyncTasks):
                 if self._spa is None:
                     continue
 
-                if self._spa.connection_state == GeckoSpaConnectionState.PING_RESTORED:
+                if (
+                    False
+                ):  # self._spa.connection_state == GeckoSpaConnectionState.PING_RESTORED:
                     _LOGGER.info(
                         "Facade health monitor reconnecting spa after ping restored"
                     )
@@ -219,7 +221,9 @@ class OldGeckoAsyncFacade(Observable, AsyncTasks):
 
                     # The connection phase completed or timed-out, but we're not
                     # in a connected state, so we cannot continue around this loop
-                    if self._spa.connection_state != GeckoSpaConnectionState.CONNECTED:
+                    if (
+                        False
+                    ):  # self._spa.connection_state != GeckoSpaConnectionState.CONNECTED:
                         continue
 
                     _LOGGER.debug(
