@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
-from lib2to3.pgen2.token import OP
 
 from .automation import GeckoAsyncFacade
 from .async_locator import GeckoAsyncLocator
@@ -81,6 +80,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         return self
 
     async def __aexit__(self, *exc_info) -> None:
+        self.cancel_key_tasks("SPAMAN")
         await self._handle_event(GeckoSpaEvent.SPA_MAN_EXIT, exc_info=exc_info)
         await AsyncTasks.__aexit__(self, exc_info)
 
@@ -114,7 +114,10 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         try:
             await self._handle_event(GeckoSpaEvent.LOCATING_STARTED)
             locator = GeckoAsyncLocator(
-                self, self._handle_event, spa_address=spa_address
+                self,
+                self._handle_event,
+                spa_address=spa_address,
+                spa_identifier=spa_identifier,
             )
             await locator.discover()
             self._spa_descriptors = locator.spas
@@ -160,10 +163,9 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         This API will connect to the specified spa by doing a search with the
         supplied information. This is probably the API most commonly used by
         automation systems to avoid storing too much information in configuration"""
+        _LOGGER.debug("async_connect: ID:%s ADDR:%s", spa_identifier, spa_address)
 
-        spa_descriptors = await self.async_locate_spas(
-            spa_address=spa_address, spa_identifier=spa_identifier
-        )
+        spa_descriptors = await self.async_locate_spas(spa_address, spa_identifier)
 
         assert spa_descriptors is not None
         if len(spa_descriptors) == 0:
@@ -184,6 +186,9 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     ) -> None:
         """Set the spa information so that the sequence pump can run the locate and
         connect phases"""
+        _LOGGER.debug(
+            "set_spa_info: ADDR:%s ID:%s NAME:%s", spa_address, spa_identifier, spa_name
+        )
         self._spa_address = spa_address
         self._spa_identifier = spa_identifier
         self._spa_name = spa_name

@@ -23,6 +23,7 @@ from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_spa_manager import GeckoAsyncSpaMan
 from .async_spa import GeckoAsyncSpa
 from .spa_events import GeckoSpaEvent
+from .spa_state import GeckoSpaState
 from .locator import GeckoLocator
 from .driver import (
     GeckoUdpProtocolHandler,
@@ -116,5 +117,6 @@ __all__ = [
     #
     "GeckoAsyncSpaMan",
     "GeckoSpaEvent",
+    "GeckoSpaState",
     "GeckoAsyncSpa",
 ]
