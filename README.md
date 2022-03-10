@@ -446,7 +446,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
     * Diagnostics
  - More unit tests
  - Handle other device types such as Waterfall
- - A missing spa is an unusual event not a critical failure, retry connection
  - Handle inMix for lighting control
  - Add API documentation
  - RF signal strength for EN(Home) -> CO(Spa)
@@ -460,10 +459,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Add switch for winterizing
  - Add sensor for RF signal strength
  - Add ability to set hours so we can implement a crude clock sync mechanism
- - During work on the disconnect/reconnect mechanism, I've realised that there
-   is a bunch of self referential pointers going on which make it hard for the
-   GC to clean up. I need to remove this (observer) pattern and replace it with
-   something else, perhaps a pub/sub or a mediator.
  - Think about a way to provide access to behaviour refresh frequencies so that
    it can be customised
  - Add accessor get/set commands to simulator for investigating other spas
@@ -473,7 +468,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Use snapshots to generate some specific tests
  - Build some documentation
  - Add coverage to GitHub package workflow
- - Remove all the protocol logic from GeckoAsyncFacade ... it's a facade not a manager!
 
 
 ## Done/Fixed in 0.4.0
@@ -488,6 +482,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
    it won't upset Windows clients
  - Manage ping failure and RF errors with retry mechanism
  - Watercare regular refresh from facade
+ - Create Spa manager class to run the connection logic so that clients get cleanup
+   opportunity when reconnections are needed
 
 ## Done/Fixed in 0.3.24
  - Fix error found by Github workflow
