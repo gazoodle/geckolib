@@ -89,7 +89,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     #   Public methods
     #
 
-    async def reset(self) -> None:
+    async def async_reset(self) -> None:
         """Reset the spa manager"""
         self._spa_descriptors = None
         if self._facade is not None:
@@ -187,7 +187,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         self._spa_address = spa_address
         self._spa_identifier = spa_identifier
         self._spa_name = spa_name
-        await self.reset()
+        await self.async_reset()
 
     async def wait_for_descriptors(self) -> None:
         """Wait for descriptors to be available"""
@@ -262,17 +262,23 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             if self._facade is not None:
                 self._spa_state = GeckoSpaState.CONNECTED
 
-        elif event == GeckoSpaEvent.RUNNING_SPA_DISCONNECTED:
-            self._facade = None
-            self._spa = None
-            self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
+        elif event == GeckoSpaEvent.RUNNING_PING_NO_RESPONSE:
+            self._spa_state = GeckoSpaState.ERROR_PING_MISSED
+        elif event == GeckoSpaEvent.RUNNING_PING_RECEIVED:
+            if self._spa_state == GeckoSpaState.ERROR_PING_MISSED:
+                await self.async_reset()
 
-        elif event in (
-            GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,
-            GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED,
-            GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS,
-        ):
-            self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
+        # elif event == GeckoSpaEvent.RUNNING_SPA_DISCONNECTED:
+        #    self._facade = None
+        #    self._spa = None
+        # self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
+
+        # elif event in (
+        #    GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,
+        #    GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED,
+        #    GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS,
+        # ):
+        #    self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
 
         # TODO: Better please
         self._status_line = f"State: {self._spa_state}, last event {event}"

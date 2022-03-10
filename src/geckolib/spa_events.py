@@ -71,9 +71,11 @@ class GeckoSpaEvent(Enum):
     # Running spa ------------------------------------------------------
     RUNNING_PING_RECEIVED = 300
     """Running spa received a ping response"""
-    RUNNING_PING_NO_RESPONSE = 301
+    RUNNING_PING_MISSED = 301
+    """Running spa missed a ping response"""
+    RUNNING_PING_NO_RESPONSE = 302
     """Running spa not responding to pings """
-    RUNNING_SPA_DISCONNECTED = 302
+    RUNNING_SPA_DISCONNECTED = 303
     """Running spa was disconnected"""
 
     # Error event that SpaMan can retry without ------------------------
@@ -86,6 +88,9 @@ class GeckoSpaEvent(Enum):
 
     ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED = 501
     """Protocol retry count was exceeded during normal operations"""
+
+    ERROR_RF_ERROR = 502
+    """The in.touch EN module can't communicate with the CO module"""
 
     CallBack = Callable[..., Coroutine[Any, Any, None]]
     """Typedef for event callbacks, located here so we can be DRY"""

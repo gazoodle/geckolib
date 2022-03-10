@@ -235,6 +235,10 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                     lines.append("Press 'r' to reconnect to spa")
                     self._commands["r"] = self._facade.reconnect_spa
 
+            if self.spa_state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
+                lines.append("Press 'r' to reconnect")
+                self._commands["r"] = self.async_reset
+
             if self._config.spa_id is not None:
                 lines.append("Press 's' to scan for spas")
                 self._commands["s"] = self._clear_spa

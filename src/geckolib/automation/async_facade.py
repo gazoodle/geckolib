@@ -68,6 +68,9 @@ class GeckoAsyncFacade(Observable):
         while True:
 
             try:
+                if not self._spa.is_responding_to_pings:
+                    continue
+
                 self._water_care.change_watercare_mode(
                     await self._spa.async_get_watercare()
                 )

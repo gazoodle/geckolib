@@ -124,6 +124,7 @@ class GeckoAsyncSpa(Observable):
     async def _async_on_rferr(
         self, handler: GeckoRFErrProtocolHandler, sender: tuple
     ) -> None:
+        await self._event_handler(GeckoSpaEvent.ERROR_RF_ERROR)
         # If we've had too many RFErr messages, then we bail waiting for user action
         if handler.total_error_count > GeckoConstants.MAX_RF_ERRORS_BEFORE_HALT:
             _LOGGER.error(
@@ -371,6 +372,12 @@ class GeckoAsyncSpa(Observable):
             return False
         return self._protocol.isopen
 
+    @property
+    def is_responding_to_pings(self) -> bool:
+        return (
+            time.monotonic() - self._last_ping
+        ) < GeckoConstants.PING_FREQUENCY_IN_SECONDS
+
     async def _async_on_packet(
         self, handler: GeckoPacketProtocolHandler, sender: tuple
     ) -> None:
@@ -414,14 +421,20 @@ class GeckoAsyncSpa(Observable):
                         GeckoSpaEvent.RUNNING_PING_RECEIVED,
                         last_ping_at=self._last_ping_at,
                     )
-                elif (
-                    time.monotonic() - self._last_ping
-                    > GeckoConstants.PING_DEVICE_NOT_RESPONDING_TIMEOUT
-                ):
+                else:
                     await self._event_handler(
-                        GeckoSpaEvent.RUNNING_PING_NO_RESPONSE,
+                        GeckoSpaEvent.RUNNING_PING_MISSED,
                         last_ping_at=self._last_ping_at,
                     )
+                    if (
+                        time.monotonic() - self._last_ping
+                        > GeckoConstants.PING_DEVICE_NOT_RESPONDING_TIMEOUT
+                    ):
+                        await self._event_handler(
+                            GeckoSpaEvent.RUNNING_PING_NO_RESPONSE,
+                            last_ping_at=self._last_ping_at,
+                        )
+
                 await asyncio.sleep(GeckoConstants.PING_FREQUENCY_IN_SECONDS)
 
         except:  # noqa
@@ -448,6 +461,8 @@ class GeckoAsyncSpa(Observable):
             await asyncio.sleep(GeckoConstants.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS)
             if not self.is_connected:
                 continue
+            if not self.is_responding_to_pings:
+                continue
             if not await self.struct.get(
                 self._protocol, self._get_status_block_handler_func
             ):
@@ -467,6 +482,9 @@ class GeckoAsyncSpa(Observable):
         assert self._protocol is not None
         if not self.is_connected:
             _LOGGER.warning("Cannot set value when spa not connected")
+            return
+        if not self.is_responding_to_pings:
+            _LOGGER.debug("Cannot set value when spa not responding to pings")
             return
 
         pack_command_handler = await self._protocol.get(
@@ -500,6 +518,9 @@ class GeckoAsyncSpa(Observable):
         if not self.is_connected:
             _LOGGER.warning("Cannot press keypad when spa not connected")
             return
+        if not self.is_responding_to_pings:
+            _LOGGER.debug("Cannot press keypad when spa not responding to pings")
+            return
 
         pack_command_handler = await self._protocol.get(
             lambda: GeckoPackCommandProtocolHandler.keypress(
@@ -527,7 +548,10 @@ class GeckoAsyncSpa(Observable):
     async def async_get_watercare(self) -> Optional[int]:
         assert self._protocol is not None
         if not self.is_connected:
-            _LOGGER.warning("Cannot get warecare when spa not connected")
+            _LOGGER.warning("Cannot get watercare when spa not connected")
+            return 0
+        if not self.is_responding_to_pings:
+            _LOGGER.debug("Cannot get watercare when spa not responding to pings")
             return 0
 
         get_watercare_handler = await self._protocol.get(
@@ -544,7 +568,10 @@ class GeckoAsyncSpa(Observable):
     async def async_set_watercare(self, new_mode) -> None:
         assert self._protocol is not None
         if not self.is_connected:
-            _LOGGER.warning("Cannot set warecare when spa not connected")
+            _LOGGER.warning("Cannot set watercare when spa not connected")
+            return
+        if not self.is_responding_to_pings:
+            _LOGGER.debug("Cannot set watercare when spa not responding to pings")
             return
 
         set_watercare_handler = await self._protocol.get(

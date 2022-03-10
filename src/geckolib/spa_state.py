@@ -26,3 +26,5 @@ class GeckoSpaState(Enum):
     """State when the spa cannot be found on the the network"""
     ERROR_NEEDS_ATTENTION = 51
     """State when the user needs to attend"""
+    ERROR_PING_MISSED = 52
+    """State when a ping was missed, can auto-connect on restore"""
