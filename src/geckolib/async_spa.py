@@ -437,6 +437,9 @@ class GeckoAsyncSpa(Observable):
 
                 await asyncio.sleep(GeckoConstants.PING_FREQUENCY_IN_SECONDS)
 
+        except asyncio.CancelledError:
+           raise
+
         except:  # noqa
             _LOGGER.exception("Exception in ping loop")
             raise
