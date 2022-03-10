@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import asyncio
+from lib2to3.pgen2.token import OP
 
 from .automation import GeckoAsyncFacade
 from .async_locator import GeckoAsyncLocator
@@ -19,29 +21,50 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoAsyncSpaMan(ABC, AsyncTasks):
-    """GeckoAsyncSpaMan class manages the lifetime of an GeckoAsyncSpa and supporting
-    classes
+    """GeckoAsyncSpaMan class manages the lifetime of a connection to a spa
 
     This class is deliberately an abstract because you must provide your own
     implementation to manage the essential events that are required during operation
-
-    The preferred pattern is to derive a class from SpaMan and then use it in
-    an async with
-
-        ```async with MySpaMan(client_uuid) as SpaMan:
-            :
-            :
-        ```
-
     """
 
-    def __init__(self, client_uuid: str) -> None:
-        """Initialize a SpaMan class"""
+    def __init__(self, client_uuid: str, **kwargs: str) -> None:
+        """Initialize a SpaMan class
+
+        The preferred pattern is to derive a class from SpaMan and then use it in
+        an async with
+
+        ```async with MySpaMan(client_uuid, **kwargs) as SpaMan:```
+
+        If you leave **kwargs empty, then you are responsible for co-ordinating calls
+        to methods such as async_locate_spas, async_connect_to_spa and async_connect.
+
+        **kwargs can contain the following items
+
+            spa_address:    The IP address of the spa. Useful if the spa is on a sub-net
+            spa_identifier: The ID of a spa (as a string)
+            spa_name:       The name of the spa. Useful for status feedback when spa
+                            cannot be contacted
+
+        If any of the **kwargs are provided then the spam manager will automatically
+        run the sequence discover and connect
+        """
         AsyncTasks.__init__(self)
         self._client_id = GeckoConstants.FORMAT_CLIENT_IDENTIFIER.format(
             client_uuid
         ).encode(GeckoConstants.MESSAGE_ENCODING)
 
+        # Optional parameters as supplied from config
+        self._spa_address: Optional[str] = kwargs.get("spa_address", None)
+        if self._spa_address == "":
+            self._spa_address = None
+        self._spa_identifier: Optional[str] = kwargs.get("spa_identifier", None)
+        if self._spa_identifier == "":
+            self._spa_identifier = None
+        self._spa_name: Optional[str] = kwargs.get("spa_name", None)
+        if self._spa_name == "":
+            self._spa_name = None
+
+        self._spa_descriptors: Optional[List[GeckoAsyncSpaDescriptor]] = None
         self._facade: Optional[GeckoAsyncFacade] = None
         self._spa: Optional[GeckoAsyncSpa] = None
         self._spa_state = GeckoSpaState.IDLE
@@ -54,6 +77,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     async def __aenter__(self) -> GeckoAsyncSpaMan:
         await AsyncTasks.__aenter__(self)
         await self._handle_event(GeckoSpaEvent.SPA_MAN_ENTER)
+        self.add_task(self._sequence_pump(), "Sequence Pump", "SPAMAN")
         return self
 
     async def __aexit__(self, *exc_info) -> None:
@@ -64,6 +88,17 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     #
     #   Public methods
     #
+
+    async def reset(self) -> None:
+        """Reset the spa manager"""
+        self._spa_descriptors = None
+        if self._facade is not None:
+            self._facade = None
+            # self._handle_event(GeckoSpaEvent.)
+        if self._spa is not None:
+            await self._spa.disconnect()
+            self._spa = None
+        self._spa_state = GeckoSpaState.IDLE
 
     async def async_locate_spas(
         self, spa_address: Optional[str] = None, spa_identifier: Optional[str] = None
@@ -76,24 +111,22 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
 
         """
-        spa_descriptors: Optional[List[GeckoAsyncSpaDescriptor]] = None
-
         try:
             await self._handle_event(GeckoSpaEvent.LOCATING_STARTED)
             locator = GeckoAsyncLocator(
                 self, self._handle_event, spa_address=spa_address
             )
             await locator.discover()
-            spa_descriptors = locator.spas
+            self._spa_descriptors = locator.spas
             del locator
 
         finally:
             await self._handle_event(
                 GeckoSpaEvent.LOCATING_FINISHED,
-                spa_descriptors=spa_descriptors,
+                spa_descriptors=self._spa_descriptors,
             )
 
-        return spa_descriptors
+        return self._spa_descriptors
 
     async def async_connect_to_spa(self, spa_descriptor) -> Optional[GeckoAsyncFacade]:
         """Connect to spa.
@@ -132,7 +165,8 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             spa_address=spa_address, spa_identifier=spa_identifier
         )
 
-        if spa_descriptors is None:
+        assert spa_descriptors is not None
+        if len(spa_descriptors) == 0:
             await self._handle_event(
                 GeckoSpaEvent.SPA_NOT_FOUND,
                 spa_address=spa_address,
@@ -142,21 +176,52 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         return await self.async_connect_to_spa(spa_descriptors[0])
 
+    async def async_set_spa_info(
+        self,
+        spa_address: Optional[str],
+        spa_identifier: Optional[str],
+        spa_name: Optional[str],
+    ) -> None:
+        """Set the spa information so that the sequence pump can run the locate and
+        connect phases"""
+        self._spa_address = spa_address
+        self._spa_identifier = spa_identifier
+        self._spa_name = spa_name
+        await self.reset()
+
+    async def wait_for_descriptors(self) -> None:
+        """Wait for descriptors to be available"""
+        while self._spa_descriptors is None:
+            await asyncio.sleep(0)
+
+    async def wait_for_facade(self) -> None:
+        """Wait for facade to be available"""
+        while self._facade is None:
+            await asyncio.sleep(0)
+
     ########################################################################
     #
     #   Properties
     #
 
     @property
+    def spa_descriptors(self) -> Optional[List[GeckoAsyncSpaDescriptor]]:
+        """Get a list of the discovered spas, or None"""
+        return self._spa_descriptors
+
+    @property
     def facade(self) -> Optional[GeckoAsyncFacade]:
+        """Get the connected facade, or None"""
         return self._facade
 
     @property
     def spa_state(self) -> GeckoSpaState:
+        """Get the spa state"""
         return self._spa_state
 
     @property
     def status_line(self) -> str:
+        """Get a status line"""
         return self._status_line
 
     def __str__(self) -> str:
@@ -218,3 +283,24 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         await self.handle_event(event, **kwargs)
 
         # Any post-processing goes here
+
+    async def _sequence_pump(self) -> None:
+        """SpaMan sequence pump coordinates running the manager from the
+        parameterized constructor and machine state"""
+        _LOGGER.debug("SpaMan sequence pump started")
+
+        while True:
+
+            if self.spa_state == GeckoSpaState.IDLE:
+
+                if self._spa_identifier is not None:
+
+                    if self._facade is None:
+                        await self.async_connect(
+                            self._spa_identifier, self._spa_address
+                        )
+
+                elif self._spa_descriptors is None:
+                    await self.async_locate_spas(self._spa_address)
+
+            await asyncio.sleep(0)

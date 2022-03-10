@@ -74,8 +74,7 @@ class GeckoAsyncLocator(Observable):
             sender,
         )
 
-        if self._spas is None:
-            self._spas = []
+        assert self._spas is not None
         self._spas.append(descriptor)
         await self._event_handler(
             GeckoSpaEvent.LOCATING_DISCOVERED_SPA, spa_descriptor=descriptor
@@ -131,6 +130,7 @@ class GeckoAsyncLocator(Observable):
         assert isinstance(_protocol, GeckoAsyncUdpProtocol)
         self._protocol = _protocol
         assert self._transport is not None
+        self._spas = []
 
         hello_handler = GeckoHelloProtocolHandler.broadcast(
             async_on_handled=self._async_on_discovered
@@ -147,8 +147,8 @@ class GeckoAsyncLocator(Observable):
 
         while self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
             if self.has_had_enough_time:
-                if self.spas is not None and len(self.spas) > 0:
-                    _LOGGER.info("Found %d spas ... %s", len(self.spas), self.spas)
+                if len(self._spas) > 0:
+                    _LOGGER.info("Found %d spas ... %s", len(self._spas), self._spas)
                     break
             if self._has_found_spa:
                 break
@@ -170,8 +170,3 @@ class GeckoAsyncLocator(Observable):
             return "Discovering spas"
         else:
             return "Initialized"
-        # if self.is_running:
-        #    return "Discovering spas"
-        # elif self.spas is None:
-        #    return "No spas found on your network"
-        # else:

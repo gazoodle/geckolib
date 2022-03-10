@@ -2,12 +2,14 @@
 
 import configparser
 import logging
+from typing import Optional
 
 # Configuration file constants
 CONFIG_FILE = "sample.ini"
 CK_DEFAULT = "DEFAULT"
 CK_SPA_ID = "SPA_ID"
 CK_SPA_ADDR = "SPA_ADDR"
+CK_SPA_NAME = "SPA_NAME"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,10 +31,8 @@ class Config:
             self._config.write(configfile)
 
     @property
-    def spa_id(self) -> str:
-        if CK_SPA_ID in self._config[CK_DEFAULT]:
-            return self._config[CK_DEFAULT][CK_SPA_ID]
-        return None
+    def spa_id(self) -> Optional[str]:
+        return self._config[CK_DEFAULT].get(CK_SPA_ID, None)
 
     def set_spa_id(self, spa_id) -> None:
         if spa_id is None:
@@ -41,13 +41,21 @@ class Config:
             self._config[CK_DEFAULT][CK_SPA_ID] = spa_id
 
     @property
-    def spa_address(self) -> str:
-        if CK_SPA_ADDR in self._config[CK_DEFAULT]:
-            return self._config[CK_DEFAULT][CK_SPA_ADDR]
-        return None
+    def spa_address(self) -> Optional[str]:
+        return self._config[CK_DEFAULT].get(CK_SPA_ADDR, None)
 
     def set_spa_address(self, spa_address) -> None:
         if spa_address is None:
             self._config.remove_option(CK_DEFAULT, CK_SPA_ADDR)
         else:
             self._config[CK_DEFAULT][CK_SPA_ADDR] = spa_address
+
+    @property
+    def spa_name(self) -> Optional[str]:
+        return self._config[CK_DEFAULT].get(CK_SPA_NAME, None)
+
+    def set_spa_name(self, spa_name) -> None:
+        if spa_name is None:
+            self._config.remove_option(CK_DEFAULT, CK_SPA_NAME)
+        else:
+            self._config[CK_DEFAULT][CK_SPA_NAME] = spa_name

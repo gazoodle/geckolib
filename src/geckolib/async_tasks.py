@@ -18,6 +18,7 @@ class AsyncTasks:
         await self.gather()
 
     def add_task(self, coroutine, name_: str, key_: str) -> None:
+        _LOGGER.debug("Starting task `%s` in domain `%s`", name_, key_)
         task = asyncio.create_task(coroutine, name=f"{key_}:{name_}")
         self._tasks.append(task)
 
@@ -41,4 +42,8 @@ class AsyncTasks:
         while True:
             # Run every five seconds
             await asyncio.sleep(GeckoConstants.TASK_TIDY_FREQUENCY_IN_SECONDS)
+            if _LOGGER.isEnabledFor(logging.DEBUG):
+                for task in self._tasks:
+                    if task.done():
+                        _LOGGER.debug("Tidy task %s", task)
             self._tasks = [task for task in self._tasks if not task.done()]

@@ -133,7 +133,6 @@ class GeckoAsyncSpa(Observable):
                 ),
                 self.descriptor.name,
             )
-            await self.disconnect()
             await self._event_handler(GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS)
 
     async def _connect(self) -> None:
@@ -259,7 +258,6 @@ class GeckoAsyncSpa(Observable):
             # pack code and remove type-hint suppression below
             self.pack_type = self.pack_class.type  # type: ignore
         except ModuleNotFoundError:
-            await self.disconnect()
             await self._event_handler(
                 GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK,
                 pack_module_name=pack_module_name,
@@ -278,7 +276,6 @@ class GeckoAsyncSpa(Observable):
             ).GeckoConfigStruct
             self.config_class = GeckoConfigStruct(self.struct)
         except ModuleNotFoundError:
-            await self.disconnect()
             await self._event_handler(
                 GeckoSpaEvent.CONNECTION_CANNOT_FIND_CONFIG_VERSION,
                 config_version=self.config_version,
@@ -297,7 +294,6 @@ class GeckoAsyncSpa(Observable):
             GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
             self.log_class = GeckoLogStruct(self.struct)
         except ModuleNotFoundError:
-            await self.disconnect()
             await self._event_handler(
                 GeckoSpaEvent.CONNECTION_CANNOT_FIND_LOG_VERSION,
                 log_version=self.log_version,

@@ -52,7 +52,10 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
     async def __aenter__(self):
         await GeckoAsyncSpaMan.__aenter__(self)
         self.add_task(self._timer_loop(), "Timer", "CUI")
-        self.add_task(self._sequence_pump(), "Sequence pump", "CUI")
+        await self.async_set_spa_info(
+            self._config.spa_address, self._config.spa_id, self._config.spa_name
+        )
+        # self.add_task(self._sequence_pump(), "Sequence pump", "CUI")
         await self.run()
         return self
 
@@ -64,18 +67,19 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             self.make_display()
             await asyncio.sleep(1)
 
-    async def _sequence_pump(self) -> None:
+    async def _ssequence_pump(self) -> None:
         while True:
-            if self.spa_state == GeckoSpaState.IDLE:
-                if self._config.spa_id is None:
-                    # If we don't have a config ID, then trigger a find
-                    self._spas = await self.async_locate_spas()
-                elif self._facade is None:
-                    # If we have an id, but no facade, try a connection
-                    self._facade = await self.async_connect(
-                        spa_address=self._config.spa_address,
-                        spa_identifier=self._config.spa_id,
-                    )
+            if False:
+                if self.spa_state == GeckoSpaState.IDLE:
+                    if self._config.spa_id is None:
+                        # If we don't have a config ID, then trigger a find
+                        self._spas = await self.async_locate_spas()
+                    elif self._facade is None:
+                        # If we have an id, but no facade, try a connection
+                        self._facade = await self.async_connect(
+                            spa_address=self._config.spa_address,
+                            spa_identifier=self._config.spa_id,
+                        )
 
             if False:
                 if self._config.spa_id is None and self._spas is None:
@@ -88,23 +92,26 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                         spa_address=self._config.spa_address,
                         spa_identifier=self._config.spa_id,
                     )
+
             await asyncio.sleep(0)
 
     async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
         # Always rebuild the UI when there is an event
         self.make_display()
 
-    def _select_spa(self, spa):
+    async def _select_spa(self, spa):
         self._config.set_spa_id(spa.identifier_as_string)
         self._config.set_spa_address(spa.ipaddress)
+        self._config.set_spa_name(spa.name)
         self._config.save()
-        # self._facade.set_spa_info(spa.identifier_as_string, spa.ipaddress)
+        await self.async_set_spa_info(spa.ipaddress, spa.identifier_as_string, spa.name)
 
-    def _clear_spa(self):
+    async def _clear_spa(self):
         self._config.set_spa_id(None)
         self._config.set_spa_address(None)
+        self._config.set_spa_name(None)
         self._config.save()
-        # self._facade.set_spa_info(None, None)
+        await self.async_set_spa_info(None, None, None)
 
     def make_title(self, maxy: int, maxx: int) -> None:
         title = "Gecko Async Sample App"
@@ -131,14 +138,18 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             lines = []
             self._commands = {}
 
-            if self._spas is not None:
-                # If the _spas property is available, that means we've got
-                # a list of spas that we can choose from
-                for idx, spa in enumerate(self._spas, start=1):
-                    lines.append(f"{idx}. {spa.name} at {spa.ipaddress}")
-                    self._commands[
-                        f"{idx}"
-                    ] = lambda self=self, spa=spa: self._select_spa(spa)
+            if self.spa_state == GeckoSpaState.IDLE:
+
+                if self.spa_descriptors is not None:
+                    # If the _spas property is available, that means we've got
+                    # a list of spas that we can choose from
+                    for idx, spa in enumerate(self.spa_descriptors, start=1):
+                        lines.append(f"{idx}. {spa.name} at {spa.ipaddress}")
+                        self._commands[f"{idx}"] = (self._select_spa, spa)
+
+                    if len(self.spa_descriptors) == 0:
+                        lines.append("No spas were found on your network")
+
             elif self._facade is not None:
                 lines.append(f"{self._facade.name} is ready")
                 lines.append("")
@@ -264,6 +275,10 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             func = self._commands[cmd]
             if inspect.iscoroutinefunction(func):
                 await func()
+            elif isinstance(func, tuple):
+                func, *parms = func
+                if inspect.iscoroutinefunction(func):
+                    await func(*parms)
             else:
                 func()
         self._last_char = char
