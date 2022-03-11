@@ -28,3 +28,5 @@ class GeckoSpaState(Enum):
     """State when the user needs to attend"""
     ERROR_PING_MISSED = 52
     """State when a ping was missed, can auto-connect on restore"""
+    ERROR_RF_FAULT = 53
+    """State when the EN module reports it can't talk to the CO module"""

@@ -270,20 +270,27 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         elif event == GeckoSpaEvent.RUNNING_PING_NO_RESPONSE:
             self._spa_state = GeckoSpaState.ERROR_PING_MISSED
         elif event == GeckoSpaEvent.RUNNING_PING_RECEIVED:
-            if self._spa_state == GeckoSpaState.ERROR_PING_MISSED:
+            if self._spa_state in (
+                GeckoSpaState.ERROR_PING_MISSED,
+                GeckoSpaState.ERROR_RF_FAULT,
+                GeckoSpaState.ERROR_NEEDS_ATTENTION,
+            ):
                 await self.async_reset()
+
+        elif event == GeckoSpaEvent.ERROR_RF_ERROR:
+            self._spa_state = GeckoSpaState.ERROR_RF_FAULT
 
         # elif event == GeckoSpaEvent.RUNNING_SPA_DISCONNECTED:
         #    self._facade = None
         #    self._spa = None
         # self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
 
-        # elif event in (
-        #    GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,
-        #    GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED,
-        #    GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS,
-        # ):
-        #    self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
+        elif event in (
+            GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,
+            GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED,
+            GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS,
+        ):
+            self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
 
         # TODO: Better please
         self._status_line = f"State: {self._spa_state}, last event {event}"
@@ -300,18 +307,23 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         parameterized constructor and machine state"""
         _LOGGER.debug("SpaMan sequence pump started")
 
-        while True:
+        try:
+            while True:
 
-            if self.spa_state == GeckoSpaState.IDLE:
+                if self.spa_state == GeckoSpaState.IDLE:
 
-                if self._spa_identifier is not None:
+                    if self._spa_identifier is not None:
 
-                    if self._facade is None:
-                        await self.async_connect(
-                            self._spa_identifier, self._spa_address
-                        )
+                        if self._facade is None:
+                            await self.async_connect(
+                                self._spa_identifier, self._spa_address
+                            )
 
-                elif self._spa_descriptors is None:
-                    await self.async_locate_spas(self._spa_address)
+                    elif self._spa_descriptors is None:
+                        await self.async_locate_spas(self._spa_address)
 
-            await asyncio.sleep(0)
+                await asyncio.sleep(0)
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("Spaman sequence pump cancelled")
+            raise

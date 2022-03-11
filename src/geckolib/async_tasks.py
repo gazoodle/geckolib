@@ -39,11 +39,15 @@ class AsyncTasks:
             _LOGGER.debug("    Task %s result `%r`", item[0].get_name(), item[1])
 
     async def _tidy(self) -> None:
-        while True:
-            # Run every five seconds
-            await asyncio.sleep(GeckoConstants.TASK_TIDY_FREQUENCY_IN_SECONDS)
-            if _LOGGER.isEnabledFor(logging.DEBUG):
-                for task in self._tasks:
-                    if task.done():
-                        _LOGGER.debug("Tidy task %s", task)
-            self._tasks = [task for task in self._tasks if not task.done()]
+        try:
+            while True:
+                # Run every five seconds
+                await asyncio.sleep(GeckoConstants.TASK_TIDY_FREQUENCY_IN_SECONDS)
+                if _LOGGER.isEnabledFor(logging.DEBUG):
+                    for task in self._tasks:
+                        if task.done():
+                            _LOGGER.debug("Tidy task %s", task)
+                self._tasks = [task for task in self._tasks if not task.done()]
+        except asyncio.CancelledError:
+            _LOGGER.debug("Tidy loop cancelled")
+            raise

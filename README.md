@@ -468,6 +468,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Use snapshots to generate some specific tests
  - Build some documentation
  - Add coverage to GitHub package workflow
+ - There is a lock issue when a command is being retried as the protocol lock
+   is busy and the CUI won't exit until the timeout has been reached (this can
+   be reproduced by making the simulator stop responding to watercare requests)
 
 
 ## Done/Fixed in 0.4.0

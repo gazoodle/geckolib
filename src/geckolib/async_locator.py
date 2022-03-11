@@ -49,9 +49,6 @@ class GeckoAsyncLocator(Observable):
         self._transport: Optional[asyncio.BaseTransport] = None
         self._protocol: Optional[GeckoAsyncUdpProtocol] = None
 
-    def __del__(self):
-        _LOGGER.debug("Locator deleted")
-
     async def _async_on_discovered(
         self, handler: GeckoHelloProtocolHandler, sender: tuple
     ) -> None:

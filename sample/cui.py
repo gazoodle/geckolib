@@ -122,24 +122,39 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                         lines.append("No spas were found on your network")
 
             elif self._facade is not None:
-                lines.append(f"{self._facade.name} is ready")
-                lines.append("")
-                lines.append(f"{self._facade.water_heater}")
-                for pump in self._facade.pumps:
-                    lines.append(f"{pump}")
-                for blower in self._facade.blowers:
-                    lines.append(f"{blower}")
-                for light in self._facade.lights:
-                    lines.append(f"{light}")
-                for reminder in self._facade.reminders:
-                    lines.append(f"{reminder}")
-                lines.append(f"{self._facade.water_care}")
-                for sensor in [
-                    *self._facade.sensors,
-                    *self._facade.binary_sensors,
-                ]:
-                    lines.append(f"{sensor}")
-                lines.append(f"{self._facade.eco_mode}")
+
+                if self.spa_state == GeckoSpaState.CONNECTED:
+
+                    lines.append(f"{self._facade.name} is ready")
+                    lines.append("")
+                    lines.append(f"{self._facade.water_heater}")
+                    for pump in self._facade.pumps:
+                        lines.append(f"{pump}")
+                    for blower in self._facade.blowers:
+                        lines.append(f"{blower}")
+                    for light in self._facade.lights:
+                        lines.append(f"{light}")
+                    for reminder in self._facade.reminders:
+                        lines.append(f"{reminder}")
+                    lines.append(f"{self._facade.water_care}")
+                    for sensor in [
+                        *self._facade.sensors,
+                        *self._facade.binary_sensors,
+                    ]:
+                        lines.append(f"{sensor}")
+                    lines.append(f"{self._facade.eco_mode}")
+
+                elif self.spa_state == GeckoSpaState.ERROR_RF_FAULT:
+
+                    lines.append(
+                        "Lost contact with your spa, it looks as if it is turned off"
+                    )
+
+                elif self.spa_state == GeckoSpaState.ERROR_PING_MISSED:
+
+                    lines.append(
+                        "Lost contact with your intouch2 module, please investigate"
+                    )
 
             if False:
                 if self._facade.is_ready:

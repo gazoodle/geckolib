@@ -438,7 +438,8 @@ class GeckoAsyncSpa(Observable):
                 await asyncio.sleep(GeckoConstants.PING_FREQUENCY_IN_SECONDS)
 
         except asyncio.CancelledError:
-           raise
+            _LOGGER.debug("Ping loop cancelled")
+            raise
 
         except:  # noqa
             _LOGGER.exception("Exception in ping loop")
@@ -563,7 +564,6 @@ class GeckoAsyncSpa(Observable):
 
         if get_watercare_handler is None:
             await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
-
             return None
 
         return get_watercare_handler.mode

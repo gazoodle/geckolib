@@ -65,18 +65,25 @@ class GeckoAsyncFacade(Observable):
 
     async def _facade_update(self) -> None:
         _LOGGER.debug("Facade update task started")
-        while True:
+        try:
+            while True:
 
-            try:
-                if not self._spa.is_responding_to_pings:
-                    continue
+                try:
+                    if not self._spa.is_responding_to_pings:
+                        continue
 
-                self._water_care.change_watercare_mode(
-                    await self._spa.async_get_watercare()
-                )
+                    self._water_care.change_watercare_mode(
+                        await self._spa.async_get_watercare()
+                    )
 
-            finally:
-                await asyncio.sleep(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
+                finally:
+                    await asyncio.sleep(
+                        GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS
+                    )
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("Facade update loop cancelled")
+            raise
 
     def _scan_outputs(self) -> None:
         """Scan the spa outputs to decide what user options are available"""
