@@ -87,6 +87,19 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
 
 
 class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
+    @staticmethod
+    def report_changes(socket, changes, **kwargs):
+        """changes is a list of change tuples, (pos, data)"""
+        change_bin = [(struct.pack(">H", change[0]), change[1]) for change in changes]
+        change_list = [item for change in change_bin for item in change]
+        return GeckoPartialStatusBlockProtocolHandler(
+            socket,
+            content=b"".join(
+                [STATP_VERB, struct.pack(">B", len(changes))] + change_list
+            ),
+            **kwargs,
+        )
+
     def __init__(self, socket, **kwargs):
         super().__init__(**kwargs)
         self._socket = socket

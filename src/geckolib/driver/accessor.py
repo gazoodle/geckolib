@@ -59,6 +59,9 @@ class GeckoStructAccessor(Observable):
 
         self.read_write = rw
 
+    def set_read_write(self, mode):
+        self.read_write = mode
+
     def status_block_changed(self, offset, len, previous):
         # Does the notified range intersect us, if not then we don't care!
         intersection_start = max(offset, self.pos)

@@ -346,6 +346,17 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
             b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATQ\x01</DATAS></PACKT>",
         )
 
+    def test_send_partial(self):
+        socket = MockSocket()
+        handler = GeckoPartialStatusBlockProtocolHandler.report_changes(
+            socket, [(365, b"\x03\x84"), (366, b"\x84\x0c")], parms=PARMS
+        )
+        self.assertFalse(handler.should_remove_handler)
+        self.assertEqual(
+            handler.send_bytes,
+            b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATP\x02\x01\x6d\x03\x84\x01\x6e\x84\x0c</DATAS></PACKT>",
+        )
+
 
 class TestGeckoPackCommandHandlers(unittest.TestCase):
     def test_send_construct_key_press(self):

@@ -4,6 +4,9 @@ import logging
 import os
 import glob
 import random
+import importlib
+import struct
+from ..const import GeckoConstants
 
 from .shared_command import GeckoCmd
 from ..driver import (
@@ -14,7 +17,7 @@ from ..driver import (
     GeckoGetChannelProtocolHandler,
     GeckoConfigFileProtocolHandler,
     GeckoStatusBlockProtocolHandler,
-    # GeckoPartialStatusBlockProtocolHandler,
+    GeckoPartialStatusBlockProtocolHandler,
     GeckoWatercareProtocolHandler,
     GeckoUpdateFirmwareProtocolHandler,
     GeckoRemindersProtocolHandler,
@@ -43,6 +46,8 @@ class GeckoSimulator(GeckoCmd):
         self.snapshot = None
         self._reliability = 1.0
         self._do_rferr = False
+        self._send_structure_change = False
+        self._clients = []
         random.seed()
 
         super().__init__(first_commands)
@@ -109,6 +114,34 @@ class GeckoSimulator(GeckoCmd):
         self._do_rferr = args.lower() == "true"
         print(f"RFERR mode set to {self._do_rferr}")
 
+    def do_get(self, arg):
+        """Get the value of the specified spa pack structure element : get <Element>"""
+        try:
+            print("{0} = {1}".format(arg, self.structure.accessors[arg].value))
+        except Exception:  # pylint: disable=broad-except
+            _LOGGER.exception("Exception getting '%s'", arg)
+
+    def do_set(self, arg):
+        """Set the value of the specified spa pack structure
+        element : set <Element>=<value>"""
+        self._send_structure_change = True
+        try:
+            key, val = arg.split("=")
+            self.structure.accessors[key].value = val
+        except Exception:  # pylint: disable=broad-except
+            _LOGGER.exception("Exception handling 'set %s'", arg)
+        finally:
+            self._send_structure_change = False
+
+    def do_accessors(self, _arg):
+        """Display the data from the accessors : accessors"""
+        print("Accessors")
+        print("=========")
+        print("")
+        for key in self.structure.accessors:
+            print("   {0}: {1}".format(key, self.structure.accessors[key].value))
+        print("")
+
     def complete_parse(self, text, line, start_idx, end_idx):
         return self._complete_path(text)
 
@@ -129,6 +162,51 @@ class GeckoSimulator(GeckoCmd):
     def set_snapshot(self, snapshot):
         self.snapshot = snapshot
         self.structure.replace_status_block_segment(0, self.snapshot.bytes)
+
+        try:
+            # Attempt to get config and log classes
+            plateform_key = self.snapshot.packtype.lower()
+
+            pack_module_name = f"geckolib.driver.packs.{plateform_key}"
+            try:
+                GeckoPack = importlib.import_module(pack_module_name).GeckoPack
+                self.pack_class = GeckoPack(self.structure)
+                self.pack_type = self.pack_class.type
+            except ModuleNotFoundError:
+                raise Exception(
+                    GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
+                        self.snapshot.packtype
+                    )
+                )
+
+            config_module_name = f"geckolib.driver.packs.{plateform_key}-cfg-{self.snapshot.config_version}"
+            try:
+                GeckoConfigStruct = importlib.import_module(
+                    config_module_name
+                ).GeckoConfigStruct
+                self.config_class = GeckoConfigStruct(self.structure)
+            except ModuleNotFoundError:
+                raise Exception(
+                    f"Cannot find GeckoConfigStruct module for {self.snapshot.packtype} v{self.snapshot.config_version}"
+                )
+
+            log_module_name = (
+                f"geckolib.driver.packs.{plateform_key}-log-{self.snapshot.log_version}"
+            )
+            try:
+                GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
+                self.log_class = GeckoLogStruct(self.structure)
+            except ModuleNotFoundError:
+                raise Exception(
+                    f"Cannot find GeckoLogStruct module for {self.snapshot.packtype} v{self.snapshot.log_version}"
+                )
+
+            self.structure.build_accessors(self.config_class, self.log_class)
+            for accessor in self.structure.accessors.values():
+                accessor.set_read_write("ALL")
+
+        except:  # noqa
+            _LOGGER.exception("Exception during snapshot load")
 
     def _should_ignore(self, handler, sender, respect_rferr=True):
         if respect_rferr and self._do_rferr:
@@ -199,6 +277,8 @@ class GeckoSimulator(GeckoCmd):
             GeckoPingProtocolHandler.response(parms=sender),
             sender,
         )
+        if sender not in self._clients:
+            self._clients.append(sender)
 
     def _on_version(self, handler: GeckoVersionProtocolHandler, sender):
         if self._should_ignore(handler, sender):
@@ -298,4 +378,23 @@ class GeckoSimulator(GeckoCmd):
             print(f"Set a value ({handler.position} = {handler.new_data})")
 
     def _on_set_value(self, pos, length, newvalue):
-        print(f"Simulator: Set value @{pos} for {length} to {newvalue}")
+        print(f"Simulator: Set value @{pos} len {length} to {newvalue}")
+        change = None
+        if length == 1:
+            change = (pos, struct.pack(">B", newvalue))
+        elif length == 2:
+            change = (pos, struct.pack(">H", newvalue))
+        else:
+            print("**** UNHANDLED SET SIZE ****")
+            return
+
+        self.structure.replace_status_block_segment(change[0], change[1])
+
+        if self._send_structure_change:
+            for client in self._clients:
+                self._socket.queue_send(
+                    GeckoPartialStatusBlockProtocolHandler.report_changes(
+                        self._socket, [change], parms=client
+                    ),
+                    client,
+                )
