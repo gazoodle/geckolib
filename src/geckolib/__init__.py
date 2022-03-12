@@ -6,7 +6,9 @@ from .async_tasks import AsyncTasks
 from .const import GeckoConstants
 from .automation import (
     GeckoAutomationBase,
+    GeckoAutomationFacadeBase,
     GeckoBlower,
+    GeckoButton,
     GeckoFacade,
     GeckoAsyncFacade,
     GeckoWaterHeater,
@@ -64,7 +66,9 @@ __all__ = [
     "AsyncTasks",
     # From automation
     "GeckoAutomationBase",
+    "GeckoAutomationFacadeBase",
     "GeckoBlower",
+    "GeckoButton",
     "GeckoFacade",
     "GeckoAsyncFacade",
     "GeckoWaterHeater",

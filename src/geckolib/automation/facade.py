@@ -9,13 +9,12 @@ from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
-from .switches import GeckoSwitch
+from .switch import GeckoSwitch
 from .sensors import GeckoSensor, GeckoBinarySensor
 from .watercare import GeckoWaterCare
 from ..driver import Observable
 
 logger = logging.getLogger(__name__)
-
 
 
 class GeckoFacade(Observable):
@@ -63,7 +62,7 @@ class GeckoFacade(Observable):
         self._facade_ready = True
 
     def complete(self):
-        """ Finish using this facade if not used in a `with` statement """
+        """Finish using this facade if not used in a `with` statement"""
         self.__exit__()
 
     @property
@@ -86,7 +85,7 @@ class GeckoFacade(Observable):
             raise Exception("Facade in error from previous exception")
 
     def scan_outputs(self):
-        """ Scan the spa outputs to decide what user options are available """
+        """Scan the spa outputs to decide what user options are available"""
         logger.debug("All outputs are %s", self._spa.struct.all_outputs)
         # Workout what (if anything) the outputs are connected to
         all_output_connections = {
@@ -201,77 +200,77 @@ class GeckoFacade(Observable):
 
     @property
     def unique_id(self):
-        """ A unique id for the facade """
+        """A unique id for the facade"""
         return f"{self.identifier.replace(':', '')}"
 
     @property
     def name(self):
-        """ Get the spa name """
+        """Get the spa name"""
         return self._spa.descriptor.name
 
     @property
     def identifier(self):
-        """ Get the spa identifier """
+        """Get the spa identifier"""
         return self._spa.descriptor.identifier_as_string
 
     @property
     def spa(self):
-        """ Get the spa implementation class """
+        """Get the spa implementation class"""
         return self._spa
 
     @property
     def water_heater(self):
-        """ Get the water heater handler """
+        """Get the water heater handler"""
         return self._water_heater
 
     @property
     def water_care(self):
-        """ Get the water care handler """
+        """Get the water care handler"""
         return self._water_care
 
     @property
     def keypad(self):
-        """ Get the keypad handler """
+        """Get the keypad handler"""
         return self._keypad
 
     @property
     def pumps(self) -> [GeckoPump]:
-        """ Get the pumps list """
+        """Get the pumps list"""
         return self._pumps
 
     @property
     def blowers(self):
-        """ Get the blowers list """
+        """Get the blowers list"""
         return self._blowers
 
     @property
     def lights(self):
-        """ Get the lights list """
+        """Get the lights list"""
         return self._lights
 
     @property
     def sensors(self):
-        """ Get the sensor list """
+        """Get the sensor list"""
         return self._sensors
 
     @property
     def binary_sensors(self):
-        """ Get the binary sensor list """
+        """Get the binary sensor list"""
         return self._binary_sensors
 
     @property
     def eco_mode(self):
-        """ Get the Eco Mode switch """
+        """Get the Eco Mode switch"""
         return self._ecomode
 
     @property
     def all_user_devices(self):
-        """ Get all the user controllable devices as a list """
+        """Get all the user controllable devices as a list"""
         return self._pumps + self._blowers + self._lights
 
     @property
     def all_automation_devices(self):
-        """ Get all the automation devices as a list """
+        """Get all the automation devices as a list"""
         return (
             self.all_user_devices
             + self.sensors
@@ -280,7 +279,7 @@ class GeckoFacade(Observable):
         )
 
     def get_device(self, key):
-        """ Get an automation device from the key """
+        """Get an automation device from the key"""
         for device in self.all_automation_devices:
             if device.key == key:
                 return device
@@ -294,7 +293,7 @@ class GeckoFacade(Observable):
 
     @property
     def reminders(self):
-        """ Get the reminders list """
+        """Get the reminders list"""
         return []
 
     def _update_thread_func(self):
@@ -309,4 +308,3 @@ class GeckoFacade(Observable):
             self.spa.wait(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
 
         logger.info("Facade update thread finished")
- 

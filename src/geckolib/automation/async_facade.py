@@ -13,7 +13,7 @@ from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
-from .switches import GeckoSwitch
+from .switch import GeckoSwitch
 from .sensors import (
     GeckoSensor,
     GeckoBinarySensor,
@@ -205,15 +205,15 @@ class GeckoAsyncFacade(Observable):
     @property
     def unique_id(self) -> str:
         """A unique id for the facade"""
-        return f"{self.identifier.replace(':', '')}"
+        return self._taskman.unique_id
 
     @property
     def name(self) -> str:
         """Get the spa name."""
-        return self._spa.descriptor.name
+        return self._taskman.spa_name
 
     @property
-    def identifier(self) -> str:
+    def OLD_identifier(self) -> str:
         """Get the spa identifier"""
         return self._spa.descriptor.identifier_as_string
 
@@ -257,7 +257,7 @@ class GeckoAsyncFacade(Observable):
         """Get the sensor list"""
         all_sensors = list(self._sensors)
         all_sensors.append(self._facade_status_sensor)
-        all_sensors.append(self._facade_ping_sensor)
+        # all_sensors.append(self._facade_ping_sensor)
         return all_sensors
 
     @property

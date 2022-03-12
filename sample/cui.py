@@ -68,6 +68,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
     async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
         # Always rebuild the UI when there is an event
+        _LOGGER.debug(f"{event} : {self.spa_state}")
         self.make_display()
 
     async def _select_spa(self, spa):
@@ -221,9 +222,9 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                     lines.append("Press 'r' to reconnect to spa")
                     self._commands["r"] = self._facade.reconnect_spa
 
-            if self.spa_state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
-                lines.append("Press 'r' to reconnect")
-                self._commands["r"] = self.async_reset
+                # if self.spa_state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
+            lines.append("Press 'r' to reconnect")
+            self._commands["r"] = self.async_reset
 
             if self._config.spa_id is not None:
                 lines.append("Press 's' to scan for spas")

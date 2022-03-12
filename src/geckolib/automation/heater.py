@@ -1,11 +1,11 @@
 """ Gecko Water Heaters """
 
-from .base import GeckoAutomationBase
+from .base import GeckoAutomationFacadeBase
 from .sensors import GeckoSensor, GeckoBinarySensor
 from ..const import GeckoConstants
 
 
-class GeckoWaterHeater(GeckoAutomationBase):
+class GeckoWaterHeater(GeckoAutomationFacadeBase):
     """Water Heater object based on Home Assistant Entity Type Climate"""
 
     TEMP_CELCIUS = "°C"

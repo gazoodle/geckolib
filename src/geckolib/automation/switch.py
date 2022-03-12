@@ -3,13 +3,13 @@
 import logging
 
 from ..const import GeckoConstants
-from .base import GeckoAutomationBase
+from .base import GeckoAutomationFacadeBase
 from .sensors import GeckoSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoSwitch(GeckoAutomationBase):
+class GeckoSwitch(GeckoAutomationFacadeBase):
     """A switch can turn something on or off, and can report the current state"""
 
     def __init__(self, facade, key, props):

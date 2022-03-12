@@ -14,7 +14,7 @@ from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
-from .switches import GeckoSwitch
+from .switch import GeckoSwitch
 from .sensors import (
     GeckoSensor,
     GeckoBinarySensor,

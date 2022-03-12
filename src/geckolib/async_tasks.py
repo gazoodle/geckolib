@@ -51,3 +51,13 @@ class AsyncTasks:
         except asyncio.CancelledError:
             _LOGGER.debug("Tidy loop cancelled")
             raise
+
+    @property
+    def unique_id(self) -> str:
+        """Dummy function designed to be overridden"""
+        return ""
+
+    @property
+    def spa_name(self) -> str:
+        """Dummy function designed to be overridden"""
+        return ""

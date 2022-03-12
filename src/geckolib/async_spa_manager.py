@@ -3,8 +3,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
+from datetime import datetime
 
-from .automation import GeckoAsyncFacade
+
+from .automation import GeckoAsyncFacade, GeckoAutomationBase, GeckoButton
 from .async_locator import GeckoAsyncLocator
 from .async_spa import GeckoAsyncSpa
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
@@ -25,6 +27,42 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     This class is deliberately an abstract because you must provide your own
     implementation to manage the essential events that are required during operation
     """
+
+    class RestartButton(GeckoButton):
+        def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            super().__init__(spaman.unique_id, "Restart", spaman.spa_name, "RESTART")
+            self._spaman = spaman
+
+        async def async_press(self):
+            await self._spaman.async_reset()
+
+    class PingSensor(GeckoAutomationBase):
+        def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            super().__init__(spaman.unique_id, "Last Ping", spaman.spa_name, "PING")
+            self._spaman: GeckoAsyncSpaMan = spaman
+            assert self._spaman._spa is not None
+            self._spaman._spa.watch(self._on_spa_change)
+            self._last_ping_at: Optional[datetime] = None
+
+        @property
+        def state(self):
+            """The state of the sensor"""
+            return self._last_ping_at
+
+        @property
+        def unit_of_measurement(self):
+            """The unit of measurement for the sensor, or None"""
+            return None
+
+        @property
+        def device_class(self):
+            return "datetime"
+
+        def _on_spa_change(self, *args):
+            if self._last_ping_at == self._spaman._spa.last_ping_at:
+                return
+            self._last_ping_at = self._spaman._spa.last_ping_at
+            self._on_change()
 
     def __init__(self, client_uuid: str, **kwargs: str) -> None:
         """Initialize a SpaMan class
@@ -67,6 +105,9 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         self._facade: Optional[GeckoAsyncFacade] = None
         self._spa: Optional[GeckoAsyncSpa] = None
         self._spa_state = GeckoSpaState.IDLE
+
+        self._restart_button: Optional[GeckoAsyncSpaMan.RestartButton] = None
+        self._ping_sensor: Optional[GeckoAsyncSpaMan.PingSensor] = None
 
     ########################################################################
     #
@@ -210,6 +251,18 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     #
 
     @property
+    def unique_id(self) -> str:
+        """A unique id for the spa manager"""
+        assert self._spa_identifier is not None
+        return f"{self._spa_identifier.replace(':', '')}"
+
+    @property
+    def spa_name(self) -> str:
+        """The name of the spa being managed"""
+        assert self._spa_name is not None
+        return self._spa_name
+
+    @property
     def spa_descriptors(self) -> Optional[List[GeckoAsyncSpaDescriptor]]:
         """Get a list of the discovered spas, or None"""
         return self._spa_descriptors
@@ -228,6 +281,14 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     def status_line(self) -> str:
         """Get a status line"""
         return self._status_line
+
+    @property
+    def restart_button(self) -> Optional[GeckoAsyncSpaMan.RestartButton]:
+        return self._restart_button
+
+    @property
+    def ping_sensor(self) -> Optional[GeckoAsyncSpaMan.PingSensor]:
+        return self._ping_sensor
 
     def __str__(self) -> str:
         return f"{self.status_line}"
@@ -259,6 +320,10 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         elif event == GeckoSpaEvent.CONNECTION_STARTED:
             self._spa_state = GeckoSpaState.CONNECTING
+            self._restart_button = GeckoAsyncSpaMan.RestartButton(self)
+
+        elif event == GeckoSpaEvent.CONNECTION_GOT_CHANNEL:
+            self._ping_sensor = GeckoAsyncSpaMan.PingSensor(self)
 
         elif event == GeckoSpaEvent.CONNECTION_SPA_COMPLETE:
             self._spa_state = GeckoSpaState.SPA_READY
@@ -280,10 +345,8 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         elif event == GeckoSpaEvent.ERROR_RF_ERROR:
             self._spa_state = GeckoSpaState.ERROR_RF_FAULT
 
-        # elif event == GeckoSpaEvent.RUNNING_SPA_DISCONNECTED:
-        #    self._facade = None
-        #    self._spa = None
-        # self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
+        elif event == GeckoSpaEvent.RUNNING_SPA_DISCONNECTED:
+            self._spa_state = GeckoSpaState.IDLE
 
         elif event in (
             GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,

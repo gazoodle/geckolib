@@ -2,13 +2,13 @@
 
 import logging
 
-from .base import GeckoAutomationBase
+from .base import GeckoAutomationFacadeBase
 from .sensors import GeckoSensor
 
 logger = logging.getLogger(__name__)
 
 
-class GeckoPump(GeckoAutomationBase):
+class GeckoPump(GeckoAutomationFacadeBase):
     """Pumps are similar to switches, but might have variable speeds too"""
 
     def __init__(self, facade, key, props, user_demand):

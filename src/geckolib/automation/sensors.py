@@ -1,9 +1,9 @@
 """ Gecko automation support for sensors """
 
-from .base import GeckoAutomationBase
+from .base import GeckoAutomationFacadeBase
 
 
-class GeckoSensorBase(GeckoAutomationBase):
+class GeckoSensorBase(GeckoAutomationFacadeBase):
     """Base sensor allows non-accessor sensors to be implemented"""
 
     def __init__(self, facade, name, device_class=None):

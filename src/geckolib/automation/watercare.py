@@ -1,7 +1,7 @@
 """ Gecko Watercare """
 
 import logging
-from .base import GeckoAutomationBase
+from .base import GeckoAutomationFacadeBase
 
 from ..driver import GeckoWatercareProtocolHandler
 from ..const import GeckoConstants
@@ -9,7 +9,7 @@ from ..const import GeckoConstants
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoWaterCare(GeckoAutomationBase):
+class GeckoWaterCare(GeckoAutomationFacadeBase):
     """Watercare manangement class"""
 
     def __init__(self, facade):
