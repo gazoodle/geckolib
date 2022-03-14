@@ -588,7 +588,3 @@ class GeckoAsyncSpa(Observable):
 
         if set_watercare_handler is None:
             await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
-
-    @property
-    def status_line(self) -> str:
-        return "*OBSOLETE*"

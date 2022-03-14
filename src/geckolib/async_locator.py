@@ -157,13 +157,3 @@ class GeckoAsyncLocator(Observable):
         self._transport = None
         self._protocol = None
         self._on_change(self)
-
-    @property
-    def status_line(self) -> str:
-        if self.age > 0:
-            if self.spas is not None:
-                return "Choose spa to connect to"
-
-            return "Discovering spas"
-        else:
-            return "Initialized"

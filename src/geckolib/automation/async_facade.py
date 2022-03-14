@@ -17,7 +17,6 @@ from .switch import GeckoSwitch
 from .sensors import (
     GeckoSensor,
     GeckoBinarySensor,
-    GeckoFacadeStatusSensor,
     GeckoSensorBase,
 )
 from .watercare import GeckoWaterCare
@@ -41,8 +40,6 @@ class GeckoAsyncFacade(Observable):
         self._taskman: AsyncTasks = taskman
 
         # Declare all the class members
-        self._facade_status_sensor = GeckoFacadeStatusSensor(self, "Status", "string")
-
         self._sensors: List[GeckoSensorBase] = []
         self._binary_sensors: List[GeckoBinarySensor] = []
         self._pumps: List[GeckoPump] = []
@@ -253,9 +250,7 @@ class GeckoAsyncFacade(Observable):
     @property
     def sensors(self) -> List[GeckoSensorBase]:
         """Get the sensor list"""
-        all_sensors = list(self._sensors)
-        all_sensors.append(self._facade_status_sensor)
-        return all_sensors
+        return self._sensors
 
     @property
     def binary_sensors(self) -> List[GeckoBinarySensor]:
@@ -266,11 +261,6 @@ class GeckoAsyncFacade(Observable):
     def eco_mode(self) -> Optional[GeckoSwitch]:
         """Get the Eco Mode switch if available"""
         return self._ecomode
-
-    @property
-    def facade_status_sensor(self) -> GeckoFacadeStatusSensor:
-        """Get the facade status sensor"""
-        return self._facade_status_sensor
 
     @property
     def all_user_devices(self) -> List[GeckoAutomationBase]:
@@ -305,12 +295,3 @@ class GeckoAsyncFacade(Observable):
     def reminders(self):
         """Get the reminders list"""
         return []
-
-    @property
-    def status_line(self) -> str:
-        """Get a human readable status line showing the current state of the facade"""
-        if self._spa is not None:
-            return self._spa.status_line
-        if self._locator is not None:
-            return self._locator.status_line
-        return "Initializing"

@@ -28,7 +28,6 @@ class TestAsyncLocator(IsolatedAsyncioTestCase):
         self.assertFalse(self.locator.is_running)
         self.assertEqual(self.locator.age, 0)
         self.assertFalse(self.locator.has_had_enough_time)
-        self.assertEqual(self.locator.status_line, "Initialized")
 
     def test_discover_none(self):
         self.assertFalse(True)

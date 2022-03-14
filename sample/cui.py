@@ -138,6 +138,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 ]:
                     lines.append(f"{sensor}")
                 lines.append(f"{self.facade.eco_mode}")
+                lines.append(f"{self.ping_sensor}")
 
             else:
 
@@ -208,7 +209,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             self.stdscr.addstr(
                 maxy - 2,
                 1,
-                f"{datetime.now():%x %X} - Status: {self}",
+                f"{datetime.now():%x %X} - {self}",
             )
 
         except _curses.error:

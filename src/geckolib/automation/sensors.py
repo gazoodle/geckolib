@@ -78,26 +78,3 @@ class GeckoBinarySensor(GeckoSensor):
         if state == "":
             return False
         return state != "OFF"
-
-
-########################################################################################
-class GeckoFacadeStatusSensor(GeckoSensorBase):
-    """String sensor for facade status"""
-
-    def __init__(self, facade, name, device_class=None):
-        super().__init__(facade, name, device_class)
-
-        self._last_status = self.facade.status_line
-        self.facade.watch(self._on_facade_change)
-
-    def _on_facade_change(self, _sender, _old_value, _new_value):
-        current_status = self.facade.status_line
-        if not current_status == self._last_status:
-            old_status = self._last_status
-            self._last_status = current_status
-            self._on_change(self, old_status, current_status)
-
-    @property
-    def state(self):
-        """The state of the sensor"""
-        return f"{self._last_status}"

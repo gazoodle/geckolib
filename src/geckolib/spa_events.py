@@ -80,6 +80,13 @@ class GeckoSpaEvent(Enum):
 
     # Events targeted at clients, to determine when things can be shown
     # or hidden in the UI
+    CLIENT_HAS_STATUS_SENSOR = 401
+    """The spa manager has the status sensor"""
+    CLIENT_HAS_RESTART_BUTTON = 402
+    """The spa manager has the restart button"""
+    CLIENT_HAS_PING_SENSOR = 403
+    """The spa manager has the ping sensor"""
+
     CLIENT_FACADE_IS_READY = 420
     """The facade is ready for use."""
     CLIENT_FACADE_TEARDOWN = 421
