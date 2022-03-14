@@ -78,6 +78,13 @@ class GeckoSpaEvent(Enum):
     RUNNING_SPA_DISCONNECTED = 303
     """Running spa was disconnected"""
 
+    # Events targeted at clients, to determine when things can be shown
+    # or hidden in the UI
+    CLIENT_FACADE_IS_READY = 420
+    """The facade is ready for use."""
+    CLIENT_FACADE_TEARDOWN = 421
+    """Facade is being torn down."""
+
     # Error event that SpaMan can retry without ------------------------
     # intervention
 

@@ -101,25 +101,3 @@ class GeckoFacadeStatusSensor(GeckoSensorBase):
     def state(self):
         """The state of the sensor"""
         return f"{self._last_status}"
-
-
-########################################################################################
-class GeckoFacadePingSensor(GeckoSensorBase):
-    """datetime sensor for facade ping"""
-
-    def __init__(self, facade, name, device_class=None):
-        super().__init__(facade, name, device_class)
-        self._last_ping_at = self.facade.spa.last_ping_at
-        self.facade.watch(self._on_facade_change)
-
-    def _on_facade_change(self, _sender, _old_value, _new_value):
-        current_ping_at = self.facade.spa.last_ping_at
-        if not current_ping_at == self._last_ping_at:
-            old_last_ping_at = self._last_ping_at
-            self._last_ping_at = current_ping_at
-            self._on_change(self, old_last_ping_at, current_ping_at)
-
-    @property
-    def state(self):
-        """The state of the sensor"""
-        return self._last_ping_at

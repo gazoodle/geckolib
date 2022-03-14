@@ -18,7 +18,6 @@ from .sensors import (
     GeckoSensor,
     GeckoBinarySensor,
     GeckoFacadeStatusSensor,
-    GeckoFacadePingSensor,
     GeckoSensorBase,
 )
 from .watercare import GeckoWaterCare
@@ -43,7 +42,6 @@ class GeckoAsyncFacade(Observable):
 
         # Declare all the class members
         self._facade_status_sensor = GeckoFacadeStatusSensor(self, "Status", "string")
-        self._facade_ping_sensor = GeckoFacadePingSensor(self, "Last Ping", "date")
 
         self._sensors: List[GeckoSensorBase] = []
         self._binary_sensors: List[GeckoBinarySensor] = []
@@ -257,7 +255,6 @@ class GeckoAsyncFacade(Observable):
         """Get the sensor list"""
         all_sensors = list(self._sensors)
         all_sensors.append(self._facade_status_sensor)
-        # all_sensors.append(self._facade_ping_sensor)
         return all_sensors
 
     @property
@@ -274,11 +271,6 @@ class GeckoAsyncFacade(Observable):
     def facade_status_sensor(self) -> GeckoFacadeStatusSensor:
         """Get the facade status sensor"""
         return self._facade_status_sensor
-
-    @property
-    def facade_ping_sensor(self) -> GeckoFacadePingSensor:
-        """Get the facade ping sensor"""
-        return self._facade_ping_sensor
 
     @property
     def all_user_devices(self) -> List[GeckoAutomationBase]:

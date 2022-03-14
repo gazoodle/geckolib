@@ -64,6 +64,9 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             self._last_ping_at = self._spaman._spa.last_ping_at
             self._on_change()
 
+        def __repr__(self):
+            return f"{self.name}: {self.state}"
+
     def __init__(self, client_uuid: str, **kwargs: str) -> None:
         """Initialize a SpaMan class
 
@@ -331,9 +334,12 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         elif event == GeckoSpaEvent.CONNECTION_FINISHED:
             if self._facade is not None:
                 self._spa_state = GeckoSpaState.CONNECTED
+                await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_IS_READY)
 
         elif event == GeckoSpaEvent.RUNNING_PING_NO_RESPONSE:
             self._spa_state = GeckoSpaState.ERROR_PING_MISSED
+            await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
+
         elif event == GeckoSpaEvent.RUNNING_PING_RECEIVED:
             if self._spa_state in (
                 GeckoSpaState.ERROR_PING_MISSED,
@@ -344,9 +350,11 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         elif event == GeckoSpaEvent.ERROR_RF_ERROR:
             self._spa_state = GeckoSpaState.ERROR_RF_FAULT
+            await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         elif event == GeckoSpaEvent.RUNNING_SPA_DISCONNECTED:
             self._spa_state = GeckoSpaState.IDLE
+            await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         elif event in (
             GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,
@@ -354,6 +362,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS,
         ):
             self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
+            await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         # TODO: Better please
         self._status_line = f"State: {self._spa_state}, last event {event}"

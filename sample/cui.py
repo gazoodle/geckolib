@@ -42,12 +42,15 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
         self._config = Config()
         self._spas: Optional[GeckoAsyncSpaDescriptor] = None
-        self._facade: Optional[GeckoAsyncFacade] = None
 
         self._last_update = time.monotonic()
         self._last_char = None
         self._commands = {}
         self._watching_ping_sensor = False
+
+        # Various flags based on the SpaMan events to simulate an
+        # automation client
+        self._can_use_facade = False
 
     async def __aenter__(self):
         await GeckoAsyncSpaMan.__aenter__(self)
@@ -69,6 +72,11 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
     async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
         # Always rebuild the UI when there is an event
         _LOGGER.debug(f"{event} : {self.spa_state}")
+        if event == GeckoSpaEvent.CLIENT_FACADE_IS_READY:
+            self._can_use_facade = True
+        elif event == GeckoSpaEvent.CLIENT_FACADE_TEARDOWN:
+            self._can_use_facade = False
+
         self.make_display()
 
     async def _select_spa(self, spa):
@@ -90,13 +98,13 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         self.stdscr.addstr(0, int((maxx - len(title)) / 2), title)
 
     async def increase_temp(self):
-        await self._facade.water_heater.async_set_target_temperature(
-            self._facade.water_heater.target_temperature + 0.5
+        await self.facade.water_heater.async_set_target_temperature(
+            self.facade.water_heater.target_temperature + 0.5
         )
 
     async def decrease_temp(self):
-        await self._facade.water_heater.async_set_target_temperature(
-            self._facade.water_heater.target_temperature - 0.5
+        await self.facade.water_heater.async_set_target_temperature(
+            self.facade.water_heater.target_temperature - 0.5
         )
 
     def make_display(self) -> None:
@@ -110,128 +118,83 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             lines = []
             self._commands = {}
 
-            if self.spa_state == GeckoSpaState.IDLE:
+            if self._can_use_facade:
 
-                if self.spa_descriptors is not None:
-                    # If the _spas property is available, that means we've got
-                    # a list of spas that we can choose from
-                    for idx, spa in enumerate(self.spa_descriptors, start=1):
-                        lines.append(f"{idx}. {spa.name} at {spa.ipaddress}")
-                        self._commands[f"{idx}"] = (self._select_spa, spa)
+                lines.append(f"{self.facade.name} is ready")
+                lines.append("")
+                lines.append(f"{self.facade.water_heater}")
+                for pump in self.facade.pumps:
+                    lines.append(f"{pump}")
+                for blower in self.facade.blowers:
+                    lines.append(f"{blower}")
+                for light in self.facade.lights:
+                    lines.append(f"{light}")
+                for reminder in self.facade.reminders:
+                    lines.append(f"{reminder}")
+                lines.append(f"{self.facade.water_care}")
+                for sensor in [
+                    *self.facade.sensors,
+                    *self.facade.binary_sensors,
+                ]:
+                    lines.append(f"{sensor}")
+                lines.append(f"{self.facade.eco_mode}")
 
-                    if len(self.spa_descriptors) == 0:
-                        lines.append("No spas were found on your network")
+            else:
 
-            elif self._facade is not None:
+                if self.spa_state == GeckoSpaState.IDLE:
 
-                if self.spa_state == GeckoSpaState.CONNECTED:
+                    if self.spa_descriptors is not None:
+                        # If the _spas property is available, that means we've got
+                        # a list of spas that we can choose from
+                        for idx, spa in enumerate(self.spa_descriptors, start=1):
+                            lines.append(f"{idx}. {spa.name} at {spa.ipaddress}")
+                            self._commands[f"{idx}"] = (self._select_spa, spa)
 
-                    lines.append(f"{self._facade.name} is ready")
+                        if len(self.spa_descriptors) == 0:
+                            lines.append("No spas were found on your network")
+
+                elif self.spa_state == GeckoSpaState.CONNECTED:
+                    lines.append(f"{self.spa_name} connecting")
+                    lines.append(f"{self.ping_sensor}")
                     lines.append("")
-                    lines.append(f"{self._facade.water_heater}")
-                    for pump in self._facade.pumps:
-                        lines.append(f"{pump}")
-                    for blower in self._facade.blowers:
-                        lines.append(f"{blower}")
-                    for light in self._facade.lights:
-                        lines.append(f"{light}")
-                    for reminder in self._facade.reminders:
-                        lines.append(f"{reminder}")
-                    lines.append(f"{self._facade.water_care}")
-                    for sensor in [
-                        *self._facade.sensors,
-                        *self._facade.binary_sensors,
-                    ]:
-                        lines.append(f"{sensor}")
-                    lines.append(f"{self._facade.eco_mode}")
 
                 elif self.spa_state == GeckoSpaState.ERROR_RF_FAULT:
 
+                    lines.append(f"{self.spa_name} not ready")
+                    lines.append(f"{self.ping_sensor}")
+                    lines.append("")
                     lines.append(
                         "Lost contact with your spa, it looks as if it is turned off"
                     )
 
                 elif self.spa_state == GeckoSpaState.ERROR_PING_MISSED:
 
+                    lines.append(f"{self.spa_name} not ready")
+                    lines.append(f"{self.ping_sensor}")
+                    lines.append("")
                     lines.append(
                         "Lost contact with your intouch2 module, please investigate"
                     )
 
-            if False:
-                if self._facade.is_ready:
-
-                    if self._facade.spa is not None:
-                        lines.append(f"{self._facade.name} is ready")
-                        lines.append("")
-                        lines.append(f"{self._facade.water_heater}")
-                        for pump in self._facade.pumps:
-                            lines.append(f"{pump}")
-                        for blower in self._facade.blowers:
-                            lines.append(f"{blower}")
-                        for light in self._facade.lights:
-                            lines.append(f"{light}")
-                        for reminder in self._facade.reminders:
-                            lines.append(f"{reminder}")
-                        lines.append(f"{self._facade.water_care}")
-                        for sensor in [
-                            *self._facade.sensors,
-                            *self._facade.binary_sensors,
-                        ]:
-                            lines.append(f"{sensor}")
-                        lines.append(f"{self._facade.eco_mode}")
-
-                    elif self._facade.locator is not None:
-                        if self._facade.locator.spas is not None:
-                            for idx, spa in enumerate(
-                                self._facade.locator.spas, start=1
-                            ):
-                                lines.append(f"{idx}. {spa.name} at {spa.ipaddress}")
-                                self._commands[
-                                    f"{idx}"
-                                ] = lambda self=self, spa=spa: self._select_spa(spa)
-                        else:
-                            lines.append("Press 's' to scan for spas")
-                            self._commands["s"] = self._clear_spa
-
-            else:
-
-                # Spa isn't ready yet, but ...
-                if False:
-                    if not self._facade.name == "":
-                        lines.append(f"{self._facade.name} is connecting")
-                        lines.append("")
-                    lines.append(f"{self._facade.facade_status_sensor.state}")
-
             lines.append("")
-            if False:
-                if self._facade.spa is not None:
-                    if self._facade.is_ready:
-                        lines.append("Press 'b' to toggle blower")
-                        if self._facade.blowers[0].is_on:
-                            self._commands["b"] = self._facade.blowers[0].async_turn_off
-                        else:
-                            self._commands["b"] = self._facade.blowers[0].async_turn_on
 
-                        lines.append("Press '+' to increase setpoint")
-                        self._commands["+"] = self.increase_temp
-                        lines.append("Press '-' to decrease setpoint")
-                        self._commands["-"] = self.decrease_temp
+            if self._can_use_facade:
+                lines.append("Press 'b' to toggle blower")
+                if self.facade.blowers[0].is_on:
+                    self._commands["b"] = self.facade.blowers[0].async_turn_off
+                else:
+                    self._commands["b"] = self.facade.blowers[0].async_turn_on
 
-                    lines.append("Press 's' to rescan")
-                    self._commands["s"] = self._clear_spa
-                    lines.append("Press 'r' to reconnect to spa")
-                    self._commands["r"] = self._facade.reconnect_spa
+                lines.append("Press '+' to increase setpoint")
+                self._commands["+"] = self.increase_temp
+                lines.append("Press '-' to decrease setpoint")
+                self._commands["-"] = self.decrease_temp
 
-                # if self.spa_state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
             lines.append("Press 'r' to reconnect")
             self._commands["r"] = self.async_reset
-
             if self._config.spa_id is not None:
                 lines.append("Press 's' to scan for spas")
                 self._commands["s"] = self._clear_spa
-            # if self.spa_state == GeckoSpaState.CONNECTED:
-            #    lines.append("Press 'r' to reconnect to spa")
-            #    self._commands["r"] = self._facade.reconnect_spa
             lines.append("Press 'q' to exit")
             self._commands["q"] = self.set_exit
 
