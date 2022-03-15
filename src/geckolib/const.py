@@ -92,14 +92,6 @@ class GeckoConstants:
     KEYPAD_ECOMODE = 0
 
     # Pack outputs
-    PACK_OUTPUTS_XPATHS = [
-        './HCOutputConfig/*[@Type="Enum"]',
-        './LCOutputConfig/*[@Type="Enum"]',
-        './LVOutputConfig/*[@Type="Enum"]',
-    ]
-    SPA_PACK_DEVICE_XPATH = "./DeviceStatus/*"
-    SPA_PACK_USER_DEMANDS = "./UserDemands/*"
-
     DEVICE_CLASS_PUMP = "PUMP"
     DEVICE_CLASS_BLOWER = "BLOWER"
     DEVICE_CLASS_LIGHT = "LIGHT"
