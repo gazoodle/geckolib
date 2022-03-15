@@ -16,7 +16,7 @@ from .statusblock import (
 )
 from .unhandled import GeckoUnhandledProtocolHandler
 from .version import GeckoVersionProtocolHandler
-from .watercare import GeckoWatercareProtocolHandler
+from .watercare import GeckoWatercareProtocolHandler, GeckoWatercareErrorHandler
 
 __all__ = [
     # From hello
@@ -37,6 +37,7 @@ __all__ = [
     "GeckoAsyncPartialStatusBlockProtocolHandler",
     # From watercare
     "GeckoWatercareProtocolHandler",
+    "GeckoWatercareErrorHandler",
     # From firmware
     "GeckoUpdateFirmwareProtocolHandler",
     # From reminders
@@ -45,4 +46,6 @@ __all__ = [
     "GeckoRFErrProtocolHandler",
     # From packcommand
     "GeckoPackCommandProtocolHandler",
+    # From unhandled
+    "GeckoUnhandledProtocolHandler",
 ]

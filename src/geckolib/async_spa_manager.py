@@ -404,6 +404,13 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         ):
             self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
 
+        elif event == GeckoSpaEvent.RUNNING_SPA_WATER_CARE_ERROR:
+            assert self.facade is not None
+            assert self._spa is not None
+            self.facade._water_care.change_watercare_mode(
+                await self._spa.async_get_watercare()
+            )
+
         if self._status_sensor is not None:
             self._status_sensor.on_event(event)
 

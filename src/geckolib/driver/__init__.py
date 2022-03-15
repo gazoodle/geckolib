@@ -11,6 +11,7 @@ from .protocol import (
     GeckoPartialStatusBlockProtocolHandler,
     GeckoAsyncPartialStatusBlockProtocolHandler,
     GeckoWatercareProtocolHandler,
+    GeckoWatercareErrorHandler,
     GeckoUpdateFirmwareProtocolHandler,
     GeckoRemindersProtocolHandler,
     GeckoPackCommandProtocolHandler,

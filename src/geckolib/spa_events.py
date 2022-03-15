@@ -77,6 +77,8 @@ class GeckoSpaEvent(Enum):
     """Running spa not responding to pings """
     RUNNING_SPA_DISCONNECTED = 303
     """Running spa was disconnected"""
+    RUNNING_SPA_WATER_CARE_ERROR = 304
+    """A running spa will sometimes get an unprompted watercare error"""
 
     # Events targeted at clients, to determine when things can be shown
     # or hidden in the UI

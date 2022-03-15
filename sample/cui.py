@@ -19,10 +19,10 @@ from context import (  # type: ignore
     GeckoAsyncSpaMan,
     GeckoSpaEvent,
     GeckoAsyncSpaDescriptor,
+    GeckoConstants,
 )
 from typing import Optional
 
-from geckolib.automation.async_facade import GeckoAsyncFacade
 from geckolib.spa_state import GeckoSpaState
 
 # Replace with your own UUID, see https://www.uuidgenerator.net/>
@@ -92,6 +92,12 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         self._config.set_spa_name(None)
         self._config.save()
         await self.async_set_spa_info(None, None, None)
+
+    async def _select_next_watercare_mode(self) -> None:
+        new_mode = (self.facade.water_care.active_mode + 1) % len(
+            GeckoConstants.WATERCARE_MODE
+        )
+        await self.facade.water_care.async_set_mode(new_mode)
 
     def make_title(self, maxy: int, maxx: int) -> None:
         title = "Gecko Async Sample App"
@@ -190,6 +196,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 self._commands["+"] = self.increase_temp
                 lines.append("Press '-' to decrease setpoint")
                 self._commands["-"] = self.decrease_temp
+                lines.append("Press 'w' to select next watercare mode")
+                self._commands["w"] = self._select_next_watercare_mode
 
             lines.append("Press 'r' to reconnect")
             self._commands["r"] = self.async_reset

@@ -26,6 +26,7 @@ from .driver import (
     GeckoRFErrProtocolHandler,
     GeckoUnhandledProtocolHandler,
     GeckoWatercareProtocolHandler,
+    GeckoWatercareErrorHandler,
     # Rest
     GeckoAsyncStructure,
     Observable,
@@ -175,6 +176,13 @@ class GeckoAsyncSpa(Observable):
                 self._protocol
             ),
             "RFErr handler",
+            "SPA",
+        )
+        self._taskman.add_task(
+            GeckoWatercareErrorHandler(async_on_handled=self._async_on_wcerr).consume(
+                self._protocol
+            ),
+            "WCErr handler",
             "SPA",
         )
         self._taskman.add_task(self._ping_loop(), "Ping loop", "SPA")
@@ -374,9 +382,13 @@ class GeckoAsyncSpa(Observable):
 
     @property
     def is_responding_to_pings(self) -> bool:
+        if self._last_ping is None:
+            return False
+        # Allow twice as much time as ping frequency to make sure boundary tests
+        # are successful
         return (
             time.monotonic() - self._last_ping
-        ) < GeckoConstants.PING_FREQUENCY_IN_SECONDS
+        ) < GeckoConstants.PING_FREQUENCY_IN_SECONDS * 2
 
     async def _async_on_packet(
         self, handler: GeckoPacketProtocolHandler, sender: tuple
@@ -549,6 +561,11 @@ class GeckoAsyncSpa(Observable):
             self._protocol.get_and_increment_sequence_counter(),
             parms=self.sendparms,
         )
+
+    async def _async_on_wcerr(
+        self, handler: GeckoWatercareProtocolHandler, sender: tuple
+    ) -> None:
+        await self._event_handler(GeckoSpaEvent.RUNNING_SPA_WATER_CARE_ERROR)
 
     async def async_get_watercare(self) -> Optional[int]:
         assert self._protocol is not None

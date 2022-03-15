@@ -72,9 +72,12 @@ class GeckoAsyncFacade(Observable):
                     )
 
                 finally:
-                    await asyncio.sleep(
+                    wait_time = (
                         GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS
+                        if self._spa.is_responding_to_pings
+                        else GeckoConstants.PING_FREQUENCY_IN_SECONDS
                     )
+                    await asyncio.sleep(wait_time)
 
         except asyncio.CancelledError:
             _LOGGER.debug("Facade update loop cancelled")
