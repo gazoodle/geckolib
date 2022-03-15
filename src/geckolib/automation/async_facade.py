@@ -208,11 +208,6 @@ class GeckoAsyncFacade(Observable):
         return self._taskman.spa_name
 
     @property
-    def OLD_identifier(self) -> str:
-        """Get the spa identifier"""
-        return self._spa.descriptor.identifier_as_string
-
-    @property
     def spa(self) -> GeckoAsyncSpa:
         """Get the spa implementation instance"""
         return self._spa

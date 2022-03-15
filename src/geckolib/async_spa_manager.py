@@ -95,6 +95,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         def on_event(self, event: GeckoSpaEvent) -> None:
             self._state = f"{self._spaman.spa_state}, last event {event}"
+            self._on_change()
 
         def __repr__(self):
             return f"{self.name}: {self.state}"
@@ -402,7 +403,6 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS,
         ):
             self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
-            await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         if self._status_sensor is not None:
             self._status_sensor.on_event(event)
