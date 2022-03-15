@@ -84,8 +84,8 @@ class GeckoSpaEvent(Enum):
     # or hidden in the UI
     CLIENT_HAS_STATUS_SENSOR = 401
     """The spa manager has the status sensor"""
-    CLIENT_HAS_RESTART_BUTTON = 402
-    """The spa manager has the restart button"""
+    CLIENT_HAS_RECONNECT_BUTTON = 402
+    """The spa manager has the reconnect button"""
     CLIENT_HAS_PING_SENSOR = 403
     """The spa manager has the ping sensor"""
 
