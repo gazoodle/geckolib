@@ -62,7 +62,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         @property
         def device_class(self):
-            return "datetime"
+            return "timestamp"
 
         def _on_spa_change(self, *args):
             if self._last_ping_at == self._spaman._spa.last_ping_at:

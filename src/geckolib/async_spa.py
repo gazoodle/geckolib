@@ -1,6 +1,6 @@
 """ GeckoAsyncSpa class """
 
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 import asyncio
 import importlib
@@ -428,7 +428,7 @@ class GeckoAsyncSpa(Observable):
 
                 if ping_handler is not None:
                     self._last_ping = time.monotonic()
-                    self._last_ping_at = datetime.now()
+                    self._last_ping_at = datetime.utcnow().replace(tzinfo=timezone.utc)
                     self._on_change()
                     await self._event_handler(
                         GeckoSpaEvent.RUNNING_PING_RECEIVED,
