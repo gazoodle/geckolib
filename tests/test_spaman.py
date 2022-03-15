@@ -10,7 +10,7 @@ class SpaManImpl(GeckoAsyncSpaMan):
     """A Spa Manager to test with"""
 
     def __init__(self):
-        super().__init__("CLIENT_UUID")
+        super().__init__("CLIENT_UUID", spa_identifier="TestID")
         self.events = []
 
     async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
@@ -62,6 +62,7 @@ class TestSpaMan(IsolatedAsyncioTestCase):
             [
                 GeckoSpaEvent.SPA_MAN_ENTER,
                 GeckoSpaEvent.LOCATING_STARTED,
+                GeckoSpaEvent.LOCATING_STARTED,
                 GeckoSpaEvent.LOCATING_DISCOVERED_SPA,
                 GeckoSpaEvent.LOCATING_FINISHED,
             ],
@@ -69,16 +70,18 @@ class TestSpaMan(IsolatedAsyncioTestCase):
 
     async def test_connect_spa(self):
         facade = await self.spaman.async_connect_to_spa(mock_spa_descriptor)
-        self.assertIsNotNone(facade)
         self.assertListEqual(
             self.spaman.events,
             [
                 GeckoSpaEvent.SPA_MAN_ENTER,
                 GeckoSpaEvent.LOCATING_STARTED,
-                GeckoSpaEvent.LOCATING_DISCOVERED_SPA,
-                GeckoSpaEvent.LOCATING_FINISHED,
+                GeckoSpaEvent.CLIENT_HAS_STATUS_SENSOR,
+                GeckoSpaEvent.CLIENT_HAS_RECONNECT_BUTTON,
+                GeckoSpaEvent.CONNECTION_STARTED,
+                GeckoSpaEvent.CONNECTION_FINISHED,
             ],
         )
+        self.assertIsNone(facade)
 
     async def atest_connect_twice_fails(self):
         await self.spaman.async_connect_to_spa(mock_spa_descriptor)
