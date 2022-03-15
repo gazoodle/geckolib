@@ -568,7 +568,6 @@ class GeckoAsyncSpa(Observable):
         await self._event_handler(GeckoSpaEvent.RUNNING_SPA_WATER_CARE_ERROR)
 
     async def async_get_watercare(self) -> Optional[int]:
-        assert self._protocol is not None
         if not self.is_connected:
             _LOGGER.warning("Cannot get watercare when spa not connected")
             return 0
@@ -576,6 +575,7 @@ class GeckoAsyncSpa(Observable):
             _LOGGER.debug("Cannot get watercare when spa not responding to pings")
             return 0
 
+        assert self._protocol is not None
         get_watercare_handler = await self._protocol.get(
             self._get_watercare_handler_func
         )
@@ -587,7 +587,6 @@ class GeckoAsyncSpa(Observable):
         return get_watercare_handler.mode
 
     async def async_set_watercare(self, new_mode) -> None:
-        assert self._protocol is not None
         if not self.is_connected:
             _LOGGER.warning("Cannot set watercare when spa not connected")
             return
@@ -595,6 +594,7 @@ class GeckoAsyncSpa(Observable):
             _LOGGER.debug("Cannot set watercare when spa not responding to pings")
             return
 
+        assert self._protocol is not None
         set_watercare_handler = await self._protocol.get(
             lambda: GeckoWatercareProtocolHandler.set(
                 self._protocol.get_and_increment_sequence_counter(),  # type: ignore

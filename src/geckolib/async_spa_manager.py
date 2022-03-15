@@ -80,6 +80,8 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             super().__init__(spaman.unique_id, "Status", spaman.spa_name, "STATUS")
             self._spaman: GeckoAsyncSpaMan = spaman
             self._state = "Unknown"
+            self._last_state = GeckoSpaState.IDLE
+            self._last_event = GeckoSpaEvent.SPA_MAN_ENTER
 
         @property
         def state(self):
@@ -95,8 +97,36 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         def device_class(self):
             return "string"
 
+        @property
+        def last_event(self) -> GeckoSpaEvent:
+            """Return the last event the sensor was notified of"""
+            return self._last_event
+
+        @property
+        def spa_state(self) -> GeckoSpaState:
+            """Returns the state of the spa at the time of the last event"""
+            return self._last_state
+
         def on_event(self, event: GeckoSpaEvent) -> None:
-            self._state = f"{self._spaman.spa_state}, last event {event}"
+            self._last_event = event
+            self._last_state = self._spaman.spa_state
+
+            if self.spa_state == GeckoSpaState.CONNECTED:
+                self._state = "Connected"
+            elif self.spa_state == GeckoSpaState.CONNECTING:
+                self._state = "Connecting..."
+            elif self.spa_state == GeckoSpaState.ERROR_RF_FAULT:
+                self._state = "Lost contact with spa (RFERR)"
+            elif self.spa_state == GeckoSpaState.ERROR_PING_MISSED:
+                self._state = "Lost contact with in.touch2 module"
+            elif self.spa_state == GeckoSpaState.ERROR_NEEDS_ATTENTION:
+                self._state = "Needs attention, check logs"
+            elif self.spa_state == GeckoSpaState.LOCATING_SPAS:
+                self._state = "Searching for spas"
+            elif self.spa_state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
+                self._state = "Cannot find spa, check logs"
+            else:
+                self._state = f"{self.spa_state}"
             self._on_change()
 
         def __repr__(self):
@@ -279,10 +309,13 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         while self._spa_descriptors is None:
             await asyncio.sleep(0)
 
-    async def wait_for_facade(self) -> None:
+    async def wait_for_facade(self) -> bool:
         """Wait for facade to be available"""
         while self._facade is None:
             await asyncio.sleep(0)
+            if self.spa_state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
+                return False
+        return True
 
     ########################################################################
     #
@@ -370,7 +403,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         elif event == GeckoSpaEvent.CONNECTION_STARTED:
             self._spa_state = GeckoSpaState.CONNECTING
             self._reconnect_button = GeckoAsyncSpaMan.ReconnectButton(self)
-            await self._handle_event(GeckoSpaEvent.CLIENT_HAS_RESTART_BUTTON)
+            await self._handle_event(GeckoSpaEvent.CLIENT_HAS_RECONNECT_BUTTON)
 
         elif event == GeckoSpaEvent.CONNECTION_GOT_CHANNEL:
             self._ping_sensor = GeckoAsyncSpaMan.PingSensor(self)
@@ -385,8 +418,9 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
                 await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_IS_READY)
 
         elif event == GeckoSpaEvent.RUNNING_PING_NO_RESPONSE:
-            self._spa_state = GeckoSpaState.ERROR_PING_MISSED
-            await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
+            if self._spa_state == GeckoSpaState.CONNECTED:
+                self._spa_state = GeckoSpaState.ERROR_PING_MISSED
+                await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         elif event == GeckoSpaEvent.RUNNING_PING_RECEIVED:
             if self._spa_state in (
@@ -397,12 +431,14 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
                 await self.async_reset()
 
         elif event == GeckoSpaEvent.ERROR_RF_ERROR:
-            self._spa_state = GeckoSpaState.ERROR_RF_FAULT
-            await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
+            if self._spa_state == GeckoSpaState.CONNECTED:
+                self._spa_state = GeckoSpaState.ERROR_RF_FAULT
+                await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         elif event == GeckoSpaEvent.RUNNING_SPA_DISCONNECTED:
-            self._spa_state = GeckoSpaState.IDLE
-            await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
+            if self._spa_state == GeckoSpaState.CONNECTED:
+                self._spa_state = GeckoSpaState.IDLE
+                await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         elif event in (
             GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,
