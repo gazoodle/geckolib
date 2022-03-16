@@ -6,6 +6,8 @@ import time
 import asyncio
 from typing import TYPE_CHECKING
 
+from geckolib.const import GeckoConstants
+
 if TYPE_CHECKING:
     from .async_udp_protocol import GeckoAsyncUdpProtocol
 
@@ -138,7 +140,7 @@ class GeckoUdpProtocolHandler(ABC):
                 _LOGGER.debug("Handler %s timed out", self)
                 return False
 
-            await asyncio.sleep(0)
+            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
 
     async def consume(self, protocol: GeckoAsyncUdpProtocol) -> None:
         """Async coroutine to handle datagram."""
@@ -152,7 +154,7 @@ class GeckoUdpProtocolHandler(ABC):
                     await self.async_handle(data, sender)
                     await self.async_handled(sender)
 
-            await asyncio.sleep(0)
+            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
 
             if self.should_remove_handler:
                 _LOGGER.debug("%s will be removed, consume loop terminating", self)

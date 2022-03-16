@@ -20,6 +20,7 @@ import asyncio
 
 from cui import CUI
 from curses import wrapper
+from context import GeckoConstants  # type: ignore
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ def install_logging():
 async def async_main(stdscr):
     """Async main manages the console UI"""
     async with CUI(stdscr):
-        await asyncio.sleep(0)
+        await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
 
 
 def main(stdscr):

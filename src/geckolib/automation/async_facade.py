@@ -94,7 +94,7 @@ class GeckoAsyncFacade(Observable):
 
     async def wait_for_one_update(self):
         while not self._ready:
-            await asyncio.sleep(0)
+            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
 
     def _scan_outputs(self) -> None:
         """Scan the spa outputs to decide what user options are available"""

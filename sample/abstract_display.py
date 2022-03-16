@@ -3,6 +3,7 @@
 import asyncio
 from abc import ABC, abstractmethod
 from curses import ERR, KEY_RESIZE, curs_set
+from context import GeckoConstants  # type: ignore
 
 import _curses
 
@@ -32,7 +33,7 @@ class AbstractDisplay(ABC):
         while not self.done:
             char = self.stdscr.getch()
             if char == ERR:
-                await asyncio.sleep(0)
+                await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
             elif char == KEY_RESIZE:
                 self.make_display()
             else:

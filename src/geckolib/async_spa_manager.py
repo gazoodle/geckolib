@@ -291,12 +291,12 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     async def wait_for_descriptors(self) -> None:
         """Wait for descriptors to be available"""
         while self._spa_descriptors is None:
-            await asyncio.sleep(0)
+            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
 
     async def wait_for_facade(self) -> bool:
         """Wait for facade to be available"""
         while self._facade is None:
-            await asyncio.sleep(0)
+            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
             if self.spa_state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
                 return False
         return True
@@ -467,7 +467,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
                 ):
                     await self.async_connect(self._spa_identifier, self._spa_address)
 
-                await asyncio.sleep(0)
+                await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
 
         except asyncio.CancelledError:
             _LOGGER.debug("Spaman sequence pump cancelled")

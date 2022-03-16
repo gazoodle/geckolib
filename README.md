@@ -351,6 +351,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ## Done/Fixed in 0.4.2
 
+- Fixed processor getting pegged at 100% but not using asyncio.sleep(0)
+- Fixed simulator to respect names compatible with Windows
+- Renamed some snapshots
+
 ## Done/Fixed in 0.4.1
 
 - Updated README with simple async example
