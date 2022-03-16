@@ -12,7 +12,9 @@ from .pump import GeckoPump
 from .switch import GeckoSwitch
 from .sensors import GeckoSensor, GeckoBinarySensor
 from .watercare import GeckoWaterCare
+from .reminders import GeckoReminders
 from ..driver import Observable
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,7 @@ class GeckoFacade(Observable):
         self._binary_sensors = []
         self._water_heater = None
         self._water_care = None
+        self._reminders = None
         self._keypad = None
         self._ecomode = None
         self._update_thread = threading.Thread(
@@ -54,6 +57,7 @@ class GeckoFacade(Observable):
         self._water_heater = GeckoWaterHeater(self)
         self._water_care = GeckoWaterCare(self)
         self._keypad = GeckoKeypad(self)
+        self._reminders = GeckoReminders(self)
         self.scan_outputs()
         # Install change notifications
         for device in self.all_automation_devices:
@@ -166,7 +170,8 @@ class GeckoFacade(Observable):
         ]
 
         self._lights = [
-            GeckoLight(self, device["device"], GeckoConstants.DEVICES[device["device"]])
+            GeckoLight(self, device["device"],
+                       GeckoConstants.DEVICES[device["device"]])
             for device in self.actual_user_devices
             if GeckoConstants.DEVICES[device["device"]][3]
             == GeckoConstants.DEVICE_CLASS_LIGHT
@@ -293,8 +298,11 @@ class GeckoFacade(Observable):
 
     @property
     def reminders(self):
-        """Get the reminders list"""
-        return []
+        """ Get the reminders list """
+        remi = self._reminders.reminders
+        if remi is None:
+            return []
+        return remi
 
     def _update_thread_func(self):
         while self.spa.isopen:
@@ -305,6 +313,12 @@ class GeckoFacade(Observable):
             if self._water_care.active_mode is None:
                 self.spa.wait(0.1)
                 continue
+
+            self._reminders.update()
+            if self._reminders.reminders is None:
+                self.spa.wait(0.1)
+                continue
+
             self.spa.wait(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
 
         logger.info("Facade update thread finished")

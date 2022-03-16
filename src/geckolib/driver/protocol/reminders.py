@@ -8,7 +8,13 @@ from .packet import GeckoPacketProtocolHandler
 REQRM_VERB = b"REQRM"
 RMREQ_VERB = b"RMREQ"
 
+RESPONSE_FORMAT = ">BBB"
+
 _LOGGER = logging.getLogger(__name__)
+
+
+desc = ["Invalid", "RinseFilter", "CleanFilter", "ChangeWater",
+        "CheckSpa", "ChangeOzonator", "ChangeVisionCartridge"]
 
 
 class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
@@ -38,16 +44,27 @@ class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.reminders = []
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
         return received_bytes.startswith(REQRM_VERB) or received_bytes.startswith(
             RMREQ_VERB
         )
 
-    def handle(self, received_bytes: bytes, sender: tuple):
-        remainder = received_bytes[5:]
+    def handle(self, socket, received_bytes: bytes, sender: tuple):
+        reminder = received_bytes[5:]
         if received_bytes.startswith(REQRM_VERB):
-            self._sequence = struct.unpack(">B", remainder[0:1])[0]
+            self._sequence = struct.unpack(">B", reminder[0:1])[0]
             return  # Stay in the handler list
+
         # Otherwise must be RMREQ
+        rest = reminder
+        while (len(rest) > 0):
+            (t, days, push, rest) = struct.unpack(
+                '<BhB{}s'.format(len(rest)-4), rest)
+            _LOGGER.debug(f"T:{t}, Days:{days}, Push:{push}, Rest:{rest}")
+            if (t > 0):
+                _LOGGER.debug(f"{desc[t]} {days} days")
+            self.reminders.append(tuple((desc[t], days)))
+
         self._should_remove_handler = True
