@@ -157,6 +157,12 @@ class GeckoSimulator(GeckoCmd):
             f" `parse` command to break it apart"
         )
 
+    def do_name(self, args):
+        """Set the name of the spa : name <spaname>."""
+        self._hello_handler = GeckoHelloProtocolHandler.response(
+            b"SPA01:02:03:04:05:06", args, on_handled=self._on_hello
+        )
+
     def complete_load(self, text, line, start_idx, end_idx):
         return self._complete_path(text)
 
@@ -226,10 +232,7 @@ class GeckoSimulator(GeckoCmd):
     def _install_standard_handlers(self):
         """All simulators needs to have some basic functionality such
         as discovery, error handling et al"""
-        self._hello_handler = GeckoHelloProtocolHandler.response(
-            b"SPA01:02:03:04:05:06", "Udp Test Spa", on_handled=self._on_hello
-        )
-
+        self.do_name("Udp Test Spa")
         self._socket.add_receive_handler(self._hello_handler)
         self._socket.add_receive_handler(
             GeckoPacketProtocolHandler(socket=self._socket)
