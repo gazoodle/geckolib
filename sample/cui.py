@@ -135,7 +135,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                     lines.append(f"{blower}")
                 for light in self.facade.lights:
                     lines.append(f"{light}")
-                for reminder in self.facade.reminders:
+                for reminder in self.facade.reminders_manager.reminders:
                     lines.append(f"{reminder}")
                 lines.append(f"{self.facade.water_care}")
                 for sensor in [
@@ -148,7 +148,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
             else:
 
-                if self.spa_state == GeckoSpaState.IDLE:
+                if self.spa_state == GeckoSpaState.LOCATED_SPAS:
 
                     if self.spa_descriptors is not None:
                         # If the _spas property is available, that means we've got

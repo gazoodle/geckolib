@@ -89,6 +89,7 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
         remainder = received_bytes[5:]
         if received_bytes.startswith(GETWC_VERB):
             self._sequence = struct.unpack(">B", remainder)[0]
+            self.schedule = False
             return  # Stay in the handler list
         if received_bytes.startswith(REQWC_VERB):
             self._sequence = struct.unpack(">B", remainder)[0]
@@ -96,6 +97,7 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
             return  # Stay in the handler list
         if received_bytes.startswith(WCGET_VERB):
             self.mode = struct.unpack(GET_WATERCARE_FORMAT, remainder)[0]
+            self.schedule = False
         # Otherwise must be WCSET
         self._should_remove_handler = True
 

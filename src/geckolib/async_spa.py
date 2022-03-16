@@ -6,7 +6,7 @@ import asyncio
 import importlib
 import socket
 import time
-from typing import Optional
+from typing import Optional, Tuple, List
 
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_tasks import AsyncTasks
@@ -27,6 +27,7 @@ from .driver import (
     GeckoUnhandledProtocolHandler,
     GeckoWatercareProtocolHandler,
     GeckoWatercareErrorHandler,
+    GeckoRemindersProtocolHandler,
     # Rest
     GeckoAsyncStructure,
     Observable,
@@ -605,3 +606,29 @@ class GeckoAsyncSpa(Observable):
 
         if set_watercare_handler is None:
             await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
+
+    def _get_reminders_handler_func(self) -> GeckoRemindersProtocolHandler:
+        assert self._protocol is not None
+        return GeckoRemindersProtocolHandler.request(
+            self._protocol.get_and_increment_sequence_counter(),
+            parms=self.sendparms,
+        )
+
+    async def async_get_reminders(self) -> List[Tuple]:
+        if not self.is_connected:
+            _LOGGER.warning("Cannot get reminders when spa not connected")
+            return []
+        if not self.is_responding_to_pings:
+            _LOGGER.debug("Cannot get reminders when spa not responding to pings")
+            return []
+
+        assert self._protocol is not None
+        get_reminders_handler = await self._protocol.get(
+            self._get_reminders_handler_func
+        )
+
+        if get_reminders_handler is None:
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
+            return []
+
+        return get_reminders_handler.reminders

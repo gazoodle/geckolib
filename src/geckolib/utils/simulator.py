@@ -21,6 +21,7 @@ from ..driver import (
     GeckoWatercareProtocolHandler,
     GeckoUpdateFirmwareProtocolHandler,
     GeckoRemindersProtocolHandler,
+    GeckoReminderType,
     GeckoRFErrProtocolHandler,
     GeckoPackCommandProtocolHandler,
     GeckoStructure,
@@ -363,7 +364,22 @@ class GeckoSimulator(GeckoCmd):
         if self._should_ignore(handler, sender):
             return
         self._socket.queue_send(
-            GeckoRemindersProtocolHandler.response(parms=sender), sender
+            GeckoRemindersProtocolHandler.response(
+                [
+                    (GeckoReminderType.RINSE_FILTER, -13),
+                    (GeckoReminderType.CLEAN_FILTER, 0),
+                    (GeckoReminderType.CHANGE_WATER, 47),
+                    (GeckoReminderType.CHECK_SPA, 687),
+                    (GeckoReminderType.INVALID, -13),
+                    (GeckoReminderType.INVALID, -13),
+                    (GeckoReminderType.INVALID, 0),
+                    (GeckoReminderType.INVALID, 0),
+                    (GeckoReminderType.INVALID, 0),
+                    (GeckoReminderType.INVALID, 0),
+                ],
+                parms=sender,
+            ),
+            sender,
         )
 
     def _on_pack_command(self, handler: GeckoPackCommandProtocolHandler, sender):

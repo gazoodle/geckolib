@@ -355,6 +355,11 @@ https://www.gnu.org/licenses/gpl-3.0.html
 ## Done/Fixed in 0.4.1
 
 - Updated README with simple async example
+- Pull in reminders PR from @kalinrow - Thanks!
+- Add unit tests for reminders
+- Add async version of reminders - slightly different API as sync version returns
+  time as first reminder
+- Updated various clients to use reminders
 
 ## Done/Fixed in 0.4.0
 

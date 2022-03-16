@@ -110,23 +110,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         def on_event(self, event: GeckoSpaEvent) -> None:
             self._last_event = event
             self._last_state = self._spaman.spa_state
-
-            if self.spa_state == GeckoSpaState.CONNECTED:
-                self._state = "Connected"
-            elif self.spa_state == GeckoSpaState.CONNECTING:
-                self._state = "Connecting..."
-            elif self.spa_state == GeckoSpaState.ERROR_RF_FAULT:
-                self._state = "Lost contact with spa (RFERR)"
-            elif self.spa_state == GeckoSpaState.ERROR_PING_MISSED:
-                self._state = "Lost contact with in.touch2 module"
-            elif self.spa_state == GeckoSpaState.ERROR_NEEDS_ATTENTION:
-                self._state = "Needs attention, check logs"
-            elif self.spa_state == GeckoSpaState.LOCATING_SPAS:
-                self._state = "Searching for spas"
-            elif self.spa_state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
-                self._state = "Cannot find spa, check logs"
-            else:
-                self._state = f"{self.spa_state}"
+            self._state = GeckoSpaState.to_string(self.spa_state)
             self._on_change()
 
         def __repr__(self):
@@ -362,9 +346,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         return self._ping_sensor
 
     def __str__(self) -> str:
-        if self.status_sensor is not None:
-            return f"{self.status_sensor}"
-        return "Initializing"
+        return GeckoSpaState.to_string(self.spa_state)
 
     ########################################################################
     #
@@ -395,7 +377,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             self._spa_state = GeckoSpaState.LOCATING_SPAS
 
         elif event == GeckoSpaEvent.LOCATING_FINISHED:
-            self._spa_state = GeckoSpaState.IDLE
+            self._spa_state = GeckoSpaState.LOCATED_SPAS
 
         elif event == GeckoSpaEvent.SPA_NOT_FOUND:
             self._spa_state = GeckoSpaState.ERROR_SPA_NOT_FOUND
@@ -472,17 +454,18 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         try:
             while True:
 
-                if self.spa_state == GeckoSpaState.IDLE:
+                if (
+                    self.spa_state == GeckoSpaState.IDLE
+                    and self._spa_descriptors is None
+                ):
+                    await self.async_locate_spas(self._spa_address)
 
-                    if self._spa_identifier is not None:
-
-                        if self._facade is None:
-                            await self.async_connect(
-                                self._spa_identifier, self._spa_address
-                            )
-
-                    elif self._spa_descriptors is None:
-                        await self.async_locate_spas(self._spa_address)
+                if (
+                    self.spa_state == GeckoSpaState.LOCATED_SPAS
+                    and self._spa_identifier is not None
+                    and self._facade is None
+                ):
+                    await self.async_connect(self._spa_identifier, self._spa_address)
 
                 await asyncio.sleep(0)
 

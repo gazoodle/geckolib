@@ -13,6 +13,7 @@ from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
+from .reminders import GeckoReminders
 from .switch import GeckoSwitch
 from .sensors import (
     GeckoSensor,
@@ -48,6 +49,7 @@ class GeckoAsyncFacade(Observable):
         self._ecomode: Optional[GeckoSwitch] = None
 
         # Build the automation items
+        self._reminders_manager = GeckoReminders(self)
         self._water_heater = GeckoWaterHeater(self)
         self._water_care = GeckoWaterCare(self)
         self._keypad = GeckoKeypad(self)
@@ -69,6 +71,9 @@ class GeckoAsyncFacade(Observable):
 
                     self._water_care.change_watercare_mode(
                         await self._spa.async_get_watercare()
+                    )
+                    self._reminders_manager.change_reminders(
+                        await self._spa.async_get_reminders()
                     )
 
                 finally:
@@ -216,18 +221,23 @@ class GeckoAsyncFacade(Observable):
         return self._spa
 
     @property
+    def reminders_manager(self) -> GeckoReminders:
+        """Get the reminders handler"""
+        return self._reminders_manager
+
+    @property
     def water_heater(self) -> GeckoWaterHeater:
-        """Get the water heater handler if available"""
+        """Get the water heater handler"""
         return self._water_heater
 
     @property
     def water_care(self) -> GeckoWaterCare:
-        """Get the water care handler if available"""
+        """Get the water care handler"""
         return self._water_care
 
     @property
     def keypad(self) -> GeckoKeypad:
-        """Get the keypad handler if available"""
+        """Get the keypad handler"""
         return self._keypad
 
     @property
@@ -272,7 +282,7 @@ class GeckoAsyncFacade(Observable):
             self.all_user_devices
             + self.sensors  # type: ignore
             + self.binary_sensors  # type: ignore
-            + [self.water_heater, self.water_care]  # type: ignore
+            + [self.water_heater, self.water_care, self.reminders_manager]  # type: ignore
             + [self.keypad, self.eco_mode]  # type: ignore
         )
 
@@ -288,8 +298,3 @@ class GeckoAsyncFacade(Observable):
         """Get a list of automation device keys. Keys can be passed to get_device
         to find the specific device"""
         return [device.key for device in self.all_automation_devices]
-
-    @property
-    def reminders(self):
-        """Get the reminders list"""
-        return []
