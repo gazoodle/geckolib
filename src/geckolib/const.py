@@ -27,6 +27,7 @@ class GeckoConstants:
     SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS = 30
     CONNECTION_STEP_PAUSE_IN_SECONDS = 0  # Time between connection steps
     MAX_RF_ERRORS_BEFORE_HALT = 50
+    ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD = 0.001
 
     BROADCAST_ADDRESS = "<broadcast>"
     MESSAGE_ENCODING = "latin1"
