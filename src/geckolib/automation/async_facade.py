@@ -59,6 +59,7 @@ class GeckoAsyncFacade(Observable):
             device.watch(self._on_change)
 
         self._taskman.add_task(self._facade_update(), "Facade update", "FACADE")
+        self._ready = False
 
     async def _facade_update(self) -> None:
         _LOGGER.debug("Facade update task started")
@@ -76,6 +77,9 @@ class GeckoAsyncFacade(Observable):
                         await self._spa.async_get_reminders()
                     )
 
+                    # After we've been round here at least once, we're ready
+                    self._ready = True
+
                 finally:
                     wait_time = (
                         GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS
@@ -87,6 +91,10 @@ class GeckoAsyncFacade(Observable):
         except asyncio.CancelledError:
             _LOGGER.debug("Facade update loop cancelled")
             raise
+
+    async def wait_for_one_update(self):
+        while not self._ready:
+            await asyncio.sleep(0)
 
     def _scan_outputs(self) -> None:
         """Scan the spa outputs to decide what user options are available"""

@@ -47,7 +47,7 @@ class GeckoSpaState(Enum):
         elif state == GeckoSpaState.ERROR_NEEDS_ATTENTION:
             return "Needs attention, check logs"
         elif state == GeckoSpaState.LOCATING_SPAS:
-            return "Searching for spas"
+            return "Searching for spas..."
         elif state == GeckoSpaState.LOCATED_SPAS:
             return "Choose spa"
         elif state == GeckoSpaState.ERROR_SPA_NOT_FOUND:

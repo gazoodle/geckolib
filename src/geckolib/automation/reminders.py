@@ -1,4 +1,5 @@
 """ Gecko Reminders """
+from __future__ import annotations
 
 import logging
 from datetime import datetime
@@ -52,6 +53,15 @@ class GeckoReminders(GeckoAutomationFacadeBase):
     def reminders(self):
         """return all reminders"""
         return self._active_reminders
+
+    def get_reminder(
+        self, reminder_type: GeckoReminderType
+    ) -> Optional[GeckoReminders.Reminder]:
+        """Get the reminder of the specified type, or None if not found"""
+        for reminder in self.reminders:
+            if reminder.type == reminder_type:
+                return reminder
+        return None
 
     @property
     def last_update(self) -> Optional[datetime]:

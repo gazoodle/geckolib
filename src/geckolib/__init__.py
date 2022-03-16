@@ -19,6 +19,7 @@ from .automation import (
     GeckoBinarySensor,
     GeckoSwitch,
     GeckoWaterCare,
+    GeckoReminders,
 )
 from .async_locator import GeckoAsyncLocator
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
@@ -42,6 +43,7 @@ from .driver import (
     GeckoWatercareProtocolHandler,
     GeckoUpdateFirmwareProtocolHandler,
     GeckoRemindersProtocolHandler,
+    GeckoReminderType,
     GeckoPackCommandProtocolHandler,
     #
     GeckoStructure,
@@ -79,6 +81,7 @@ __all__ = [
     "GeckoBinarySensor",
     "GeckoSwitch",
     "GeckoWaterCare",
+    "GeckoReminders",
     # From constants
     "GeckoConstants",
     # From facade
@@ -107,6 +110,7 @@ __all__ = [
     "GeckoWatercareProtocolHandler",
     "GeckoUpdateFirmwareProtocolHandler",
     "GeckoRemindersProtocolHandler",
+    "GeckoReminderType",
     "GeckoPackCommandProtocolHandler",
     #
     "GeckoStructure",
