@@ -205,7 +205,7 @@ iOS and Android applications.
 import asyncio
 import logging
 
-from context import GeckoAsyncFacade
+from geckolib import GeckoAsyncSpaMan, GeckoSpaEvent  # type: ignore
 
 # Replace with your own UUID, see https://www.uuidgenerator.net/>
 CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
@@ -213,43 +213,47 @@ CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
 SPA_ADDRESS = None
 
 
-async def main():
+class SampleSpaMan(GeckoAsyncSpaMan):
+    """Sample spa man implementation"""
 
-    # Create a facade to locate spas on the network first, optionally using
-    # the specified spa address
-    print("Finding spas on your network")
-    spa = None
-    async with GeckoAsyncFacade(CLIENT_ID, spa_address=SPA_ADDRESS) as facade:
-        await facade.ready()
-        if facade.locator.spas is not None:
-            spa = facade.locator.spas[0]
+    async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
+        # Uncomment this line to see events generated
+        # print(f"{event}: {kwargs}")
+        pass
 
-    # Check that we found a spa
-    if spa is None:
-        print("No spas found on your network")
-        return
 
-    print(f"Connecting to {spa} on {spa.destination}")
-    # Now connect to the facade using the information from the descriptor
-    async with GeckoAsyncFacade(
-        CLIENT_ID,
-        spa_address=spa.ipaddress,
-        spa_identifier=spa.identifier_as_string,
-    ) as facade:
-        # Hang around waiting for the facade to connect. You wouldn't normally
-        # do it like this, but this is a simple example
-        await facade.ready()
+async def main() -> None:
 
-        # Print some information out
-        print(facade.water_heater)
+    async with SampleSpaMan(CLIENT_ID, spa_address=SPA_ADDRESS) as spaman:
+        print("Looking for spas on your network ...")
+
+        # Wait for descriptors to be available
+        await spaman.wait_for_descriptors()
+
+        if len(spaman.spa_descriptors) == 0:
+            print("**** There were no spas found on your network.")
+            return
+
+        spa_descriptor = spaman.spa_descriptors[0]
+        print(f"Connecting to {spa_descriptor.name} at {spa_descriptor.ipaddress} ...")
+        await spaman.async_set_spa_info(
+            spa_descriptor.ipaddress,
+            spa_descriptor.identifier_as_string,
+            spa_descriptor.name,
+        )
+
+        # Wait for the facade to be ready
+        await spaman.wait_for_facade()
+
+        print(spaman.facade.water_heater)
 
         print("Turning pump 1 on")
-        await facade.pumps[0].async_set_mode("HI")
+        await spaman.facade.pumps[0].async_set_mode("HI")
 
         await asyncio.sleep(5)
 
         print("Turning pump 1 off")
-        await facade.pumps[0].async_set_mode("OFF")
+        await spaman.facade.pumps[0].async_set_mode("OFF")
 
         await asyncio.sleep(5)
 
@@ -262,167 +266,44 @@ if __name__ == "__main__":
         logging.Formatter("%(asctime)s> %(levelname)s %(message)s")
     )
     logging.getLogger().addHandler(stream_logger)
-    logging.getLogger().setLevel(logging.WARNING)
+    logging.getLogger().setLevel(logging.INFO)
 
     asyncio.run(main())
+```
+
+This should output something like this
+
+```
+Looking for spas on your network ...
+2022-03-16 07:05:12,842> INFO Found 1 spas ... [My Spa(SPA00:01:02:03:04:05)]
+Connecting to My Spa at 10.0.0.123 ...
+Heater: Temperature 36.0°C, SetPoint 36.0°C, Real SetPoint 36.0°C, Operation Idle
+Turning pump 1 on
+2022-03-16 07:05:19,292> INFO Value for UdP2 changed from OFF to HI
+2022-03-16 07:05:19,479> INFO Value for P2 changed from OFF to HIGH
+2022-03-16 07:05:19,480> INFO Value for UdPumpTime changed from 0 to 45
+Turning pump 1 off
+2022-03-16 07:05:25,049> INFO Value for UdP2 changed from HI to OFF
+2022-03-16 07:05:25,236> INFO Value for P2 changed from HIGH to OFF
+2022-03-16 07:05:25,236> INFO Value for UdPumpTime changed from 45 to 0
+
 ```
 
 # Complete sample
 
 There is also a complete async sample which can be found in the repo under
-the /sample folder. This can be run using `python3 complete.py`
+the /sample folder. This can be run using `python3 complete.py`. Full path
+https://github.com/gazoodle/geckolib/tree/main/sample
+
+# Home Assistant integration
+
+The best example of use is in the Home Assistant integration which can be
+found here https://github.com/gazoodle/gecko-home-assistant
 
 # Sync API Usage
 
-**WARNING** Sync functionality will be removed in a future release
-
-This first example is a trivial one to show how to minimally client this library
-
-```python
-""" Sample client demonstrating use of geckolib """
-
-import time
-
-from geckolib import GeckoLocator
-
-# Replace with your own UUID, see https://www.uuidgenerator.net/>
-CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
-
-print("Locating spas on your network")
-with GeckoLocator(CLIENT_ID) as locator:
-
-    print(f"Connecting to first spa {locator.spas[0]}")
-    with locator.spas[0].get_facade() as facade:
-
-        print(facade.water_heater)
-
-        print("Turning pump 1 on")
-        facade.pumps[0].set_mode('HI')
-
-        time.sleep(5)
-
-        print("Turning pump 1 off")
-        facade.pumps[0].set_mode('OFF')
-        time.sleep(2)
-```
-
-An example to just read the state of various items, see the files in ./automation
-folder for properties of these items for getting state and controlling them
-
-```python
-""" Sample client demonstrating use of geckolib """
-
-from context import GeckoLocator
-
-# Replace with your own UUID, see https://www.uuidgenerator.net/>
-CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
-
-print("Locating spas on your network")
-with GeckoLocator(CLIENT_ID) as locator:
-
-    print(f"Connecting to first spa {locator.spas[0]}")
-    with locator.spas[0].get_facade() as facade:
-
-        # Get state of water heater
-        print(facade.water_heater)
-
-        # Get state of the pumps
-        for pump in facade.pumps:
-            print(pump)
-
-        # Check that pump 1 is off
-        if facade.pumps[0].mode == "OFF":
-            print("Pump 1 is off!")
-
-        # Print all the automatable devices
-        print("** All automation devices **")
-        for device in facade.all_automation_devices:
-            print(device)
-
-```
-
-A more complex example
-
-```python
-""" Real world sample client demonstrating use of geckolib
-
-Python async suffers like many interpreted languages with function
-colour see:
-
-http://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/
-
-To avoid this, the geckolib is written using synchronous functions and
-methodologies, but using threading to manage the I/O portions. Where
-appropriate, state flags are exposed so that you can use async clients
-to ensure that your host is still responsive and I don't have to maintain
-two versions of the library ... ugh!"""
-
-import time
-
-from geckolib import GeckoLocator
-
-# Replace with your own UUID, see https://www.uuidgenerator.net/>
-CLIENT_ID = "a2d936db-4e95-4e4d-82bc-b4225fa99739"
-
-# First up, lets locate all the spas on your network
-print("Locating spas on your network ", end="", flush=True)
-locator = GeckoLocator(CLIENT_ID)
-locator.start_discovery()
-
-# We can perform other operations while this is progressing, like output a dot
-while not locator.has_had_enough_time:
-    # Could also be `await asyncio.sleep(1)`
-    locator.wait(1)
-    print(".", end="", flush=True)
-
-locator.complete()
-
-# Report how many we've found
-print(f" found {len(locator.spas)} spas")
-
-if len(locator.spas) == 0:
-    raise RuntimeError("Cannot continue as there were no spas detected")
-
-# Grasp info about your spa, this is often the integration phase in your
-# automation system, sometimes you can store binary identifiers, sometimes
-# you can't ...
-persistent_spa_identifier = locator.spas[0].identifier_as_string
-print(f"Using spa identifier {persistent_spa_identifier}")
-
-# Some time later, when we want to start the automation system but don't
-# want to choose the spa again, we do something like this ...
-facade = GeckoLocator.find_spa(CLIENT_ID, persistent_spa_identifier).get_facade(False)
-
-# Now we have a facade, wait for it to be connected
-print(f"Connecting to {facade.name} ", end="", flush=True)
-while not facade.is_connected:
-    # Could also be `await asyncio.sleep(1)`
-    facade.wait(1)
-    print(".", end="", flush=True)
-print(" connected")
-
-# Do some things with the facade
-print(f"Water heater : {facade.water_heater}")
-
-
-def pump_1_change(sender, old_value, new_value):
-    print(f"Pump 1 changed from {old_value} to {new_value}")
-
-
-# Watch pump 1 for changes and report on them
-facade.pumps[0].watch(pump_1_change)
-
-print("Turn pump 1 on")
-facade.pumps[0].set_mode('HI')
-
-time.sleep(5)
-
-print("Turning pump 1 off")
-facade.pumps[0].set_mode('OFF')
-
-time.sleep(2)
-facade.complete()
-```
+**WARNING** Sync functionality will be removed in a future release,
+examples removed from README
 
 # Acknowledgements
 
@@ -470,6 +351,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - There is a lock issue when a command is being retried as the protocol lock
   is busy and the CUI won't exit until the timeout has been reached (this can
   be reproduced by making the simulator stop responding to watercare requests)
+
+## Done/Fixed in 0.4.1
+
+- Updated README with simple async example
 
 ## Done/Fixed in 0.4.0
 
