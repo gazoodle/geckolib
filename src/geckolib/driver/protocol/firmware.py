@@ -15,7 +15,11 @@ class GeckoUpdateFirmwareProtocolHandler(GeckoPacketProtocolHandler):
     @staticmethod
     def request(seq, **kwargs):
         return GeckoUpdateFirmwareProtocolHandler(
-            content=b"".join([UPDTS_VERB, struct.pack(">B", seq)]), **kwargs
+            content=b"".join([UPDTS_VERB, struct.pack(">B", seq)]),
+            timeout=2,
+            retry_count=10,
+            on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
+            **kwargs,
         )
 
     @staticmethod
@@ -38,7 +42,7 @@ class GeckoUpdateFirmwareProtocolHandler(GeckoPacketProtocolHandler):
             SUPDT_VERB
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, sender: tuple) -> None:
         remainder = received_bytes[5:]
         if received_bytes.startswith(UPDTS_VERB):
             self._sequence = struct.unpack(">B", remainder[0:1])[0]

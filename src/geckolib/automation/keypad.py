@@ -1,10 +1,10 @@
 """ Gecko Keypads """
 
-from .base import GeckoAutomationBase
+from .base import GeckoAutomationFacadeBase
 
 
-class GeckoKeypad(GeckoAutomationBase):
-    """ Keypad management class """
+class GeckoKeypad(GeckoAutomationFacadeBase):
+    """Keypad management class"""
 
     def __init__(self, facade):
         super().__init__(facade, "Keypad", "KEYPAD")

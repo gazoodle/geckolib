@@ -125,7 +125,7 @@ class GeckoSnapshot:
     def _re_data_segment(self, groups):
         data = groups[0].replace("'", "\\x27")
         bytes_ = ast.literal_eval(f"b'{data}'")
-        self._status_block_handler.handle(None, bytes_, None)
+        self._status_block_handler.handle(bytes_, None)
         self._status_block_segments.append(self._status_block_handler.data)
         if self._status_block_handler.next == 0:
             self._bytes = b"".join(self._status_block_segments)

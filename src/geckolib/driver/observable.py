@@ -1,33 +1,46 @@
 """ Observable class """
 
 import logging
+from typing import List, Callable, Any
 
-logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class Observable:
     """Class to manage observables"""
 
-    def __init__(self):
-        self._observers = []
+    def __init__(self) -> None:
+        self._observers: List[Callable[[Any, Any, Any], None]] = []
 
-    def watch(self, observer):
-        """ Add an observer to this observable class """
+    def watch(self, observer: Callable[[Any, Any, Any], None]) -> None:
+        """Add an observer to this observable class"""
+        if observer in self._observers:
+            _LOGGER.warning(
+                "Observer %s already in list, not going to add again", observer
+            )
+            return
         self._observers.append(observer)
 
-    def unwatch(self, observer):
-        """ Remove an observer to this observable class """
+    def unwatch(self, observer: Callable[[Any, Any, Any], None]) -> None:
+        """Remove an observer to this observable class"""
         self._observers.remove(observer)
 
-    def _on_change(self, sender, old_value, new_value):
-        """ Trigger the change notification for all observers """
-        logger.info(f"{sender} changed from {old_value} to {new_value}")
+    def _on_change(
+        self, sender: Any = None, old_value: Any = None, new_value: Any = None
+    ) -> None:
+        """Trigger the change notification for all observers"""
+        _LOGGER.debug(
+            (
+                f"{self.__class__.__name__} {sender} changed "
+                f"from {old_value} to {new_value}"
+            )
+        )
         for observer in self._observers:
             observer(sender, old_value, new_value)
 
     @property
-    def has_observers(self):
-        return self._observers
+    def has_observers(self) -> bool:
+        return len(self._observers) > 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__} watched by={self._observers!r}"

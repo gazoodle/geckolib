@@ -21,7 +21,7 @@ PARMS = (1, 2, b"SRCID", b"DESTID")
 
 
 class TestGeckoHelloHandler(unittest.TestCase):
-    """ Test the GeckoHelloProtocol classes """
+    """Test the GeckoHelloProtocol classes"""
 
     def setUp(self):
         self.handler = GeckoHelloProtocolHandler(b"")
@@ -45,34 +45,34 @@ class TestGeckoHelloHandler(unittest.TestCase):
         self.assertFalse(self.handler.can_handle(b"<GOODBYE>", None))
 
     def test_recv_broadcast(self):
-        self.assertFalse(self.handler.handle(None, b"<HELLO>1</HELLO>", None))
+        self.assertFalse(self.handler.handle(b"<HELLO>1</HELLO>", None))
         self.assertTrue(self.handler.was_broadcast_discovery)
-        self.assertIsNone(self.handler.client_identifier)
-        self.assertIsNone(self.handler.spa_identifier)
-        self.assertIsNone(self.handler.spa_name)
+        self.assertIsNone(self.handler._client_identifier)
+        self.assertIsNone(self.handler._spa_identifier)
+        self.assertIsNone(self.handler._spa_name)
 
     def test_recv_client_ios(self):
-        self.assertFalse(self.handler.handle(None, b"<HELLO>IOSCLIENT</HELLO>", None))
+        self.assertFalse(self.handler.handle(b"<HELLO>IOSCLIENT</HELLO>", None))
         self.assertFalse(self.handler.was_broadcast_discovery)
         self.assertEqual(self.handler.client_identifier, b"IOSCLIENT")
-        self.assertIsNone(self.handler.spa_identifier)
-        self.assertIsNone(self.handler.spa_name)
+        self.assertIsNone(self.handler._spa_identifier)
+        self.assertIsNone(self.handler._spa_name)
 
     def test_recv_client_android(self):
-        self.assertFalse(self.handler.handle(None, b"<HELLO>ANDCLIENT</HELLO>", None))
+        self.assertFalse(self.handler.handle(b"<HELLO>ANDCLIENT</HELLO>", None))
         self.assertFalse(self.handler.was_broadcast_discovery)
         self.assertEqual(self.handler.client_identifier, b"ANDCLIENT")
-        self.assertIsNone(self.handler.spa_identifier)
-        self.assertIsNone(self.handler.spa_name)
+        self.assertIsNone(self.handler._spa_identifier)
+        self.assertIsNone(self.handler._spa_name)
 
     @unittest.expectedFailure
     def test_recv_client_unknown(self):
-        self.handler.handle(None, b"<HELLO>UNKCLIENT</HELLO>", None)
+        self.handler.handle(b"<HELLO>UNKCLIENT</HELLO>", None)
 
     def test_recv_response(self):
-        self.assertFalse(self.handler.handle(None, b"<HELLO>SPA|Name</HELLO>", None))
+        self.assertFalse(self.handler.handle(b"<HELLO>SPA|Name</HELLO>", None))
         self.assertFalse(self.handler.was_broadcast_discovery)
-        self.assertIsNone(self.handler.client_identifier)
+        self.assertIsNone(self.handler._client_identifier)
         self.assertEqual(self.handler.spa_identifier, b"SPA")
         self.assertEqual(self.handler.spa_name, "Name")
 
@@ -95,7 +95,6 @@ class TestGeckoPacketHandler(unittest.TestCase):
     def test_recv_extract_ok(self):
         self.assertFalse(
             self.handler.handle(
-                None,
                 b"<PACKT><SRCCN>SRCID</SRCCN><DESCN>DESTID</DESCN>"
                 b"<DATAS>DATA</DATAS></PACKT>",
                 (1, 2),
@@ -138,7 +137,7 @@ class TestGeckoPingHandler(unittest.TestCase):
 
     def test_recv_handle(self):
         handler = GeckoPingProtocolHandler.request(parms=PARMS)
-        handler.handle(None, b"APING\x00", PARMS)
+        handler.handle(b"APING\x00", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler._sequence, 0)
 
@@ -170,13 +169,13 @@ class TestGeckoVersionHandler(unittest.TestCase):
 
     def test_recv_handle_request(self):
         handler = GeckoVersionProtocolHandler()
-        handler.handle(None, b"AVERS\x01", PARMS)
+        handler.handle(b"AVERS\x01", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler._sequence, 1)
 
     def test_recv_handle_response(self):
         handler = GeckoVersionProtocolHandler()
-        handler.handle(None, b"SVERS\x00\x01\x02\x03\x00\x04\x05\x06", PARMS)
+        handler.handle(b"SVERS\x00\x01\x02\x03\x00\x04\x05\x06", PARMS)
         self.assertTrue(handler.should_remove_handler)
         self.assertEqual(handler.en_build, 1)
         self.assertEqual(handler.en_major, 2)
@@ -211,13 +210,13 @@ class TestGeckoGetChannelHandler(unittest.TestCase):
 
     def test_recv_handle_request(self):
         handler = GeckoGetChannelProtocolHandler()
-        handler.handle(None, b"CURCH\x01", PARMS)
+        handler.handle(b"CURCH\x01", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler._sequence, 1)
 
     def test_recv_handle_response(self):
         handler = GeckoGetChannelProtocolHandler()
-        handler.handle(None, b"CHCUR\x0a\x21", PARMS)
+        handler.handle(b"CHCUR\x0a\x21", PARMS)
         self.assertTrue(handler.should_remove_handler)
         self.assertEqual(handler.channel, 10)
         self.assertEqual(handler.signal_strength, 33)
@@ -248,13 +247,13 @@ class TestGeckoConfigFileHandler(unittest.TestCase):
 
     def test_recv_handle_request(self):
         handler = GeckoConfigFileProtocolHandler()
-        handler.handle(None, b"SFILE\x01", PARMS)
+        handler.handle(b"SFILE\x01", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler._sequence, 1)
 
     def test_recv_handle_response(self):
         handler = GeckoConfigFileProtocolHandler()
-        handler.handle(None, b"FILES,inXM_C09.xml,inXM_S09.xml", PARMS)
+        handler.handle(b"FILES,inXM_C09.xml,inXM_S09.xml", PARMS)
         self.assertTrue(handler.should_remove_handler)
         self.assertEqual(handler.plateform_key, "inXM")
         self.assertEqual(handler.config_version, 9)
@@ -263,7 +262,18 @@ class TestGeckoConfigFileHandler(unittest.TestCase):
     @unittest.expectedFailure
     def test_recv_handle_response_error(self):
         handler = GeckoConfigFileProtocolHandler()
-        self.assertTrue(handler.handle(None, b"FILES,inXM_C09.xml,inYE_S09.xml", PARMS))
+        self.assertTrue(handler.handle(b"FILES,inXM_C09.xml,inYE_S09.xml", PARMS))
+
+
+class MockSocket:
+    def __init__(self):
+        self.sendbytes = None
+
+    def queue_send(self, handler, destination):
+        self.sendbytes = handler.send_bytes
+
+    def get_and_increment_sequence_counter(self):
+        return 1
 
 
 class TestGeckoStatusBlockHandler(unittest.TestCase):
@@ -292,14 +302,16 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
         self.assertFalse(handler.can_handle(b"OTHER", PARMS))
 
     def test_recv_partial_can_handle(self):
-        handler = GeckoPartialStatusBlockProtocolHandler()
+        socket = MockSocket()
+        handler = GeckoPartialStatusBlockProtocolHandler(socket)
         self.assertTrue(handler.can_handle(b"STATP", PARMS))
         self.assertTrue(handler.can_handle(b"STATQ", PARMS))
         self.assertFalse(handler.can_handle(b"OTHER", PARMS))
+        self.assertIsNone(socket.sendbytes)
 
     def test_recv_handle_request(self):
         handler = GeckoStatusBlockProtocolHandler()
-        handler.handle(None, b"STATU\x01\x00\x00\x02\x7d", PARMS)
+        handler.handle(b"STATU\x01\x00\x00\x02\x7d", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler.sequence, 1)
         self.assertEqual(handler.start, 0)
@@ -307,7 +319,7 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
 
     def test_recv_handle_response(self):
         handler = GeckoStatusBlockProtocolHandler()
-        handler.handle(None, b"STATV\x03\x04\x04\x01\x02\x03\x04", PARMS)
+        handler.handle(b"STATV\x03\x04\x04\x01\x02\x03\x04", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler.sequence, 3)
         self.assertEqual(handler.next, 4)
@@ -316,7 +328,7 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
 
     def test_recv_handle_response_final(self):
         handler = GeckoStatusBlockProtocolHandler()
-        handler.handle(None, b"STATV\x03\x00\x04\x01\x02\x03\x04", PARMS)
+        handler.handle(b"STATV\x03\x00\x04\x01\x02\x03\x04", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler.sequence, 3)
         self.assertEqual(handler.next, 0)
@@ -324,10 +336,26 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
         self.assertEqual(handler.data, b"\x01\x02\x03\x04")
 
     def test_recv_handle_partial(self):
-        handler = GeckoPartialStatusBlockProtocolHandler()
-        handler.handle(None, b"STATV\x02\x01\x6d\x03\x84\x01\x6e\x84\x0c", PARMS)
+        socket = MockSocket()
+        handler = GeckoPartialStatusBlockProtocolHandler(socket)
+        handler.handle(b"STATV\x02\x01\x6d\x03\x84\x01\x6e\x84\x0c", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertListEqual(handler.changes, [(365, b"\x03\x84"), (366, b"\x84\x0c")])
+        self.assertEqual(
+            socket.sendbytes,
+            b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATQ\x01</DATAS></PACKT>",
+        )
+
+    def test_send_partial(self):
+        socket = MockSocket()
+        handler = GeckoPartialStatusBlockProtocolHandler.report_changes(
+            socket, [(365, b"\x03\x84"), (366, b"\x84\x0c")], parms=PARMS
+        )
+        self.assertFalse(handler.should_remove_handler)
+        self.assertEqual(
+            handler.send_bytes,
+            b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATP\x02\x01\x6d\x03\x84\x01\x6e\x84\x0c</DATAS></PACKT>",
+        )
 
 
 class TestGeckoPackCommandHandlers(unittest.TestCase):
@@ -365,7 +393,7 @@ class TestGeckoPackCommandHandlers(unittest.TestCase):
 
     def test_recv_handle_key_press(self):
         handler = GeckoPackCommandProtocolHandler()
-        handler.handle(None, b"SPACK\x01\x06\x02\x39\x01", PARMS)
+        handler.handle(b"SPACK\x01\x06\x02\x39\x01", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler._sequence, 1)
         self.assertTrue(handler.is_key_press)
@@ -374,7 +402,7 @@ class TestGeckoPackCommandHandlers(unittest.TestCase):
 
     def test_recv_handle_set_value(self):
         handler = GeckoPackCommandProtocolHandler()
-        handler.handle(None, b"SPACK\x01\x06\x07\x46\x09\x09\x00\x0f\x02\xbe", PARMS)
+        handler.handle(b"SPACK\x01\x06\x07\x46\x09\x09\x00\x0f\x02\xbe", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler._sequence, 1)
         self.assertFalse(handler.is_key_press)
@@ -384,7 +412,7 @@ class TestGeckoPackCommandHandlers(unittest.TestCase):
 
     def test_recv_handle_response(self):
         handler = GeckoPackCommandProtocolHandler()
-        handler.handle(None, b"PACKS", PARMS)
+        handler.handle(b"PACKS", PARMS)
         self.assertTrue(handler.should_remove_handler)
         self.assertFalse(handler.is_key_press)
         self.assertFalse(handler.is_set_value)
@@ -408,7 +436,7 @@ class TestGeckoWatercareHandler(unittest.TestCase):
         )
 
     def test_send_construct_schedule(self):
-        handler = GeckoWatercareProtocolHandler.schedule(parms=PARMS)
+        handler = GeckoWatercareProtocolHandler.giveschedule(parms=PARMS)
         self.assertEqual(
             handler.send_bytes,
             b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN>"
@@ -436,21 +464,21 @@ class TestGeckoWatercareHandler(unittest.TestCase):
 
     def test_recv_handle_request(self):
         handler = GeckoWatercareProtocolHandler()
-        handler.handle(None, b"GETWC\x01", PARMS)
+        handler.handle(b"GETWC\x01", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(handler._sequence, 1)
         self.assertFalse(handler.schedule)
 
     def test_recv_handle_response(self):
         handler = GeckoWatercareProtocolHandler()
-        handler.handle(None, b"WCGET\x03", PARMS)
+        handler.handle(b"WCGET\x03", PARMS)
         self.assertTrue(handler.should_remove_handler)
         self.assertFalse(handler.schedule)
         self.assertEqual(handler.mode, 3)
 
     def test_recv_handle_request_schedule(self):
         handler = GeckoWatercareProtocolHandler()
-        handler.handle(None, b"REQWC\x01", PARMS)
+        handler.handle(b"REQWC\x01", PARMS)
         self.assertFalse(handler.should_remove_handler)
         self.assertTrue(handler.schedule)
 

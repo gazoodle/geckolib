@@ -1,6 +1,6 @@
 """ Gecko Lights """
 
-from .switches import GeckoSwitch
+from .switch import GeckoSwitch
 
 
 class GeckoLight(GeckoSwitch):

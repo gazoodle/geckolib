@@ -3,8 +3,6 @@
 import cmd
 import logging
 
-from ..driver import GeckoSpaPack
-
 LICENSE = """
 #
 #   Copyright (C) 2020, Gazoodle (https://github.com/gazoodle)
@@ -33,7 +31,7 @@ class GeckoCmd(cmd.Cmd):
 
     @classmethod
     def run(cls, first_commands=None):
-        """ Convenience function to run a command loop """
+        """Convenience function to run a command loop"""
         with cls(first_commands) as cmd:
             cmd.cmdloop()
 
@@ -57,9 +55,8 @@ class GeckoCmd(cmd.Cmd):
     def __exit__(self, *args):
         pass
 
-    def do_exit(self, arg):
+    def do_exit(self, _arg):
         """Exit this shell: exit"""
-        del arg
         return True
 
     def do_loglevel(self, arg):
@@ -96,12 +93,6 @@ class GeckoCmd(cmd.Cmd):
             min(handler.level for handler in logging.getLogger().handlers)
         )
 
-    def do_license(self, arg):
+    def do_license(self, _arg):
         """Display the license details : license"""
-        del arg
         print(LICENSE)
-
-    def do_download(self, arg):
-        """Download the SpaPackStruct.xml from Gecko : download"""
-        del arg
-        GeckoSpaPack.download()

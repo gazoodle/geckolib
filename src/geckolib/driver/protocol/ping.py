@@ -24,7 +24,7 @@ class GeckoPingProtocolHandler(GeckoPacketProtocolHandler):
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
         return received_bytes.startswith(PING_VERB)
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, sender: tuple):
         remainder = received_bytes[5:]
         if len(remainder) > 0:
             self._sequence = struct.unpack(">B", remainder)[0]

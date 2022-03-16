@@ -9,6 +9,7 @@ from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
+from .switch import GeckoSwitch
 from .sensors import GeckoSensor, GeckoBinarySensor
 from .watercare import GeckoWaterCare
 from .reminders import GeckoReminders
@@ -33,6 +34,7 @@ class GeckoFacade(Observable):
         self._water_care = None
         self._reminders = None
         self._keypad = None
+        self._ecomode = None
         self._update_thread = threading.Thread(
             target=self._update_thread_func, daemon=True
         )
@@ -64,30 +66,35 @@ class GeckoFacade(Observable):
         self._facade_ready = True
 
     def complete(self):
-        """ Finish using this facade if not used in a `with` statement """
+        """Finish using this facade if not used in a `with` statement"""
         self.__exit__()
 
     @property
     def is_connected(self):
-        if not self._spa.is_connected:
+        try:
+            if not self._spa.is_connected:
+                return False
+            return self._facade_ready
+        except Exception as e:
+            logger.exception(e)
             return False
-        return self._facade_ready
+
+    @property
+    def is_in_error(self):
+        return self._spa.is_in_error
 
     def wait(self, timeout):
         self.spa.wait(timeout)
+        if self.is_in_error:
+            raise Exception("Facade in error from previous exception")
 
     def scan_outputs(self):
-        """ Scan the spa outputs to decide what user options are available """
-        # Get list of outputs from the configuration
-        all_outputs = [
-            element.tag
-            for xpath in GeckoConstants.PACK_OUTPUTS_XPATHS
-            for element in self._spa.config_xml.findall(xpath)
-        ]
-        logger.debug("All outputs are %s", all_outputs)
+        """Scan the spa outputs to decide what user options are available"""
+        logger.debug("All outputs are %s", self._spa.struct.all_outputs)
         # Workout what (if anything) the outputs are connected to
         all_output_connections = {
-            output: self._spa.accessors[output].value for output in all_outputs
+            output: self._spa.accessors[output].value
+            for output in self._spa.struct.all_outputs
         }
         logger.debug("Output connections are %s", all_output_connections)
         # Reduce the dictionary to those that are not set to NA (Not Applicable)
@@ -95,41 +102,33 @@ class GeckoFacade(Observable):
             tag: val for (tag, val) in all_output_connections.items() if val != "NA"
         }
         logger.debug("Actual connections are %s", actual_connections)
-        # Get collection of possible devices, including lights
-        all_devices = [
-            element.tag
-            for element in self._spa.log_xml.findall(
-                GeckoConstants.SPA_PACK_DEVICE_XPATH
-            )
-        ] + ["LI"]
-        logger.debug("All devices are %s", all_devices)
+
+        logger.debug("All devices are %s", self._spa.struct.all_devices)
         # If any of the actual connection values starts with any of the devices,
         # then the device is present
         actual_devices = set(
             [
                 device
-                for device in all_devices
+                for device in self._spa.struct.all_devices
                 for val in actual_connections.values()
                 if val.startswith(device)
             ]
         )
         logger.debug("Actual devices are %s", actual_devices)
-        # User devices are those that have a Ud in the tag name
-        user_demands = [
-            element.tag
-            for element in self._spa.log_xml.findall(
-                GeckoConstants.SPA_PACK_USER_DEMANDS
-            )
-            if element.tag.startswith("Ud")
-        ]
-        logger.debug("Possible user demands are %s", user_demands)
+
+        logger.debug("Possible user demands are %s", self._spa.struct.user_demands)
         # Actual user devices are those where the actual device has a corresponding
         # user demand
         self.actual_user_devices = [
-            {"device": device, "user_demand": {
-                "demand": self._spa.accessors[f"{ud}"].tag, "options": self._spa.accessors[f"{ud}"].items}}
+            {
+                "device": device,
+                "user_demand": {
+                    "demand": self._spa.accessors[f"{ud}"].tag,
+                    "options": self._spa.accessors[f"{ud}"].items,
+                },
+            }
             for device in actual_devices
-            for ud in user_demands
+            for ud in self._spa.struct.user_demands
             if f"Ud{device}".upper() == ud.upper()
         ]
         logger.debug("Actual user devices are %s", self.actual_user_devices)
@@ -151,23 +150,31 @@ class GeckoFacade(Observable):
 
         self._pumps = [
             GeckoPump(
-                self, device["device"], GeckoConstants.DEVICES[device["device"]], device["user_demand"])
+                self,
+                device["device"],
+                GeckoConstants.DEVICES[device["device"]],
+                device["user_demand"],
+            )
             for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_PUMP
+            if GeckoConstants.DEVICES[device["device"]][3]
+            == GeckoConstants.DEVICE_CLASS_PUMP
         ]
 
         self._blowers = [
-            GeckoBlower(self, device["device"],
-                        GeckoConstants.DEVICES[device["device"]])
+            GeckoBlower(
+                self, device["device"], GeckoConstants.DEVICES[device["device"]]
+            )
             for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_BLOWER
+            if GeckoConstants.DEVICES[device["device"]][3]
+            == GeckoConstants.DEVICE_CLASS_BLOWER
         ]
 
         self._lights = [
             GeckoLight(self, device["device"],
                        GeckoConstants.DEVICES[device["device"]])
             for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device["device"]][3] == GeckoConstants.DEVICE_CLASS_LIGHT
+            if GeckoConstants.DEVICES[device["device"]][3]
+            == GeckoConstants.DEVICE_CLASS_LIGHT
         ]
 
         self._sensors = [
@@ -184,83 +191,100 @@ class GeckoFacade(Observable):
             if binary_sensor[1] in self._spa.accessors
         ]
 
+        if GeckoConstants.KEY_ECON_ACTIVE in self._spa.accessors:
+            self._ecomode = GeckoSwitch(
+                self,
+                GeckoConstants.KEY_ECON_ACTIVE,
+                (
+                    GeckoConstants.ECON_ACTIVE_DESCRIPTION,
+                    GeckoConstants.KEYPAD_ECOMODE,
+                    GeckoConstants.KEY_ECON_ACTIVE,
+                    GeckoConstants.DEVICE_CLASS_SWITCH,
+                ),
+            )
+
     @property
     def unique_id(self):
-        """ A unique id for the facade """
+        """A unique id for the facade"""
         return f"{self.identifier.replace(':', '')}"
 
     @property
     def name(self):
-        """ Get the spa name """
+        """Get the spa name"""
         return self._spa.descriptor.name
 
     @property
     def identifier(self):
-        """ Get the spa identifier """
+        """Get the spa identifier"""
         return self._spa.descriptor.identifier_as_string
 
     @property
     def spa(self):
-        """ Get the spa implementation class """
+        """Get the spa implementation class"""
         return self._spa
 
     @property
     def water_heater(self):
-        """ Get the water heater handler """
+        """Get the water heater handler"""
         return self._water_heater
 
     @property
     def water_care(self):
-        """ Get the water care handler """
+        """Get the water care handler"""
         return self._water_care
 
     @property
     def keypad(self):
-        """ Get the keypad handler """
+        """Get the keypad handler"""
         return self._keypad
 
     @property
     def pumps(self) -> [GeckoPump]:
-        """ Get the pumps list """
+        """Get the pumps list"""
         return self._pumps
 
     @property
     def blowers(self):
-        """ Get the blowers list """
+        """Get the blowers list"""
         return self._blowers
 
     @property
     def lights(self):
-        """ Get the lights list """
+        """Get the lights list"""
         return self._lights
 
     @property
     def sensors(self):
-        """ Get the sensor list """
+        """Get the sensor list"""
         return self._sensors
 
     @property
     def binary_sensors(self):
-        """ Get the binary sensor list """
+        """Get the binary sensor list"""
         return self._binary_sensors
 
     @property
+    def eco_mode(self):
+        """Get the Eco Mode switch"""
+        return self._ecomode
+
+    @property
     def all_user_devices(self):
-        """ Get all the user controllable devices as a list """
+        """Get all the user controllable devices as a list"""
         return self._pumps + self._blowers + self._lights
 
     @property
     def all_automation_devices(self):
-        """ Get all the automation devices as a list """
+        """Get all the automation devices as a list"""
         return (
             self.all_user_devices
             + self.sensors
             + self.binary_sensors
-            + [self.water_heater, self.water_care, self.keypad]
+            + [self.water_heater, self.water_care, self.keypad, self.eco_mode]
         )
 
     def get_device(self, key):
-        """ Get an automation device from the key """
+        """Get an automation device from the key"""
         for device in self.all_automation_devices:
             if device.key == key:
                 return device

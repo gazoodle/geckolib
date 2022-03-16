@@ -1,7 +1,9 @@
 """ GeckoShell class """
 
-import sys, traceback
+import sys
+import traceback
 import logging
+import datetime
 from .shared_command import GeckoCmd
 from .. import GeckoConstants, GeckoLocator, GeckoPump, VERSION
 
@@ -24,11 +26,6 @@ class GeckoShell(GeckoCmd):
         outside of what the app, top panel and side panel settings allow. I've not
         tested every setting and it might be that you prevent your spa pack from
         operating as it used to do.
-
-        Configuration is declared in the file SpaPackStruct.xml which is downloaded the
-        first time you run this program. Settings marked as RW="ALL" seem to indicate
-        that any process can write them, so you ought to be able to revert the settings
-        to their original ones.
 
         I strongly suggest dumping the configuration values with the "config" command
         and recording them somewhere safe.
@@ -81,9 +78,8 @@ class GeckoShell(GeckoCmd):
         if number_of_spas == 1:
             self.onecmd("manage 1")
 
-    def do_list(self, arg):
+    def do_list(self, _arg):
         """List the spas that are available to manage : list"""
-        del arg
         for idx, spa in enumerate(self.spas):
             print("{0}. {1}".format(idx + 1, spa.name))
 
@@ -140,12 +136,11 @@ class GeckoShell(GeckoCmd):
         print("Set pump {0} {1}".format(device.name, arg))
         try:
             device.set_mode(arg)
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
 
-    def do_state(self, arg):
+    def do_state(self, _arg):
         """Show the state of the managed spa : state"""
-        del arg
         if self.facade is None:
             print("Must be connected to a spa")
             return
@@ -161,6 +156,49 @@ class GeckoShell(GeckoCmd):
         print(self.facade.water_care)
         for sensor in [*self.facade.sensors, *self.facade.binary_sensors]:
             print(sensor)
+        print(self.facade.eco_mode)
+
+    def monitor_get_states(self):
+
+        states = [
+            self.facade.water_heater,
+            *self.facade.pumps,
+            *self.facade.blowers,
+            *self.facade.lights,
+            *self.facade.reminders,
+            self.facade.water_care,
+            *self.facade.sensors,
+            *self.facade.binary_sensors,
+            self.facade.eco_mode,
+        ]
+
+        return [f"{state.monitor}" for state in states]
+
+    def monitor_compare_states(self, states):
+        local_state = self.monitor_get_states()
+        return local_state != states
+
+    def monitor_print_states(self, states):
+        print(f"{datetime.datetime.now()} : {' '.join(states)}")
+
+    def do_monitor(self, _arg):
+        """Monitor the state of the managed spa outputting a new line for each change : monitor"""
+        if self.facade is None:
+            print("Must be connected to a spa")
+            return
+
+        print("Monitoring spa ... CTRL+C to stop")
+        current_state = []
+        while True:
+            try:
+                if self.monitor_compare_states(current_state):
+                    current_state = self.monitor_get_states()
+                    self.monitor_print_states(current_state)
+                self.facade.wait(1)
+            except KeyboardInterrupt:
+                print("")
+                print("Monitor stopped")
+                break
 
     @property
     def version_strings(self):
@@ -177,51 +215,22 @@ class GeckoShell(GeckoCmd):
             f"Pack type {self.facade.spa.pack_type}",
         ]
 
-    def do_version(self, arg):
+    def do_version(self, _arg):
         """Show the version information : version"""
-        del arg
         for version_str in self.version_strings:
             print(version_str)
 
-    def do_config(self, arg):
-        """Display the configuration data from the spa : config"""
-        del arg
-        print("Configuration Settings")
-        print("======================")
+    def do_accessors(self, _arg):
+        """Display the data from the accessors : accessors"""
+        print("Accessors")
+        print("=========")
         print("")
-        for element in self.facade.spa.config_xml.findall("./*"):
-            if "Pos" in element.attrib:
-                continue
-            print(element.tag)
-            print("-" * len(element.tag))
-            for child in element.findall("./*"):
-                print(
-                    "  {0}: {1}".format(
-                        child.tag, self.facade.spa.accessors[child.tag].value
-                    )
-                )
-            print("")
-
-    def do_live(self, arg):
-        """Display the live settings from the spa : live"""
-        del arg
-        print("Live Settings")
-        print("=============")
+        for key in self.facade.spa.accessors:
+            print("   {0}: {1}".format(key, self.facade.spa.accessors[key].value))
         print("")
-        for element in self.facade.spa.log_xml.findall("./*"):
-            print(element.tag)
-            print("-" * len(element.tag))
-            for child in element.findall("./*"):
-                print(
-                    "  {0}: {1}".format(
-                        child.tag, self.facade.spa.accessors[child.tag].value
-                    )
-                )
-            print("")
 
-    def do_about(self, arg):
+    def do_about(self, _arg):
         """Display information about this client program and support library : about"""
-        del arg
         print("")
         print(
             "GeckoShell: A python program using GeckoLib library to drive Gecko enabled"
@@ -229,9 +238,8 @@ class GeckoShell(GeckoCmd):
         )
         print("Library version v{0}".format(VERSION))
 
-    def do_refresh(self, arg):
+    def do_refresh(self, _arg):
         """Refresh the live data from your spa : refresh"""
-        del arg
         self.facade.spa.refresh()
 
     def do_get(self, arg):
@@ -241,6 +249,14 @@ class GeckoShell(GeckoCmd):
         except Exception:  # pylint: disable=broad-except
             logger.exception("Exception getting '%s'", arg)
 
+    def do_peek(self, arg):
+        """Get the byte value from the structure at the specified position : peek <pos>"""
+        try:
+            pos = int(arg)
+            print(f"Byte at {pos} = {self.facade.spa.struct.status_block[pos]}")
+        except Exception:  # pylint: disable=broad-except
+            logger.exception("Exception peeking at '%s'", arg)
+
     def do_set(self, arg):
         """Set the value of the specified spa pack structure
         element : set <Element>=<value>"""
@@ -248,7 +264,7 @@ class GeckoShell(GeckoCmd):
             key, val = arg.split("=")
             self.facade.spa.accessors[key].value = val
         except Exception:  # pylint: disable=broad-except
-            logger.exception("Exception handling setting %s=%s", key, val)
+            logger.exception("Exception handling 'set %s'", arg)
 
     def do_watercare(self, arg):
         """Set the active watercare mode to one of {0} : WATERCARE <mode>"""
@@ -260,6 +276,13 @@ class GeckoShell(GeckoCmd):
     def do_setpoint(self, arg):
         """Set the spa setpoint temperature : setpoint <temp>"""
         self.facade.water_heater.set_target_temperature(float(arg))
+
+    def do_eco(self, arg):
+        """Set the spa eco mode : eco on|off"""
+        if arg.lower() == "off":
+            self.facade.eco_mode.turn_off()
+        else:
+            self.facade.eco_mode.turn_on()
 
     def do_snapshot(self, arg):
         """Take a snapshot of the spa data structure with a descriptive

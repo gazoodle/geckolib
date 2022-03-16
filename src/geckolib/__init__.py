@@ -2,11 +2,15 @@
 
 import logging
 
+from .async_tasks import AsyncTasks
 from .const import GeckoConstants
 from .automation import (
     GeckoAutomationBase,
+    GeckoAutomationFacadeBase,
     GeckoBlower,
+    GeckoButton,
     GeckoFacade,
+    GeckoAsyncFacade,
     GeckoWaterHeater,
     GeckoKeypad,
     GeckoLight,
@@ -16,6 +20,12 @@ from .automation import (
     GeckoSwitch,
     GeckoWaterCare,
 )
+from .async_locator import GeckoAsyncLocator
+from .async_spa_descriptor import GeckoAsyncSpaDescriptor
+from .async_spa_manager import GeckoAsyncSpaMan
+from .async_spa import GeckoAsyncSpa
+from .spa_events import GeckoSpaEvent
+from .spa_state import GeckoSpaState
 from .locator import GeckoLocator
 from .driver import (
     GeckoUdpProtocolHandler,
@@ -28,15 +38,19 @@ from .driver import (
     GeckoConfigFileProtocolHandler,
     GeckoStatusBlockProtocolHandler,
     GeckoPartialStatusBlockProtocolHandler,
+    GeckoAsyncPartialStatusBlockProtocolHandler,
     GeckoWatercareProtocolHandler,
     GeckoUpdateFirmwareProtocolHandler,
     GeckoRemindersProtocolHandler,
     GeckoPackCommandProtocolHandler,
     #
-    GeckoSpaPack,
     GeckoStructure,
+    GeckoAsyncStructure,
     GeckoStructAccessor,
-    GeckoTemperatureDecorator,
+    GeckoByteStructAccessor,
+    GeckoWordStructAccessor,
+    GeckoBoolStructAccessor,
+    GeckoEnumStructAccessor,
     Observable,
 )
 from ._version import VERSION
@@ -49,10 +63,14 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 __version__ = VERSION
 
 __all__ = [
+    "AsyncTasks",
     # From automation
     "GeckoAutomationBase",
+    "GeckoAutomationFacadeBase",
     "GeckoBlower",
+    "GeckoButton",
     "GeckoFacade",
+    "GeckoAsyncFacade",
     "GeckoWaterHeater",
     "GeckoKeypad",
     "GeckoLight",
@@ -67,6 +85,8 @@ __all__ = [
     "GeckoFacade",
     # From locator
     "GeckoLocator",
+    "GeckoAsyncLocator",
+    "GeckoAsyncSpaDescriptor",
     # From _version
     "VERSION",
     # From utils
@@ -74,7 +94,6 @@ __all__ = [
     "GeckoSimulator",
     "GeckoSnapshot",
     # From driver
-    "GeckoTemperatureDecorator",
     "Observable",
     "GeckoHelloProtocolHandler",
     "GeckoPacketProtocolHandler",
@@ -84,14 +103,24 @@ __all__ = [
     "GeckoConfigFileProtocolHandler",
     "GeckoStatusBlockProtocolHandler",
     "GeckoPartialStatusBlockProtocolHandler",
+    "GeckoAsyncPartialStatusBlockProtocolHandler",
     "GeckoWatercareProtocolHandler",
     "GeckoUpdateFirmwareProtocolHandler",
     "GeckoRemindersProtocolHandler",
     "GeckoPackCommandProtocolHandler",
     #
-    "GeckoSpaPack",
     "GeckoStructure",
+    "GeckoAsyncStructure",
     "GeckoStructAccessor",
+    "GeckoByteStructAccessor",
+    "GeckoWordStructAccessor",
+    "GeckoBoolStructAccessor",
+    "GeckoEnumStructAccessor",
     "GeckoUdpProtocolHandler",
     "GeckoUdpSocket",
+    #
+    "GeckoAsyncSpaMan",
+    "GeckoSpaEvent",
+    "GeckoSpaState",
+    "GeckoAsyncSpa",
 ]

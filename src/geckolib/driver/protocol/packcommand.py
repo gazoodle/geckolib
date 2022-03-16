@@ -42,6 +42,9 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                     data,
                 ]
             ),
+            timeout=2,
+            retry_count=10,
+            on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )
 
@@ -56,6 +59,9 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                     ),
                 ]
             ),
+            timeout=2,
+            retry_count=10,
+            on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )
 
@@ -77,7 +83,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
             PACKS_VERB
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, sender: tuple):
         remainder = received_bytes[5:]
         if received_bytes.startswith(PACKS_VERB):
             self._should_remove_handler = True

@@ -3,6 +3,8 @@
 import logging
 import struct
 
+from typing import Optional
+
 from .packet import GeckoPacketProtocolHandler
 
 GETWC_VERB = b"GETWC"
@@ -11,6 +13,7 @@ SETWC_VERB = b"SETWC"
 WCSET_VERB = b"WCSET"
 REQWC_VERB = b"REQWC"
 WCREQ_VERB = b"WCREQ"
+WCERR_VERB = b"WCERR"
 
 
 GET_WATERCARE_FORMAT = ">B"
@@ -56,7 +59,7 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def schedule(**kwargs):
+    def giveschedule(**kwargs):
         return GeckoWatercareProtocolHandler(
             content=b"".join(
                 [
@@ -69,9 +72,9 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
             **kwargs,
         )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.mode = None
+        self.mode: Optional[int] = None
         self.schedule = False
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
@@ -79,9 +82,10 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
             received_bytes.startswith(GETWC_VERB)
             or received_bytes.startswith(WCGET_VERB)
             or received_bytes.startswith(REQWC_VERB)
+            or received_bytes.startswith(WCSET_VERB)
         )
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple) -> bool:
+    def handle(self, received_bytes: bytes, sender: tuple) -> None:
         remainder = received_bytes[5:]
         if received_bytes.startswith(GETWC_VERB):
             self._sequence = struct.unpack(">B", remainder)[0]
@@ -90,6 +94,15 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
             self._sequence = struct.unpack(">B", remainder)[0]
             self.schedule = True
             return  # Stay in the handler list
-        # Otherwise must be WCGET
-        self.mode = struct.unpack(GET_WATERCARE_FORMAT, remainder)[0]
+        if received_bytes.startswith(WCGET_VERB):
+            self.mode = struct.unpack(GET_WATERCARE_FORMAT, remainder)[0]
+        # Otherwise must be WCSET
         self._should_remove_handler = True
+
+
+class GeckoWatercareErrorHandler(GeckoPacketProtocolHandler):
+    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
+        return received_bytes.startswith(WCERR_VERB)
+
+    def handle(self, received_bytes: bytes, sender: tuple):
+        pass

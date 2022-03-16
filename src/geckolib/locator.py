@@ -9,9 +9,10 @@ from .driver import (
     GeckoHelloProtocolHandler,
 )
 from .const import GeckoConstants
-from .spa import GeckoSpaDescriptor
+from .spa_descriptor import GeckoSpaDescriptor
 
-logger = logging.getLogger(__name__)
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class GeckoLocator:
@@ -51,7 +52,7 @@ class GeckoLocator:
         """Finish using this locator if not used in a with context"""
         self.__exit__()
 
-    def _on_discovered(self, handler, socket, sender):
+    def _on_discovered(self, handler, sender):
         if handler.spa_identifier in self.spa_identifiers:
             return
         self.spa_identifiers.append(handler.spa_identifier)
@@ -69,6 +70,8 @@ class GeckoLocator:
                 self._has_found_spa = True
             if descriptor.identifier == self._spa_to_find:
                 self._has_found_spa = True
+        if self._static_ip is not None:
+            self._has_found_spa = True
 
     @property
     def age(self):
@@ -82,7 +85,7 @@ class GeckoLocator:
         self._socket.wait(timeout)
 
     def start_discovery(self, should_wait=False):
-        logger.info("Discovery process started")
+        _LOGGER.info("Discovery process started")
         self._socket = GeckoUdpSocket()
         self._socket.open()
         self._socket.enable_broadcast()
@@ -97,7 +100,7 @@ class GeckoLocator:
                 while self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
                     if self.has_had_enough_time:
                         if len(self.spas) > 0:
-                            logger.info(
+                            _LOGGER.info(
                                 "Found %d spas ... %s", len(self.spas), self.spas
                             )
                             return
@@ -108,19 +111,21 @@ class GeckoLocator:
                 self._socket.close()
 
     def _retry_thread_func(self):
-        logger.debug("Locator retry thread started")
+        _LOGGER.debug("Locator retry thread started")
         while self._socket.isopen:
             # Only broadcast for the full discovery time
             if self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
                 self._socket.queue_send(
                     GeckoHelloProtocolHandler.broadcast(),
-                    GeckoHelloProtocolHandler.broadcast_address(static_ip=self._static_ip),
+                    GeckoHelloProtocolHandler.broadcast_address(
+                        static_ip=self._static_ip
+                    ),
                 )
             self._socket.wait(1)
-        logger.debug("Locator retry thread stopped")
+        _LOGGER.debug("Locator retry thread stopped")
 
     def get_spa_from_identifier(self, identifier):
-        """ Locate a spa based on its identifier """
+        """Locate a spa based on its identifier"""
         try:
             if isinstance(identifier, bytes):
                 return next(spa for spa in self.spas if spa.identifier == identifier)
@@ -128,23 +133,29 @@ class GeckoLocator:
                 spa for spa in self.spas if spa.identifier_as_string == identifier
             )
         except StopIteration:
-            logger.error(
+            _LOGGER.error(
                 "Cannot find spa from identifier %s, using first one ...", identifier
             )
             return self.spas[0]
 
     def get_spa_from_name(self, name):
-        """ Locate a spa based on its name """
+        """Locate a spa based on its name"""
         try:
             return next(spa for spa in self.spas if spa.name == name)
         except StopIteration:
-            logger.error("Cannot find spa from name %s", name)
+            _LOGGER.error("Cannot find spa from name %s", name)
             return None
 
     @staticmethod
-    def find_spa(client_uuid, spa_identifier):
-        with GeckoLocator(client_uuid, spa_to_find=spa_identifier) as locator:
+    def find_spa(client_uuid, spa_identifier, spa_address=None):
+        with GeckoLocator(
+            client_uuid, spa_to_find=spa_identifier, static_ip=spa_address
+        ) as locator:
             return locator.get_spa_from_identifier(spa_identifier)
+
+    @staticmethod
+    def get_facade(client_uuid, spa_id, spa_address=None):
+        return GeckoLocator.find_spa(client_uuid, spa_id, spa_address).get_facade(False)
 
     def __repr__(self):
         return (

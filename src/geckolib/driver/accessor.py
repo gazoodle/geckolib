@@ -6,39 +6,38 @@ import logging
 from ..const import GeckoConstants
 from .observable import Observable
 
-logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class GeckoStructAccessor(Observable):
-    """Class to access the spa data structure according to the declaration
-    in SpaPackStruct.xml"""
+    """Class to access the spa data structure according to the declaration in the
+    specific modules"""
 
-    def __init__(self, struct_, element):
+    def __init__(self, struct_, tag, pos, type, bitpos, items, size, maxitems, rw):
         super().__init__()
-        self.element = element
-        self.tag = element.tag
-        self.struct = struct_
-        self.pos = int(element.attrib[GeckoConstants.SPA_PACK_STRUCT_POS_ATTRIB])
-        self.type = element.attrib[GeckoConstants.SPA_PACK_STRUCT_TYPE_ATTRIB]
-        self.bitpos = None
 
-        if GeckoConstants.SPA_PACK_STRUCT_BITPOS_ATTRIB in element.attrib:
-            self.bitpos = int(
-                element.attrib[GeckoConstants.SPA_PACK_STRUCT_BITPOS_ATTRIB]
-            )
+        self.tag = tag
+        self.struct = struct_
+        self.pos = pos
+        self.type = type
+        self.bitpos = bitpos
+        self.items = items
+        self.maxitems = maxitems
+
+        if bitpos is not None:
             self.bitmask = 1
-        if GeckoConstants.SPA_PACK_STRUCT_ITEMS_ATTRIB in element.attrib:
-            self.items = element.attrib[
-                GeckoConstants.SPA_PACK_STRUCT_ITEMS_ATTRIB
-            ].split("|")
+
+        if items is not None:
+            if isinstance(items, str):
+                self.items = items.split("|")
+            else:
+                self.items = items
 
         self.length = 1
         self.format = ">B"
 
-        if GeckoConstants.SPA_PACK_STRUCT_SIZE_ATTRIB in element.attrib:
-            self.length = int(
-                element.attrib[GeckoConstants.SPA_PACK_STRUCT_SIZE_ATTRIB]
-            )
+        if size is not None:
+            self.length = size
             if self.length == 2:
                 self.format = ">H"
 
@@ -48,21 +47,20 @@ class GeckoStructAccessor(Observable):
         ):
             self.length = 2
             self.format = ">H"
-        if GeckoConstants.SPA_PACK_STRUCT_MAXITEMS_ATTRIB in element.attrib:
-            self.maxitems = int(
-                element.attrib[GeckoConstants.SPA_PACK_STRUCT_MAXITEMS_ATTRIB]
-            )
+
+        if maxitems is not None:
+            self.maxitems = int(maxitems)
             if self.maxitems > 8:
                 self.bitmask = 15
             elif self.maxitems > 4:
                 self.bitmask = 7
             elif self.maxitems > 2:
                 self.bitmask = 3
-        self.read_write = None
-        if GeckoConstants.SPA_PACK_STRUCT_READ_WRITE_ATTRIB in element.attrib:
-            self.read_write = element.attrib[
-                GeckoConstants.SPA_PACK_STRUCT_READ_WRITE_ATTRIB
-            ]
+
+        self.read_write = rw
+
+    def set_read_write(self, mode):
+        self.read_write = mode
 
     def status_block_changed(self, offset, len, previous):
         # Does the notified range intersect us, if not then we don't care!
@@ -71,15 +69,6 @@ class GeckoStructAccessor(Observable):
         if intersection_end - intersection_start <= 0:
             return
 
-        logger.debug(
-            "Accessor %s @ %d-%d notified of change at %d-%d",
-            self.tag,
-            self.pos,
-            self.pos + self.length,
-            offset,
-            offset + len,
-        )
-
         old_value = self._get_value(previous)
         new_value = self.value
 
@@ -87,7 +76,7 @@ class GeckoStructAccessor(Observable):
         if new_value == old_value:
             return
 
-        logger.info(
+        _LOGGER.info(
             "Value for %s changed from %s to %s", self.tag, old_value, new_value
         )
 
@@ -101,61 +90,63 @@ class GeckoStructAccessor(Observable):
         data = struct.unpack(
             self.format, status_block[self.pos : self.pos + self.length]
         )[0]
-        logger.debug(
-            "Accessor %s @ %s, %s raw data = %x", self.tag, self.pos, self.type, data
-        )
         if self.bitpos is not None:
             data = (data >> self.bitpos) & self.bitmask
-            logger.debug(
-                "BitPos %s accessor %s adjusted data = %x",
-                (self.bitpos, self.bitmask),
-                self.tag,
-                data,
-            )
         return data
 
     def _get_value(self, status_block=None):
         data = self._get_raw_value(status_block)
         if self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
             data = data == 1
-            logger.debug("Bool accessor %s adjusted data = %s", self.tag, data)
         elif self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             try:
                 data = self.items[data]
-                logger.debug("Enum accessor %s adjusted data = %s", self.tag, data)
             except IndexError:
-                logger.exception(
-                    "Enum accessor %s out-of-range for %s", self.tag, self.items
+                _LOGGER.exception(
+                    "Enum accessor %s out-of-range for %s. Value is %s",
+                    self.tag,
+                    self.items,
+                    data,
                 )
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
+            data = f"{int(data/256):02}:{data%256:02}"
         return data
 
     def _set_value(self, newvalue):
-        """ Set a value in the pack structure using the initialized declaration """
+        """Set a value in the pack structure using the initialized declaration"""
         if self.read_write is None:
             raise Exception(
                 GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag)
             )
 
         if self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
-            logger.debug("Enum accessor %s adjusted from %s", self.tag, newvalue)
             newvalue = self.items.index(newvalue)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
+            bits = newvalue.split(":")
+            newvalue = (int(bits[0]) * 256) + (int(bits[1]) % 256)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE and isinstance(
+            newvalue, str
+        ):
+            newvalue = int(newvalue)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE and isinstance(
+            newvalue, str
+        ):
+            newvalue = int(newvalue)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE and isinstance(
+            newvalue, str
+        ):
+            newvalue = newvalue.lower() == "true"
 
         # If it is a bitpos, then mask it with the existing value
         existing = struct.unpack(
             self.format, self.struct.status_block[self.pos : self.pos + self.length]
         )[0]
         if self.bitpos is not None:
-            logger.debug(
-                "Bitpos %s accessor %s adjusted from %s",
-                (self.bitpos, self.bitmask),
-                self.tag,
-                newvalue,
-            )
             newvalue = (existing & ~(self.bitmask << self.bitpos)) | (
                 (newvalue & self.bitmask) << self.bitpos
             )
 
-        logger.debug(
+        _LOGGER.debug(
             "Accessor %s @ %s, %s setting value to %s, existing value was %s. "
             "Length is %d",
             self.tag,
@@ -171,7 +162,7 @@ class GeckoStructAccessor(Observable):
 
     @property
     def value(self):
-        """ Get a value from the pack structure using the initialized declaration """
+        """Get a value from the pack structure using the initialized declaration"""
         return self._get_value()
 
     @property
@@ -182,8 +173,115 @@ class GeckoStructAccessor(Observable):
 
     @value.setter
     def value(self, newvalue):
-        """ Set a value in the pack structure using the initialized declaration """
+        """Set a value in the pack structure using the initialized declaration"""
         self._set_value(newvalue)
+
+    async def async_set_value(self, newvalue):
+        """Set a value in the pack structure using the initialized declaration"""
+        if self.read_write is None:
+            raise Exception(
+                GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag)
+            )
+
+        if self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
+            newvalue = self.items.index(newvalue)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
+            bits = newvalue.split(":")
+            newvalue = (int(bits[0]) * 256) + (int(bits[1]) % 256)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE and isinstance(
+            newvalue, str
+        ):
+            newvalue = int(newvalue)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE and isinstance(
+            newvalue, str
+        ):
+            newvalue = int(newvalue)
+        elif self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE and isinstance(
+            newvalue, str
+        ):
+            newvalue = newvalue.lower() == "true"
+
+        # If it is a bitpos, then mask it with the existing value
+        existing = struct.unpack(
+            self.format, self.struct.status_block[self.pos : self.pos + self.length]
+        )[0]
+        if self.bitpos is not None:
+            newvalue = (existing & ~(self.bitmask << self.bitpos)) | (
+                (newvalue & self.bitmask) << self.bitpos
+            )
+
+        _LOGGER.debug(
+            "Accessor %s @ %s, %s setting value to %s, existing value was %s. "
+            "Length is %d",
+            self.tag,
+            self.pos,
+            self.type,
+            newvalue,
+            existing,
+            self.length,
+        )
+
+        # We can't handle this here, we must delegate via the structure
+        await self.struct.async_set_value(self.pos, self.length, newvalue)
 
     def __repr__(self):
         return f"{self.tag!r}: {self.value!r}"
+
+
+class GeckoByteStructAccessor(GeckoStructAccessor):
+    def __init__(self, struct_, tag, pos, rw):
+        super().__init__(struct_, tag, pos, "Byte", None, None, None, None, rw)
+
+
+class GeckoWordStructAccessor(GeckoStructAccessor):
+    def __init__(self, struct_, tag, pos, rw):
+        super().__init__(struct_, tag, pos, "Word", None, None, None, None, rw)
+
+
+class GeckoTimeStructAccessor(GeckoStructAccessor):
+    def __init__(self, struct_, tag, pos, rw):
+        super().__init__(struct_, tag, pos, "Time", None, None, None, None, rw)
+
+
+class GeckoBoolStructAccessor(GeckoStructAccessor):
+    def __init__(self, struct_, tag, pos, bitpos, rw):
+        super().__init__(struct_, tag, pos, "Bool", bitpos, None, None, None, rw)
+
+
+class GeckoEnumStructAccessor(GeckoStructAccessor):
+    def __init__(self, struct_, tag, pos, bitpos, items, size, maxitems, rw):
+        super().__init__(struct_, tag, pos, "Enum", bitpos, items, size, maxitems, rw)
+
+
+class GeckoTempStructAccessor(GeckoWordStructAccessor):
+    """Class to decorate a temperature accessor so that the farenheight tenths, offset
+    from freezing are handled"""
+
+    def _get_value(self, status_block=None):
+        """Get the temperature"""
+        # Internally, temp is in farenheight tenths, offset from freezing point
+        temp = super()._get_value(status_block)
+        units = self.struct.accessors[GeckoConstants.KEY_TEMP_UNITS].value
+        if units == "C":
+            temp = temp / 18.0
+        else:
+            temp = (temp + 320) / 10.0
+        return temp
+
+    def _set_value(self, temp):
+        """Set the temperature"""
+        units = self.struct.accessors[GeckoConstants.KEY_TEMP_UNITS].value
+        if units == "C":
+            temp = float(temp) * 18.0
+        else:
+            temp = (float(temp) * 10.0) - 320
+        super()._set_value(int(temp))
+
+    async def async_set_value(self, temp):
+        """Set the temperature"""
+        units = self.struct.accessors[GeckoConstants.KEY_TEMP_UNITS].value
+        if units == "C":
+            temp = float(temp) * 18.0
+        else:
+            temp = (float(temp) * 10.0) - 320
+        await super().async_set_value(int(temp))

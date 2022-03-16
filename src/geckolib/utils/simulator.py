@@ -1,10 +1,12 @@
 """ GeckoSimulator class """
 
 import logging
-import readline
 import os
 import glob
 import random
+import importlib
+import struct
+from ..const import GeckoConstants
 
 from .shared_command import GeckoCmd
 from ..driver import (
@@ -15,10 +17,11 @@ from ..driver import (
     GeckoGetChannelProtocolHandler,
     GeckoConfigFileProtocolHandler,
     GeckoStatusBlockProtocolHandler,
-    # GeckoPartialStatusBlockProtocolHandler,
+    GeckoPartialStatusBlockProtocolHandler,
     GeckoWatercareProtocolHandler,
     GeckoUpdateFirmwareProtocolHandler,
     GeckoRemindersProtocolHandler,
+    GeckoRFErrProtocolHandler,
     GeckoPackCommandProtocolHandler,
     GeckoStructure,
     GeckoUdpSocket,
@@ -42,6 +45,9 @@ class GeckoSimulator(GeckoCmd):
         self.structure = GeckoStructure(self._on_set_value)
         self.snapshot = None
         self._reliability = 1.0
+        self._do_rferr = False
+        self._send_structure_change = False
+        self._clients = []
         random.seed()
 
         super().__init__(first_commands)
@@ -50,15 +56,19 @@ class GeckoSimulator(GeckoCmd):
             "Welcome to the Gecko simulator. Type help or ? to list commands.\n"
         )
         self.prompt = "(GeckoSim) "
-        readline.set_completer_delims(" \r\n")
+        try:
+            import readline
+
+            readline.set_completer_delims(" \r\n")
+        except ImportError:
+            pass
 
     def __exit__(self, *args):
         self._socket.close()
         self._socket = None
 
-    def do_about(self, arg):
+    def do_about(self, _arg):
         """Display information about this client program and support library : about"""
-        del arg
         print("")
         print(
             "GeckoSimulator: A python program using GeckoLib library to simulate Gecko"
@@ -99,6 +109,39 @@ class GeckoSimulator(GeckoCmd):
             return
         self._reliability = min(1.0, max(0.0, float(args)))
 
+    def do_rferr(self, args):
+        """Set the simulator to response with RFERR if the parameter is True"""
+        self._do_rferr = args.lower() == "true"
+        print(f"RFERR mode set to {self._do_rferr}")
+
+    def do_get(self, arg):
+        """Get the value of the specified spa pack structure element : get <Element>"""
+        try:
+            print("{0} = {1}".format(arg, self.structure.accessors[arg].value))
+        except Exception:  # pylint: disable=broad-except
+            _LOGGER.exception("Exception getting '%s'", arg)
+
+    def do_set(self, arg):
+        """Set the value of the specified spa pack structure
+        element : set <Element>=<value>"""
+        self._send_structure_change = True
+        try:
+            key, val = arg.split("=")
+            self.structure.accessors[key].value = val
+        except Exception:  # pylint: disable=broad-except
+            _LOGGER.exception("Exception handling 'set %s'", arg)
+        finally:
+            self._send_structure_change = False
+
+    def do_accessors(self, _arg):
+        """Display the data from the accessors : accessors"""
+        print("Accessors")
+        print("=========")
+        print("")
+        for key in self.structure.accessors:
+            print("   {0}: {1}".format(key, self.structure.accessors[key].value))
+        print("")
+
     def complete_parse(self, text, line, start_idx, end_idx):
         return self._complete_path(text)
 
@@ -120,7 +163,60 @@ class GeckoSimulator(GeckoCmd):
         self.snapshot = snapshot
         self.structure.replace_status_block_segment(0, self.snapshot.bytes)
 
-    def _should_ignore(self, handler, sender):
+        try:
+            # Attempt to get config and log classes
+            plateform_key = self.snapshot.packtype.lower()
+
+            pack_module_name = f"geckolib.driver.packs.{plateform_key}"
+            try:
+                GeckoPack = importlib.import_module(pack_module_name).GeckoPack
+                self.pack_class = GeckoPack(self.structure)
+                self.pack_type = self.pack_class.type
+            except ModuleNotFoundError:
+                raise Exception(
+                    GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
+                        self.snapshot.packtype
+                    )
+                )
+
+            config_module_name = f"geckolib.driver.packs.{plateform_key}-cfg-{self.snapshot.config_version}"
+            try:
+                GeckoConfigStruct = importlib.import_module(
+                    config_module_name
+                ).GeckoConfigStruct
+                self.config_class = GeckoConfigStruct(self.structure)
+            except ModuleNotFoundError:
+                raise Exception(
+                    f"Cannot find GeckoConfigStruct module for {self.snapshot.packtype} v{self.snapshot.config_version}"
+                )
+
+            log_module_name = (
+                f"geckolib.driver.packs.{plateform_key}-log-{self.snapshot.log_version}"
+            )
+            try:
+                GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
+                self.log_class = GeckoLogStruct(self.structure)
+            except ModuleNotFoundError:
+                raise Exception(
+                    f"Cannot find GeckoLogStruct module for {self.snapshot.packtype} v{self.snapshot.log_version}"
+                )
+
+            self.structure.build_accessors(self.config_class, self.log_class)
+            for accessor in self.structure.accessors.values():
+                accessor.set_read_write("ALL")
+
+        except:  # noqa
+            _LOGGER.exception("Exception during snapshot load")
+
+    def _should_ignore(self, handler, sender, respect_rferr=True):
+        if respect_rferr and self._do_rferr:
+            self._socket.queue_send(
+                GeckoRFErrProtocolHandler.response(parms=sender),
+                sender,
+            )
+            # Always ignore responses because we've already replied with RFERR
+            return True
+
         should_ignore = random.random() > self._reliability
         if should_ignore:
             print(f"Unreliable simulator ignoring request for {handler} from {sender}")
@@ -134,7 +230,9 @@ class GeckoSimulator(GeckoCmd):
         )
 
         self._socket.add_receive_handler(self._hello_handler)
-        self._socket.add_receive_handler(GeckoPacketProtocolHandler())
+        self._socket.add_receive_handler(
+            GeckoPacketProtocolHandler(socket=self._socket)
+        )
         self._socket.add_receive_handler(
             GeckoPingProtocolHandler(on_handled=self._on_ping)
         ),
@@ -163,27 +261,29 @@ class GeckoSimulator(GeckoCmd):
             GeckoPackCommandProtocolHandler(on_handled=self._on_pack_command)
         )
 
-    def _on_hello(self, handler: GeckoHelloProtocolHandler, socket, sender):
+    def _on_hello(self, handler: GeckoHelloProtocolHandler, sender):
         if handler.was_broadcast_discovery:
-            if self._should_ignore(handler, sender):
+            if self._should_ignore(handler, sender, False):
                 return
-            socket.queue_send(self._hello_handler, sender)
+            self._socket.queue_send(self._hello_handler, sender)
         elif handler.client_identifier is not None:
             # We're not fussy, we'll chat to anyone!
             pass
 
-    def _on_ping(self, handler: GeckoPingProtocolHandler, socket, sender):
+    def _on_ping(self, handler: GeckoPingProtocolHandler, sender):
         if self._should_ignore(handler, sender):
             return
-        socket.queue_send(
+        self._socket.queue_send(
             GeckoPingProtocolHandler.response(parms=sender),
             sender,
         )
+        if sender not in self._clients:
+            self._clients.append(sender)
 
-    def _on_version(self, handler: GeckoVersionProtocolHandler, socket, sender):
+    def _on_version(self, handler: GeckoVersionProtocolHandler, sender):
         if self._should_ignore(handler, sender):
             return
-        socket.queue_send(
+        self._socket.queue_send(
             GeckoVersionProtocolHandler.response(
                 self.snapshot.intouch_EN,
                 self.snapshot.intouch_CO,
@@ -192,18 +292,18 @@ class GeckoSimulator(GeckoCmd):
             sender,
         )
 
-    def _on_get_channel(self, handler: GeckoGetChannelProtocolHandler, socket, sender):
+    def _on_get_channel(self, handler: GeckoGetChannelProtocolHandler, sender):
         if self._should_ignore(handler, sender):
             return
-        socket.queue_send(
+        self._socket.queue_send(
             GeckoGetChannelProtocolHandler.response(10, 33, parms=sender),
             sender,
         )
 
-    def _on_config_file(self, handler: GeckoConfigFileProtocolHandler, socket, sender):
+    def _on_config_file(self, handler: GeckoConfigFileProtocolHandler, sender):
         if self._should_ignore(handler, sender):
             return
-        socket.queue_send(
+        self._socket.queue_send(
             GeckoConfigFileProtocolHandler.response(
                 self.snapshot.packtype,
                 self.snapshot.config_version,
@@ -213,30 +313,28 @@ class GeckoSimulator(GeckoCmd):
             sender,
         )
 
-    def _on_watercare(self, handler: GeckoWatercareProtocolHandler, socket, sender):
+    def _on_watercare(self, handler: GeckoWatercareProtocolHandler, sender):
         if self._should_ignore(handler, sender):
             return
         if handler.schedule:
-            socket.queue_send(
-                GeckoWatercareProtocolHandler.schedule(parms=sender), sender
+            self._socket.queue_send(
+                GeckoWatercareProtocolHandler.giveschedule(parms=sender), sender
             )
         else:
-            socket.queue_send(
+            self._socket.queue_send(
                 GeckoWatercareProtocolHandler.response(1, parms=sender), sender
             )
 
-    def _on_update_firmware(
-        self, handler: GeckoUpdateFirmwareProtocolHandler, socket, sender
-    ):
+    def _on_update_firmware(self, handler: GeckoUpdateFirmwareProtocolHandler, sender):
         if self._should_ignore(handler, sender):
             return
-        socket.queue_send(
+        self._socket.queue_send(
             GeckoUpdateFirmwareProtocolHandler.response(parms=sender), sender
         )
 
-    def _on_status_block(
-        self, handler: GeckoStatusBlockProtocolHandler, socket, sender
-    ):
+    def _on_status_block(self, handler: GeckoStatusBlockProtocolHandler, sender):
+        if self._should_ignore(handler, sender):
+            return
         for idx, start in enumerate(
             range(
                 handler.start,
@@ -249,7 +347,9 @@ class GeckoSimulator(GeckoCmd):
                 len(self.structure.status_block) - start,
             )
             next = (idx + 1) % ((handler.length // self._STATUS_BLOCK_SEGMENT_SIZE) + 1)
-            socket.queue_send(
+            if self._should_ignore(handler, sender, False):
+                continue
+            self._socket.queue_send(
                 GeckoStatusBlockProtocolHandler.response(
                     idx,
                     next,
@@ -259,17 +359,17 @@ class GeckoSimulator(GeckoCmd):
                 sender,
             )
 
-    def _on_get_reminders(self, handler: GeckoRemindersProtocolHandler, socket, sender):
+    def _on_get_reminders(self, handler: GeckoRemindersProtocolHandler, sender):
         if self._should_ignore(handler, sender):
             return
-        socket.queue_send(GeckoRemindersProtocolHandler.response(parms=sender), sender)
+        self._socket.queue_send(
+            GeckoRemindersProtocolHandler.response(parms=sender), sender
+        )
 
-    def _on_pack_command(
-        self, handler: GeckoPackCommandProtocolHandler, socket, sender
-    ):
+    def _on_pack_command(self, handler: GeckoPackCommandProtocolHandler, sender):
         if self._should_ignore(handler, sender):
             return
-        socket.queue_send(
+        self._socket.queue_send(
             GeckoPackCommandProtocolHandler.response(parms=sender), sender
         )
         if handler.is_key_press:
@@ -278,4 +378,23 @@ class GeckoSimulator(GeckoCmd):
             print(f"Set a value ({handler.position} = {handler.new_data})")
 
     def _on_set_value(self, pos, length, newvalue):
-        print(f"Simulator: Set value @{pos} for {length} to {newvalue}")
+        print(f"Simulator: Set value @{pos} len {length} to {newvalue}")
+        change = None
+        if length == 1:
+            change = (pos, struct.pack(">B", newvalue))
+        elif length == 2:
+            change = (pos, struct.pack(">H", newvalue))
+        else:
+            print("**** UNHANDLED SET SIZE ****")
+            return
+
+        self.structure.replace_status_block_segment(change[0], change[1])
+
+        if self._send_structure_change:
+            for client in self._clients:
+                self._socket.queue_send(
+                    GeckoPartialStatusBlockProtocolHandler.report_changes(
+                        self._socket, [change], parms=client
+                    ),
+                    client,
+                )

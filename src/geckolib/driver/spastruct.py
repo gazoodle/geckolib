@@ -2,11 +2,8 @@
 
 import logging
 
-from ..const import GeckoConstants
 from .protocol import GeckoStatusBlockProtocolHandler
 from .udp_socket import GeckoUdpSocket
-from .accessor import GeckoStructAccessor
-from .decorators import GeckoTemperatureDecorator
 
 logger = logging.getLogger(__name__)
 
@@ -17,13 +14,16 @@ class GeckoStructure:
     def __init__(self, on_set_value):
         self._status_block = b"\x00" * 1024
         self.accessors = {}
+        self.all_outputs = []
+        self.all_devices = []
+        self.user_demands = []
         self.had_at_least_one_block = False
         self._on_set_value = on_set_value
 
         # Install a set of handlers
 
     def replace_status_block_segment(self, offset, segment):
-        """ Replace a segment of the status block """
+        """Replace a segment of the status block"""
         previous_block = self._status_block
         segment_len = len(segment)
         self._status_block = (
@@ -43,17 +43,17 @@ class GeckoStructure:
         self._status_block = block
 
     def _on_status_block_received(
-        self, handler: GeckoStatusBlockProtocolHandler, socket, sender
+        self, handler: GeckoStatusBlockProtocolHandler, sender
     ):
         if not self._next_expected == handler.sequence:
-            logger.warning(
+            logger.debug(
                 "Out-of-sequence status block segment %d - ignored", handler.sequence
             )
             if handler.next == 0:
-                logger.warning("Retry status block request")
+                logger.debug("Retry status block request")
                 self._next_expected = 0
                 self._status_block_segments = []
-                if not handler.retry(socket):
+                if not handler.retry(self._socket):
                     raise RuntimeError("Too many retries")
         else:
             self._status_block_segments.append(handler.data)
@@ -61,33 +61,23 @@ class GeckoStructure:
             # When we get the last partial segment, we can assume the spa is
             # connected and we can report on status
             if handler.next == 0:
-                logger.info("Status block segments complete, update and remove handler")
+                logger.debug(
+                    "Status block segments complete, update and remove handler"
+                )
                 self.replace_status_block_segment(
                     self._status_block_offset, b"".join(self._status_block_segments)
                 )
                 self.had_at_least_one_block = True
                 handler._should_remove_handler = True
 
-    def build_accessors(self, xmllist):
-        self.accessors = {
-            element.tag: GeckoStructAccessor(self, element)
-            for xml in xmllist
-            for element in xml.findall(
-                GeckoConstants.SPA_PACK_STRUCT_POS_ELEMENTS_XPATH
-            )
-        }
-        # Fix temperature accessors ...
-        temp_keys = {
-            element.tag
-            for xml in xmllist
-            for element in xml.findall(
-                GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE_ELEMENTS_XPATH
-            )
-            if "temp" in element.tag.lower() or "setpoint" in element.tag.lower()
-        }
-        logger.debug("Temperature keys to decorate %s", temp_keys)
-        for key in temp_keys:
-            self.accessors[key] = GeckoTemperatureDecorator(self, self.accessors[key])
+    def build_accessors(self, config_class, log_class):
+        self.accessors = dict(config_class.accessors, **log_class.accessors)
+        # Get all outputs
+        self.all_outputs = config_class.output_keys
+        # Get collection of possible devices
+        self.all_devices = log_class.all_device_keys
+        # User devices are those that have a Ud in the tag name
+        self.user_demands = log_class.user_demand_keys
 
     def retry_request(
         self,
@@ -95,6 +85,7 @@ class GeckoStructure:
         request: GeckoStatusBlockProtocolHandler,
         sender: tuple,
     ):
+        self._socket = socket_
         request._on_handled = self._on_status_block_received
         self._status_block_offset = request.start
         socket_.add_receive_handler(request)

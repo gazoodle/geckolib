@@ -3,7 +3,8 @@
 import logging
 import re
 
-from ..udp_socket import GeckoUdpProtocolHandler
+from ..udp_protocol_handler import GeckoUdpProtocolHandler
+from ..udp_socket import GeckoUdpSocket
 
 PACKET_OPEN = b"<PACKT>"
 PACKET_CLOSE = b"</PACKT>"
@@ -22,6 +23,7 @@ class GeckoPacketProtocolHandler(GeckoUdpProtocolHandler):
         super().__init__(**kwargs)
         self._parms = kwargs.get("parms")
         self._content = kwargs.get("content", None)
+        self._socket = kwargs.get("socket", None)
         if self._content is not None:
             if not isinstance(self._content, bytes):
                 raise TypeError(self._content, "Content must be of type `bytes`")
@@ -78,15 +80,15 @@ class GeckoPacketProtocolHandler(GeckoUdpProtocolHandler):
             return match.groups()
         return (None, None, None)
 
-    def handle(self, socket, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, sender: tuple) -> None:
         (
             src_identifier,
             dest_identifier,
             self._packet_content,
         ) = self._extract_packet_parts(received_bytes[7:-8])
         self._parms = (sender[0], sender[1], src_identifier, dest_identifier)
-        if socket is not None:
-            socket.dispatch_recevied_data(self._packet_content, self._parms)
+        if self._socket is not None:
+            self._socket.dispatch_recevied_data(self._packet_content, self._parms)
 
     @property
     def packet_content(self):

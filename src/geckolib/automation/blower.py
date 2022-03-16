@@ -1,6 +1,6 @@
 """ Gecko Blowers """
 
-from .switches import GeckoSwitch
+from .switch import GeckoSwitch
 
 
 class GeckoBlower(GeckoSwitch):

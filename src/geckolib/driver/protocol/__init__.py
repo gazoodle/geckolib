@@ -8,12 +8,15 @@ from .packcommand import GeckoPackCommandProtocolHandler
 from .packet import GeckoPacketProtocolHandler
 from .ping import GeckoPingProtocolHandler
 from .reminders import GeckoRemindersProtocolHandler
+from .rferr import GeckoRFErrProtocolHandler
 from .statusblock import (
     GeckoStatusBlockProtocolHandler,
     GeckoPartialStatusBlockProtocolHandler,
+    GeckoAsyncPartialStatusBlockProtocolHandler,
 )
+from .unhandled import GeckoUnhandledProtocolHandler
 from .version import GeckoVersionProtocolHandler
-from .watercare import GeckoWatercareProtocolHandler
+from .watercare import GeckoWatercareProtocolHandler, GeckoWatercareErrorHandler
 
 __all__ = [
     # From hello
@@ -31,12 +34,18 @@ __all__ = [
     # From statusblock
     "GeckoStatusBlockProtocolHandler",
     "GeckoPartialStatusBlockProtocolHandler",
+    "GeckoAsyncPartialStatusBlockProtocolHandler",
     # From watercare
     "GeckoWatercareProtocolHandler",
+    "GeckoWatercareErrorHandler",
     # From firmware
     "GeckoUpdateFirmwareProtocolHandler",
     # From reminders
     "GeckoRemindersProtocolHandler",
+    # From rferr
+    "GeckoRFErrProtocolHandler",
     # From packcommand
     "GeckoPackCommandProtocolHandler",
+    # From unhandled
+    "GeckoUnhandledProtocolHandler",
 ]
