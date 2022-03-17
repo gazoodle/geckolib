@@ -20,7 +20,7 @@ import asyncio
 
 from cui import CUI
 from curses import wrapper
-from context import GeckoConstants  # type: ignore
+from context_sample import GeckoConstants  # type: ignore
 
 
 _LOGGER = logging.getLogger(__name__)

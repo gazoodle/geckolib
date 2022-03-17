@@ -9,6 +9,7 @@ from geckolib.automation.base import GeckoAutomationBase
 
 from .blower import GeckoBlower
 from ..const import GeckoConstants
+from ..config import GeckoConfig
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
@@ -82,9 +83,9 @@ class GeckoAsyncFacade(Observable):
 
                 finally:
                     wait_time = (
-                        GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS
+                        GeckoConfig.FACADE_UPDATE_FREQUENCY_IN_SECONDS
                         if self._spa.is_responding_to_pings
-                        else GeckoConstants.PING_FREQUENCY_IN_SECONDS
+                        else GeckoConfig.PING_FREQUENCY_IN_SECONDS
                     )
                     await asyncio.sleep(wait_time)
 

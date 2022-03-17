@@ -10,21 +10,9 @@ class GeckoConstants:
     """
 
     INTOUCH2_PORT = 10022
-    MAX_PACKET_SIZE = 8192
-    # Mininum time to wait for initial spa discovery even if one spa has responded
-    DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS = 4
-    # Maximum time to wait for full discovery if no spas have responded
-    DISCOVERY_TIMEOUT_IN_SECONDS = 10
     # Maximum time to wait for full connection for a responding spa
     CONNECTION_TIMEOUT_IN_SECONDS = 45
-    # Time between task tidyup checks
-    TASK_TIDY_FREQUENCY_IN_SECONDS = 5
-    PING_TIMEOUT_IN_SECONDS = 4
-    PING_FREQUENCY_IN_SECONDS = 2
-    PING_DEVICE_NOT_RESPONDING_TIMEOUT = 10
-    FACADE_UPDATE_FREQUENCY_IN_SECONDS = 30
-    FACADE_HEALTH_MONITOR_DUTY_CYCLE_IN_SECONDS = 10
-    SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS = 30
+
     CONNECTION_STEP_PAUSE_IN_SECONDS = 0  # Time between connection steps
     MAX_RF_ERRORS_BEFORE_HALT = 50
     ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD = 0.001

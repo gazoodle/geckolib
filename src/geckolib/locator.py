@@ -9,6 +9,7 @@ from .driver import (
     GeckoHelloProtocolHandler,
 )
 from .const import GeckoConstants
+from .config import GeckoConfig
 from .spa_descriptor import GeckoSpaDescriptor
 
 
@@ -79,7 +80,7 @@ class GeckoLocator:
 
     @property
     def has_had_enough_time(self):
-        return self.age > GeckoConstants.DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS
+        return self.age > GeckoConfig.DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS
 
     def wait(self, timeout):
         self._socket.wait(timeout)
@@ -97,7 +98,7 @@ class GeckoLocator:
         if should_wait:
             try:
 
-                while self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
+                while self.age < GeckoConfig.DISCOVERY_TIMEOUT_IN_SECONDS:
                     if self.has_had_enough_time:
                         if len(self.spas) > 0:
                             _LOGGER.info(
@@ -114,7 +115,7 @@ class GeckoLocator:
         _LOGGER.debug("Locator retry thread started")
         while self._socket.isopen:
             # Only broadcast for the full discovery time
-            if self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
+            if self.age < GeckoConfig.DISCOVERY_TIMEOUT_IN_SECONDS:
                 self._socket.queue_send(
                     GeckoHelloProtocolHandler.broadcast(),
                     GeckoHelloProtocolHandler.broadcast_address(

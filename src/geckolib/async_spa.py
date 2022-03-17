@@ -13,6 +13,7 @@ from .async_tasks import AsyncTasks
 from .spa_events import GeckoSpaEvent
 
 from .const import GeckoConstants
+from .config import GeckoConfig
 from .driver import (
     GeckoAsyncUdpProtocol,
     GeckoPacketProtocolHandler,
@@ -389,7 +390,7 @@ class GeckoAsyncSpa(Observable):
         # are successful
         return (
             time.monotonic() - self._last_ping
-        ) < GeckoConstants.PING_FREQUENCY_IN_SECONDS * 2
+        ) < GeckoConfig.PING_FREQUENCY_IN_SECONDS * 2
 
     async def _async_on_packet(
         self, handler: GeckoPacketProtocolHandler, sender: tuple
@@ -419,10 +420,7 @@ class GeckoAsyncSpa(Observable):
 
                 assert self._protocol is not None
                 ping_handler = await self._protocol.get(
-                    lambda: GeckoPingProtocolHandler.request(
-                        parms=self.sendparms,
-                        timeout=GeckoConstants.PING_FREQUENCY_IN_SECONDS,
-                    ),
+                    lambda: GeckoPingProtocolHandler.request(parms=self.sendparms),
                     None,
                     1,
                 )
@@ -442,14 +440,19 @@ class GeckoAsyncSpa(Observable):
                     )
                     if (
                         time.monotonic() - self._last_ping
-                        > GeckoConstants.PING_DEVICE_NOT_RESPONDING_TIMEOUT
+                        > GeckoConfig.PING_DEVICE_NOT_RESPONDING_TIMEOUT_IN_SECONDS
                     ):
                         await self._event_handler(
                             GeckoSpaEvent.RUNNING_PING_NO_RESPONSE,
                             last_ping_at=self._last_ping_at,
                         )
 
-                await asyncio.sleep(GeckoConstants.PING_FREQUENCY_IN_SECONDS)
+                # Ping every couple of seconds until we have had a response
+                await asyncio.sleep(
+                    2
+                    if self._last_ping_at is None
+                    else GeckoConfig.PING_FREQUENCY_IN_SECONDS
+                )
 
         except asyncio.CancelledError:
             _LOGGER.debug("Ping loop cancelled")
@@ -476,7 +479,7 @@ class GeckoAsyncSpa(Observable):
 
         _LOGGER.debug("Refresh loop started")
         while self.isopen:
-            await asyncio.sleep(GeckoConstants.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS)
+            await asyncio.sleep(GeckoConfig.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS)
             if not self.is_connected:
                 continue
             if not self.is_responding_to_pings:

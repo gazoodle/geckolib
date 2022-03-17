@@ -6,6 +6,7 @@ import time
 import importlib
 
 from .const import GeckoConstants
+from .config import GeckoConfig
 from .driver import (
     GeckoUdpSocket,
     GeckoHelloProtocolHandler,
@@ -273,10 +274,10 @@ class GeckoSpa(GeckoUdpSocket):
         while self.isopen:
             self.queue_send(self._ping_handler, self.sendparms)
             self.refresh()
-            self.wait(GeckoConstants.PING_FREQUENCY_IN_SECONDS)
+            self.wait(GeckoConfig.PING_FREQUENCY_IN_SECONDS)
             if (
                 time.monotonic() - self._last_ping
-                > GeckoConstants.PING_DEVICE_NOT_RESPONDING_TIMEOUT
+                > GeckoConfig.PING_DEVICE_NOT_RESPONDING_TIMEOUT
             ):
                 logger.warning(
                     # TODO

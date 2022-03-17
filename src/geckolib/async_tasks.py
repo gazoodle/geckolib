@@ -2,7 +2,7 @@
 
 import logging
 import asyncio
-from .const import GeckoConstants
+from .config import GeckoConfig
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,8 +41,7 @@ class AsyncTasks:
     async def _tidy(self) -> None:
         try:
             while True:
-                # Run every five seconds
-                await asyncio.sleep(GeckoConstants.TASK_TIDY_FREQUENCY_IN_SECONDS)
+                await asyncio.sleep(GeckoConfig.TASK_TIDY_FREQUENCY_IN_SECONDS)
                 if _LOGGER.isEnabledFor(logging.DEBUG):
                     for task in self._tasks:
                         if task.done():
@@ -54,10 +53,12 @@ class AsyncTasks:
 
     @property
     def unique_id(self) -> str:
-        """Dummy function designed to be overridden"""
+        """Dummy function designed to be overridden."""
+        # TODO: Find a better way, this isn't functionality that the task manager needs
         return ""
 
     @property
     def spa_name(self) -> str:
         """Dummy function designed to be overridden"""
+        # TODO: Find a better way, this isn't functionality that the task manager needs
         return ""

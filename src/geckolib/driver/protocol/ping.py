@@ -13,7 +13,7 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoPingProtocolHandler(GeckoPacketProtocolHandler):
     @staticmethod
     def request(**kwargs):
-        return GeckoPingProtocolHandler(content=PING_VERB, **kwargs)
+        return GeckoPingProtocolHandler(content=PING_VERB, timeout=2, **kwargs)
 
     @staticmethod
     def response(**kwargs):

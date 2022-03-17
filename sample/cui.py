@@ -15,7 +15,7 @@ import time
 from datetime import datetime
 from abstract_display import AbstractDisplay
 from config import Config
-from context import (  # type: ignore
+from context_sample import (  # type: ignore
     GeckoAsyncSpaMan,
     GeckoSpaEvent,
     GeckoAsyncSpaDescriptor,
@@ -94,6 +94,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         await self.async_set_spa_info(None, None, None)
 
     async def _select_next_watercare_mode(self) -> None:
+        assert self.facade is not None
+        assert self.facade.water_care is not None
         new_mode = (self.facade.water_care.active_mode + 1) % len(
             GeckoConstants.WATERCARE_MODE
         )
@@ -126,6 +128,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
             if self._can_use_facade:
 
+                assert self.facade is not None
                 lines.append(f"{self.facade.name} is ready")
                 lines.append("")
                 lines.append(f"{self.facade.water_heater}")
