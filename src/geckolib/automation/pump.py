@@ -2,10 +2,11 @@
 
 import logging
 
+from ..const import GeckoConstants
 from .base import GeckoAutomationFacadeBase
 from .sensors import GeckoSensor
 
-logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class GeckoPump(GeckoAutomationFacadeBase):
@@ -24,6 +25,13 @@ class GeckoPump(GeckoAutomationFacadeBase):
         self._user_demand = user_demand
 
     @property
+    def is_on(self):
+        """True if the device is running, False otherwise"""
+        if self._state_sensor.accessor.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
+            return self._state_sensor.state
+        return self._state_sensor.state != "OFF"
+
+    @property
     def modes(self):
         return self._user_demand["options"]
 
@@ -33,21 +41,21 @@ class GeckoPump(GeckoAutomationFacadeBase):
 
     def set_mode(self, mode):
         try:
-            logger.debug("%s set mode %s", self.name, mode)
+            _LOGGER.debug("%s set mode %s", self.name, mode)
             self.facade.spa.accessors[self._user_demand["demand"]].value = mode
         except Exception:  # pylint: disable=broad-except
-            logger.exception(
+            _LOGGER.exception(
                 "Exception handling setting %s=%s", self._user_demand["demand"], mode
             )
 
     async def async_set_mode(self, mode):
         try:
-            logger.debug("%s async set mode %s", self.name, mode)
+            _LOGGER.debug("%s async set mode %s", self.name, mode)
             await self.facade.spa.accessors[
                 self._user_demand["demand"]
             ].async_set_value(mode)
         except Exception:  # pylint: disable=broad-except
-            logger.exception(
+            _LOGGER.exception(
                 "Exception handling setting %s=%s", self._user_demand["demand"], mode
             )
 

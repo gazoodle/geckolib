@@ -277,7 +277,7 @@ class GeckoSpa(GeckoUdpSocket):
             self.wait(GeckoConfig.PING_FREQUENCY_IN_SECONDS)
             if (
                 time.monotonic() - self._last_ping
-                > GeckoConfig.PING_DEVICE_NOT_RESPONDING_TIMEOUT
+                > GeckoConfig.PING_DEVICE_NOT_RESPONDING_TIMEOUT_IN_SECONDS
             ):
                 logger.warning(
                     # TODO

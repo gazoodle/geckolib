@@ -13,7 +13,7 @@ from .async_tasks import AsyncTasks
 from .spa_events import GeckoSpaEvent
 
 from .const import GeckoConstants
-from .config import GeckoConfig
+from .config import GeckoConfig, config_sleep
 from .driver import (
     GeckoAsyncUdpProtocol,
     GeckoPacketProtocolHandler,
@@ -448,7 +448,7 @@ class GeckoAsyncSpa(Observable):
                         )
 
                 # Ping every couple of seconds until we have had a response
-                await asyncio.sleep(
+                await config_sleep(
                     2
                     if self._last_ping_at is None
                     else GeckoConfig.PING_FREQUENCY_IN_SECONDS
@@ -479,7 +479,7 @@ class GeckoAsyncSpa(Observable):
 
         _LOGGER.debug("Refresh loop started")
         while self.isopen:
-            await asyncio.sleep(GeckoConfig.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS)
+            await config_sleep(GeckoConfig.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS)
             if not self.is_connected:
                 continue
             if not self.is_responding_to_pings:

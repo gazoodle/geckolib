@@ -2,7 +2,7 @@
 
 import logging
 import asyncio
-from .config import GeckoConfig
+from .config import GeckoConfig, config_sleep
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class AsyncTasks:
     async def _tidy(self) -> None:
         try:
             while True:
-                await asyncio.sleep(GeckoConfig.TASK_TIDY_FREQUENCY_IN_SECONDS)
+                await config_sleep(GeckoConfig.TASK_TIDY_FREQUENCY_IN_SECONDS)
                 if _LOGGER.isEnabledFor(logging.DEBUG):
                     for task in self._tasks:
                         if task.done():

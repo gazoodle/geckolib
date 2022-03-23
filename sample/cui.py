@@ -20,6 +20,7 @@ from context_sample import (  # type: ignore
     GeckoSpaEvent,
     GeckoAsyncSpaDescriptor,
     GeckoConstants,
+    GeckoConfig,
 )
 from typing import Optional
 
@@ -189,11 +190,25 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             lines.append("")
 
             if self._can_use_facade:
-                lines.append("Press 'b' to toggle blower")
-                if self.facade.blowers[0].is_on:
-                    self._commands["b"] = self.facade.blowers[0].async_turn_off
-                else:
-                    self._commands["b"] = self.facade.blowers[0].async_turn_on
+                assert self.facade is not None
+                if self.facade.blowers:
+                    lines.append("Press 'b' to toggle blower")
+                    if self.facade.blowers[0].is_on:
+                        self._commands["b"] = self.facade.blowers[0].async_turn_off
+                    else:
+                        self._commands["b"] = self.facade.blowers[0].async_turn_on
+                if self.facade.pumps:
+                    lines.append("Press 'p' to toggle pump 1")
+                    if self.facade.pumps[0].mode == "OFF":
+                        self._commands["p"] = (
+                            self.facade.pumps[0].async_set_mode,
+                            "HI",
+                        )
+                    else:
+                        self._commands["p"] = (
+                            self.facade.pumps[0].async_set_mode,
+                            "OFF",
+                        )
 
                 lines.append("Press '+' to increase setpoint")
                 self._commands["+"] = self.increase_temp
