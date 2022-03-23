@@ -5,6 +5,7 @@ import threading
 
 from .blower import GeckoBlower
 from ..const import GeckoConstants
+from ..config import GeckoConfig
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
@@ -170,8 +171,7 @@ class GeckoFacade(Observable):
         ]
 
         self._lights = [
-            GeckoLight(self, device["device"],
-                       GeckoConstants.DEVICES[device["device"]])
+            GeckoLight(self, device["device"], GeckoConstants.DEVICES[device["device"]])
             for device in self.actual_user_devices
             if GeckoConstants.DEVICES[device["device"]][3]
             == GeckoConstants.DEVICE_CLASS_LIGHT
@@ -298,7 +298,7 @@ class GeckoFacade(Observable):
 
     @property
     def reminders(self):
-        """ Get the reminders list """
+        """Get the reminders list"""
         remi = self._reminders.reminders
         if remi is None:
             return []
@@ -319,6 +319,6 @@ class GeckoFacade(Observable):
                 self.spa.wait(0.1)
                 continue
 
-            self.spa.wait(GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
+            self.spa.wait(GeckoConfig.FACADE_UPDATE_FREQUENCY_IN_SECONDS)
 
         logger.info("Facade update thread finished")

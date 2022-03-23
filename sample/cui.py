@@ -15,11 +15,12 @@ import time
 from datetime import datetime
 from abstract_display import AbstractDisplay
 from config import Config
-from context import (  # type: ignore
+from context_sample import (  # type: ignore
     GeckoAsyncSpaMan,
     GeckoSpaEvent,
     GeckoAsyncSpaDescriptor,
     GeckoConstants,
+    GeckoConfig,
 )
 from typing import Optional
 
@@ -94,6 +95,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         await self.async_set_spa_info(None, None, None)
 
     async def _select_next_watercare_mode(self) -> None:
+        assert self.facade is not None
+        assert self.facade.water_care is not None
         new_mode = (self.facade.water_care.active_mode + 1) % len(
             GeckoConstants.WATERCARE_MODE
         )
@@ -126,6 +129,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
             if self._can_use_facade:
 
+                assert self.facade is not None
                 lines.append(f"{self.facade.name} is ready")
                 lines.append("")
                 lines.append(f"{self.facade.water_heater}")
@@ -186,11 +190,25 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             lines.append("")
 
             if self._can_use_facade:
-                lines.append("Press 'b' to toggle blower")
-                if self.facade.blowers[0].is_on:
-                    self._commands["b"] = self.facade.blowers[0].async_turn_off
-                else:
-                    self._commands["b"] = self.facade.blowers[0].async_turn_on
+                assert self.facade is not None
+                if self.facade.blowers:
+                    lines.append("Press 'b' to toggle blower")
+                    if self.facade.blowers[0].is_on:
+                        self._commands["b"] = self.facade.blowers[0].async_turn_off
+                    else:
+                        self._commands["b"] = self.facade.blowers[0].async_turn_on
+                if self.facade.pumps:
+                    lines.append("Press 'p' to toggle pump 1")
+                    if self.facade.pumps[0].mode == "OFF":
+                        self._commands["p"] = (
+                            self.facade.pumps[0].async_set_mode,
+                            "HI",
+                        )
+                    else:
+                        self._commands["p"] = (
+                            self.facade.pumps[0].async_set_mode,
+                            "OFF",
+                        )
 
                 lines.append("Press '+' to increase setpoint")
                 self._commands["+"] = self.increase_temp

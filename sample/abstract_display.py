@@ -1,9 +1,10 @@
-""" Abstract curses display class for use in asyncio app - Thanks to https://gist.github.com/davesteele/8838f03e0594ef11c89f77a7bca91206 """
+""" Abstract curses display class for use in asyncio app - Thanks
+to https://gist.github.com/davesteele/8838f03e0594ef11c89f77a7bca91206 """
 
 import asyncio
 from abc import ABC, abstractmethod
 from curses import ERR, KEY_RESIZE, curs_set
-from context import GeckoConstants  # type: ignore
+from context_sample import GeckoConstants  # type: ignore
 
 import _curses
 

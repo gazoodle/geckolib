@@ -48,7 +48,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             self._spaman: GeckoAsyncSpaMan = spaman
             assert self._spaman._spa is not None
             self._spaman._spa.watch(self._on_spa_change)
-            self._last_ping_at: Optional[datetime] = None
+            self._last_ping_at: Optional[datetime] = self._spaman._spa.last_ping_at
 
         @property
         def state(self):

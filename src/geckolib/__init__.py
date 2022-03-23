@@ -4,6 +4,7 @@ import logging
 
 from .async_tasks import AsyncTasks
 from .const import GeckoConstants
+from .config import GeckoConfig
 from .automation import (
     GeckoAutomationBase,
     GeckoAutomationFacadeBase,
@@ -84,6 +85,8 @@ __all__ = [
     "GeckoReminders",
     # From constants
     "GeckoConstants",
+    # From config
+    "GeckoConfig",
     # From facade
     "GeckoFacade",
     # From locator

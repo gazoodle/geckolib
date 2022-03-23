@@ -11,6 +11,7 @@ from .driver import (
     GeckoAsyncUdpProtocol,
 )
 from .const import GeckoConstants
+from .config import GeckoConfig
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .spa_events import GeckoSpaEvent
 from .driver import Observable
@@ -95,7 +96,7 @@ class GeckoAsyncLocator(Observable):
 
     @property
     def has_had_enough_time(self) -> bool:
-        return self.age > GeckoConstants.DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS
+        return self.age > GeckoConfig.DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS
 
     @property
     def is_running(self) -> bool:
@@ -142,7 +143,7 @@ class GeckoAsyncLocator(Observable):
         self._started = time.monotonic()
         self._on_change(self)
 
-        while self.age < GeckoConstants.DISCOVERY_TIMEOUT_IN_SECONDS:
+        while self.age < GeckoConfig.DISCOVERY_TIMEOUT_IN_SECONDS:
             if self.has_had_enough_time:
                 if len(self._spas) > 0:
                     _LOGGER.info("Found %d spas ... %s", len(self._spas), self._spas)

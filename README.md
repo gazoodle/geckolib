@@ -349,6 +349,18 @@ https://www.gnu.org/licenses/gpl-3.0.html
   is busy and the CUI won't exit until the timeout has been reached (this can
   be reproduced by making the simulator stop responding to watercare requests)
 
+## Done/Fixed in 0.4.4
+
+- Moved config settings out of const class into their own class
+- Added idle/active config settings and task loop for library to switch between
+  idle and active config settings. An idle spa is one that is currently not processing
+  any user demands, an active spa is one that has received a client request such as to
+  change temp or turn on a pump. Active mode will stay on while any user demand is
+  currently live.
+- Replaced asyncio.sleep in various places with config_sleep which is aware of when
+  the configuration values have changed which means that the loops currently waiting on
+  these values stop waiting and can collect the new values.
+
 ## Done/Fixed in 0.4.2
 
 - Fixed processor getting pegged at 100% but not using asyncio.sleep(0)

@@ -9,6 +9,7 @@ from geckolib.automation.base import GeckoAutomationBase
 
 from .blower import GeckoBlower
 from ..const import GeckoConstants
+from ..config import GeckoConfig, config_sleep, set_config_mode
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
@@ -57,9 +58,19 @@ class GeckoAsyncFacade(Observable):
         # Install change notifications
         for device in self.all_automation_devices:
             device.watch(self._on_change)
+        # And notifications for active/idle items
+        for device in self.all_config_change_devices:
+            device.watch(self._on_config_device_change)
 
         self._taskman.add_task(self._facade_update(), "Facade update", "FACADE")
         self._ready = False
+
+    def _on_config_device_change(self, *args) -> None:
+        active_mode = False
+        for device in self.all_config_change_devices:
+            if device.is_on:  # type: ignore
+                active_mode = True
+        set_config_mode(active_mode)
 
     async def _facade_update(self) -> None:
         _LOGGER.debug("Facade update task started")
@@ -76,17 +87,18 @@ class GeckoAsyncFacade(Observable):
                     self._reminders_manager.change_reminders(
                         await self._spa.async_get_reminders()
                     )
+                    self._on_config_device_change()
 
                     # After we've been round here at least once, we're ready
                     self._ready = True
 
                 finally:
                     wait_time = (
-                        GeckoConstants.FACADE_UPDATE_FREQUENCY_IN_SECONDS
+                        GeckoConfig.FACADE_UPDATE_FREQUENCY_IN_SECONDS
                         if self._spa.is_responding_to_pings
-                        else GeckoConstants.PING_FREQUENCY_IN_SECONDS
+                        else GeckoConfig.PING_FREQUENCY_IN_SECONDS
                     )
-                    await asyncio.sleep(wait_time)
+                    await config_sleep(wait_time)
 
         except asyncio.CancelledError:
             _LOGGER.debug("Facade update loop cancelled")
@@ -281,7 +293,12 @@ class GeckoAsyncFacade(Observable):
     @property
     def all_user_devices(self) -> List[GeckoAutomationBase]:
         """Get all the user controllable devices as a list"""
-        return self._pumps + self._blowers + self._lights  # type:ignore
+        return self._pumps + self._blowers + self._lights  # type: ignore
+
+    @property
+    def all_config_change_devices(self) -> List[GeckoAutomationBase]:
+        """Get all devices that can cause config change"""
+        return self._pumps + self._blowers  # type: ignore
 
     @property
     def all_automation_devices(self) -> List[GeckoAutomationBase]:
