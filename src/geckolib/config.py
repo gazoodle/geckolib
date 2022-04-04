@@ -78,7 +78,8 @@ def set_config_mode(active: bool) -> None:
     for member in CONFIG_MEMBERS:
         setattr(GeckoConfig, member, getattr(new_config, member))
     assert ConfigChange is not None
-    ConfigChange.set_result(True)
+    if not ConfigChange.done():
+        ConfigChange.set_result(True)
 
 
 async def config_sleep(delay: float) -> None:

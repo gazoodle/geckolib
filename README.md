@@ -351,6 +351,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ## Done/Fixed in 0.4.5
 
+- Config change code could attempt to set result on a future that was already
+  set leading to an unhandled exception that could result in the partial status
+  update task being cancelled
+
 ## Done/Fixed in 0.4.4
 
 - Moved config settings out of const class into their own class
