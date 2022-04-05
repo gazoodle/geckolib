@@ -374,6 +374,7 @@ class GeckoAsyncSpa(Observable):
             self._protocol.disconnect()
             self._protocol = None
         self._transport = None
+        self.unwatch_all()
 
     @property
     def isopen(self) -> bool:

@@ -187,6 +187,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         """Reset the spa manager"""
         self._spa_descriptors = None
         if self._facade is not None:
+            await self._facade.disconnect()
             self._facade = None
         if self._spa is not None:
             await self._spa.disconnect()
