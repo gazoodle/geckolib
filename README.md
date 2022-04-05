@@ -354,6 +354,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Config change code could attempt to set result on a future that was already
   set leading to an unhandled exception that could result in the partial status
   update task being cancelled
+- Disconnected facades now cleared out of the system correctly
+- Added some more diagnostics to chase sporadic disconnects
 
 ## Done/Fixed in 0.4.4
 
