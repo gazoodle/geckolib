@@ -74,11 +74,13 @@ ConfigChange: Optional[asyncio.Future] = None
 
 def set_config_mode(active: bool) -> None:
     """Set config mode to active (true) or idle (false)."""
+    _LOGGER.debug("set_config_mode: %s", active)
     new_config = _GeckoActiveConfig() if active else _GeckoIdleConfig()
     for member in CONFIG_MEMBERS:
         setattr(GeckoConfig, member, getattr(new_config, member))
     assert ConfigChange is not None
-    ConfigChange.set_result(True)
+    if not ConfigChange.done():
+        ConfigChange.set_result(True)
 
 
 async def config_sleep(delay: float) -> None:

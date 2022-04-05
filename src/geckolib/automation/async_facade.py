@@ -65,6 +65,12 @@ class GeckoAsyncFacade(Observable):
         self._taskman.add_task(self._facade_update(), "Facade update", "FACADE")
         self._ready = False
 
+    async def disconnect(self) -> None:
+        _LOGGER.debug("Disconnect facade")
+        self._taskman.cancel_key_tasks("FACADE")
+        for device in self.all_automation_devices:
+            device.unwatch_all()
+
     def _on_config_device_change(self, *args) -> None:
         active_mode = False
         for device in self.all_config_change_devices:
