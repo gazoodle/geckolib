@@ -160,7 +160,8 @@ class GeckoSnapshot:
 
     @property
     def filename(self):
-        return f"{self._pack_type}-{self.name}-{self.timestamp}.snapshot"
+        fixed_timestamp = f"{self.timestamp}".replace(":", "_")
+        return f"{self._pack_type}-{self.name}-{fixed_timestamp}.snapshot"
 
     @property
     def intouch_EN(self):
