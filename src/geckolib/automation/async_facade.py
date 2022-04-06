@@ -135,13 +135,15 @@ class GeckoAsyncFacade(Observable):
         _LOGGER.debug("All devices are %s", self._spa.struct.all_devices)
         # If any of the actual connection values starts with any of the devices,
         # then the device is present
-        actual_devices = set(
-            [
-                device
-                for device in self._spa.struct.all_devices
-                for val in actual_connections.values()
-                if val.startswith(device)
-            ]
+        actual_devices = list(
+            dict.fromkeys(
+                [
+                    device
+                    for device in self._spa.struct.all_devices
+                    for val in actual_connections.values()
+                    if val.startswith(device)
+                ]
+            )
         )
         _LOGGER.debug("Actual devices are %s", actual_devices)
 

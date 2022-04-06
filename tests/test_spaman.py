@@ -26,6 +26,7 @@ async def mock_discover(self) -> None:
 
 
 async def mock_connect(self) -> None:
+    # await self._event_handler(GeckoSpaEvent.CONNECTION_SPA_COMPLETE)
     pass
 
 
@@ -82,13 +83,6 @@ class TestSpaMan(IsolatedAsyncioTestCase):
             ],
         )
         self.assertIsNone(facade)
-
-    async def atest_connect_twice_fails(self):
-        await self.spaman.async_connect_to_spa(mock_spa_descriptor)
-        with self.assertRaises(AssertionError):
-            await self.spaman.async_connect_to_spa(mock_spa_descriptor)
-
-        self.assertTrue(True)
 
 
 if __name__ == "__main__":
