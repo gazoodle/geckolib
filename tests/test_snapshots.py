@@ -150,7 +150,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
 
     async def test_inYJ_All_Off(self):
         facade = await self.build_facade(
-            "snapshots/inYJ-All off-2020-12-18 11:24:09.snapshot"
+            "snapshots/inYJ-All off-2020-12-18 11_24_09.snapshot"
         )
         self.assertListEqual(
             ["P1", "LI"],
