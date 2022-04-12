@@ -327,7 +327,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Handle other device types such as Waterfall
 - Handle inMix for lighting control
 - Add API documentation
-- RF signal strength for EN(Home) -> CO(Spa)
 - Merge reminders branch from @kalinrow
 - List property for User demands in pack classes
 - List property for errors in pack classes
@@ -335,7 +334,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Full sweep for typing hints - Ongoing
 - Add sensor for errors
 - Add switch for winterizing
-- Add sensor for RF signal strength
 - Add ability to set hours so we can implement a crude clock sync mechanism
 - Think about a way to provide access to behaviour refresh frequencies so that
   it can be customised
@@ -359,6 +357,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Moved protocol retry constants to GeckoConfig class
 - Added 2 second pause between protocol retries to allow intouch2 EN module to settle
 - Increased default timeout from 2 to 4 seconds
+- Added radio channel and signal strength sensor
 
 ## Done/Fixed in 0.4.5
 

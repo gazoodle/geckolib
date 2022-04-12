@@ -152,6 +152,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                     lines.append(f"{sensor}")
                 lines.append(f"{self.facade.eco_mode}")
                 lines.append(f"{self.ping_sensor}")
+                lines.append(f"{self.radio_sensor}")
 
             else:
 
@@ -170,12 +171,14 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 elif self.spa_state == GeckoSpaState.CONNECTED:
                     lines.append(f"{self.spa_name} connecting")
                     lines.append(f"{self.ping_sensor}")
+                    lines.append(f"{self.radio_sensor}")
                     lines.append("")
 
                 elif self.spa_state == GeckoSpaState.ERROR_RF_FAULT:
 
                     lines.append(f"{self.spa_name} not ready")
                     lines.append(f"{self.ping_sensor}")
+                    lines.append(f"{self.radio_sensor}")
                     lines.append("")
                     lines.append(
                         "Lost contact with your spa, it looks as if it is turned off"
@@ -185,6 +188,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
                     lines.append(f"{self.spa_name} not ready")
                     lines.append(f"{self.ping_sensor}")
+                    lines.append(f"{self.radio_sensor}")
                     lines.append("")
                     lines.append(
                         "Lost contact with your intouch2 module, please investigate"

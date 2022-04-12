@@ -116,6 +116,33 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         def __repr__(self):
             return f"{self.name}: {self.state}"
 
+    class RadioConnectionSensor(GeckoAutomationBase):
+        """Sensor with the current radio connection data"""
+
+        def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            super().__init__(spaman.unique_id, "Radio", spaman.spa_name, "RADIO")
+            self.channel = spaman._spa.channel
+            self.signal = spaman._spa.signal
+            if self.signal > 100:
+                self.signal = 100
+
+        @property
+        def state(self):
+            """The state of the sensor"""
+            return f"Channel {self.channel}, {self.signal}%"
+
+        @property
+        def unit_of_measurement(self):
+            """The unit of measurement for the sensor, or None"""
+            return None
+
+        @property
+        def device_class(self):
+            return "string"
+
+        def __repr__(self):
+            return f"{self.name}: {self.state}"
+
     def __init__(self, client_uuid: str, **kwargs: str) -> None:
         """Initialize a SpaMan class
 
@@ -161,6 +188,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         self._status_sensor: Optional[GeckoAsyncSpaMan.StatusSensor] = None
         self._reconnect_button: Optional[GeckoAsyncSpaMan.ReconnectButton] = None
         self._ping_sensor: Optional[GeckoAsyncSpaMan.PingSensor] = None
+        self._radio_sensor: Optional[GeckoAsyncSpaMan.RadioConnectionSensor] = None
 
     ########################################################################
     #
@@ -339,6 +367,10 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         return self._status_sensor
 
     @property
+    def radio_sensor(self) -> Optional[GeckoAsyncSpaMan.RadioConnectionSensor]:
+        return self._radio_sensor
+
+    @property
     def reconnect_button(self) -> Optional[GeckoAsyncSpaMan.ReconnectButton]:
         return self._reconnect_button
 
@@ -390,6 +422,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         elif event == GeckoSpaEvent.CONNECTION_GOT_CHANNEL:
             self._ping_sensor = GeckoAsyncSpaMan.PingSensor(self)
+            self._radio_sensor = GeckoAsyncSpaMan.RadioConnectionSensor(self)
             await self._handle_event(GeckoSpaEvent.CLIENT_HAS_PING_SENSOR)
 
         elif event == GeckoSpaEvent.CONNECTION_SPA_COMPLETE:
