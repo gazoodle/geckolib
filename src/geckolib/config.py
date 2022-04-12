@@ -33,6 +33,15 @@ class _GeckoConfig:
     SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS = 1
     """Frequency in seconds to request all LOG data from spa"""
 
+    PROTOCOL_TIMEOUT_IN_SECONDS = 1
+    """Default timeout for most protocol commands"""
+
+    PROTOCOL_RETRY_COUNT = 1
+    """Default retry count for protocol commands"""
+
+    PAUSE_BETWEEN_RETRIES_IN_SECONDS = 1
+    """Default pause between retry operations"""
+
 
 CONFIG_MEMBERS = [
     attr
@@ -52,6 +61,9 @@ class _GeckoActiveConfig(_GeckoConfig):
     PING_DEVICE_NOT_RESPONDING_TIMEOUT_IN_SECONDS = 10
     FACADE_UPDATE_FREQUENCY_IN_SECONDS = 30
     SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS = 30
+    PROTOCOL_TIMEOUT_IN_SECONDS = 4
+    PROTOCOL_RETRY_COUNT = 10
+    PAUSE_BETWEEN_RETRIES_IN_SECONDS = 2
 
 
 @dataclass
@@ -65,6 +77,9 @@ class _GeckoIdleConfig(_GeckoConfig):
     PING_DEVICE_NOT_RESPONDING_TIMEOUT_IN_SECONDS = 120
     FACADE_UPDATE_FREQUENCY_IN_SECONDS = 120
     SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS = 120
+    PROTOCOL_TIMEOUT_IN_SECONDS = 4
+    PROTOCOL_RETRY_COUNT = 10
+    PAUSE_BETWEEN_RETRIES_IN_SECONDS = 2
 
 
 # Root config

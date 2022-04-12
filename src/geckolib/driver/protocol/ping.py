@@ -3,6 +3,7 @@
 import logging
 import struct
 
+from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
 
 PING_VERB = b"APING"
@@ -13,7 +14,9 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoPingProtocolHandler(GeckoPacketProtocolHandler):
     @staticmethod
     def request(**kwargs):
-        return GeckoPingProtocolHandler(content=PING_VERB, timeout=2, **kwargs)
+        return GeckoPingProtocolHandler(
+            content=PING_VERB, timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS, **kwargs
+        )
 
     @staticmethod
     def response(**kwargs):

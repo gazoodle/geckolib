@@ -5,6 +5,7 @@ import struct
 
 from typing import Optional
 
+from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
 
 GETWC_VERB = b"GETWC"
@@ -27,8 +28,8 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
     def request(seq, **kwargs):
         return GeckoWatercareProtocolHandler(
             content=b"".join([GETWC_VERB, struct.pack(">B", seq)]),
-            timeout=2,
-            retry_count=10,
+            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
+            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )
@@ -39,7 +40,8 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
             content=b"".join(
                 [SETWC_VERB, struct.pack(SET_WATERCARE_FORMAT, seq, mode)]
             ),
-            timeout=4,
+            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
+            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             **kwargs,
         )
 

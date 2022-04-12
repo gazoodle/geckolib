@@ -3,6 +3,7 @@
 import logging
 import struct
 
+from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
 
 CURCH_VERB = b"CURCH"
@@ -17,8 +18,8 @@ class GeckoGetChannelProtocolHandler(GeckoPacketProtocolHandler):
     def request(seq, **kwargs):
         return GeckoGetChannelProtocolHandler(
             content=b"".join([CURCH_VERB, struct.pack(">B", seq)]),
-            timeout=2,
-            retry_count=10,
+            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
+            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )

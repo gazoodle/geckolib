@@ -3,6 +3,7 @@
 import logging
 import struct
 
+from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
 
 SPACK_VERB = b"SPACK"
@@ -42,8 +43,8 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                     data,
                 ]
             ),
-            timeout=2,
-            retry_count=10,
+            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
+            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )
@@ -59,8 +60,8 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                     ),
                 ]
             ),
-            timeout=2,
-            retry_count=10,
+            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
+            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )

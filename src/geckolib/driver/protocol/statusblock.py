@@ -3,6 +3,7 @@
 import logging
 import struct
 
+from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
 
 STATU_VERB = b"STATU"
@@ -24,8 +25,8 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
             content=b"".join(
                 [STATU_VERB, struct.pack(REQUEST_FORMAT, seq, start, length)]
             ),
-            timeout=2,
-            retry_count=5,
+            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
+            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )

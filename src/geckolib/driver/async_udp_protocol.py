@@ -3,6 +3,7 @@
 import asyncio
 import logging
 
+from ..config import GeckoConfig, config_sleep
 from .udp_protocol_handler import GeckoUdpProtocolHandler
 from .async_peekablequeue import AsyncPeekableQueue
 from typing import Optional, Callable, TypeVar
@@ -97,7 +98,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self,
         create_func: Callable[[], T],
         destination: Optional[tuple] = None,
-        retry_count: int = 10,
+        retry_count: int = GeckoConfig.PROTOCOL_RETRY_COUNT,
     ) -> Optional[T]:
 
         _LOGGER.debug("Async get started, acquire the lock")
@@ -119,6 +120,9 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
 
                 # Loop for retry
                 retry_count -= 1
+
+                # Pause between retries
+                await config_sleep(GeckoConfig.PAUSE_BETWEEN_RETRIES_IN_SECONDS)
 
             return None
 

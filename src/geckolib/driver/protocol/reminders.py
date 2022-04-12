@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import logging
-from multiprocessing.sharedctypes import Value
 import struct
 
+from ...config import GeckoConfig
 from enum import IntEnum
 from .packet import GeckoPacketProtocolHandler
 from typing import List, Tuple
@@ -52,8 +52,8 @@ class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
     def request(seq, **kwargs):
         return GeckoRemindersProtocolHandler(
             content=b"".join([REQRM_VERB, struct.pack(">B", seq)]),
-            timeout=5,
-            retry_count=2,
+            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
+            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler._default_retry_failed_handler,
             **kwargs,
         )

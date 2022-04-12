@@ -356,6 +356,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
   that are sent during connection, they run a loop around from 192-255 whereas the
   protocol ones go from 1-191 ... so replicate that behaviour in case it's confusing
   something in the system and adding to the instability of connections
+- Moved protocol retry constants to GeckoConfig class
+- Added 2 second pause between protocol retries to allow intouch2 EN module to settle
+- Increased default timeout from 2 to 4 seconds
 
 ## Done/Fixed in 0.4.5
 
