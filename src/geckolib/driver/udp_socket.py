@@ -27,7 +27,8 @@ class GeckoUdpSocket:
         self._send_handlers = []
         self._receive_handlers = []
         self._busy_count = 0
-        self._sequence_counter = 0
+        self._sequence_counter_protocol = 0
+        self._sequence_counter_command = 191
         self._last_send_time = time.monotonic()
 
     def __enter__(self):
@@ -116,10 +117,18 @@ class GeckoUdpSocket:
         with self._lock:
             self._send_handlers.append((protocol_handler, destination))
 
-    def get_and_increment_sequence_counter(self):
+    def get_and_increment_sequence_counter(self, command: bool):
         with self._lock:
-            self._sequence_counter += 1
-            return self._sequence_counter % 256
+            if command:
+                if self._sequence_counter_command == 255:
+                    self._sequence_counter_command = 191
+                self._sequence_counter_command += 1
+                return self._sequence_counter_command
+            else:
+                if self._sequence_counter_protocol == 191:
+                    self._sequence_counter_protocol = 0
+                self._sequence_counter_protocol += 1
+                return self._sequence_counter_protocol
 
     def _process_send_requests(self):
         # Throttle the sending rate to prevent message loss

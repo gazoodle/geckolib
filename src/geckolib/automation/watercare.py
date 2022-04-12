@@ -37,7 +37,7 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
             new_mode = GeckoConstants.WATERCARE_MODE_STRING.index(new_mode)
         self._spa.queue_send(
             GeckoWatercareProtocolHandler.set(
-                self._spa.get_and_increment_sequence_counter(),
+                self._spa.get_and_increment_sequence_counter(False),
                 new_mode,
                 parms=self._spa.sendparms,
             ),
@@ -69,7 +69,7 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
             return
 
         self._water_care_handler = GeckoWatercareProtocolHandler.request(
-            self._spa.get_and_increment_sequence_counter(),
+            self._spa.get_and_increment_sequence_counter(False),
             on_handled=self._on_watercare,
             parms=self._spa.sendparms,
         )

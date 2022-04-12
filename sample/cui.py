@@ -75,7 +75,10 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         _LOGGER.debug(f"{event} : {self.spa_state}")
         if event == GeckoSpaEvent.CLIENT_FACADE_IS_READY:
             self._can_use_facade = True
-        elif event == GeckoSpaEvent.CLIENT_FACADE_TEARDOWN:
+        elif event in (
+            GeckoSpaEvent.CLIENT_FACADE_TEARDOWN,
+            GeckoSpaState.ERROR_NEEDS_ATTENTION,
+        ):
             self._can_use_facade = False
 
         self.make_display()

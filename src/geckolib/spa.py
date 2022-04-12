@@ -90,7 +90,7 @@ class GeckoSpa(GeckoUdpSocket):
         self.add_receive_handler(GeckoPackCommandProtocolHandler())
         self.queue_send(
             GeckoPackCommandProtocolHandler.set_value(
-                self.get_and_increment_sequence_counter(),
+                self.get_and_increment_sequence_counter(False),
                 self.pack_type,
                 self.config_version,
                 self.log_version,
@@ -159,7 +159,7 @@ class GeckoSpa(GeckoUdpSocket):
         self.struct.retry_request(
             self,
             GeckoStatusBlockProtocolHandler.full_request(
-                self.get_and_increment_sequence_counter(), parms=sender
+                self.get_and_increment_sequence_counter(False), parms=sender
             ),
             sender,
         )
@@ -169,7 +169,7 @@ class GeckoSpa(GeckoUdpSocket):
         self.signal = handler.signal_strength
         logger.debug("Got channel %s/%s, now get config", self.channel, self.signal)
         config_file_handler = GeckoConfigFileProtocolHandler.request(
-            self.get_and_increment_sequence_counter(),
+            self.get_and_increment_sequence_counter(False),
             parms=sender,
             on_handled=self._on_config_received,
         )
@@ -189,7 +189,7 @@ class GeckoSpa(GeckoUdpSocket):
             self.intouch_version_co,
         )
         get_channel_handler = GeckoGetChannelProtocolHandler.request(
-            self.get_and_increment_sequence_counter(),
+            self.get_and_increment_sequence_counter(False),
             parms=sender,
             on_handled=self._on_channel_received,
         )
@@ -234,7 +234,7 @@ class GeckoSpa(GeckoUdpSocket):
         logger.info("Starting spa connection handshake...")
         self.add_receive_handler(GeckoRFErrProtocolHandler())
         version_handler = GeckoVersionProtocolHandler.request(
-            self.get_and_increment_sequence_counter(),
+            self.get_and_increment_sequence_counter(False),
             parms=self.sendparms,
             on_handled=self._on_version_received,
         )
@@ -309,7 +309,7 @@ class GeckoSpa(GeckoUdpSocket):
         self.struct.retry_request(
             self,
             GeckoStatusBlockProtocolHandler.request(
-                self.get_and_increment_sequence_counter(),
+                self.get_and_increment_sequence_counter(False),
                 self.new_log_class.begin,
                 self.new_log_class.end,
                 parms=self.sendparms,
@@ -322,7 +322,7 @@ class GeckoSpa(GeckoUdpSocket):
         self.add_receive_handler(GeckoPackCommandProtocolHandler())
         self.queue_send(
             GeckoPackCommandProtocolHandler.keypress(
-                self.get_and_increment_sequence_counter(),
+                self.get_and_increment_sequence_counter(True),
                 self.pack_type,
                 keypad,
                 parms=self.sendparms,

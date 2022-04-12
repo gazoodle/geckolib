@@ -22,7 +22,8 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self._on_connection_lost = on_connection_lost
         self._destination = destination
 
-        self._sequence_counter = 0
+        self._sequence_counter_protocol = 0
+        self._sequence_counter_command = 191
         self._queue = AsyncPeekableQueue()
         self._lock = asyncio.Lock()
 
@@ -74,9 +75,17 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         _LOGGER.debug("Sending %s to %s", send_bytes, destination)
         self.transport.sendto(send_bytes, destination)
 
-    def get_and_increment_sequence_counter(self) -> int:
-        self._sequence_counter += 1
-        return self._sequence_counter % 256
+    def get_and_increment_sequence_counter(self, command: bool) -> int:
+        if command:
+            if self._sequence_counter_command == 255:
+                self._sequence_counter_command = 191
+            self._sequence_counter_command += 1
+            return self._sequence_counter_command
+        else:
+            if self._sequence_counter_protocol == 191:
+                self._sequence_counter_protocol = 0
+            self._sequence_counter_protocol += 1
+            return self._sequence_counter_protocol
 
     def datagram_received(self, data, addr) -> None:
         _LOGGER.debug("Received %s from %s", data, addr)

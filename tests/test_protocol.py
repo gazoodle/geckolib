@@ -274,7 +274,9 @@ class MockSocket:
     def queue_send(self, handler, destination):
         self.sendbytes = handler.send_bytes
 
-    def get_and_increment_sequence_counter(self):
+    def get_and_increment_sequence_counter(self, command: bool):
+        if command:
+            return 192
         return 1
 
 

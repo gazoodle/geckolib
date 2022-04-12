@@ -351,6 +351,12 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ## Done/Fixed in 0.4.6
 
+- Going back to basics and watching the protocol from the iOS app, I noticed that
+  the commands sent from the app don't use the same sequence numbers as the ones
+  that are sent during connection, they run a loop around from 192-255 whereas the
+  protocol ones go from 1-191 ... so replicate that behaviour in case it's confusing
+  something in the system and adding to the instability of connections
+
 ## Done/Fixed in 0.4.5
 
 - Config change code could attempt to set result on a future that was already
