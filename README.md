@@ -347,6 +347,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
   is busy and the CUI won't exit until the timeout has been reached (this can
   be reproduced by making the simulator stop responding to watercare requests)
 
+## Done/Fixed in 0.4.7
+
 ## Done/Fixed in 0.4.6
 
 - Going back to basics and watching the protocol from the iOS app, I noticed that
