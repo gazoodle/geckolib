@@ -102,7 +102,8 @@ class GeckoStructAccessor(Observable):
             try:
                 data = self.items[data]
             except IndexError:
-                _LOGGER.exception(
+                data = "Unknown"
+                _LOGGER.debug(
                     "Enum accessor %s out-of-range for %s. Value is %s",
                     self.tag,
                     self.items,

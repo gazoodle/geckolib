@@ -349,6 +349,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ## Done/Fixed in 0.4.7
 
+- Merged fix for negative watercare values (thanks @EiNSTeiN-)
+- Demote out-of-range spapack struct enum values to DEBUG and return "Unknown"
+
 ## Done/Fixed in 0.4.6
 
 - Going back to basics and watching the protocol from the iOS app, I noticed that
