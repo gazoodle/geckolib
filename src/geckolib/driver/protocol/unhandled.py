@@ -34,7 +34,7 @@ class GeckoUnhandledProtocolHandler(GeckoUdpProtocolHandler):
                 if protocol.queue.is_marked:
                     data, sender = protocol.queue.head
                     protocol.queue.pop()
-                    _LOGGER.warning(
+                    _LOGGER.debug(
                         "No handler for %s from %s found, message ignored", data, sender
                     )
             await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)

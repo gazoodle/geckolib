@@ -351,6 +351,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 - Merged fix for negative watercare values (thanks @EiNSTeiN-)
 - Demote out-of-range spapack struct enum values to DEBUG and return "Unknown"
+- Demote "No handler for xxxx" to DEBUG to declutter log files
 
 ## Done/Fixed in 0.4.6
 
