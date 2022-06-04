@@ -121,7 +121,6 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
             super().__init__(spaman.unique_id, "Radio", spaman.spa_name, "RADIO")
-            self.channel = spaman._spa.channel
             self.signal = spaman._spa.signal
             if self.signal > 100:
                 self.signal = 100
@@ -129,16 +128,32 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         @property
         def state(self):
             """The state of the sensor"""
-            return f"Channel {self.channel}, {self.signal}%"
+            return self.signal
+
+        @property
+        def unit_of_measurement(self):
+            """The unit of measurement for the sensor, or None"""
+            return "%"
+
+        def __repr__(self):
+            return f"{self.name}: {self.state}{self.unit_of_measurement}"
+
+    class RadioChannelSensor(GeckoAutomationBase):
+        """Sensor with the current radio connection data"""
+
+        def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            super().__init__(spaman.unique_id, "Channel", spaman.spa_name, "CHANNEL")
+            self.channel = spaman._spa.channel
+
+        @property
+        def state(self):
+            """The state of the sensor"""
+            return self.channel
 
         @property
         def unit_of_measurement(self):
             """The unit of measurement for the sensor, or None"""
             return None
-
-        @property
-        def device_class(self):
-            return "string"
 
         def __repr__(self):
             return f"{self.name}: {self.state}"
@@ -189,6 +204,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         self._reconnect_button: Optional[GeckoAsyncSpaMan.ReconnectButton] = None
         self._ping_sensor: Optional[GeckoAsyncSpaMan.PingSensor] = None
         self._radio_sensor: Optional[GeckoAsyncSpaMan.RadioConnectionSensor] = None
+        self._channel_sensor: Optional[GeckoAsyncSpaMan.RadioChannelSensor] = None
 
     ########################################################################
     #
@@ -371,6 +387,10 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         return self._radio_sensor
 
     @property
+    def channel_sensor(self) -> Optional[GeckoAsyncSpaMan.RadioChannelSensor]:
+        return self._channel_sensor
+
+    @property
     def reconnect_button(self) -> Optional[GeckoAsyncSpaMan.ReconnectButton]:
         return self._reconnect_button
 
@@ -423,6 +443,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         elif event == GeckoSpaEvent.CONNECTION_GOT_CHANNEL:
             self._ping_sensor = GeckoAsyncSpaMan.PingSensor(self)
             self._radio_sensor = GeckoAsyncSpaMan.RadioConnectionSensor(self)
+            self._channel_sensor = GeckoAsyncSpaMan.RadioChannelSensor(self)
             await self._handle_event(GeckoSpaEvent.CLIENT_HAS_PING_SENSOR)
 
         elif event == GeckoSpaEvent.CONNECTION_SPA_COMPLETE:
