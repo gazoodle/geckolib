@@ -11,6 +11,28 @@ from typing import Optional, Callable, TypeVar
 _LOGGER = logging.getLogger(__name__)
 
 
+class DbgLock(asyncio.Lock):
+    def __init__(self):
+        super().__init__()
+
+    async def __aenter__(self) -> None:
+        t = asyncio.current_task()
+        _LOGGER.debug("About to acquire lock for task %s", t.get_name())
+        await super().__aenter__()
+        _LOGGER.debug("Lock acquired for task %s", t.get_name())
+        return None
+
+    async def __aexit__(
+        self,
+        exc_type,
+        exc,
+        tb,
+    ) -> None:
+        t = asyncio.current_task()
+        _LOGGER.debug("Release lock for task %s", t.get_name())
+        return await super().__aexit__(exc_type, exc, tb)
+
+
 class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     """Gecko in.touch2 uses UDP to communicate. This class is an async
     UDP protocol handler for asyncio. It dispatches to classes derived
@@ -26,7 +48,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self._sequence_counter_protocol = 0
         self._sequence_counter_command = 191
         self._queue = AsyncPeekableQueue()
-        self._lock = asyncio.Lock()
+        self._lock = DbgLock()  # asyncio.Lock()
 
     @property
     def Lock(self):
@@ -101,9 +123,8 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         retry_count: int = GeckoConfig.PROTOCOL_RETRY_COUNT,
     ) -> Optional[T]:
 
-        _LOGGER.debug("Async get started, acquire the lock")
+        _LOGGER.debug("Async get started")
         async with self.Lock:
-            _LOGGER.debug("Lock acquired")
 
             while retry_count > 0:
 

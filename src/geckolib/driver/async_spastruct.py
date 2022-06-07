@@ -53,9 +53,8 @@ class GeckoAsyncStructure:
         self._status_block = b"\x00" * 1024
 
     async def get(self, protocol, create_func, retry_count=10):
-        _LOGGER.debug("Async get for struct, acquire the lock")
+        _LOGGER.debug("Async get for struct")
         async with protocol.Lock:
-            _LOGGER.debug("Lock acquired")
 
             while retry_count > 0:
 

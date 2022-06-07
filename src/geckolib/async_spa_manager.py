@@ -121,7 +121,11 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
             super().__init__(spaman.unique_id, "Radio", spaman.spa_name, "RADIO")
-            self.signal = spaman._spa.signal
+            self.signal = 0
+            self.set_signal(spaman._spa.signal)
+
+        def set_signal(self, signal):
+            self.signal = signal
             if self.signal > 100:
                 self.signal = 100
 
@@ -143,7 +147,11 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
             super().__init__(spaman.unique_id, "Channel", spaman.spa_name, "CHANNEL")
-            self.channel = spaman._spa.channel
+            self.channel = 0
+            self.set_channel(spaman._spa.channel)
+
+        def set_channel(self, channel):
+            self.channel = channel
 
         @property
         def state(self):
@@ -476,6 +484,10 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             if self._spa_state == GeckoSpaState.CONNECTED:
                 self._spa_state = GeckoSpaState.IDLE
                 await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
+
+        elif event == GeckoSpaEvent.RUNNING_SPA_PACK_REFRESHED:
+            self._radio_sensor.set_signal(self._spa.signal)
+            self._channel_sensor.set_channel(self._spa.channel)
 
         elif event in (
             GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,

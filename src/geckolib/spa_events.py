@@ -79,6 +79,8 @@ class GeckoSpaEvent(Enum):
     """Running spa was disconnected"""
     RUNNING_SPA_WATER_CARE_ERROR = 304
     """A running spa will sometimes get an unprompted watercare error"""
+    RUNNING_SPA_PACK_REFRESHED = 305
+    """A running spa will update the spapack data and radio strength periodically"""
 
     # Events targeted at clients, to determine when things can be shown
     # or hidden in the UI
