@@ -120,7 +120,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         """Sensor with the current radio connection data"""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
-            super().__init__(spaman.unique_id, "Radio", spaman.spa_name, "RADIO")
+            super().__init__(spaman.unique_id, "RF Signal", spaman.spa_name, "RADIO")
             self.signal = 0
             self.set_signal(spaman._spa.signal)
 
@@ -135,6 +135,10 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             return self.signal
 
         @property
+        def device_class(self):
+            return None
+
+        @property
         def unit_of_measurement(self):
             """The unit of measurement for the sensor, or None"""
             return "%"
@@ -146,7 +150,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         """Sensor with the current radio connection data"""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
-            super().__init__(spaman.unique_id, "Channel", spaman.spa_name, "CHANNEL")
+            super().__init__(spaman.unique_id, "RF Channel", spaman.spa_name, "CHANNEL")
             self.channel = 0
             self.set_channel(spaman._spa.channel)
 
@@ -157,6 +161,10 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         def state(self):
             """The state of the sensor"""
             return self.channel
+
+        @property
+        def device_class(self):
+            return None
 
         @property
         def unit_of_measurement(self):
