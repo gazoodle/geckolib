@@ -58,7 +58,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         @property
         def unit_of_measurement(self):
             """The unit of measurement for the sensor, or None"""
-            return None
+            return "None"
 
         @property
         def device_class(self):

@@ -350,6 +350,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 ## Done/Fixed in 0.4.8
 
 - Split radio strength & channel into two separate sensors
+- Added some extra debugging around protocol sync lock
 
 ## Done/Fixed in 0.4.7
 
