@@ -351,6 +351,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 - Split radio strength & channel into two separate sensors
 - Added some extra debugging around protocol sync lock
+- Some unit_of_measurement values were the string "None" instead of the python
+  keyword None
 
 ## Done/Fixed in 0.4.7
 
