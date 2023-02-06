@@ -138,7 +138,7 @@ BSSUHB = "".join(
         68,
     ]
 )
-BVNAXA = 479
+BVNAXA = 256
 BVWVUB = "".join(chr(c) for c in [82, 104, 82, 101, 103, 83, 108, 111, 112, 101])
 BWJYKL = "".join(
     chr(c) for c in [83, 119, 109, 80, 117, 114, 103, 101, 83, 117, 115, 112]
@@ -918,7 +918,7 @@ RXCHWD = "".join(chr(c) for c in [70, 117, 108, 108])
 RYXBQF = "".join(chr(c) for c in [69, 99, 111, 110, 65, 99, 116, 105, 118, 101])
 SAKQXP = 386
 SBDJQR = 314
-SBVNAX = 256
+SBVNAX = 80
 SCTTGC = "".join(chr(c) for c in [67, 70, 71, 50, 53])
 SELHBQ = "".join(chr(c) for c in [80, 97, 99, 107, 67, 111, 110, 102, 82, 101, 108])
 SIFJBI = 355
@@ -1003,7 +1003,6 @@ SSAKQX = "".join(
         121,
     ]
 )
-SSBVNA = 80
 SSRURA = "".join(chr(c) for c in [83, 79, 117, 116, 55])
 SSUHBV = 387
 STSEMC = "".join(chr(c) for c in [70, 117, 108, 108, 79, 110])
@@ -1223,6 +1222,7 @@ VEMVCY = "".join(chr(c) for c in [67, 70, 71, 49, 52])
 VHFTHE = 6
 VKZILX = "".join(chr(c) for c in [71, 69, 67, 75, 79, 55, 53, 48, 48, 87])
 VLASSA = "".join(chr(c) for c in [83, 87, 73, 77, 95, 69, 88, 69, 82, 67, 73, 83, 69])
+VNAXAD = 479
 VOACMC = "".join(chr(c) for c in [83, 79, 117, 116, 53, 67, 117, 114])
 VUBYGD = "".join(
     chr(c) for c in [82, 104, 78, 111, 70, 108, 111, 88, 84, 114, 105, 101, 115]
@@ -1545,6 +1545,36 @@ SNQLNM = [
     BQSNQL,
     QSNQLN,
 ]
+SSBVNA = [
+    QRJJJV,
+    TTIDUB,
+    IDUBSS,
+    BXTIAC,
+    IFJBIA,
+    BYGDSB,
+    JQRJJJ,
+    RJJJVY,
+    OAWBSI,
+    SPBWJY,
+    QFFTTI,
+    IACQFF,
+    YXBQFY,
+    BDJQRJ,
+    TIACQF,
+    FFTTID,
+    CQFFTT,
+    NIBXTI,
+    DUBSSU,
+    IDNIBX,
+    AIIDNI,
+    HBVWVU,
+    TIDUBS,
+    IIDNIB,
+    BSSUHB,
+    ACQFFT,
+    XTIACQ,
+    IBXTIA,
+]
 TZBBEK = [
     TMFZDG,
     HECVYY,
@@ -1627,15 +1657,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return SSBVNA
-
-    @property
-    def begin(self):
         return SBVNAX
 
     @property
-    def end(self):
+    def begin(self):
         return BVNAXA
+
+    @property
+    def end(self):
+        return VNAXAD
 
     @property
     def all_device_keys(self):
@@ -1644,6 +1674,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return ZSSBVN
+
+    @property
+    def error_keys(self):
+        return SSBVNA
 
     @property
     def accessors(self):

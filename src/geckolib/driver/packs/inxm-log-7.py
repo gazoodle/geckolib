@@ -180,7 +180,7 @@ HEOCTH = "".join(chr(c) for c in [79, 117, 116, 55, 65, 82, 101, 97, 100])
 HFTHEC = 353
 HIUSOO = 2
 HTBJEU = "".join(chr(c) for c in [105, 110, 84, 101, 114, 102, 97, 99, 101])
-HTZBBE = 479
+HTZBBE = 256
 HUGTYI = "".join(chr(c) for c in [54, 52, 75])
 HUOJRJ = "".join(chr(c) for c in [85, 100, 80, 49])
 HWDAFI = 343
@@ -272,7 +272,6 @@ KEAKST = 458
 KFWRKI = "".join(
     chr(c) for c in [83, 119, 109, 80, 117, 114, 103, 101, 83, 117, 115, 112]
 )
-KHTZBB = 256
 KINEJN = "".join(chr(c) for c in [83, 119, 109, 82, 105, 115, 107])
 KJPUNR = 347
 KLGQPL = "".join(chr(c) for c in [73, 78, 84, 69, 82, 78, 65, 76])
@@ -517,6 +516,7 @@ TSIFJB = "".join(chr(c) for c in [65, 67, 84, 73, 86, 69])
 TTIDUB = "".join(chr(c) for c in [105, 110, 84, 67, 105, 112, 68, 101, 108, 97, 121])
 TYEKCW = "".join(chr(c) for c in [70, 73, 88])
 TYIYWS = "".join(chr(c) for c in [85, 76])
+TZBBEK = 479
 UBSSUH = "".join(chr(c) for c in [82, 104, 76, 111, 119, 70, 108, 111])
 UBYGDS = "".join(chr(c) for c in [82, 104, 72, 114, 75, 105, 110])
 UHBVWV = "".join(chr(c) for c in [82, 104, 72, 114, 72, 76])
@@ -716,6 +716,28 @@ JEUTOP = [
 ]
 JNIBXY = [NEJNIB, OJRJHI, QEXLSX, JRJHIU, EJNIBX]
 KCWAON = [OKPHUO, TYEKCW, YEKCWA, EKCWAO]
+KHTZBB = [
+    IIDNIB,
+    AIIDNI,
+    DQLAII,
+    QSNQLN,
+    VDQLAI,
+    LXWAJV,
+    IDNIBX,
+    DNIBXT,
+    AJVDQL,
+    IDUBSS,
+    BSSUHB,
+    QLAIID,
+    LAIIDN,
+    XWAJVD,
+    VKZILX,
+    IACQFF,
+    ZILXWA,
+    JVDQLA,
+    NIBXTI,
+    WAJVDQ,
+]
 KPHUOJ = [BSKSOK, SKSOKP, KSOKPH, SOKPHU, OKPHUO]
 KQTDKH = []
 KXSJWM = [BLKXSJ, LKXSJW]
@@ -783,11 +805,11 @@ class GeckoLogStruct:
 
     @property
     def begin(self):
-        return KHTZBB
+        return HTZBBE
 
     @property
     def end(self):
-        return HTZBBE
+        return TZBBEK
 
     @property
     def all_device_keys(self):
@@ -796,6 +818,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return DKHTZB
+
+    @property
+    def error_keys(self):
+        return KHTZBB
 
     @property
     def accessors(self):

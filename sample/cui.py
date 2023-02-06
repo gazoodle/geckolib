@@ -154,6 +154,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 lines.append(f"{self.ping_sensor}")
                 lines.append(f"{self.radio_sensor}")
                 lines.append(f"{self.channel_sensor}")
+                lines.append(f"{self.facade.error_sensor}")
 
             else:
 

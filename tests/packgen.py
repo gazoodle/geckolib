@@ -8,7 +8,8 @@ import os
 
 # The XML file to process
 # XML_FILE = "../src/geckolib/SpaPackStruct.v00.xml"
-XML_FILE = "../src/geckolib/SpaPackStruct.v33.xml"
+# XML_FILE = "../src/geckolib/SpaPackStruct.v33.xml"
+XML_FILE = "../src/geckolib/SpaPackStruct.v36.1.xml"
 
 CODE_PATH = "../src/geckolib/driver/packs"
 
@@ -279,6 +280,19 @@ def generate_accessor_constants(xml):
     ]
     xml.attrib["UserDemands"] = add_constant(user_demands)
 
+    # Errors are all properties in the <ErrorMessages> tag, anything with Err in the name
+    known_err_tags = ["OverTemp", "TempNotValid", "SlaveOverTemp"]
+    errors = [
+        element.tag
+        for element in xml.findall("./ErrorMessages/*")
+    ] + [
+        element.tag
+        for element in xml.findall(".//*")
+        if element.tag.endswith("Err") or element.tag in known_err_tags
+    ]
+    errors = list(set(errors))  # Dedupe
+    xml.attrib["ErrorMessages"] = add_constant(errors)
+
 
 def write_get_accessors(file, xml):
     file.write("\n")
@@ -390,6 +404,12 @@ def write_user_demand_keys(file, xml):
     file.write("    def user_demand_keys(self):\n")
     file.write(f"        return {xml.attrib['UserDemands']}\n")
 
+def write_error_keys(file, xml):
+    file.write("\n")
+    file.write("    @property\n")
+    file.write("    def error_keys(self):\n")
+    file.write(f"        return {xml.attrib['ErrorMessages']}\n")
+
 
 def build_log_struct(plateform_name, logstruct):
     reset_constants()
@@ -399,6 +419,7 @@ def build_log_struct(plateform_name, logstruct):
         write_log_preamble(file, plateform_name, logstruct)
         write_all_device_keys(file, logstruct)
         write_user_demand_keys(file, logstruct)
+        write_error_keys(file, logstruct)
         write_get_accessors(file, logstruct)
 
 

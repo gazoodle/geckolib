@@ -252,7 +252,7 @@ EKCWAO = "".join(
 )
 EKVKZI = 288
 ELHBQN = "".join(chr(c) for c in [83, 79, 117, 116, 52])
-ELWUEU = 479
+ELWUEU = 256
 EMCGET = 457
 EOCTHB = 308
 ETIXQV = 459
@@ -378,7 +378,6 @@ ILXWAJ = "".join(chr(c) for c in [77, 97, 115, 73, 66, 67])
 INEJNI = "".join(
     chr(c) for c in [82, 104, 72, 114, 75, 105, 110, 78, 111, 70, 108, 111]
 )
-INELWU = 60
 IPIVLA = "".join(chr(c) for c in [81, 117, 105, 101, 116, 83, 116, 97, 116, 101])
 IPOUYN = "".join(
     chr(c) for c in [82, 101, 109, 111, 116, 101, 69, 99, 111, 110, 68, 117, 114]
@@ -521,6 +520,7 @@ LOIJUG = "".join(chr(c) for c in [70, 117, 108, 108, 79, 110])
 LRAHEO = "".join(chr(c) for c in [79, 78])
 LSPFTS = 280
 LSXUJU = "".join(chr(c) for c in [76, 111, 99, 107, 77, 111, 100, 101])
+LWUEUH = 479
 LXWAJV = "".join(chr(c) for c in [77, 73, 65])
 MAOAWB = "".join(
     chr(c) for c in [65, 109, 98, 105, 97, 110, 116, 79, 72, 76, 101, 118, 101, 108, 50]
@@ -565,7 +565,7 @@ NBLKXS = "".join(
     ]
 )
 NEJNIB = 309
-NELWUE = 256
+NELWUE = 60
 NHTBJE = "".join(chr(c) for c in [75, 56, 53])
 NIBXTI = "".join(chr(c) for c in [52, 56, 75])
 NIBXYB = "".join(chr(c) for c in [105, 110, 84, 67, 105, 112, 68, 101, 108, 97, 121])
@@ -960,6 +960,36 @@ IJUGSE = [
     EXLSXU,
     OIJUGS,
 ]
+INELWU = [
+    SNQLNM,
+    YLJUIK,
+    UIKFWR,
+    BSIRYX,
+    SPBWJY,
+    QSNQLN,
+    NQLNMH,
+    LGQPLS,
+    BLKXSJ,
+    BQFYLJ,
+    RYXBQF,
+    MJMAOA,
+    TSIFJB,
+    YBQSNQ,
+    IRYXBQ,
+    QFYLJU,
+    XBQFYL,
+    AWBSIR,
+    IKFWRK,
+    AOAWBS,
+    JMAOAW,
+    LJUIKF,
+    RKINEJ,
+    JUIKFW,
+    MAOAWB,
+    YXBQFY,
+    SIRYXB,
+    WBSIRY,
+]
 IVDNQG = [KWIVDN, WIVDNQ]
 JIGYOU = [NZMJIG, QXPICX, ZMJIGY, XPICXQ, MJIGYO]
 JNIBXY = [HECVYY, EJNIBX, EJNIBX, EJNIBX]
@@ -1091,15 +1121,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return INELWU
-
-    @property
-    def begin(self):
         return NELWUE
 
     @property
-    def end(self):
+    def begin(self):
         return ELWUEU
+
+    @property
+    def end(self):
+        return LWUEUH
 
     @property
     def all_device_keys(self):
@@ -1108,6 +1138,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return OINELW
+
+    @property
+    def error_keys(self):
+        return INELWU
 
     @property
     def accessors(self):

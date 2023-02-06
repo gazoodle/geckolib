@@ -50,7 +50,6 @@ FJTACC = "".join(chr(c) for c in [105, 110, 88, 69])
 FTHECV = 257
 FXQGLR = 4
 GLRAHE = "".join(chr(c) for c in [77, 97, 115, 116, 101, 114, 83, 108, 97, 118, 101])
-GYOUSP = 256
 GZUQEX = "".join(chr(c) for c in [65, 85, 88, 95, 83, 87])
 HBSKSO = 271
 HECVYY = "".join(chr(c) for c in [85, 115, 101, 114, 65, 114, 111, 109, 97])
@@ -107,6 +106,7 @@ ONPYYL = "".join(
 OOQNRS = "".join(chr(c) for c in [74, 117, 109, 112, 101, 114, 52])
 OQNRSJ = "".join(chr(c) for c in [74, 117, 109, 112, 101, 114, 53])
 OUNBLK = "".join(chr(c) for c in [52, 56, 75])
+OUSPBW = 301
 OUYNQJ = "".join(
     chr(c) for c in [67, 111, 108, 111, 114, 95, 75, 101, 121, 112, 97, 100]
 )
@@ -195,7 +195,7 @@ YEKCWA = "".join(
 YLIUXF = "".join(chr(c) for c in [80, 97, 99, 107, 66, 111, 111, 116, 82, 101, 118])
 YMOUNB = "".join(chr(c) for c in [49, 54, 75])
 YNQJYM = "".join(chr(c) for c in [77, 114, 83, 116, 101, 97, 109])
-YOUSPB = 301
+YOUSPB = 256
 YPIPIV = "".join(
     chr(c) for c in [85, 115, 101, 114, 83, 101, 116, 112, 111, 105, 110, 116, 71]
 )
@@ -206,6 +206,7 @@ ZMJIGY = 292
 ZUQEXL = "".join(chr(c) for c in [67, 79, 76, 79, 82, 95, 83, 69, 82, 73, 69, 83])
 AHEOCT = [LRAHEO, RAHEOC]
 CVYYPI = [QBMJVH, BMJVHF]
+GYOUSP = [SKSOKP, UOJRJH, KPHUOJ, OKPHUO, OJRJHI, RJHIUS, SOKPHU, PHUOJR, HUOJRJ]
 IGYOUS = [JIGYOU]
 JVHFTH = [QBMJVH, BMJVHF, MJVHFT]
 MJIGYO = []
@@ -240,11 +241,11 @@ class GeckoLogStruct:
 
     @property
     def begin(self):
-        return GYOUSP
+        return YOUSPB
 
     @property
     def end(self):
-        return YOUSPB
+        return OUSPBW
 
     @property
     def all_device_keys(self):
@@ -253,6 +254,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return MJIGYO
+
+    @property
+    def error_keys(self):
+        return GYOUSP
 
     @property
     def accessors(self):

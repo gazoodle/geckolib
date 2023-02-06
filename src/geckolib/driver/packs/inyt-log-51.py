@@ -187,7 +187,6 @@ HTBJEU = 326
 HUGTYI = "".join(chr(c) for c in [83, 79, 117, 116, 49, 50])
 HUOJRJ = "".join(chr(c) for c in [76, 79, 87])
 HWDAFI = 455
-HZVOAC = 51
 IACQFF = "".join(chr(c) for c in [70, 117, 108, 108])
 IAMJMA = 354
 IBXTIA = 301
@@ -388,6 +387,7 @@ NRSJMC = "".join(chr(c) for c in [77, 83, 84, 82, 95, 72, 69, 65, 84, 69, 82])
 NRXCHW = 453
 NXNKML = "".join(chr(c) for c in [83, 79, 117, 116, 49, 50, 67, 117, 114])
 NZMJIG = "".join(chr(c) for c in [67, 104, 101, 99, 107, 70, 108, 111])
+OACMCV = 479
 OAWBSI = 309
 OCTHBS = "".join(chr(c) for c in [85, 100, 80, 117, 109, 112, 84, 105, 109, 101])
 OIHBXI = 478
@@ -561,7 +561,7 @@ VDQLAI = "".join(
     chr(c) for c in [80, 97, 99, 107, 83, 116, 97, 116, 117, 115, 76, 105, 98]
 )
 VHFTHE = "".join(chr(c) for c in [78, 79, 82, 77, 65, 76])
-VOACMC = 479
+VOACMC = 256
 VUBYGD = 322
 VUNXNK = "".join(chr(c) for c in [83, 79, 117, 116, 49, 49, 67, 117, 114])
 VWVUBY = 321
@@ -667,7 +667,7 @@ ZILXWA = 291
 ZMJIGY = 280
 ZTATDZ = "".join(chr(c) for c in [67, 70, 71, 49, 52])
 ZUQEXL = 262
-ZVOACM = 256
+ZVOACM = 51
 ZXNQTM = 464
 ACQFFT = [TIACQF, IACQFF]
 BHZVOA = [
@@ -729,6 +729,36 @@ HBVWVU = [
     UHBVWV,
 ]
 HXEKVK = [QLNMHX, LNMHXE, NMHXEK, MHXEKV]
+HZVOAC = [
+    QFYLJU,
+    SIFJBI,
+    JBIAMJ,
+    KLGQPL,
+    UNBLKX,
+    BQFYLJ,
+    FYLJUI,
+    JWMNZM,
+    ACCPQI,
+    PFTSIF,
+    QPLSPF,
+    OUSPBW,
+    GYOUSP,
+    YXBQFY,
+    GQPLSP,
+    FTSIFJ,
+    SPFTSI,
+    WJYKLG,
+    BIAMJM,
+    PBWJYK,
+    USPBWJ,
+    IFJBIA,
+    JMAOAW,
+    FJBIAM,
+    SPBWJY,
+    LSPFTS,
+    LGQPLS,
+    JYKLGQ,
+]
 IBHZVO = [
     OKPHUO,
     OJRJHI,
@@ -816,15 +846,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return HZVOAC
-
-    @property
-    def begin(self):
         return ZVOACM
 
     @property
-    def end(self):
+    def begin(self):
         return VOACMC
+
+    @property
+    def end(self):
+        return OACMCV
 
     @property
     def all_device_keys(self):
@@ -833,6 +863,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return BHZVOA
+
+    @property
+    def error_keys(self):
+        return HZVOAC
 
     @property
     def accessors(self):

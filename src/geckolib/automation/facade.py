@@ -11,7 +11,7 @@ from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
 from .switch import GeckoSwitch
-from .sensors import GeckoSensor, GeckoBinarySensor
+from .sensors import GeckoSensor, GeckoBinarySensor, GeckoErrorSensor
 from .watercare import GeckoWaterCare
 from .reminders import GeckoReminders
 from ..driver import Observable
@@ -31,6 +31,7 @@ class GeckoFacade(Observable):
         self._spa = spa
         self._sensors = []
         self._binary_sensors = []
+        self._error_sensor = None
         self._water_heater = None
         self._water_care = None
         self._reminders = None
@@ -191,6 +192,8 @@ class GeckoFacade(Observable):
             if binary_sensor[1] in self._spa.accessors
         ]
 
+        self._error_sensor = GeckoErrorSensor(self)
+
         if GeckoConstants.KEY_ECON_ACTIVE in self._spa.accessors:
             self._ecomode = GeckoSwitch(
                 self,
@@ -262,6 +265,11 @@ class GeckoFacade(Observable):
     def binary_sensors(self):
         """Get the binary sensor list"""
         return self._binary_sensors
+
+    @property
+    def error_sensor(self):
+        """Get the error sensor"""
+        return self._error_sensor
 
     @property
     def eco_mode(self):

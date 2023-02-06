@@ -160,7 +160,7 @@ CTTGCR = "".join(
         76,
     ]
 )
-CUGUCY = 479
+CUGUCY = 256
 CVDSSR = 342
 CVYYPI = "".join(chr(c) for c in [68, 101, 97, 108, 101, 114, 79, 112, 116])
 CWAONP = 7
@@ -612,7 +612,7 @@ MPSCTT = "".join(chr(c) for c in [70, 76, 79, 87, 95, 79, 75])
 MVCYWO = 475
 MXFUBJ = 458
 NBLKXS = 268
-NCUGUC = 256
+NCUGUC = 64
 NEJNIB = "".join(
     chr(c) for c in [73, 78, 86, 65, 76, 73, 68, 95, 82, 69, 81, 85, 69, 83, 84]
 )
@@ -989,6 +989,7 @@ UGSELH = "".join(chr(c) for c in [75, 51, 48, 48])
 UGTYIY = "".join(
     chr(c) for c in [80, 97, 99, 107, 83, 116, 97, 116, 117, 115, 76, 105, 98]
 )
+UGUCYR = 479
 UHBVWV = "".join(chr(c) for c in [80, 97, 99, 107, 66, 111, 111, 116, 73, 68])
 UHNNXW = "".join(chr(c) for c in [67, 70, 71, 49, 56])
 UIKFWR = "".join(chr(c) for c in [72, 80, 67, 65, 117, 116, 111, 77, 111, 100, 101])
@@ -1078,7 +1079,6 @@ XFEFJT = "".join(
 XFUBJL = "".join(chr(c) for c in [67, 70, 71, 49, 49])
 XIBHZV = "".join(chr(c) for c in [83, 79, 117, 116, 49, 50])
 XLSXUJ = 260
-XNCUGU = 64
 XNKMLO = "".join(chr(c) for c in [75, 56, 53])
 XNQTMF = "".join(chr(c) for c in [83, 79, 117, 116, 51])
 XOIHBX = "".join(chr(c) for c in [83, 79, 117, 116, 55])
@@ -1406,6 +1406,37 @@ VXOIHB = [
     ATDZXN,
 ]
 WDAFIK = [CHWDAF, HWDAFI]
+XNCUGU = [
+    BSSUHB,
+    QLAIID,
+    IIDNIB,
+    ZILXWA,
+    SIFJBI,
+    QFFTTI,
+    UBSSUH,
+    SSUHBV,
+    MJMAOA,
+    USPBWJ,
+    JVDQLA,
+    XWAJVD,
+    MHXEKV,
+    SIRYXB,
+    IDUBSS,
+    LXWAJV,
+    VDQLAI,
+    AJVDQL,
+    VKZILX,
+    IDNIBX,
+    EKVKZI,
+    HXEKVK,
+    LAIIDN,
+    BXTIAC,
+    AIIDNI,
+    XEKVKZ,
+    WAJVDQ,
+    ILXWAJ,
+    KZILXW,
+]
 XQGLRA = [QIEFXQ, IEFXQG, EFXQGL, FXQGLR]
 XYBQSN = [
     PQIPOU,
@@ -1440,15 +1471,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return XNCUGU
-
-    @property
-    def begin(self):
         return NCUGUC
 
     @property
-    def end(self):
+    def begin(self):
         return CUGUCY
+
+    @property
+    def end(self):
+        return UGUCYR
 
     @property
     def all_device_keys(self):
@@ -1457,6 +1488,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return AXNCUG
+
+    @property
+    def error_keys(self):
+        return XNCUGU
 
     @property
     def accessors(self):

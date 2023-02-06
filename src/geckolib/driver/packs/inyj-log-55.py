@@ -117,7 +117,7 @@ CQBMJV = 317
 CQFFTT = 294
 CRTFMN = 360
 CTHBSK = 303
-CVDSSR = 256
+CVDSSR = 55
 CVYYPI = "".join(chr(c) for c in [83, 116, 105, 99, 107, 66, 97, 110, 107])
 CWAONP = 266
 CXQIEF = "".join(chr(c) for c in [85, 100, 80, 51])
@@ -127,6 +127,7 @@ DJQRJJ = "".join(chr(c) for c in [75, 53])
 DNIBXT = "".join(chr(c) for c in [51, 48, 65])
 DQLAII = "".join(chr(c) for c in [51, 79, 80])
 DSBDJQ = "".join(chr(c) for c in [75, 56, 53])
+DSSRUR = 479
 DUBSSU = "".join(chr(c) for c in [80, 97, 99, 107, 67, 111, 110, 102, 82, 101, 118])
 DZXNQT = "".join(chr(c) for c in [67, 70, 71, 49, 51])
 EAKSTS = "".join(chr(c) for c in [67, 70, 71, 49, 57])
@@ -383,7 +384,6 @@ LSXUJU = 263
 MAOAWB = "".join(chr(c) for c in [82, 104, 72, 119, 72, 76])
 MCBFEG = 310
 MCGETI = 470
-MCVDSS = 55
 MFZDGK = "".join(chr(c) for c in [67, 70, 71, 49, 54])
 MHXEKV = 290
 MJIGYO = "".join(chr(c) for c in [67, 104, 101, 99, 107, 70, 108, 111])
@@ -585,7 +585,7 @@ UXFEFJ = "".join(
 UYNQJY = 313
 VDNQGV = "".join(chr(c) for c in [72, 84, 82])
 VDQLAI = "".join(chr(c) for c in [53, 79, 80])
-VDSSRU = 479
+VDSSRU = 256
 VHFTHE = "".join(chr(c) for c in [78, 79, 82, 77, 65, 76])
 VUNXNK = 328
 VWVUBY = "".join(chr(c) for c in [82, 101, 115, 116, 114, 105, 99, 116, 101, 100])
@@ -784,6 +784,36 @@ LNMHXE = [
     QLNMHX,
 ]
 LXWAJV = [ZILXWA, ILXWAJ]
+MCVDSS = [
+    YLJUIK,
+    FJBIAM,
+    IAMJMA,
+    GQPLSP,
+    BLKXSJ,
+    FYLJUI,
+    LJUIKF,
+    MNZMJI,
+    ACCPQI,
+    TSIFJB,
+    LSPFTS,
+    SPBWJY,
+    OUSPBW,
+    BQFYLJ,
+    PLSPFT,
+    SIFJBI,
+    FTSIFJ,
+    YKLGQP,
+    AMJMAO,
+    WJYKLG,
+    PBWJYK,
+    JBIAMJ,
+    AOAWBS,
+    BIAMJM,
+    BWJYKL,
+    PFTSIF,
+    QPLSPF,
+    KLGQPL,
+]
 NIBXTI = [IDNIBX, DNIBXT]
 QLAIID = [VDQLAI, DQLAII]
 SIRYXB = [HFTHEC, BSIRYX, BSIRYX, BSIRYX]
@@ -866,15 +896,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return MCVDSS
-
-    @property
-    def begin(self):
         return CVDSSR
 
     @property
-    def end(self):
+    def begin(self):
         return VDSSRU
+
+    @property
+    def end(self):
+        return DSSRUR
 
     @property
     def all_device_keys(self):
@@ -883,6 +913,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return CMCVDS
+
+    @property
+    def error_keys(self):
+        return MCVDSS
 
     @property
     def accessors(self):

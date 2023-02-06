@@ -46,6 +46,7 @@ AJVDQL = "".join(chr(c) for c in [75, 105, 110, 80, 117, 109, 112, 79, 102, 102]
 AKQXPI = "".join(chr(c) for c in [65, 76, 76])
 AKSTSE = "".join(chr(c) for c in [83, 79, 117, 116, 51])
 AOAWBS = "".join(chr(c) for c in [67, 104, 101, 99, 107, 70, 108, 111])
+AOESVZ = 479
 AONPYY = 310
 ATDZXN = "".join(chr(c) for c in [78, 65])
 AWBSIR = "".join(
@@ -208,7 +209,7 @@ DSSRUR = "".join(chr(c) for c in [83, 68, 105, 114, 101, 99, 116])
 DUBSSU = "".join(chr(c) for c in [82, 104, 82, 101, 103, 83, 108, 111, 112, 101])
 DZXNQT = "".join(chr(c) for c in [80, 49, 76])
 EAKSTS = 321
-EAOESV = 479
+EAOESV = 256
 ECVYYP = "".join(
     chr(c) for c in [73, 110, 115, 116, 97, 108, 108, 101, 114, 79, 112, 116]
 )
@@ -624,7 +625,7 @@ MCGETI = "".join(chr(c) for c in [83, 79, 117, 116, 72, 116, 114])
 MCVDSS = "".join(chr(c) for c in [83, 79, 117, 116, 49, 48])
 MDDPMX = "".join(chr(c) for c in [67, 70, 71, 51])
 MDMPSC = "".join(chr(c) for c in [67, 70, 71, 51, 48])
-MEAOES = 256
+MEAOES = 65
 MFZDGK = "".join(chr(c) for c in [80, 52, 76])
 MHXEKV = 390
 MJIGYO = 381
@@ -1086,7 +1087,6 @@ UIKFWR = "".join(
     for c in [72, 80, 67, 67, 104, 105, 108, 108, 82, 101, 113, 117, 101, 115, 116]
 )
 UJUTYE = "".join(chr(c) for c in [79, 51])
-UMEAOE = 65
 UNBLKX = "".join(
     chr(c) for c in [82, 101, 109, 111, 116, 101, 69, 99, 111, 110, 68, 117, 114]
 )
@@ -1465,6 +1465,38 @@ TBJEUT = [
 ]
 TYIYWS = [UGTYIY, GTYIYW]
 UGUCYR = [UAXNCU, AXNCUG, XNCUGU, NCUGUC, CUGUCY]
+UMEAOE = [
+    YGDSBD,
+    XTIACQ,
+    ACQFFT,
+    QLAIID,
+    SIFJBI,
+    UHBVWV,
+    BYGDSB,
+    GDSBDJ,
+    MJMAOA,
+    USPBWJ,
+    NIBXTI,
+    IIDNIB,
+    LXWAJV,
+    SIRYXB,
+    VUBYGD,
+    AIIDNI,
+    IBXTIA,
+    DNIBXT,
+    VDQLAI,
+    CQFFTT,
+    AJVDQL,
+    XWAJVD,
+    TIACQF,
+    IDUBSS,
+    IACQFF,
+    WAJVDQ,
+    FFTTID,
+    IDNIBX,
+    LAIIDN,
+    DQLAII,
+]
 UYNQJY = [PQIPOU, QIPOUY, IPOUYN, POUYNQ, OUYNQJ]
 VOACMC = [
     ATDZXN,
@@ -1549,15 +1581,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return UMEAOE
-
-    @property
-    def begin(self):
         return MEAOES
 
     @property
-    def end(self):
+    def begin(self):
         return EAOESV
+
+    @property
+    def end(self):
+        return AOESVZ
 
     @property
     def all_device_keys(self):
@@ -1566,6 +1598,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return PUMEAO
+
+    @property
+    def error_keys(self):
+        return UMEAOE
 
     @property
     def accessors(self):

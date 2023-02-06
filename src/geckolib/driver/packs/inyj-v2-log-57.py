@@ -331,7 +331,7 @@ KJPUNR = "".join(chr(c) for c in [67, 70, 71, 50])
 KLGQPL = 281
 KMLOIJ = 326
 KPHUOJ = 305
-KQTDKH = 256
+KQTDKH = 57
 KQXPIC = 259
 KSOKPH = "".join(chr(c) for c in [85, 100, 81, 117, 105, 101, 116, 84, 105, 109, 101])
 KSTSEM = 462
@@ -374,7 +374,6 @@ MJMAOA = "".join(
 MJVHFT = "".join(
     chr(c) for c in [83, 116, 105, 99, 107, 68, 101, 116, 101, 99, 116, 101, 100]
 )
-MKQTDK = 57
 MLOIJU = "".join(chr(c) for c in [72, 84, 82])
 MNHTBJ = "".join(chr(c) for c in [75, 51, 48, 48])
 MNZMJI = 353
@@ -470,7 +469,7 @@ QNRSJM = 260
 QNRXCH = "".join(chr(c) for c in [83, 79, 117, 116, 72, 116, 114, 67, 117, 114])
 QPLSPF = 352
 QSNQLN = 289
-QTDKHT = 479
+QTDKHT = 256
 QTMFZD = 457
 QVXOIH = 468
 QXPICX = "".join(chr(c) for c in [76, 79])
@@ -537,6 +536,7 @@ TACCPQ = "".join(
 )
 TATDZX = "".join(chr(c) for c in [67, 70, 71, 54])
 TBJEUT = "".join(chr(c) for c in [75, 101, 121, 112, 97, 100, 73, 68])
+TDKHTZ = 479
 TDZXNQ = "".join(chr(c) for c in [67, 70, 71, 55])
 TFMNHT = "".join(chr(c) for c in [75, 49, 48, 48])
 THBSKS = "".join(chr(c) for c in [85, 100, 65, 117, 120])
@@ -803,6 +803,36 @@ LOIJUG = [
     HECVYY,
     MLOIJU,
 ]
+MKQTDK = [
+    INEJNI,
+    AWBSIR,
+    SIRYXB,
+    FJBIAM,
+    JIGYOU,
+    KINEJN,
+    NEJNIB,
+    PBWJYK,
+    JYMOUN,
+    MAOAWB,
+    IAMJMA,
+    PLSPFT,
+    GQPLSP,
+    WRKINE,
+    BIAMJM,
+    AOAWBS,
+    JMAOAW,
+    TSIFJB,
+    IRYXBQ,
+    PFTSIF,
+    LSPFTS,
+    WBSIRY,
+    BQFYLJ,
+    BSIRYX,
+    SPFTSI,
+    MJMAOA,
+    JBIAMJ,
+    SIFJBI,
+]
 NIBXTI = [RSJMCB, DNIBXT]
 NRSJMC = [ASSAKQ, JHIUSO]
 PICXQI = [ASSAKQ, QXPICX, XPICXQ]
@@ -896,15 +926,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return MKQTDK
-
-    @property
-    def begin(self):
         return KQTDKH
 
     @property
-    def end(self):
+    def begin(self):
         return QTDKHT
+
+    @property
+    def end(self):
+        return TDKHTZ
 
     @property
     def all_device_keys(self):
@@ -913,6 +943,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return ZMKQTD
+
+    @property
+    def error_keys(self):
+        return MKQTDK
 
     @property
     def accessors(self):

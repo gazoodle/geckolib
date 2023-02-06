@@ -151,7 +151,7 @@ DQLAII = "".join(
     chr(c) for c in [80, 97, 99, 107, 88, 101, 79, 117, 116, 112, 117, 116, 115]
 )
 DSBDJQ = "".join(chr(c) for c in [75, 50, 48, 48])
-DSSRUR = 256
+DSSRUR = 54
 DUBSSU = "".join(chr(c) for c in [80, 97, 99, 107, 67, 111, 110, 102, 73, 68])
 DZXNQT = "".join(chr(c) for c in [67, 70, 71, 49, 50])
 EAKSTS = "".join(chr(c) for c in [67, 70, 71, 49, 56])
@@ -535,8 +535,9 @@ SPBWJY = "".join(
     chr(c) for c in [83, 108, 97, 118, 101, 79, 118, 101, 114, 84, 101, 109, 112]
 )
 SPFTSI = "".join(chr(c) for c in [82, 101, 108, 97, 121, 83, 116, 117, 99, 107])
+SRURAZ = 479
 SSAKQX = 259
-SSRURA = 479
+SSRURA = 256
 SSUHBV = 299
 STSEMC = 467
 SUHBVW = "".join(chr(c) for c in [80, 97, 99, 107, 67, 111, 110, 102, 82, 101, 108])
@@ -608,7 +609,6 @@ UXFEFJ = "".join(
 )
 UYNQJY = "".join(chr(c) for c in [83, 119, 109, 65, 99, 116, 105, 118, 101])
 VDNQGV = "".join(chr(c) for c in [83, 79, 117, 116, 72, 116, 114])
-VDSSRU = 54
 VHFTHE = "".join(chr(c) for c in [78, 79, 82, 77, 65, 76])
 VKZILX = "".join(chr(c) for c in [52, 56, 75])
 VOACMC = "".join(chr(c) for c in [67, 70, 71, 51, 49])
@@ -812,6 +812,36 @@ TYIYWS = [
     GTYIYW,
 ]
 VDQLAI = [OOQNRS, JVDQLA]
+VDSSRU = [
+    JUIKFW,
+    BIAMJM,
+    MJMAOA,
+    PLSPFT,
+    KXSJWM,
+    LJUIKF,
+    UIKFWR,
+    ZMJIGY,
+    CPQIPO,
+    IFJBIA,
+    PFTSIF,
+    BWJYKL,
+    SPBWJY,
+    FYLJUI,
+    SPFTSI,
+    FJBIAM,
+    SIFJBI,
+    LGQPLS,
+    JMAOAW,
+    YKLGQP,
+    WJYKLG,
+    IAMJMA,
+    AWBSIR,
+    AMJMAO,
+    JYKLGQ,
+    TSIFJB,
+    LSPFTS,
+    GQPLSP,
+]
 VLASSA = [PIPIVL, IPIVLA, PIVLAS, IVLASS]
 VYYPIP = [
     VHFTHE,
@@ -869,15 +899,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return VDSSRU
-
-    @property
-    def begin(self):
         return DSSRUR
 
     @property
-    def end(self):
+    def begin(self):
         return SSRURA
+
+    @property
+    def end(self):
+        return SRURAZ
 
     @property
     def all_device_keys(self):
@@ -886,6 +916,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return CVDSSR
+
+    @property
+    def error_keys(self):
+        return VDSSRU
 
     @property
     def accessors(self):

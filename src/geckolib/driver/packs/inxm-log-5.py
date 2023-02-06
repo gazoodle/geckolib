@@ -89,7 +89,6 @@ CQBMJV = 261
 CQFFTT = "".join(chr(c) for c in [82, 104, 72, 119, 84, 114, 105, 97, 99, 79, 72])
 CRTFMN = "".join(chr(c) for c in [54, 52, 75])
 CTHBSK = 298
-CVDSSR = 256
 CVYYPI = "".join(chr(c) for c in [72, 50])
 CWAONP = "".join(chr(c) for c in [85, 100, 76, 105, 103, 104, 116, 84, 105, 109, 101])
 CXQIEF = "".join(chr(c) for c in [79, 85, 84, 50, 65, 82, 101, 97, 100])
@@ -99,6 +98,7 @@ DJQRJJ = "".join(chr(c) for c in [105, 110, 88, 77])
 DNIBXT = "".join(chr(c) for c in [82, 104, 72, 114, 72, 76])
 DQLAII = "".join(chr(c) for c in [82, 104, 76, 111, 119, 70, 108, 111])
 DSBDJQ = "".join(chr(c) for c in [77, 73, 65])
+DSSRUR = 479
 DUBSSU = "".join(
     chr(c) for c in [82, 104, 70, 108, 111, 68, 101, 116, 101, 99, 116, 101, 100]
 )
@@ -541,7 +541,7 @@ UTYEKC = 304
 UYNQJY = "".join(chr(c) for c in [70, 98])
 VDNQGV = "".join(chr(c) for c in [70, 117, 108, 108])
 VDQLAI = "".join(chr(c) for c in [82, 104, 82, 101, 103, 83, 108, 111, 112, 101])
-VDSSRU = 479
+VDSSRU = 256
 VHFTHE = "".join(chr(c) for c in [77, 101, 110, 117])
 VKZILX = "".join(chr(c) for c in [82, 101, 103, 79, 118, 101, 114, 72, 101, 97, 116])
 VLASSA = "".join(
@@ -665,6 +665,28 @@ CMCVDS = [
     MNZMJI,
     ACMCVD,
 ]
+CVDSSR = [
+    HXEKVK,
+    MHXEKV,
+    QLNMHX,
+    RKINEJ,
+    NQLNMH,
+    ZILXWA,
+    EKVKZI,
+    KVKZIL,
+    ILXWAJ,
+    WAJVDQ,
+    QLAIID,
+    LNMHXE,
+    NMHXEK,
+    XWAJVD,
+    SNQLNM,
+    IBXTIA,
+    KZILXW,
+    BQSNQL,
+    LXWAJV,
+    VKZILX,
+]
 DNQGVU = [IVDNQG, VDNQGV]
 EGZUQE = [BSKSOK, CBFEGZ, BFEGZU, FEGZUQ]
 GYOUSP = [JIGYOU, IGYOUS]
@@ -743,11 +765,11 @@ class GeckoLogStruct:
 
     @property
     def begin(self):
-        return CVDSSR
+        return VDSSRU
 
     @property
     def end(self):
-        return VDSSRU
+        return DSSRUR
 
     @property
     def all_device_keys(self):
@@ -756,6 +778,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return MCVDSS
+
+    @property
+    def error_keys(self):
+        return CVDSSR
 
     @property
     def accessors(self):

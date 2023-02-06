@@ -153,7 +153,7 @@ CQFFTT = "".join(
 )
 CRTFMN = 293
 CTHBSK = 307
-CTTGCR = 256
+CTTGCR = 62
 CVDSSR = "".join(chr(c) for c in [83, 68, 105, 114, 101, 99, 116, 50, 67, 117, 114])
 CVYYPI = "".join(chr(c) for c in [68, 101, 97, 108, 101, 114, 79, 112, 116])
 CWAONP = "".join(
@@ -721,7 +721,6 @@ RXCHWD = "".join(chr(c) for c in [80, 50, 76])
 RYXBQF = "".join(chr(c) for c in [67, 72, 73, 76, 76])
 SAKQXP = "".join(chr(c) for c in [65, 76, 76])
 SBDJQR = "".join(chr(c) for c in [49, 54, 75])
-SCTTGC = 62
 SEMCGE = "".join(chr(c) for c in [83, 79, 117, 116, 55])
 SIFJBI = 280
 SIPMDM = "".join(
@@ -776,6 +775,7 @@ TDKHTZ = 453
 TDRXAI = "".join(chr(c) for c in [67, 70, 71, 50, 57])
 TDZXNQ = "".join(chr(c) for c in [72, 84, 82])
 TFMNHT = 294
+TGCRHY = 479
 THBSKS = "".join(chr(c) for c in [85, 100, 87, 97, 116, 101, 114, 102, 97, 108, 108])
 THECVY = "".join(chr(c) for c in [78, 79, 82, 77, 65, 76])
 TIACQF = "".join(
@@ -786,7 +786,7 @@ TIXQVX = "".join(chr(c) for c in [83, 68, 105, 114, 101, 99, 116])
 TMFZDG = "".join(chr(c) for c in [83, 79, 117, 116, 51, 67, 117, 114])
 TOPHUG = 300
 TSIFJB = "".join(chr(c) for c in [67, 104, 101, 99, 107, 70, 108, 111])
-TTGCRH = 479
+TTGCRH = 256
 TTIDUB = 287
 TYEKCW = "".join(
     chr(c)
@@ -1241,6 +1241,37 @@ PSCTTG = [
 QGLRAH = [ASSAKQ, XPICXQ]
 QRJJJV = [SBDJQR, BDJQRJ, DJQRJJ, JQRJJJ]
 RAHEOC = [ASSAKQ, LRAHEO]
+SCTTGC = [
+    IACQFF,
+    VKZILX,
+    ILXWAJ,
+    NQLNMH,
+    YKLGQP,
+    IIDNIB,
+    TIACQF,
+    ACQFFT,
+    SPFTSI,
+    JWMNZM,
+    XEKVKZ,
+    NMHXEK,
+    IBXYBQ,
+    BIAMJM,
+    BXTIAC,
+    LNMHXE,
+    EKVKZI,
+    HXEKVK,
+    QSNQLN,
+    LXWAJV,
+    YBQSNQ,
+    BXYBQS,
+    KZILXW,
+    JVDQLA,
+    ZILXWA,
+    XYBQSN,
+    MHXEKV,
+    QLNMHX,
+    SNQLNM,
+]
 SELHBQ = [UGSELH, GSELHB]
 SSAKQX = [IVLASS, VLASSA, LASSAK, ASSAKQ]
 TSEMCG = [
@@ -1313,15 +1344,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return SCTTGC
-
-    @property
-    def begin(self):
         return CTTGCR
 
     @property
-    def end(self):
+    def begin(self):
         return TTGCRH
+
+    @property
+    def end(self):
+        return TGCRHY
 
     @property
     def all_device_keys(self):
@@ -1330,6 +1361,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return PSCTTG
+
+    @property
+    def error_keys(self):
+        return SCTTGC
 
     @property
     def accessors(self):

@@ -167,7 +167,6 @@ IPIVLA = "".join(chr(c) for c in [85, 115, 101, 114, 82, 117, 110, 116, 105, 109
 IPOUYN = "".join(
     chr(c) for c in [72, 101, 97, 116, 101, 114, 79, 117, 116, 112, 117, 116]
 )
-IRYXBQ = 256
 IUSOOQ = 6
 IUXFEF = "".join(chr(c) for c in [75, 101, 121, 112, 97, 100, 82, 101, 118])
 IVLASS = "".join(chr(c) for c in [85, 115, 101, 114, 80, 114, 111, 103])
@@ -385,7 +384,7 @@ RJHIUS = "".join(chr(c) for c in [83, 76, 65, 86, 69])
 RSJMCB = "".join(
     chr(c) for c in [80, 111, 119, 101, 114, 70, 97, 105, 108, 69, 114, 114]
 )
-RYXBQF = 337
+RYXBQF = 256
 SIFJBI = 289
 SJMCBF = 272
 SJWMNZ = "".join(chr(c) for c in [80, 97, 99, 107, 66, 111, 111, 116, 82, 101, 108])
@@ -465,12 +464,14 @@ YOUSPB = "".join(chr(c) for c in [105, 110, 88, 77])
 YPIPIV = "".join(
     chr(c) for c in [85, 115, 101, 114, 83, 101, 116, 112, 111, 105, 110, 116, 71]
 )
+YXBQFY = 337
 YYPIPI = 259
 ZCQBMJ = "".join(chr(c) for c in [85, 115, 101, 114, 77, 111, 100, 101])
 ZMJIGY = "".join(chr(c) for c in [105, 110, 88, 69])
 ZUQEXL = 7
 CVYYPI = [QBMJVH, BMJVHF]
 HIUSOO = [RJHIUS, JHIUSO]
+IRYXBQ = [RSJMCB, EGZUQE, CBFEGZ, MCBFEG, GZUQEX, UQEXLS, JMCBFE, BFEGZU, FEGZUQ]
 JVHFTH = [QBMJVH, BMJVHF, MJVHFT]
 QXPICX = [BMJVHF, QBMJVH]
 SAKQXP = [LASSAK, ASSAKQ, SSAKQX]
@@ -506,11 +507,11 @@ class GeckoLogStruct:
 
     @property
     def begin(self):
-        return IRYXBQ
+        return RYXBQF
 
     @property
     def end(self):
-        return RYXBQF
+        return YXBQFY
 
     @property
     def all_device_keys(self):
@@ -519,6 +520,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return WBSIRY
+
+    @property
+    def error_keys(self):
+        return IRYXBQ
 
     @property
     def accessors(self):

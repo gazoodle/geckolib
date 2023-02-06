@@ -170,6 +170,7 @@ CQBMJV = 317
 CQFFTT = 285
 CRTFMN = 294
 CTHBSK = 307
+CTTGCR = 479
 CVDSSR = "".join(chr(c) for c in [67, 70, 71, 48])
 CVYYPI = "".join(chr(c) for c in [68, 101, 97, 108, 101, 114, 79, 112, 116])
 CWAONP = "".join(
@@ -601,7 +602,6 @@ MOUNBL = "".join(
         110,
     ]
 )
-MPSCTT = 61
 MVCYWO = 372
 MXFUBJ = "".join(chr(c) for c in [67, 70, 71, 49, 55])
 NBLKXS = 381
@@ -686,7 +686,7 @@ PQIPOU = "".join(
     chr(c)
     for c in [82, 101, 109, 111, 116, 101, 69, 99, 111, 110, 65, 99, 116, 105, 111, 110]
 )
-PSCTTG = 256
+PSCTTG = 61
 PUNRJZ = "".join(chr(c) for c in [83, 79, 117, 116, 52])
 PYYLIU = "".join(chr(c) for c in [82, 69, 77, 79, 84, 69])
 QBMJVH = "".join(chr(c) for c in [72, 111, 117, 114, 115])
@@ -747,7 +747,7 @@ RXCHWD = "".join(chr(c) for c in [80, 51, 76])
 RYXBQF = "".join(chr(c) for c in [67, 72, 73, 76, 76])
 SAKQXP = "".join(chr(c) for c in [65, 76, 76])
 SBDJQR = "".join(chr(c) for c in [52, 56, 75])
-SCTTGC = 479
+SCTTGC = 256
 SELHBQ = 320
 SEMCGE = "".join(chr(c) for c in [83, 79, 117, 116, 57])
 SIFJBI = 280
@@ -1199,6 +1199,37 @@ MDMPSC = [
     CWAONP,
     PMDMPS,
 ]
+MPSCTT = [
+    XTIACQ,
+    EKVKZI,
+    KZILXW,
+    QSNQLN,
+    YKLGQP,
+    LAIIDN,
+    BXTIAC,
+    TIACQF,
+    SPFTSI,
+    JWMNZM,
+    MHXEKV,
+    QLNMHX,
+    JNIBXY,
+    BIAMJM,
+    NIBXTI,
+    NQLNMH,
+    HXEKVK,
+    NMHXEK,
+    YBQSNQ,
+    ZILXWA,
+    BXYBQS,
+    NIBXYB,
+    KVKZIL,
+    WAJVDQ,
+    VKZILX,
+    IBXYBQ,
+    LNMHXE,
+    SNQLNM,
+    BQSNQL,
+]
 OQNRSJ = [ASSAKQ, SOOQNR, OOQNRS]
 PICXQI = [ASSAKQ, QXPICX, XPICXQ]
 PIPIVL = [
@@ -1291,15 +1322,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return MPSCTT
-
-    @property
-    def begin(self):
         return PSCTTG
 
     @property
-    def end(self):
+    def begin(self):
         return SCTTGC
+
+    @property
+    def end(self):
+        return CTTGCR
 
     @property
     def all_device_keys(self):
@@ -1308,6 +1339,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return DMPSCT
+
+    @property
+    def error_keys(self):
+        return MPSCTT
 
     @property
     def accessors(self):

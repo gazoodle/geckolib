@@ -30,7 +30,9 @@ ATDZXN = "".join(chr(c) for c in [67, 89, 65, 78])
 AWBSIR = "".join(
     chr(c) for c in [80, 114, 101, 115, 115, 117, 114, 101, 83, 119, 105, 116, 99, 104]
 )
-AZMKQT = "".join(chr(c) for c in [83, 72, 79, 87, 95, 65, 76, 76, 95, 77, 83, 71])
+AZMKQT = "".join(
+    chr(c) for c in [72, 73, 68, 69, 95, 68, 69, 84, 65, 73, 76, 69, 68, 95, 77, 83, 71]
+)
 BDJQRJ = 105
 BFEGZU = "".join(chr(c) for c in [79, 117, 116, 57, 67, 117, 114])
 BHZVOA = "".join(
@@ -100,12 +102,9 @@ DAFIKJ = "".join(
 )
 DGKEAK = "".join(chr(c) for c in [65, 114, 116, 101, 115, 105, 97, 110])
 DJQRJJ = "".join(chr(c) for c in [70, 51, 76, 105, 110, 101])
+DKHTZB = 119
 DNIBXT = "".join(chr(c) for c in [79, 117, 116, 56, 70, 117, 115, 101])
 DQLAII = "".join(chr(c) for c in [79, 117, 116, 53, 70, 117, 115, 101])
-DSSRUR = "".join(
-    chr(c)
-    for c in [67, 117, 115, 116, 111, 109, 75, 101, 121, 69, 110, 97, 98, 108, 101, 100]
-)
 DUBSSU = 97
 EAKSTS = "".join(chr(c) for c in [66, 101, 97, 99, 104, 99, 111, 109, 98, 101, 114])
 ECVYYP = "".join(chr(c) for c in [80, 51, 76])
@@ -274,7 +273,9 @@ KJPUNR = "".join(chr(c) for c in [69, 110, 97, 98, 108, 101])
 KLGQPL = 29
 KMLOIJ = 34
 KPHUOJ = "".join(chr(c) for c in [79, 117, 116, 56])
-KQTDKH = 113
+KQTDKH = "".join(
+    chr(c) for c in [75, 101, 121, 112, 97, 100, 79, 112, 116, 105, 111, 110, 115, 52]
+)
 KSOKPH = 17
 KSTSEM = "".join(
     chr(c)
@@ -310,9 +311,6 @@ MHXEKV = "".join(chr(c) for c in [70, 50])
 MJIGYO = 61
 MJMAOA = 31
 MJVHFT = 12
-MKQTDK = "".join(
-    chr(c) for c in [75, 101, 121, 112, 97, 100, 79, 112, 116, 105, 111, 110, 115, 52]
-)
 MLOIJU = "".join(chr(c) for c in [65, 109, 80, 109])
 MNHTBJ = "".join(chr(c) for c in [70, 105, 108, 116, 68, 117, 114, 50])
 MNZMJI = "".join(
@@ -427,35 +425,12 @@ QNRXCH = "".join(chr(c) for c in [70, 114, 101, 101, 80, 117, 109, 112, 75, 101,
 QPLSPF = 30
 QRJJJV = "".join(chr(c) for c in [70, 50, 49, 76, 105, 110, 101])
 QSNQLN = 74
-QTDKHT = "".join(
-    chr(c)
-    for c in [
-        68,
-        101,
-        97,
-        108,
-        101,
-        114,
-        76,
-        111,
-        99,
-        107,
-        83,
-        117,
-        112,
-        112,
-        111,
-        114,
-        116,
-    ]
-)
+QTDKHT = 113
 QTMFZD = "".join(chr(c) for c in [71, 101, 110, 101, 114, 105, 99])
 QVXOIH = "".join(chr(c) for c in [77, 97, 114, 113, 117, 105, 115])
 QXPICX = "".join(chr(c) for c in [79, 117, 116, 50])
 RAHEOC = 37
-RAZMKQ = "".join(
-    chr(c) for c in [72, 73, 68, 69, 95, 68, 69, 84, 65, 73, 76, 69, 68, 95, 77, 83, 71]
-)
+RAZMKQ = 112
 RJHIUS = "".join(chr(c) for c in [79, 117, 116, 49, 49])
 RJJJVY = 107
 RJZTAT = "".join(chr(c) for c in [71, 82, 69, 69, 78])
@@ -483,9 +458,7 @@ RKINEJ = "".join(
 )
 RSJMCB = 41
 RTFMNH = 4
-RURAZM = "".join(
-    chr(c) for c in [73, 110, 102, 111, 77, 115, 103, 67, 111, 110, 102, 105, 103]
-)
+RURAZM = "".join(chr(c) for c in [65, 108, 108])
 SAKQXP = "".join(chr(c) for c in [87, 97, 116, 101, 114, 102, 97, 108, 108])
 SBDJQR = "".join(chr(c) for c in [70, 50, 76, 105, 110, 101])
 SELHBQ = "".join(
@@ -504,9 +477,7 @@ SNQLNM = "".join(chr(c) for c in [68, 117, 97, 108, 80, 97, 99, 107])
 SOKPHU = "".join(chr(c) for c in [79, 117, 116, 55])
 SOOQNR = 24
 SPBWJY = "".join(chr(c) for c in [79, 51, 85, 115, 97, 103, 101])
-SRURAZ = "".join(chr(c) for c in [65, 108, 108])
-SSAKQX = "".join(chr(c) for c in [72, 84, 82, 50])
-SSRURA = "".join(
+SRURAZ = "".join(
     chr(c)
     for c in [
         67,
@@ -530,6 +501,11 @@ SSRURA = "".join(
         101,
     ]
 )
+SSAKQX = "".join(chr(c) for c in [72, 84, 82, 50])
+SSRURA = "".join(
+    chr(c)
+    for c in [67, 117, 115, 116, 111, 109, 75, 101, 121, 69, 110, 97, 98, 108, 101, 100]
+)
 SSUHBV = "".join(chr(c) for c in [70, 50, 67, 117, 114, 114, 101, 110, 116])
 STSEMC = "".join(chr(c) for c in [66, 117, 108, 108, 102, 114, 111, 103])
 SUHBVW = 99
@@ -539,7 +515,28 @@ TACCPQ = "".join(
 )
 TATDZX = "".join(chr(c) for c in [77, 65, 71, 69, 78, 84, 65])
 TBJEUT = 8
-TDKHTZ = 119
+TDKHTZ = "".join(
+    chr(c)
+    for c in [
+        68,
+        101,
+        97,
+        108,
+        101,
+        114,
+        76,
+        111,
+        99,
+        107,
+        83,
+        117,
+        112,
+        112,
+        111,
+        114,
+        116,
+    ]
+)
 TDZXNQ = "".join(chr(c) for c in [87, 72, 73, 84, 69])
 TFMNHT = "".join(chr(c) for c in [70, 105, 108, 116, 68, 117, 114])
 THBSKS = 40
@@ -558,7 +555,6 @@ TYIYWS = "".join(
     chr(c)
     for c in [83, 111, 97, 107, 79, 110, 67, 117, 115, 116, 111, 109, 75, 101, 121]
 )
-TZBBEK = 58
 UBSSUH = "".join(chr(c) for c in [70, 49, 67, 117, 114, 114, 101, 110, 116])
 UBYGDS = "".join(chr(c) for c in [70, 50, 51, 67, 117, 114, 114, 101, 110, 116])
 UGSELH = "".join(
@@ -599,7 +595,9 @@ UJUTYE = "".join(chr(c) for c in [79, 117, 116, 76, 105])
 UNRJZT = "".join(chr(c) for c in [79, 70, 70])
 UOJRJH = 20
 UQEXLS = 46
-URAZMK = 112
+URAZMK = "".join(
+    chr(c) for c in [73, 110, 102, 111, 77, 115, 103, 67, 111, 110, 102, 105, 103]
+)
 USOOQN = "".join(chr(c) for c in [68, 105, 114, 101, 99, 116])
 UTOPHU = 71
 UTYEKC = "".join(chr(c) for c in [76, 73])
@@ -607,6 +605,7 @@ UXFEFJ = 0
 UYNQJY = "".join(chr(c) for c in [83, 84, 65, 78, 68, 65, 82, 68])
 VDNQGV = "".join(chr(c) for c in [66, 108, 111, 119, 101, 114, 79, 110, 73, 50, 67])
 VDQLAI = 86
+VDSSRU = "".join(chr(c) for c in [77, 97, 115, 116, 101, 114, 95, 83, 112, 97, 115])
 VHFTHE = "".join(chr(c) for c in [80, 49, 72])
 VKZILX = "".join(chr(c) for c in [76, 105, 110, 101, 49])
 VLASSA = "".join(chr(c) for c in [])
@@ -722,6 +721,7 @@ YWSKWI = "".join(
 YXBQFY = 3
 YYLIUX = 81
 YYPIPI = "".join(chr(c) for c in [80, 53])
+ZBBEKB = 58
 ZCQBMJ = "".join(
     chr(c) for c in [67, 111, 110, 102, 105, 103, 78, 117, 109, 98, 101, 114]
 )
@@ -750,117 +750,14 @@ ZMJIGY = "".join(
         84,
     ]
 )
+ZMKQTD = "".join(chr(c) for c in [83, 72, 79, 87, 95, 65, 76, 76, 95, 77, 83, 71])
 ZTATDZ = "".join(chr(c) for c in [66, 76, 85, 69])
 ZUQEXL = "".join(chr(c) for c in [79, 117, 116, 49, 49, 67, 117, 114])
 ZVOACM = "".join(chr(c) for c in [67, 108, 101, 97, 114, 119, 97, 116, 101, 114])
 ZXNQTM = 8
-DKHTZB = [
-    BMJVHF,
-    QXPICX,
-    PICXQI,
-    CXQIEF,
-    QIEFXQ,
-    EFXQGL,
-    SKSOKP,
-    SOKPHU,
-    KPHUOJ,
-    HUOJRJ,
-    OJRJHI,
-    RJHIUS,
-    HIUSOO,
-    USOOQN,
-    OQNRSJ,
-    UJUTYE,
-]
 DNQGVU = [IVDNQG, VDNQGV]
 DSBDJQ = [VLASSA, VLASSA, VLASSA, VLASSA, VLASSA, VLASSA, VKZILX, KZILXW, ZILXWA]
-DZXNQT = [UNRJZT, NRJZTA, RJZTAT, JZTATD, ZTATDZ, TATDZX, ATDZXN, TDZXNQ]
-ELHBQN = [GSELHB, SELHBQ]
-HTZBBE = []
-IAMJMA = [JBIAMJ, BIAMJM]
-ILXWAJ = [NMHXEK, MHXEKV, HXEKVK, XEKVKZ, EKVKZI, KVKZIL, VKZILX, KZILXW, ZILXWA]
-IPOUYN = [CCPQIP, CPQIPO, PQIPOU, QIPOUY]
-IUXFEF = [YLIUXF, LIUXFE]
-JPUNRJ = [IKJPUN, KJPUNR]
-JYKLGQ = [BWJYKL, WJYKLG]
-KFWRKI = [PLSPFT, IKFWRK]
-KHTZBB = [UTYEKC]
-KQXPIC = [
-    JVHFTH,
-    VHFTHE,
-    HFTHEC,
-    FTHECV,
-    THECVY,
-    HECVYY,
-    ECVYYP,
-    CVYYPI,
-    VYYPIP,
-    YYPIPI,
-    YPIPIV,
-    PIPIVL,
-    IPIVLA,
-    PIVLAS,
-    IVLASS,
-    VLASSA,
-    LASSAK,
-    VLASSA,
-    VLASSA,
-    ASSAKQ,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    SSAKQX,
-    SAKQXP,
-    AKQXPI,
-]
-KXSJWM = [BLKXSJ, LKXSJW]
-LGQPLS = [PIPIVL, OUSPBW]
-NIBXYB = [EJNIBX, JNIBXY]
-NQJYMO = [UYNQJY, YNQJYM]
-NQLNMH = [PLSPFT, SNQLNM]
-OIJUGS = [JVHFTH, MLOIJU, LOIJUG]
-OOQNRS = [
-    JVHFTH,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    PIPIVL,
-]
-OPHUGT = [JVHFTH, UYNQJY, TOPHUG]
-RXCHWD = [QNRXCH, NRXCHW]
-RYXBQF = [SIRYXB, IRYXBQ]
-SPFTSI = [PLSPFT, LSPFTS]
-TYEKCW = [
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    VLASSA,
-    UTYEKC,
-]
-UNBLKX = [YMOUNB, MOUNBL, OUNBLK]
-UNXNKM = [VLASSA, GVUNXN, VUNXNK]
-USPBWJ = [JVHFTH, OUSPBW, PIPIVL]
-VDSSRU = [
+DSSRUR = [
     QTMFZD,
     TMFZDG,
     MFZDGK,
@@ -901,7 +798,113 @@ VDSSRU = [
     CMCVDS,
     MCVDSS,
     CVDSSR,
+    VDSSRU,
 ]
+DZXNQT = [UNRJZT, NRJZTA, RJZTAT, JZTATD, ZTATDZ, TATDZX, ATDZXN, TDZXNQ]
+ELHBQN = [GSELHB, SELHBQ]
+HTZBBE = [UTYEKC]
+IAMJMA = [JBIAMJ, BIAMJM]
+ILXWAJ = [NMHXEK, MHXEKV, HXEKVK, XEKVKZ, EKVKZI, KVKZIL, VKZILX, KZILXW, ZILXWA]
+IPOUYN = [CCPQIP, CPQIPO, PQIPOU, QIPOUY]
+IUXFEF = [YLIUXF, LIUXFE]
+JPUNRJ = [IKJPUN, KJPUNR]
+JYKLGQ = [BWJYKL, WJYKLG]
+KFWRKI = [PLSPFT, IKFWRK]
+KHTZBB = [
+    BMJVHF,
+    QXPICX,
+    PICXQI,
+    CXQIEF,
+    QIEFXQ,
+    EFXQGL,
+    SKSOKP,
+    SOKPHU,
+    KPHUOJ,
+    HUOJRJ,
+    OJRJHI,
+    RJHIUS,
+    HIUSOO,
+    USOOQN,
+    OQNRSJ,
+    UJUTYE,
+]
+KQXPIC = [
+    JVHFTH,
+    VHFTHE,
+    HFTHEC,
+    FTHECV,
+    THECVY,
+    HECVYY,
+    ECVYYP,
+    CVYYPI,
+    VYYPIP,
+    YYPIPI,
+    YPIPIV,
+    PIPIVL,
+    IPIVLA,
+    PIVLAS,
+    IVLASS,
+    VLASSA,
+    LASSAK,
+    VLASSA,
+    VLASSA,
+    ASSAKQ,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    SSAKQX,
+    SAKQXP,
+    AKQXPI,
+]
+KXSJWM = [BLKXSJ, LKXSJW]
+LGQPLS = [PIPIVL, OUSPBW]
+MKQTDK = [AZMKQT, ZMKQTD, VLASSA, VLASSA]
+NIBXYB = [EJNIBX, JNIBXY]
+NQJYMO = [UYNQJY, YNQJYM]
+NQLNMH = [PLSPFT, SNQLNM]
+OIJUGS = [JVHFTH, MLOIJU, LOIJUG]
+OOQNRS = [
+    JVHFTH,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    PIPIVL,
+]
+OPHUGT = [JVHFTH, UYNQJY, TOPHUG]
+RXCHWD = [QNRXCH, NRXCHW]
+RYXBQF = [SIRYXB, IRYXBQ]
+SPFTSI = [PLSPFT, LSPFTS]
+TYEKCW = [
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    VLASSA,
+    UTYEKC,
+]
+TZBBEK = []
+UNBLKX = [YMOUNB, MOUNBL, OUNBLK]
+UNXNKM = [VLASSA, GVUNXN, VUNXNK]
+USPBWJ = [JVHFTH, OUSPBW, PIPIVL]
 WBSIRY = [AOAWBS, OAWBSI, AWBSIR]
 XQGLRA = [
     JVHFTH,
@@ -931,7 +934,6 @@ XQGLRA = [
     VLASSA,
     SSAKQX,
 ]
-ZMKQTD = [RAZMKQ, AZMKQT, VLASSA, VLASSA]
 
 
 class GeckoConfigStruct:
@@ -940,11 +942,11 @@ class GeckoConfigStruct:
 
     @property
     def version(self):
-        return TZBBEK
+        return ZBBEKB
 
     @property
     def output_keys(self):
-        return DKHTZB
+        return KHTZBB
 
     @property
     def accessors(self):
@@ -1212,17 +1214,17 @@ class GeckoConfigStruct:
             PUNRJZ: GeckoEnumStructAccessor(
                 self.struct, PUNRJZ, AFIKJP, HBQNRX, DZXNQT, None, ZXNQTM, QBMJVH
             ),
-            DSSRUR: GeckoBoolStructAccessor(
-                self.struct, DSSRUR, AFIKJP, IYWSKW, QBMJVH
-            ),
             SSRURA: GeckoBoolStructAccessor(
-                self.struct, SSRURA, AFIKJP, XFEFJT, SRURAZ
+                self.struct, SSRURA, AFIKJP, IYWSKW, QBMJVH
             ),
-            RURAZM: GeckoEnumStructAccessor(
-                self.struct, RURAZM, URAZMK, XFEFJT, ZMKQTD, None, HBQNRX, QBMJVH
+            SRURAZ: GeckoBoolStructAccessor(
+                self.struct, SRURAZ, AFIKJP, XFEFJT, RURAZM
             ),
-            MKQTDK: GeckoByteStructAccessor(self.struct, MKQTDK, KQTDKH, QBMJVH),
-            QTDKHT: GeckoBoolStructAccessor(
-                self.struct, QTDKHT, TDKHTZ, UXFEFJ, QBMJVH
+            URAZMK: GeckoEnumStructAccessor(
+                self.struct, URAZMK, RAZMKQ, XFEFJT, MKQTDK, None, HBQNRX, QBMJVH
+            ),
+            KQTDKH: GeckoByteStructAccessor(self.struct, KQTDKH, QTDKHT, QBMJVH),
+            TDKHTZ: GeckoBoolStructAccessor(
+                self.struct, TDKHTZ, DKHTZB, UXFEFJ, QBMJVH
             ),
         }

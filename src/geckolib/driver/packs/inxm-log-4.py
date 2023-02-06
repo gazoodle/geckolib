@@ -52,7 +52,6 @@ BVWVUB = "".join(chr(c) for c in [105, 110, 88, 77])
 BWJYKL = "".join(
     chr(c) for c in [82, 101, 109, 111, 116, 101, 79, 110, 122, 101, 110, 68, 117, 114]
 )
-BXIBHZ = 256
 BXTIAC = 260
 BXYBQS = "".join(chr(c) for c in [70, 117, 115, 101, 49, 69, 114, 114])
 BYGDSB = "".join(chr(c) for c in [80, 97, 99, 107, 77, 101, 109, 82, 97, 110, 103, 101])
@@ -171,6 +170,7 @@ IACQFF = "".join(
     ]
 )
 IAMJMA = "".join(chr(c) for c in [70, 105, 108, 116, 79, 84])
+IBHZVO = 479
 IBXTIA = "".join(
     chr(c)
     for c in [82, 104, 72, 101, 97, 116, 101, 114, 68, 105, 115, 97, 98, 108, 101, 100]
@@ -564,7 +564,7 @@ XEKVKZ = "".join(
     for c in [82, 104, 78, 111, 116, 69, 110, 111, 117, 103, 104, 72, 101, 97, 116]
 )
 XFEFJT = 3
-XIBHZV = 479
+XIBHZV = 256
 XLSXUJ = 306
 XNKMLO = 347
 XNQTMF = "".join(chr(c) for c in [67, 70, 71, 49, 57])
@@ -631,6 +631,28 @@ ZTATDZ = "".join(chr(c) for c in [67, 70, 71, 49, 54])
 ZUQEXL = 1
 ZXNQTM = 466
 ACCPQI = [BSKSOK, BSKSOK, CBFEGZ, FEGZUQ]
+BXIBHZ = [
+    BXYBQS,
+    IBXYBQ,
+    EJNIBX,
+    BQFYLJ,
+    NEJNIB,
+    NQLNMH,
+    YBQSNQ,
+    BQSNQL,
+    QLNMHX,
+    MHXEKV,
+    VKZILX,
+    JNIBXY,
+    NIBXYB,
+    NMHXEK,
+    INEJNI,
+    AJVDQL,
+    SNQLNM,
+    RKINEJ,
+    LNMHXE,
+    QSNQLN,
+]
 CWAONP = [BSKSOK, EKCWAO, KCWAON]
 DJQRJJ = [GDSBDJ, DSBDJQ, SBDJQR, BDJQRJ]
 EGZUQE = [BSKSOK, CBFEGZ, BFEGZU, FEGZUQ]
@@ -727,11 +749,11 @@ class GeckoLogStruct:
 
     @property
     def begin(self):
-        return BXIBHZ
+        return XIBHZV
 
     @property
     def end(self):
-        return XIBHZV
+        return IBHZVO
 
     @property
     def all_device_keys(self):
@@ -740,6 +762,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return HBXIBH
+
+    @property
+    def error_keys(self):
+        return BXIBHZ
 
     @property
     def accessors(self):

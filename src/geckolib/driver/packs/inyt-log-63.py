@@ -33,7 +33,7 @@ ATDZXN = 321
 AWBSIR = "".join(
     chr(c) for c in [83, 108, 97, 118, 101, 79, 118, 101, 114, 84, 101, 109, 112]
 )
-AXNCUG = 479
+AXNCUG = 256
 AZMKQT = "".join(chr(c) for c in [83, 68, 105, 114, 101, 99, 116, 50, 67, 117, 114])
 BBEKBD = 452
 BDFSRO = 454
@@ -890,7 +890,7 @@ TTIDUB = 315
 TYEKCW = "".join(chr(c) for c in [87, 97, 116, 101, 114, 102, 97, 108, 108])
 TYIYWS = 299
 TZBBEK = 451
-UAXNCU = 256
+UAXNCU = 63
 UBJLOI = 461
 UBSSUH = "".join(
     chr(c) for c in [83, 108, 97, 118, 101, 82, 101, 103, 83, 108, 111, 112, 101]
@@ -1002,6 +1002,7 @@ XEKVKZ = "".join(chr(c) for c in [82, 101, 103, 79, 118, 101, 114, 72, 101, 97, 
 XFEFJT = 262
 XFUBJL = 460
 XLSXUJ = "".join(chr(c) for c in [67, 80])
+XNCUGU = 479
 XNKMLO = "".join(chr(c) for c in [75, 53])
 XNQTMF = 323
 XOIHBX = "".join(chr(c) for c in [83, 79, 117, 116, 49, 48])
@@ -1082,7 +1083,6 @@ YMOUNB = "".join(
 YNQJYM = 266
 YOUSPB = "".join(chr(c) for c in [67, 80, 79, 84])
 YPIPIV = "".join(chr(c) for c in [83, 116, 105, 99, 107, 66, 97, 110, 107])
-YUAXNC = 63
 YWONFZ = 478
 YWSKWI = "".join(
     chr(c)
@@ -1311,6 +1311,37 @@ XIBHZV = [
 ]
 XQGLRA = [CXQIEF, EFXQGL, FXQGLR]
 XQIEFX = [XPICXQ, PICXQI, ICXQIE, CXQIEF]
+YUAXNC = [
+    IDUBSS,
+    JVDQLA,
+    QLAIID,
+    KVKZIL,
+    PFTSIF,
+    IACQFF,
+    TIDUBS,
+    DUBSSU,
+    BIAMJM,
+    GYOUSP,
+    XWAJVD,
+    ZILXWA,
+    QLNMHX,
+    AWBSIR,
+    FTTIDU,
+    KZILXW,
+    WAJVDQ,
+    LXWAJV,
+    XEKVKZ,
+    LAIIDN,
+    MHXEKV,
+    LNMHXE,
+    VDQLAI,
+    DNIBXT,
+    DQLAII,
+    NMHXEK,
+    ILXWAJ,
+    VKZILX,
+    EKVKZI,
+]
 ZDGKEA = [
     WDAFIK,
     HECVYY,
@@ -1366,15 +1397,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return YUAXNC
-
-    @property
-    def begin(self):
         return UAXNCU
 
     @property
-    def end(self):
+    def begin(self):
         return AXNCUG
+
+    @property
+    def end(self):
+        return XNCUGU
 
     @property
     def all_device_keys(self):
@@ -1383,6 +1414,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return HYUAXN
+
+    @property
+    def error_keys(self):
+        return YUAXNC
 
     @property
     def accessors(self):

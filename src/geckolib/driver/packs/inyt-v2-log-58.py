@@ -190,7 +190,7 @@ EAKSTS = "".join(chr(c) for c in [67, 70, 71, 49])
 ECVYYP = "".join(
     chr(c) for c in [73, 110, 115, 116, 97, 108, 108, 101, 114, 79, 112, 116]
 )
-EEZFET = 479
+EEZFET = 256
 EFJTAC = "".join(chr(c) for c in [65, 67, 84, 73, 86, 69])
 EFXQGL = "".join(chr(c) for c in [85, 100, 80, 52])
 EGZUQE = 3
@@ -209,6 +209,7 @@ EUHNNX = "".join(
     chr(c) for c in [105, 110, 70, 108, 111, 74, 117, 115, 116, 82, 101, 115, 101, 116]
 )
 EXLSXU = "".join(chr(c) for c in [87, 97, 116, 101, 114, 102, 97, 108, 108])
+EZFETD = 479
 FEFJTA = "".join(chr(c) for c in [78, 69, 87])
 FEGZUQ = "".join(chr(c) for c in [79, 51])
 FFTTID = 294
@@ -752,7 +753,7 @@ WAJVDQ = "".join(chr(c) for c in [105, 110, 84, 101, 114, 102, 97, 99, 101])
 WAONPY = 367
 WBSIRY = 350
 WDAFIK = "".join(chr(c) for c in [83, 79, 117, 116, 57])
-WEEZFE = 256
+WEEZFE = 58
 WJYKLG = "".join(
     chr(c) for c in [68, 105, 115, 112, 108, 97, 121, 101, 100, 84, 101, 109, 112, 71]
 )
@@ -782,7 +783,6 @@ XQVXOI = 455
 XSJWMN = 282
 XUJUTY = "".join(chr(c) for c in [85, 78, 76, 79, 67, 75])
 XWAJVD = "".join(chr(c) for c in [75, 54, 48, 48])
-XWEEZF = 58
 XYBQSN = "".join(
     chr(c) for c in [83, 108, 97, 118, 101, 78, 111, 70, 108, 111, 69, 114, 114]
 )
@@ -1044,6 +1044,37 @@ XCHWDA = [
     KWIVDN,
 ]
 XTIACQ = [IBXTIA, BXTIAC]
+XWEEZF = [
+    YBQSNQ,
+    XBQFYL,
+    FYLJUI,
+    MAOAWB,
+    SPBWJY,
+    INEJNI,
+    XYBQSN,
+    BQSNQL,
+    LGQPLS,
+    BLKXSJ,
+    IRYXBQ,
+    AWBSIR,
+    IFJBIA,
+    TSIFJB,
+    IBXYBQ,
+    OAWBSI,
+    RYXBQF,
+    SIRYXB,
+    AMJMAO,
+    YLJUIK,
+    BIAMJM,
+    FJBIAM,
+    BQFYLJ,
+    IKFWRK,
+    QFYLJU,
+    JBIAMJ,
+    BSIRYX,
+    AOAWBS,
+    MJMAOA,
+]
 YYLIUX = [NPYYLI, PYYLIU]
 
 
@@ -1053,15 +1084,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return XWEEZF
-
-    @property
-    def begin(self):
         return WEEZFE
 
     @property
-    def end(self):
+    def begin(self):
         return EEZFET
+
+    @property
+    def end(self):
+        return EZFETD
 
     @property
     def all_device_keys(self):
@@ -1070,6 +1101,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return NXWEEZ
+
+    @property
+    def error_keys(self):
+        return XWEEZF
 
     @property
     def accessors(self):

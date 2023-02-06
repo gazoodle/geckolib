@@ -118,13 +118,12 @@ CBFEGZ = "".join(chr(c) for c in [85, 78, 76, 79, 67, 75])
 CCPQIP = "".join(chr(c) for c in [67, 80, 79, 84])
 CGETIX = 471
 CHWDAF = 452
-CMCVDS = 55
 CPQIPO = 274
 CQBMJV = 317
 CQFFTT = 295
 CRTFMN = "".join(chr(c) for c in [75, 101, 121, 112, 97, 100, 82, 101, 108])
 CTHBSK = 303
-CVDSSR = 479
+CVDSSR = 256
 CVYYPI = "".join(chr(c) for c in [83, 116, 105, 99, 107, 66, 97, 110, 107])
 CWAONP = 266
 CXQIEF = "".join(chr(c) for c in [85, 100, 80, 51])
@@ -385,7 +384,7 @@ LXWAJV = "".join(chr(c) for c in [80, 50, 50])
 MAOAWB = "".join(chr(c) for c in [82, 104, 72, 119, 72, 76])
 MCBFEG = 310
 MCGETI = "".join(chr(c) for c in [67, 70, 71, 50, 51])
-MCVDSS = 256
+MCVDSS = 55
 MFZDGK = 464
 MHXEKV = "".join(chr(c) for c in [51, 50, 75])
 MJIGYO = "".join(chr(c) for c in [67, 104, 101, 99, 107, 70, 108, 111])
@@ -584,6 +583,7 @@ UXFEFJ = "".join(
     ]
 )
 UYNQJY = 313
+VDSSRU = 479
 VHFTHE = "".join(chr(c) for c in [78, 79, 82, 77, 65, 76])
 VKZILX = "".join(chr(c) for c in [85, 76])
 VOACMC = "".join(chr(c) for c in [76, 73])
@@ -709,6 +709,36 @@ ACMCVD = [
     THBSKS,
     BSKSOK,
     KSOKPH,
+]
+CMCVDS = [
+    YLJUIK,
+    FJBIAM,
+    IAMJMA,
+    GQPLSP,
+    BLKXSJ,
+    FYLJUI,
+    LJUIKF,
+    MNZMJI,
+    ACCPQI,
+    TSIFJB,
+    LSPFTS,
+    SPBWJY,
+    OUSPBW,
+    BQFYLJ,
+    PLSPFT,
+    SIFJBI,
+    FTSIFJ,
+    YKLGQP,
+    AMJMAO,
+    WJYKLG,
+    PBWJYK,
+    JBIAMJ,
+    AOAWBS,
+    BIAMJM,
+    BWJYKL,
+    PFTSIF,
+    QPLSPF,
+    KLGQPL,
 ]
 EGZUQE = [CBFEGZ, BFEGZU, FEGZUQ]
 EKVKZI = [NMHXEK, MHXEKV, HXEKVK, XEKVKZ]
@@ -863,15 +893,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return CMCVDS
-
-    @property
-    def begin(self):
         return MCVDSS
 
     @property
-    def end(self):
+    def begin(self):
         return CVDSSR
+
+    @property
+    def end(self):
+        return VDSSRU
 
     @property
     def all_device_keys(self):
@@ -880,6 +910,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return ACMCVD
+
+    @property
+    def error_keys(self):
+        return CMCVDS
 
     @property
     def accessors(self):

@@ -78,6 +78,7 @@ AWBSIR = "".join(
         50,
     ]
 )
+AZMKQT = 479
 BDJQRJ = 357
 BFEGZU = 310
 BHZVOA = 475
@@ -484,7 +485,7 @@ QSNQLN = "".join(chr(c) for c in [77, 97, 115, 73, 66, 67])
 QTMFZD = "".join(chr(c) for c in [67, 70, 71, 49, 50])
 QVXOIH = "".join(chr(c) for c in [67, 70, 71, 50, 51])
 QXPICX = "".join(chr(c) for c in [76, 79])
-RAZMKQ = 479
+RAZMKQ = 256
 RJHIUS = "".join(chr(c) for c in [80, 50])
 RJJJVY = "".join(chr(c) for c in [75, 56])
 RJZTAT = "".join(chr(c) for c in [67, 70, 71, 55])
@@ -494,7 +495,6 @@ RKINEJ = "".join(
 )
 RSJMCB = "".join(chr(c) for c in [76, 49, 50, 48])
 RTFMNH = "".join(chr(c) for c in [73, 78, 86, 65, 76, 73, 68, 95, 84, 89, 80, 69])
-RURAZM = 56
 RXCHWD = "".join(chr(c) for c in [67, 70, 71, 48])
 RYXBQF = "".join(
     chr(c) for c in [82, 104, 82, 101, 103, 80, 114, 111, 98, 101, 69, 114, 114]
@@ -556,7 +556,7 @@ UQEXLS = "".join(
     chr(c)
     for c in [68, 101, 97, 108, 101, 114, 76, 111, 99, 107, 83, 116, 97, 116, 117, 115]
 )
-URAZMK = 256
+URAZMK = 56
 USOOQN = 260
 USPBWJ = "".join(
     chr(c)
@@ -796,6 +796,36 @@ PIPIVL = [
 ]
 QGLRAH = [ASSAKQ, XPICXQ]
 RAHEOC = [ASSAKQ, LRAHEO]
+RURAZM = [
+    WRKINE,
+    MAOAWB,
+    AWBSIR,
+    TSIFJB,
+    MNZMJI,
+    FWRKIN,
+    RKINEJ,
+    YOUSPB,
+    UYNQJY,
+    AMJMAO,
+    FJBIAM,
+    LGQPLS,
+    YKLGQP,
+    IKFWRK,
+    IFJBIA,
+    MJMAOA,
+    IAMJMA,
+    SPFTSI,
+    WBSIRY,
+    PLSPFT,
+    GQPLSP,
+    AOAWBS,
+    RYXBQF,
+    OAWBSI,
+    QPLSPF,
+    BIAMJM,
+    SIFJBI,
+    PFTSIF,
+]
 SOOQNR = [ASSAKQ, UOJRJH]
 SRURAZ = [
     AKQXPI,
@@ -882,15 +912,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return RURAZM
-
-    @property
-    def begin(self):
         return URAZMK
 
     @property
-    def end(self):
+    def begin(self):
         return RAZMKQ
+
+    @property
+    def end(self):
+        return AZMKQT
 
     @property
     def all_device_keys(self):
@@ -899,6 +929,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return SRURAZ
+
+    @property
+    def error_keys(self):
+        return RURAZM
 
     @property
     def accessors(self):

@@ -20,6 +20,7 @@ from .sensors import (
     GeckoSensor,
     GeckoBinarySensor,
     GeckoSensorBase,
+    GeckoErrorSensor
 )
 from .watercare import GeckoWaterCare
 from ..driver import Observable
@@ -221,6 +222,8 @@ class GeckoAsyncFacade(Observable):
             if binary_sensor[1] in self._spa.accessors
         ]
 
+        self._error_sensor = GeckoErrorSensor(self)
+
         if GeckoConstants.KEY_ECON_ACTIVE in self._spa.accessors:
             self._ecomode = GeckoSwitch(
                 self,
@@ -292,6 +295,11 @@ class GeckoAsyncFacade(Observable):
     def binary_sensors(self) -> List[GeckoBinarySensor]:
         """Get the binary sensor list"""
         return self._binary_sensors
+
+    @property
+    def error_sensor(self) -> GeckoErrorSensor:
+        """Get the error sensor"""
+        return self._error_sensor
 
     @property
     def eco_mode(self) -> Optional[GeckoSwitch]:

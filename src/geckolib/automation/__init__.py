@@ -10,7 +10,7 @@ from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
 from .reminders import GeckoReminders
-from .sensors import GeckoSensor, GeckoBinarySensor
+from .sensors import GeckoSensor, GeckoBinarySensor, GeckoErrorSensor
 from .switch import GeckoSwitch
 from .watercare import GeckoWaterCare
 
@@ -27,6 +27,7 @@ __all__ = [
     "GeckoPump",
     "GeckoSensor",
     "GeckoBinarySensor",
+    "GeckoErrorSensor",
     "GeckoSwitch",
     "GeckoWaterCare",
     "GeckoReminders",

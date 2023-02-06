@@ -36,7 +36,7 @@ ACCPQI = "".join(
         114,
     ]
 )
-ACMCVD = 256
+ACMCVD = 52
 ACQFFT = 316
 AFIKJP = 455
 AHEOCT = 308
@@ -110,7 +110,7 @@ CBFEGZ = "".join(chr(c) for c in [85, 78, 76, 79, 67, 75])
 CCPQIP = "".join(chr(c) for c in [67, 80, 79, 84])
 CGETIX = 472
 CHWDAF = 453
-CMCVDS = 479
+CMCVDS = 256
 CPQIPO = 274
 CQBMJV = 317
 CQFFTT = "".join(chr(c) for c in [82, 101, 115, 116, 114, 105, 99, 116, 101, 100])
@@ -354,6 +354,7 @@ LXWAJV = "".join(chr(c) for c in [80, 97, 99, 107, 67, 111, 114, 101, 73, 68])
 MAOAWB = "".join(chr(c) for c in [82, 104, 72, 119, 72, 76])
 MCBFEG = 310
 MCGETI = "".join(chr(c) for c in [67, 70, 71, 50, 52])
+MCVDSS = 479
 MFZDGK = 465
 MHXEKV = "".join(chr(c) for c in [49, 54, 75])
 MJIGYO = "".join(chr(c) for c in [67, 104, 101, 99, 107, 70, 108, 111])
@@ -384,7 +385,6 @@ NRSJMC = "".join(chr(c) for c in [77, 83, 84, 82, 95, 72, 69, 65, 84, 69, 82])
 NRXCHW = "".join(chr(c) for c in [67, 70, 71, 52])
 NXNKML = 344
 NZMJIG = 279
-OACMCV = 52
 OAWBSI = "".join(chr(c) for c in [82, 104, 82, 101, 103, 83, 108, 111, 112, 101])
 OCTHBS = "".join(chr(c) for c in [85, 100, 80, 117, 109, 112, 84, 105, 109, 101])
 OIHBXI = "".join(chr(c) for c in [67, 70, 71, 50, 57])
@@ -683,6 +683,37 @@ IUSOOQ = [IVLASS, PHUOJR]
 JYMOUN = [YNQJYM, SAKQXP, NQJYMO, AKQXPI, QJYMOU]
 KQXPIC = [IVLASS, SAKQXP, AKQXPI]
 KVKZIL = [MHXEKV, HXEKVK, XEKVKZ, EKVKZI]
+OACMCV = [
+    LJUIKF,
+    FJBIAM,
+    IAMJMA,
+    GQPLSP,
+    BLKXSJ,
+    IRYXBQ,
+    YLJUIK,
+    JUIKFW,
+    MNZMJI,
+    ACCPQI,
+    TSIFJB,
+    LSPFTS,
+    SPBWJY,
+    OUSPBW,
+    QFYLJU,
+    PLSPFT,
+    SIFJBI,
+    FTSIFJ,
+    YKLGQP,
+    AMJMAO,
+    WJYKLG,
+    PBWJYK,
+    JBIAMJ,
+    AOAWBS,
+    BIAMJM,
+    BWJYKL,
+    PFTSIF,
+    QPLSPF,
+    KLGQPL,
+]
 QLNMHX = [
     EJNIBX,
     JNIBXY,
@@ -819,15 +850,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return OACMCV
-
-    @property
-    def begin(self):
         return ACMCVD
 
     @property
-    def end(self):
+    def begin(self):
         return CMCVDS
+
+    @property
+    def end(self):
+        return MCVDSS
 
     @property
     def all_device_keys(self):
@@ -836,6 +867,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return VOACMC
+
+    @property
+    def error_keys(self):
+        return OACMCV
 
     @property
     def accessors(self):

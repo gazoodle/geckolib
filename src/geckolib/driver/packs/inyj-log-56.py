@@ -75,7 +75,7 @@ AWBSIR = "".join(
         50,
     ]
 )
-AZMKQT = 479
+AZMKQT = 256
 BFEGZU = 310
 BHZVOA = "".join(chr(c) for c in [67, 70, 71, 50, 55])
 BIAMJM = "".join(
@@ -479,7 +479,7 @@ QSNQLN = "".join(chr(c) for c in [77, 97, 115, 73, 66, 67])
 QTMFZD = 459
 QVXOIH = 470
 QXPICX = "".join(chr(c) for c in [76, 79])
-RAZMKQ = 256
+RAZMKQ = 56
 RJHIUS = "".join(chr(c) for c in [80, 50])
 RJJJVY = "".join(chr(c) for c in [75, 52, 48, 48])
 RJZTAT = 454
@@ -558,7 +558,6 @@ UQEXLS = "".join(
     chr(c)
     for c in [68, 101, 97, 108, 101, 114, 76, 111, 99, 107, 83, 116, 97, 116, 117, 115]
 )
-URAZMK = 56
 USOOQN = 260
 USPBWJ = "".join(
     chr(c)
@@ -710,6 +709,7 @@ ZCQBMJ = "".join(chr(c) for c in [82, 104, 87, 97, 116, 101, 114, 84, 101, 109, 
 ZDGKEA = 461
 ZILXWA = 290
 ZMJIGY = 275
+ZMKQTD = 479
 ZTATDZ = 455
 ZVOACM = "".join(chr(c) for c in [67, 70, 71, 50, 56])
 ZXNQTM = "".join(chr(c) for c in [67, 70, 71, 49, 48])
@@ -844,6 +844,36 @@ SRURAZ = [
 ]
 SSAKQX = [IVLASS, VLASSA, LASSAK, ASSAKQ]
 TYEKCW = [JUTYEK, UTYEKC]
+URAZMK = [
+    WRKINE,
+    MAOAWB,
+    AWBSIR,
+    TSIFJB,
+    MNZMJI,
+    FWRKIN,
+    RKINEJ,
+    YOUSPB,
+    UYNQJY,
+    AMJMAO,
+    FJBIAM,
+    LGQPLS,
+    YKLGQP,
+    IKFWRK,
+    IFJBIA,
+    MJMAOA,
+    IAMJMA,
+    SPFTSI,
+    WBSIRY,
+    PLSPFT,
+    GQPLSP,
+    AOAWBS,
+    RYXBQF,
+    OAWBSI,
+    QPLSPF,
+    BIAMJM,
+    SIFJBI,
+    PFTSIF,
+]
 VKZILX = [
     YBQSNQ,
     BQSNQL,
@@ -885,15 +915,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return URAZMK
-
-    @property
-    def begin(self):
         return RAZMKQ
 
     @property
-    def end(self):
+    def begin(self):
         return AZMKQT
+
+    @property
+    def end(self):
+        return ZMKQTD
 
     @property
     def all_device_keys(self):
@@ -902,6 +932,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return RURAZM
+
+    @property
+    def error_keys(self):
+        return URAZMK
 
     @property
     def accessors(self):

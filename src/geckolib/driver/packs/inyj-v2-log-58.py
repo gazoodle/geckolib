@@ -96,7 +96,6 @@ DJQRJJ = "".join(
     chr(c)
     for c in [80, 97, 99, 107, 78, 117, 109, 98, 101, 114, 79, 102, 67, 111, 110, 102]
 )
-DKHTZB = 58
 DNIBXT = "".join(chr(c) for c in [85, 76])
 DNQGVU = "".join(chr(c) for c in [66, 76, 79])
 DQLAII = "".join(chr(c) for c in [49, 54, 75])
@@ -183,7 +182,7 @@ HEOCTH = "".join(chr(c) for c in [85, 100, 76, 49, 50, 48])
 HFTHEC = "".join(chr(c) for c in [77, 101, 110, 117])
 HIUSOO = "".join(chr(c) for c in [76, 79, 87])
 HTBJEU = "".join(chr(c) for c in [75, 49, 48, 48])
-HTZBBE = 479
+HTZBBE = 256
 HUGTYI = "".join(chr(c) for c in [75, 101, 121, 112, 97, 100, 82, 101, 108])
 HUOJRJ = 306
 HWDAFI = 333
@@ -299,7 +298,7 @@ KEAKST = "".join(chr(c) for c in [67, 70, 71, 49, 49])
 KFWRKI = "".join(
     chr(c) for c in [82, 104, 78, 111, 70, 108, 111, 88, 84, 114, 105, 101, 115]
 )
-KHTZBB = 256
+KHTZBB = 58
 KINEJN = "".join(
     chr(c)
     for c in [83, 108, 97, 118, 101, 70, 108, 111, 68, 101, 116, 101, 99, 116, 101, 100]
@@ -546,6 +545,7 @@ TYEKCW = "".join(
     chr(c) for c in [70, 105, 108, 116, 101, 114, 65, 99, 99, 101, 115, 115]
 )
 TYIYWS = 320
+TZBBEK = 479
 UBSSUH = 7
 UBYGDS = 296
 UGTYIY = 361
@@ -771,6 +771,36 @@ AJVDQL = [
     WAJVDQ,
 ]
 CWAONP = [EKCWAO, KCWAON]
+DKHTZB = [
+    NIBXYB,
+    IRYXBQ,
+    XBQFYL,
+    AMJMAO,
+    JIGYOU,
+    JNIBXY,
+    IBXYBQ,
+    PBWJYK,
+    JYMOUN,
+    WBSIRY,
+    MAOAWB,
+    FTSIFJ,
+    GQPLSP,
+    NEJNIB,
+    JMAOAW,
+    BSIRYX,
+    AWBSIR,
+    JBIAMJ,
+    BQFYLJ,
+    IFJBIA,
+    TSIFJB,
+    RYXBQF,
+    LJUIKF,
+    YXBQFY,
+    SIFJBI,
+    OAWBSI,
+    MJMAOA,
+    BIAMJM,
+]
 DUBSSU = [TIDUBS, IDUBSS]
 EUTOPH = [
     FCRTFM,
@@ -923,15 +953,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return DKHTZB
-
-    @property
-    def begin(self):
         return KHTZBB
 
     @property
-    def end(self):
+    def begin(self):
         return HTZBBE
+
+    @property
+    def end(self):
+        return TZBBEK
 
     @property
     def all_device_keys(self):
@@ -940,6 +970,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return TDKHTZ
+
+    @property
+    def error_keys(self):
+        return DKHTZB
 
     @property
     def accessors(self):

@@ -1,7 +1,11 @@
 """ Gecko automation support for sensors """
 
+import logging
+from typing import Any
 from .base import GeckoAutomationFacadeBase
+from ..driver import GeckoBoolStructAccessor
 
+_LOGGER = logging.getLogger(__name__)
 
 class GeckoSensorBase(GeckoAutomationFacadeBase):
     """Base sensor allows non-accessor sensors to be implemented"""
@@ -78,3 +82,38 @@ class GeckoBinarySensor(GeckoSensor):
         if state == "":
             return False
         return state != "OFF"
+
+########################################################################################
+class GeckoErrorSensor(GeckoSensorBase):
+    """Error sensor aggregates all the error keys into a comma separated text string"""
+    def __init__(self, facade, device_class=None):
+        super().__init__(facade, "Error Sensor", device_class)
+        self._state = "No errors or warnings"
+
+        # Listen for changes to any of the error spapack accessors
+        for accessor_key in facade.spa.struct.error_keys:
+            accessor = facade.spa.struct.accessors[accessor_key]
+            accessor.watch(self.update_state)
+
+        # Force initial state
+        self.update_state()
+
+    @property
+    def state(self):
+        """The state of the sensor"""
+        return self._state
+
+    def update_state(self, sender: Any = None, old_value: Any = None, new_value: Any = None
+    ) -> None:
+        self._state = ""
+
+        active_errors = [accessor for accessor_key, accessor in self.facade.spa.struct.accessors.items()
+                 if accessor_key in self.facade.spa.struct.error_keys
+                 and isinstance(accessor, GeckoBoolStructAccessor)
+                 and accessor.value == True]
+
+        if active_errors:
+            self._state = ", ".join(err.tag for err in active_errors)
+            _LOGGER.debug("Error sensor state is %s", self.state)
+        else:
+            self._state = "None"

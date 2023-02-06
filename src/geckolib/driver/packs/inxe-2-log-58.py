@@ -89,7 +89,6 @@ BFEGZU = "".join(chr(c) for c in [67, 80])
 BHZVOA = "".join(chr(c) for c in [67, 70, 71, 50, 48])
 BIAMJM = "".join(chr(c) for c in [75, 105, 110, 80, 117, 109, 112, 79, 102, 102])
 BJEUTO = "".join(chr(c) for c in [75, 54, 48, 48, 72, 69])
-BJLOIN = 58
 BLKXSJ = "".join(
     chr(c)
     for c in [
@@ -392,7 +391,7 @@ JEUTOP = "".join(chr(c) for c in [75, 51, 48, 48])
 JHIUSO = "".join(chr(c) for c in [85, 100, 65, 117, 120, 84, 105, 109, 101])
 JJJVYF = "".join(chr(c) for c in [82, 101, 115, 116, 114, 105, 99, 116, 101, 100])
 JJVYFC = "".join(chr(c) for c in [70, 117, 108, 108])
-JLOINE = 256
+JLOINE = 58
 JMAOAW = 284
 JMCBFE = 260
 JNIBXY = 314
@@ -443,7 +442,7 @@ LJUIKF = 354
 LKXSJW = "".join(chr(c) for c in [67, 80, 79, 84])
 LNMHXE = "".join(chr(c) for c in [80, 97, 99, 107, 66, 111, 111, 116, 82, 101, 108])
 LOIJUG = 321
-LOINEL = 479
+LOINEL = 256
 LRAHEO = "".join(chr(c) for c in [79, 78])
 LSPFTS = 280
 LSXUJU = "".join(chr(c) for c in [76, 111, 99, 107, 77, 111, 100, 101])
@@ -537,6 +536,7 @@ OGMDDP = "".join(
 )
 OIHBXI = "".join(chr(c) for c in [67, 70, 71, 49, 55])
 OIJUGS = "".join(chr(c) for c in [83, 79, 117, 116, 51])
+OINELW = 479
 OJRJHI = 306
 OKPHUO = "".join(chr(c) for c in [85, 100, 81, 117, 105, 101, 116, 84, 105, 109, 101])
 ONPYYL = 262
@@ -850,6 +850,36 @@ ZTATDZ = 448
 ZUQEXL = "".join(chr(c) for c in [77, 83, 84, 82, 95, 72, 69, 65, 84, 69, 82])
 ZVOACM = "".join(chr(c) for c in [67, 70, 71, 50, 49])
 ZXNQTM = "".join(chr(c) for c in [67, 70, 71, 51])
+BJLOIN = [
+    XYBQSN,
+    XBQFYL,
+    FYLJUI,
+    MAOAWB,
+    SPBWJY,
+    BXYBQS,
+    YBQSNQ,
+    LGQPLS,
+    BLKXSJ,
+    IRYXBQ,
+    AWBSIR,
+    IFJBIA,
+    TSIFJB,
+    NIBXYB,
+    OAWBSI,
+    RYXBQF,
+    SIRYXB,
+    AMJMAO,
+    YLJUIK,
+    BIAMJM,
+    FJBIAM,
+    BQFYLJ,
+    IKFWRK,
+    QFYLJU,
+    JBIAMJ,
+    BSIRYX,
+    AOAWBS,
+    MJMAOA,
+]
 BQNRXC = [
     WIVDNQ,
     HECVYY,
@@ -1035,15 +1065,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return BJLOIN
-
-    @property
-    def begin(self):
         return JLOINE
 
     @property
-    def end(self):
+    def begin(self):
         return LOINEL
+
+    @property
+    def end(self):
+        return OINELW
 
     @property
     def all_device_keys(self):
@@ -1052,6 +1082,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return UBJLOI
+
+    @property
+    def error_keys(self):
+        return BJLOIN
 
     @property
     def accessors(self):

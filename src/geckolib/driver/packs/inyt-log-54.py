@@ -60,9 +60,8 @@ AWBSIR = "".join(
     chr(c) for c in [82, 104, 82, 101, 103, 80, 114, 111, 98, 101, 69, 114, 114]
 )
 AZMKQT = 476
-BBEKBD = 54
 BDJQRJ = "".join(chr(c) for c in [75, 101, 121, 112, 97, 100, 82, 101, 108])
-BEKBDF = 256
+BEKBDF = 54
 BFEGZU = 310
 BHZVOA = 468
 BIAMJM = "".join(
@@ -163,7 +162,7 @@ EFJTAC = 272
 EFXQGL = 258
 EGZUQE = "".join(chr(c) for c in [80, 65, 82, 84, 73, 65, 76])
 EJNIBX = "".join(chr(c) for c in [80, 97, 99, 107, 84, 121, 112, 101])
-EKBDFS = 479
+EKBDFS = 256
 EKVKZI = "".join(chr(c) for c in [51, 50, 75])
 ELHBQN = "".join(chr(c) for c in [83, 68, 105, 114, 101, 99, 116, 50])
 EMCGET = "".join(chr(c) for c in [67, 70, 71, 49, 50])
@@ -335,6 +334,7 @@ JYKLGQ = "".join(
 )
 JYMOUN = "".join(chr(c) for c in [77, 69, 68])
 JZTATD = 448
+KBDFSR = 479
 KCWAON = "".join(
     chr(c) for c in [82, 101, 109, 111, 116, 101, 70, 105, 108, 116, 68, 117, 114]
 )
@@ -694,6 +694,37 @@ ZMKQTD = "".join(chr(c) for c in [67, 70, 71, 50, 57])
 ZTATDZ = "".join(chr(c) for c in [67, 70, 71, 49])
 ZVOACM = 469
 ZXNQTM = 451
+BBEKBD = [
+    UIKFWR,
+    BIAMJM,
+    MJMAOA,
+    PLSPFT,
+    KXSJWM,
+    YXBQFY,
+    JUIKFW,
+    IKFWRK,
+    ZMJIGY,
+    CPQIPO,
+    IFJBIA,
+    PFTSIF,
+    BWJYKL,
+    SPBWJY,
+    YLJUIK,
+    SPFTSI,
+    FJBIAM,
+    SIFJBI,
+    LGQPLS,
+    JMAOAW,
+    YKLGQP,
+    WJYKLG,
+    IAMJMA,
+    AWBSIR,
+    AMJMAO,
+    JYKLGQ,
+    TSIFJB,
+    LSPFTS,
+    GQPLSP,
+]
 BYGDSB = [
     DUBSSU,
     UBSSUH,
@@ -859,15 +890,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return BBEKBD
-
-    @property
-    def begin(self):
         return BEKBDF
 
     @property
-    def end(self):
+    def begin(self):
         return EKBDFS
+
+    @property
+    def end(self):
+        return KBDFSR
 
     @property
     def all_device_keys(self):
@@ -876,6 +907,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return ZBBEKB
+
+    @property
+    def error_keys(self):
+        return BBEKBD
 
     @property
     def accessors(self):

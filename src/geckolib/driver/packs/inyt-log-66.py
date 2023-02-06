@@ -987,6 +987,7 @@ RYXBQF = "".join(
 )
 SAKQXP = 386
 SBDJQR = 314
+SBVNAX = 479
 SCTTGC = 476
 SELHBQ = 316
 SIFJBI = "".join(chr(c) for c in [79, 118, 101, 114, 84, 101, 109, 112])
@@ -1078,7 +1079,7 @@ SSAKQX = "".join(
         121,
     ]
 )
-SSBVNA = 479
+SSBVNA = 256
 SSRURA = "".join(chr(c) for c in [83, 79, 117, 116, 55])
 SSUHBV = 387
 STSEMC = "".join(chr(c) for c in [70, 117, 108, 108, 79, 110])
@@ -1252,7 +1253,6 @@ VYFCRT = "".join(chr(c) for c in [80, 97, 99, 107, 66, 111, 111, 116, 82, 101, 1
 VYYPIP = "".join(
     chr(c) for c in [65, 99, 99, 101, 115, 115, 111, 114, 121, 79, 112, 116]
 )
-VZSSBV = 66
 WAJVDQ = "".join(
     chr(c)
     for c in [
@@ -1431,7 +1431,7 @@ ZMJIGY = "".join(
 )
 ZMKQTD = "".join(chr(c) for c in [83, 68, 105, 114, 101, 99, 116])
 ZOLSIP = 471
-ZSSBVN = 256
+ZSSBVN = 66
 ZTATDZ = "".join(chr(c) for c in [75, 101, 121, 112, 97, 100, 82, 101, 108])
 ZUQEXL = "".join(chr(c) for c in [80, 50])
 ZVOACM = 330
@@ -1637,6 +1637,38 @@ SVZSSB = [
 UBYGDS = [HECVYY, VUBYGD, VUBYGD, VUBYGD]
 UYNQJY = [PQIPOU, QIPOUY, IPOUYN, POUYNQ, OUYNQJ]
 VKZILX = [MHXEKV, HXEKVK, XEKVKZ, EKVKZI, KVKZIL]
+VZSSBV = [
+    QRJJJV,
+    FTTIDU,
+    IDUBSS,
+    IBXTIA,
+    SIFJBI,
+    BYGDSB,
+    JQRJJJ,
+    RJJJVY,
+    MJMAOA,
+    USPBWJ,
+    CQFFTT,
+    TIACQF,
+    QLAIID,
+    SIRYXB,
+    BDJQRJ,
+    XTIACQ,
+    QFFTTI,
+    ACQFFT,
+    DNIBXT,
+    DUBSSU,
+    IIDNIB,
+    LAIIDN,
+    TTIDUB,
+    HBVWVU,
+    TIDUBS,
+    AIIDNI,
+    BSSUHB,
+    IACQFF,
+    BXTIAC,
+    NIBXTI,
+]
 WIVDNQ = [SKWIVD, KWIVDN]
 WRKINE = [KFWRKI, FWRKIN]
 XNQTMF = [DZXNQT, ZXNQTM]
@@ -1675,15 +1707,15 @@ class GeckoLogStruct:
 
     @property
     def version(self):
-        return VZSSBV
-
-    @property
-    def begin(self):
         return ZSSBVN
 
     @property
-    def end(self):
+    def begin(self):
         return SSBVNA
+
+    @property
+    def end(self):
+        return SBVNAX
 
     @property
     def all_device_keys(self):
@@ -1692,6 +1724,10 @@ class GeckoLogStruct:
     @property
     def user_demand_keys(self):
         return SVZSSB
+
+    @property
+    def error_keys(self):
+        return VZSSBV
 
     @property
     def accessors(self):

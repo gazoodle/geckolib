@@ -436,6 +436,10 @@ class GeckoLogStruct:
         return BIAMJM
 
     @property
+    def error_keys(self):
+        return BIAMJM
+
+    @property
     def accessors(self):
         return {
             ZCQBMJ: GeckoByteStructAccessor(self.struct, ZCQBMJ, CQBMJV, QBMJVH),

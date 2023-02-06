@@ -33,6 +33,10 @@ class GeckoReminders(GeckoAutomationFacadeBase):
         def days(self) -> int:
             return self._days
 
+        @property
+        def monitor(self) -> str:
+            return f"{datetime.now()}"
+
         def __str__(self):
             return (
                 f"{self.description} due in {self.days} days"

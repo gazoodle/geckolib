@@ -199,7 +199,7 @@ class GeckoUdpProtocolHandler(ABC):
         """Executed each time around the socket loop"""
         if not self.has_timedout:
             return
-        _LOGGER.debug("Handler has timed out")
+        _LOGGER.debug(f"Handler {self.__class__.__name__} has timed out")
         if self.retry(socket):
             return
         if self._on_retry_failed is not None:
