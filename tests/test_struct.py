@@ -95,6 +95,10 @@ class TestStruct(unittest.TestCase):
                 return []
 
             @property
+            def error_keys(self):
+                return []
+
+            @property
             def accessors(self):
                 return {
                     # <UdValve Type="Enum" Pos="275" BitPos="7" Size="2" MaxItems="2" Items="OFF|ON" RW="ALL" />
