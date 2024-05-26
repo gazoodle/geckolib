@@ -18,4 +18,4 @@ class GeckoPack:
 
     @property
     def revision(self):
-        return "36.01"
+        return "39.0"
