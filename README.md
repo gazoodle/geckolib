@@ -347,6 +347,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
   is busy and the CUI won't exit until the timeout has been reached (this can
   be reproduced by making the simulator stop responding to watercare requests)
 
+## Done/Fixed in 0.4.9
+
+- Merged pull to reduce asyncio sleep timeout to reduce processor usage
+
 ## Done/Fixed in 0.4.8
 
 - Split radio strength & channel into two separate sensors
