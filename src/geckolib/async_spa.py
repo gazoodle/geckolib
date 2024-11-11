@@ -267,7 +267,7 @@ class GeckoAsyncSpa(Observable):
 
         pack_module_name = f"geckolib.driver.packs.{plateform_key}"
         try:
-            GeckoPack = importlib.import_module(pack_module_name).GeckoPack
+            GeckoPack.append(importlib.import_module(pack_module_name).GeckoPack)
             self.pack_class = GeckoPack(self.struct)
             # TODO: Need to add base classes and type hinting to auto-generated
             # pack code and remove type-hint suppression below
@@ -286,9 +286,9 @@ class GeckoAsyncSpa(Observable):
             f"geckolib.driver.packs.{plateform_key}-cfg-{self.config_version}"
         )
         try:
-            GeckoConfigStruct = importlib.import_module(
+            GeckoConfigStruct.append(importlib.import_module(
                 config_module_name
-            ).GeckoConfigStruct
+            ).GeckoConfigStruct)
             self.config_class = GeckoConfigStruct(self.struct)
         except ModuleNotFoundError:
             await self._event_handler(
@@ -306,7 +306,7 @@ class GeckoAsyncSpa(Observable):
             f"geckolib.driver.packs.{plateform_key}-log-{self.log_version}"
         )
         try:
-            GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
+            GeckoLogStruct.append(importlib.import_module(log_module_name).GeckoLogStruct)
             self.log_class = GeckoLogStruct(self.struct)
         except ModuleNotFoundError:
             await self._event_handler(
