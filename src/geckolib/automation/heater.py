@@ -11,9 +11,9 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
     TEMP_CELCIUS = "°C"
     TEMP_FARENHEIGHT = "°F"
 
-    MIN_TEMP_C = 15
+    MIN_TEMP_C = 8
     MAX_TEMP_C = 40
-    MIN_TEMP_F = 59
+    MIN_TEMP_F = 46
     MAX_TEMP_F = 104
 
     def __init__(self, facade):
