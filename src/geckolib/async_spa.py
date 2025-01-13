@@ -1,6 +1,8 @@
 """ GeckoAsyncSpa class """
 
 from datetime import datetime, timezone
+from functools import partial
+
 import logging
 import asyncio
 import importlib
@@ -140,6 +142,9 @@ class GeckoAsyncSpa(Observable):
             )
             await self._event_handler(GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS)
 
+    async def _async_import_module(self, loop, module):
+        return await loop.run_in_executor(None, partial(importlib.import_module, module))
+
     async def _connect(self) -> None:
         loop = asyncio.get_running_loop()
         self._con_lost = loop.create_future()
@@ -267,7 +272,7 @@ class GeckoAsyncSpa(Observable):
 
         pack_module_name = f"geckolib.driver.packs.{plateform_key}"
         try:
-            GeckoPack = importlib.import_module(pack_module_name).GeckoPack
+            GeckoPack = (await self._async_import_module( loop, pack_module_name)).GeckoPack
             self.pack_class = GeckoPack(self.struct)
             # TODO: Need to add base classes and type hinting to auto-generated
             # pack code and remove type-hint suppression below
@@ -286,9 +291,7 @@ class GeckoAsyncSpa(Observable):
             f"geckolib.driver.packs.{plateform_key}-cfg-{self.config_version}"
         )
         try:
-            GeckoConfigStruct = importlib.import_module(
-                config_module_name
-            ).GeckoConfigStruct
+            GeckoConfigStruct = (await self._async_import_module(loop, config_module_name )).GeckoConfigStruct
             self.config_class = GeckoConfigStruct(self.struct)
         except ModuleNotFoundError:
             await self._event_handler(
@@ -306,7 +309,7 @@ class GeckoAsyncSpa(Observable):
             f"geckolib.driver.packs.{plateform_key}-log-{self.log_version}"
         )
         try:
-            GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
+            GeckoLogStruct = (await self._async_import_module(loop, log_module_name)).GeckoLogStruct
             self.log_class = GeckoLogStruct(self.struct)
         except ModuleNotFoundError:
             await self._event_handler(
