@@ -293,7 +293,7 @@ Turning pump 1 off
 
 There is also a complete async sample which can be found in the repo under
 the /sample folder. This can be run using `python3 complete.py`. Full path
-https://github.com/gazoodle/geckolib/tree/main/sample
+https://github.com/gazoodle/geckolib/tree/main/sample. Only works on Linux
 
 # Home Assistant integration
 
@@ -346,6 +346,13 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - There is a lock issue when a command is being retried as the protocol lock
   is busy and the CUI won't exit until the timeout has been reached (this can
   be reproduced by making the simulator stop responding to watercare requests)
+
+## Done/Fixed in 0.4.16
+
+- Change min temperature from 15C to 8C
+- Handle unnamed SPA (Issue #54)
+- Prevent watercare from being out-of-range at the expense of knowing if it was ... it's more stable for users (#40)
+- Fixed async importlib code from blocking by using loop executor
 
 ## Done/Fixed in 0.4.15
 
