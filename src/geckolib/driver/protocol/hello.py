@@ -79,6 +79,10 @@ class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
         elif content.startswith(b"IOS") or content.startswith(b"AND"):
             self._client_identifier = content
 
+        elif not content.find(b"|"):
+            self._spa_identifier = content
+            self._spa_name = "Unnamed SPA"
+
         else:
             self._spa_identifier, spa_name = content.split(b"|")
             self._spa_name = spa_name.decode(GeckoConstants.MESSAGE_ENCODING)
