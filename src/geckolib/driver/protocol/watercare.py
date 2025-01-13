@@ -7,6 +7,7 @@ from typing import Optional
 
 from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
+from ...const import GeckoConstants
 
 GETWC_VERB = b"GETWC"
 WCGET_VERB = b"WCGET"
@@ -98,7 +99,7 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
             self.schedule = True
             return  # Stay in the handler list
         if received_bytes.startswith(WCGET_VERB):
-            self.mode = struct.unpack(GET_WATERCARE_FORMAT, remainder)[0]
+            self.mode = struct.unpack(GET_WATERCARE_FORMAT, remainder)[0] % len(GeckoConstants.WATERCARE_MODE)
             self.schedule = False
         # Otherwise must be WCSET
         self._should_remove_handler = True
