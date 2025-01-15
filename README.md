@@ -347,6 +347,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
   is busy and the CUI won't exit until the timeout has been reached (this can
   be reproduced by making the simulator stop responding to watercare requests)
 
+## Done/Fixed in 0.4.17
+
+- Expose water heater internal sensors so they can be exposed in the home assistant integration
+
 ## Done/Fixed in 0.4.16
 
 - Change min temperature from 15C to 8C
