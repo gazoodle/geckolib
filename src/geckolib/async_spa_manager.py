@@ -150,7 +150,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         """Sensor with the current radio connection data"""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
-            super().__init__(spaman.unique_id, "RF Channel", spaman.spa_name, "CHANNEL")
+            super().__init__(spaman.unique_id, "RF Channel", spaman.spa_name, "CHANNEL")
             self.channel = 0
             self.set_channel(spaman._spa.channel)
 
