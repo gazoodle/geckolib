@@ -77,6 +77,11 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
         return self._is_present
 
     @property
+    def target_temperature_sensor(self):
+        """Get the target temperature sensor object"""
+        return self._target_temperature_sensor
+
+    @property
     def target_temperature(self):
         """Get the target temperature of the water"""
         return self._target_temperature_sensor.state
@@ -93,6 +98,11 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
     def real_target_temperature(self):
         """Get the real target temperature (takes economy mode into account)"""
         return self._real_setpoint_sensor.state
+
+    @property
+    def real_target_temperature_sensor(self):
+        """Get the real target temperature sensor object (takes economy mode into account)"""
+        return self._real_setpoint_sensor
 
     @property
     def min_temp(self):
@@ -123,6 +133,12 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
         if self._temperature_unit_accessor.value == "C":
             return self.TEMP_CELCIUS
         return self.TEMP_FARENHEIGHT
+
+    @property
+    def current_temperature_sensor(self):
+        """Get the current temperature sensor object"""
+        return self._current_temperature_sensor
+
 
     def set_temperature_unit(self, new_unit):
         """Set the temperature units for the water heater"""
