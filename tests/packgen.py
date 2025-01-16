@@ -1,15 +1,10 @@
-#!/usr/bin/python3
-"""
-    PackGen - A tool to generate .py files to interface with different Gecko packs
-"""
+"""PackGen - A tool to generate .py files to interface with different Gecko packs."""
 
-import xml.etree.ElementTree as ET
 import os
+import xml.etree.ElementTree as ET
 
 # The XML file to process
-# XML_FILE = "../src/geckolib/SpaPackStruct.v00.xml"
-# XML_FILE = "../src/geckolib/SpaPackStruct.v33.xml"
-XML_FILE = "../src/geckolib/SpaPackStruct.v36.1.xml"
+XML_FILE = "../src/geckolib/SpaPackStruct_39.0.0.0.xml"
 
 CODE_PATH = "../src/geckolib/driver/packs"
 
@@ -22,9 +17,9 @@ IMPORTED_CLASSES = [
     "GeckoTempStructAccessor",
 ]
 
-OBFUSCATE_CONSTANTS = True
-OBFUSCATE_STRINGS = True
-OBFUSCATE_LISTS = True
+OBFUSCATE_CONSTANTS = False
+OBFUSCATE_STRINGS = False
+OBFUSCATE_LISTS = False
 
 KEY_GEN_STRING = (
     "ZCQBMJVHFTHECVYYPIPIVLASSAKQXPICXQIEFXQGLRAHEOCTHB"
@@ -73,7 +68,8 @@ KEY_GEN_STRING = (
 module_constants = {}
 
 
-def write_python_preamble(file):
+def write_python_preamble(file) -> None:
+    """Write shebang, but this I think is not needed now."""
     file.write("#!/usr/bin/python3\n")
 
 
@@ -215,7 +211,6 @@ def write_log_preamble(file, plateform_name, logstruct):
 
 
 def write_cfg_preamble(file, plateform_name, configstruct):
-
     write_python_preamble(file)
     file.write('"""\n')
     file.write(
@@ -282,10 +277,7 @@ def generate_accessor_constants(xml):
 
     # Errors are all properties in the <ErrorMessages> tag, anything with Err in the name
     known_err_tags = ["OverTemp", "TempNotValid", "SlaveOverTemp"]
-    errors = [
-        element.tag
-        for element in xml.findall("./ErrorMessages/*")
-    ] + [
+    errors = [element.tag for element in xml.findall("./ErrorMessages/*")] + [
         element.tag
         for element in xml.findall(".//*")
         if element.tag.endswith("Err") or element.tag in known_err_tags
@@ -314,10 +306,10 @@ def write_get_accessors(file, xml):
             bitpos = element.attrib["BitPos"]
         items = None
         if "Items" in element.attrib:
-            items = f'{element.attrib["Items"]}'
+            items = f"{element.attrib['Items']}"
         # "PowerState" in mas-ibc-32k-log-1.py looks like a bug
         if "Item" in element.attrib:
-            items = f'{element.attrib["Item"]}'
+            items = f"{element.attrib['Item']}"
         size = None
         if "Size" in element.attrib:
             size = element.attrib["Size"]
@@ -404,6 +396,7 @@ def write_user_demand_keys(file, xml):
     file.write("    def user_demand_keys(self):\n")
     file.write(f"        return {xml.attrib['UserDemands']}\n")
 
+
 def write_error_keys(file, xml):
     file.write("\n")
     file.write("    @property\n")
@@ -473,6 +466,3 @@ def build_pack_code():
 
 if __name__ == "__main__":
     build_pack_code()
-    # print("".join([chr(random.randint(65, 90)) for i in range(1024)]))
-    # x = {"".join(chr(c) for c in [65, 66]): "ab"}
-    # print(x)
