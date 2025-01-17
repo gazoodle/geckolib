@@ -1,12 +1,13 @@
-""" Async Spa Structure block """
+"""Async Spa Structure block."""
 
 import logging
 
+from .spastruct import GeckoStructureTypeBase
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoAsyncStructure:
+class GeckoAsyncStructure(GeckoStructureTypeBase):
     """Class to host/manage the raw data block for a spa structure"""
 
     def __init__(self, on_set_value, on_async_set_value):
@@ -57,9 +58,7 @@ class GeckoAsyncStructure:
     async def get(self, protocol, create_func, retry_count=10):
         _LOGGER.debug("Async get for struct")
         async with protocol.Lock:
-
             while retry_count > 0:
-
                 # Create the request
                 request = create_func()
 
@@ -71,17 +70,13 @@ class GeckoAsyncStructure:
                 segments = []
 
                 while True:
-
                     # Wait for a response up to a certain amount of time
                     if await request.wait_for_response(protocol):
-
                         if next_expected == request.sequence:
-
                             segments.append(request.data)
                             next_expected = request.next
 
                             if request.next == 0:
-
                                 _LOGGER.debug(
                                     (
                                         "Status block segments complete, "
@@ -97,7 +92,6 @@ class GeckoAsyncStructure:
                                 return True
 
                         else:
-
                             _LOGGER.debug(
                                 "Out-of-sequence status block segment %d - ignored",
                                 request.sequence,
@@ -107,7 +101,6 @@ class GeckoAsyncStructure:
                                 break
 
                     else:
-
                         _LOGGER.debug("timeout waiting for any block")
                         break
 

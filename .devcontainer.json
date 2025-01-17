@@ -32,12 +32,15 @@
             "packages": [
                 "ffmpeg",
                 "libturbojpeg0",
-                "libpcap-dev"
+                "libpcap-dev",
+                "iputils-ping",
             ]
         }
     },
     "runArgs": [
         "-v",
         "${env:HOME}${env:USERPROFILE}/.ssh:/tmp/.ssh",
+        "--add-host",
+        "spa=10.1.209.91"
     ]
 }

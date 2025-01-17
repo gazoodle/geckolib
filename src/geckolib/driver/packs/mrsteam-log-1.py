@@ -1,55 +1,62 @@
-#!/usr/bin/python3
-"""
-    GeckoLogStruct - A class to manage the LogStruct for 'MrSteam v1'
-"""
+"""GeckoLogStruct - A class to manage the LogStruct for 'MrSteam v1'."""  # noqa: N999
 
 from . import (
-    GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
-    GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
+    GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
-    GeckoTempStructAccessor,
+    GeckoStructAccessor,
+    GeckoStructureTypeBase,
+    GeckoWordStructAccessor,
 )
 
 
 class GeckoLogStruct:
-    def __init__(self, struct_):
+    """Log Struct Class."""
+
+    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+        """Initialize the log struct class."""
         self.struct = struct_
 
     @property
-    def version(self):
+    def version(self) -> int:
+        """Get the log struct class version."""
         return 1
 
     @property
-    def begin(self):
+    def begin(self) -> int:
+        """Get the offset start."""
         return 256
 
     @property
-    def end(self):
+    def end(self) -> int:
+        """Get the offset end."""
         return 280
 
     @property
-    def all_device_keys(self):
+    def all_device_keys(self) -> list[str]:
+        """Get all device keys."""
         return ["LI"]
 
     @property
-    def user_demand_keys(self):
+    def user_demand_keys(self) -> list[str]:
+        """Get all user demand keys."""
         return []
 
     @property
-    def error_keys(self):
+    def error_keys(self) -> list[str]:
+        """Get all error keys."""
         return [
-            "PowerFailErr",
-            "Prr2Err",
             "SlaveH2O2Err",
             "KeyStuckErr",
             "Prr1Err",
+            "Prr2Err",
             "H2O2Err",
+            "PowerFailErr",
         ]
 
     @property
-    def accessors(self):
+    def accessors(self) -> dict[str, GeckoStructAccessor]:
+        """The structure accessors."""
         return {
             "Mode": GeckoEnumStructAccessor(
                 self.struct, "Mode", 257, 0, ["OFF", "ON"], None, 2, "ALL"

@@ -1,18 +1,23 @@
-#!/usr/bin/python3
-from ..accessor import (
-    GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
-    GeckoTimeStructAccessor,
+"""Pack Module Initialization."""
+
+from geckolib.driver.accessor import (
     GeckoBoolStructAccessor,
+    GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoStructAccessor,
     GeckoTempStructAccessor,
+    GeckoTimeStructAccessor,
+    GeckoWordStructAccessor,
 )
+from geckolib.driver.spastruct import GeckoStructureTypeBase
 
 __all__ = [
-    "GeckoByteStructAccessor",
-    "GeckoWordStructAccessor",
-    "GeckoTimeStructAccessor",
     "GeckoBoolStructAccessor",
+    "GeckoByteStructAccessor",
     "GeckoEnumStructAccessor",
+    "GeckoStructAccessor",
+    "GeckoStructureTypeBase",
     "GeckoTempStructAccessor",
+    "GeckoTimeStructAccessor",
+    "GeckoWordStructAccessor",
 ]

@@ -1,4 +1,4 @@
-""" Spa Structure block """
+"""Spa Structure block"""
 
 import logging
 
@@ -8,7 +8,11 @@ from .udp_socket import GeckoUdpSocket
 logger = logging.getLogger(__name__)
 
 
-class GeckoStructure:
+class GeckoStructureTypeBase:
+    """Base class to allow typing."""
+
+
+class GeckoStructure(GeckoStructureTypeBase):
     """Class to host/manage the raw data block for a spa structure"""
 
     def __init__(self, on_set_value):

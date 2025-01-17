@@ -1,36 +1,42 @@
-#!/usr/bin/python3
-"""
-    GeckoLogStruct - A class to manage the LogStruct for 'inYE-V3 v82'
-"""
+"""GeckoLogStruct - A class to manage the LogStruct for 'inYE-V3 v82'."""  # noqa: N999
 
 from . import (
-    GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
-    GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
+    GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoStructAccessor,
+    GeckoStructureTypeBase,
     GeckoTempStructAccessor,
+    GeckoTimeStructAccessor,
+    GeckoWordStructAccessor,
 )
 
 
 class GeckoLogStruct:
-    def __init__(self, struct_):
+    """Log Struct Class."""
+
+    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+        """Initialize the log struct class."""
         self.struct = struct_
 
     @property
-    def version(self):
+    def version(self) -> int:
+        """Get the log struct class version."""
         return 82
 
     @property
-    def begin(self):
+    def begin(self) -> int:
+        """Get the offset start."""
         return 256
 
     @property
-    def end(self):
+    def end(self) -> int:
+        """Get the offset end."""
         return 479
 
     @property
-    def all_device_keys(self):
+    def all_device_keys(self) -> list[str]:
+        """Get all device keys."""
         return [
             "P1",
             "P2",
@@ -57,7 +63,8 @@ class GeckoLogStruct:
         ]
 
     @property
-    def user_demand_keys(self):
+    def user_demand_keys(self) -> list[str]:
+        """Get all user demand keys."""
         return [
             "UdP1",
             "UdP2",
@@ -83,50 +90,52 @@ class GeckoLogStruct:
         ]
 
     @property
-    def error_keys(self):
+    def error_keys(self) -> list[str]:
+        """Get all error keys."""
         return [
-            "SlaveNoFloErr",
-            "VSP2ErrorID",
-            "AmbiantOHLevel2",
-            "VSP5ErrorID",
-            "RegOverHeat",
-            "ThermistanceErr",
-            "P1HStuck",
-            "SlaveRelayStuck",
-            "SlaveP2HStuck",
-            "SlaveAmbiantOHLevel2",
-            "VSP1ErrorID",
-            "SlaveRegProbeErr",
-            "VSP4CommLost",
-            "FiltSuspendedByErr",
-            "SlaveKinPumpOff",
-            "VSP2CommLost",
-            "ModbusHeatPumpErrorID",
             "SlaveThermistanceErr",
-            "TempNotValid",
-            "FLCErr",
-            "VSP4ErrorID",
-            "SlaveP1HStuck",
-            "VSP5CommLost",
-            "KinPumpOff",
-            "SlaveHtrStuck",
-            "SlaveOverTemp",
             "SlaveRegOverHeat",
-            "P2HStuck",
-            "SlaveHLErr",
-            "RelayStuck",
-            "RhRegProbeErr",
-            "SlaveMissingErr",
-            "VSP1CommLost",
+            "VSP2CommLost",
+            "SlaveP2HStuck",
+            "RegOverHeat",
             "HeaterStuck",
+            "VSP4CommLost",
             "SlaveKinNoFloErr",
-            "VSP3CommLost",
+            "SlaveAmbiantOHLevel2",
+            "ThermistanceErr",
+            "P2HStuck",
+            "ModbusHeatPumpErrorID",
+            "P1HStuck",
             "VSP3ErrorID",
+            "VSP1CommLost",
+            "RhRegProbeErr",
+            "FLCErr",
+            "VSP5ErrorID",
+            "VSP5CommLost",
+            "RelayStuck",
+            "SlaveHtrStuck",
+            "SlaveHLErr",
+            "VSP2ErrorID",
+            "VSP1ErrorID",
+            "VSP4ErrorID",
+            "SlaveRegProbeErr",
+            "VSP3CommLost",
+            "SlaveOverTemp",
             "OverTemp",
+            "AmbiantOHLevel2",
+            "FiltSuspendedByErr",
+            "KinPumpOff",
+            "SlaveRelayStuck",
+            "SlaveP1HStuck",
+            "SlaveNoFloErr",
+            "SlaveMissingErr",
+            "TempNotValid",
+            "SlaveKinPumpOff",
         ]
 
     @property
-    def accessors(self):
+    def accessors(self) -> dict[str, GeckoStructAccessor]:
+        """The structure accessors."""
         return {
             "RhWaterTemp": GeckoTempStructAccessor(
                 self.struct, "RhWaterTemp", 317, None

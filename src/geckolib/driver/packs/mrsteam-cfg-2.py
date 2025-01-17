@@ -1,32 +1,34 @@
-#!/usr/bin/python3
-"""
-    GeckoConfigStruct - A class to manage the ConfigStruct for 'MrSteam v2'
-"""
+"""GeckoConfigStruct - A class to manage the ConfigStruct for 'MrSteam v2'."""  # noqa: N999
 
 from . import (
-    GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
-    GeckoTimeStructAccessor,
-    GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoStructAccessor,
+    GeckoStructureTypeBase,
     GeckoTempStructAccessor,
+    GeckoWordStructAccessor,
 )
 
 
 class GeckoConfigStruct:
-    def __init__(self, struct_):
+    """Config Struct Class."""
+
+    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+        """Initialize the config struct class."""
         self.struct = struct_
 
     @property
-    def version(self):
+    def version(self) -> int:
+        """Get the config struct class version."""
         return 2
 
     @property
-    def output_keys(self):
+    def output_keys(self) -> list[str]:
+        """Output keys property."""
         return []
 
     @property
-    def accessors(self):
+    def accessors(self) -> dict[str, GeckoStructAccessor]:
+        """The structure accessors."""
         return {
             "Prog1SetpointG": GeckoTempStructAccessor(
                 self.struct, "Prog1SetpointG", 0, "ALL"

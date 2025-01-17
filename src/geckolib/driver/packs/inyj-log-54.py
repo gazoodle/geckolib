@@ -1,36 +1,42 @@
-#!/usr/bin/python3
-"""
-    GeckoLogStruct - A class to manage the LogStruct for 'InYJ v54'
-"""
+"""GeckoLogStruct - A class to manage the LogStruct for 'InYJ v54'."""  # noqa: N999
 
 from . import (
-    GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
-    GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
+    GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoStructAccessor,
+    GeckoStructureTypeBase,
     GeckoTempStructAccessor,
+    GeckoTimeStructAccessor,
+    GeckoWordStructAccessor,
 )
 
 
 class GeckoLogStruct:
-    def __init__(self, struct_):
+    """Log Struct Class."""
+
+    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+        """Initialize the log struct class."""
         self.struct = struct_
 
     @property
-    def version(self):
+    def version(self) -> int:
+        """Get the log struct class version."""
         return 54
 
     @property
-    def begin(self):
+    def begin(self) -> int:
+        """Get the offset start."""
         return 256
 
     @property
-    def end(self):
+    def end(self) -> int:
+        """Get the offset end."""
         return 479
 
     @property
-    def all_device_keys(self):
+    def all_device_keys(self) -> list[str]:
+        """Get all device keys."""
         return [
             "P1",
             "P2",
@@ -48,7 +54,8 @@ class GeckoLogStruct:
         ]
 
     @property
-    def user_demand_keys(self):
+    def user_demand_keys(self) -> list[str]:
+        """Get all user demand keys."""
         return [
             "UdP1",
             "UdP2",
@@ -66,40 +73,42 @@ class GeckoLogStruct:
         ]
 
     @property
-    def error_keys(self):
+    def error_keys(self) -> list[str]:
+        """Get all error keys."""
         return [
-            "SlaveNoFloErr",
-            "AmbiantOHLevel2",
-            "RegOverHeat",
-            "ThermistanceErr",
-            "P1HStuck",
-            "SlaveRelayStuck",
-            "SlaveP2HStuck",
-            "SlaveAmbiantOHLevel2",
-            "SlaveRegProbeErr",
-            "FiltSuspendedByErr",
-            "SlaveKinPumpOff",
             "SlaveThermistanceErr",
-            "TempNotValid",
-            "SlaveP1HStuck",
-            "KinPumpOff",
-            "SlaveHtrStuck",
-            "SlaveOverTemp",
-            "ThermFuseErr",
             "SlaveRegOverHeat",
-            "P2HStuck",
-            "SlaveHLErr",
-            "RelayStuck",
-            "RhRegProbeErr",
-            "SlaveMissingErr",
+            "SlaveP2HStuck",
+            "RegOverHeat",
             "HeaterStuck",
-            "SlaveThermFuseErr",
             "SlaveKinNoFloErr",
+            "SlaveAmbiantOHLevel2",
+            "ThermistanceErr",
+            "P2HStuck",
+            "P1HStuck",
+            "RhRegProbeErr",
+            "RelayStuck",
+            "SlaveHtrStuck",
+            "SlaveHLErr",
+            "SlaveRegProbeErr",
+            "SlaveOverTemp",
             "OverTemp",
+            "AmbiantOHLevel2",
+            "ThermFuseErr",
+            "SlaveThermFuseErr",
+            "FiltSuspendedByErr",
+            "KinPumpOff",
+            "SlaveRelayStuck",
+            "SlaveP1HStuck",
+            "SlaveNoFloErr",
+            "SlaveMissingErr",
+            "TempNotValid",
+            "SlaveKinPumpOff",
         ]
 
     @property
-    def accessors(self):
+    def accessors(self) -> dict[str, GeckoStructAccessor]:
+        """The structure accessors."""
         return {
             "RhWaterTemp": GeckoTempStructAccessor(
                 self.struct, "RhWaterTemp", 317, None

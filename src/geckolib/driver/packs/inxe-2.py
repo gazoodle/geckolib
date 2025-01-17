@@ -1,21 +1,26 @@
-#!/usr/bin/python3
-"""
-    GeckoPack - A class to manage the pack for 'InXE-2'
-"""
+"""GeckoPack - A class to manage the pack for 'InXE-2'."""  # noqa: N999
+
+from . import GeckoStructureTypeBase
 
 
 class GeckoPack:
-    def __init__(self, struct_):
+    """A GeckoPack class for a specific spa."""
+
+    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+        """Initialize the GeckoPack class."""
         self.struct = struct_
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """Get the plateform name."""
         return "InXE-2"
 
     @property
-    def type(self):
+    def type(self) -> int:
+        """Get the plateform type."""
         return 1
 
     @property
-    def revision(self):
+    def revision(self) -> str:
+        """Get the SpaPackStruct revision."""
         return "39.0"

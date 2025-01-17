@@ -1,36 +1,39 @@
-#!/usr/bin/python3
-"""
-    GeckoLogStruct - A class to manage the LogStruct for 'MAS-IBC-32K v1'
-"""
+"""GeckoLogStruct - A class to manage the LogStruct for 'MAS-IBC-32K v1'."""  # noqa: N999
 
 from . import (
     GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
-    GeckoTimeStructAccessor,
-    GeckoBoolStructAccessor,
     GeckoEnumStructAccessor,
-    GeckoTempStructAccessor,
+    GeckoStructAccessor,
+    GeckoStructureTypeBase,
+    GeckoWordStructAccessor,
 )
 
 
 class GeckoLogStruct:
-    def __init__(self, struct_):
+    """Log Struct Class."""
+
+    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+        """Initialize the log struct class."""
         self.struct = struct_
 
     @property
-    def version(self):
+    def version(self) -> int:
+        """Get the log struct class version."""
         return 1
 
     @property
-    def begin(self):
+    def begin(self) -> int:
+        """Get the offset start."""
         return 256
 
     @property
-    def end(self):
+    def end(self) -> int:
+        """Get the offset end."""
         return 285
 
     @property
-    def all_device_keys(self):
+    def all_device_keys(self) -> list[str]:
+        """Get all device keys."""
         return [
             "KeypadID",
             "KeypadRev",
@@ -44,15 +47,18 @@ class GeckoLogStruct:
         ]
 
     @property
-    def user_demand_keys(self):
+    def user_demand_keys(self) -> list[str]:
+        """Get all user demand keys."""
         return []
 
     @property
-    def error_keys(self):
+    def error_keys(self) -> list[str]:
+        """Get all error keys."""
         return []
 
     @property
-    def accessors(self):
+    def accessors(self) -> dict[str, GeckoStructAccessor]:
+        """The structure accessors."""
         return {
             "UserBlowerIntensity": GeckoByteStructAccessor(
                 self.struct, "UserBlowerIntensity", 256, "ALL"

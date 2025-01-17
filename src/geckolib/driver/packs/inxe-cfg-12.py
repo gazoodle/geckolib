@@ -1,32 +1,37 @@
-#!/usr/bin/python3
-"""
-    GeckoConfigStruct - A class to manage the ConfigStruct for 'InXE v12'
-"""
+"""GeckoConfigStruct - A class to manage the ConfigStruct for 'InXE v12'."""  # noqa: N999
 
 from . import (
-    GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
-    GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
+    GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoStructAccessor,
+    GeckoStructureTypeBase,
     GeckoTempStructAccessor,
+    GeckoTimeStructAccessor,
+    GeckoWordStructAccessor,
 )
 
 
 class GeckoConfigStruct:
-    def __init__(self, struct_):
+    """Config Struct Class."""
+
+    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+        """Initialize the config struct class."""
         self.struct = struct_
 
     @property
-    def version(self):
+    def version(self) -> int:
+        """Get the config struct class version."""
         return 12
 
     @property
-    def output_keys(self):
+    def output_keys(self) -> list[str]:
+        """Output keys property."""
         return ["Out1", "Out2", "Out3", "Out4", "Out5", "OutHtr", "Direct"]
 
     @property
-    def accessors(self):
+    def accessors(self) -> dict[str, GeckoStructAccessor]:
+        """The structure accessors."""
         return {
             "ConfigNumber": GeckoByteStructAccessor(
                 self.struct, "ConfigNumber", 0, "ALL"
