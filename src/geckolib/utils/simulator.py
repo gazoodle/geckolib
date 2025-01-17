@@ -1,4 +1,4 @@
-""" GeckoSimulator class """
+"""GeckoSimulator class"""
 
 import logging
 import os
@@ -40,7 +40,6 @@ class GeckoSimulator(GeckoCmd):
     _STATUS_BLOCK_SEGMENT_SIZE = 39
 
     def __init__(self, first_commands=None):
-
         self._socket = GeckoUdpSocket()
         self._install_standard_handlers()
         self.structure = GeckoStructure(self._on_set_value)
@@ -157,6 +156,11 @@ class GeckoSimulator(GeckoCmd):
             f" `parse` command to break it apart"
         )
 
+    def do_snapshot(self, args):
+        """Set a snapshot state"""
+        snapshot = GeckoSnapshot.parse_json(args)
+        self.set_snapshot(snapshot)
+
     def do_name(self, args):
         """Set the name of the spa : name <spaname>."""
         self._hello_handler = GeckoHelloProtocolHandler.response(
@@ -237,9 +241,11 @@ class GeckoSimulator(GeckoCmd):
         self._socket.add_receive_handler(
             GeckoPacketProtocolHandler(socket=self._socket)
         )
-        self._socket.add_receive_handler(
-            GeckoPingProtocolHandler(on_handled=self._on_ping)
-        ),
+        (
+            self._socket.add_receive_handler(
+                GeckoPingProtocolHandler(on_handled=self._on_ping)
+            ),
+        )
         self._socket.add_receive_handler(
             GeckoVersionProtocolHandler(on_handled=self._on_version)
         )

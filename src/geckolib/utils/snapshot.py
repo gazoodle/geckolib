@@ -1,4 +1,5 @@
-""" Snapshot helper """
+"""Snapshot helper"""
+
 import ast
 import logging
 import re
@@ -90,7 +91,7 @@ class GeckoSnapshot:
 
     def _re_spa_pack_id(self, groups):
         (hex_id,) = groups
-        self._pack_conf_id = f"{int(hex_id,16)}"
+        self._pack_conf_id = f"{int(hex_id, 16)}"
 
     def _re_spa_pack_rev(self, groups):
         (self._pack_conf_rev,) = groups
@@ -227,3 +228,20 @@ class GeckoSnapshot:
             snapshots.append(connection)
 
         return snapshots
+
+    @staticmethod
+    def parse_json(json: str):
+        snap = ast.literal_eval(json)
+        snapshot = GeckoSnapshot()
+
+        snapshot.parse(f"Spa pack {snap['Spa pack']}")
+        snapshot.parse(f"intouch version EN {snap['intouch version EN']}")
+        snapshot.parse(f"intouch version CO {snap['intouch version CO']}")
+        snapshot._config_version = snap["Config version"]
+        snapshot._log_version = snap["Log version"]
+        print(snap["Status Block"])
+        snapshot._bytes = bytes(
+            bytearray([int(b.strip()[2:], 16) for b in snap["Status Block"]])
+        )
+
+        return snapshot

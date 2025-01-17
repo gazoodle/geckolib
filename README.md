@@ -350,6 +350,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 ## Done/Fixed in 0.4.19
 
 - Removed unprintable charater in RF Channel name
+- Reworked packgen.py so that the code is RUFF compliant, working towards getting Github actions working
+- Fixed simulator to load new HA snapshots
 
 ## Done/Fixed in 0.4.18
 
