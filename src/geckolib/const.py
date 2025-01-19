@@ -1,4 +1,6 @@
-""" Constants Class """
+"""Constants Class"""
+
+from warnings import deprecated
 
 
 class GeckoConstants:
@@ -54,6 +56,8 @@ class GeckoConstants:
     KEY_FILTER_PURGE = "Purge"
     KEY_FILTER_CLEAN = "Clean"
     KEY_ECON_ACTIVE = "EconActive"
+    KEY_COOLZONE_DETECTED = "CoolZoneDetected"
+    KEY_COOLZONE_MODE = "CoolZoneMode"
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 

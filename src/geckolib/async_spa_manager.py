@@ -1,22 +1,21 @@
-"""Class to manage the clienting of a Gecko in.touch2 enabled device """
+"""Class to manage the clienting of a Gecko in.touch2 enabled device"""
+
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 import asyncio
+import logging
+from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Any, List, Optional
 
-
-from .automation import GeckoAsyncFacade, GeckoAutomationBase, GeckoButton
 from .async_locator import GeckoAsyncLocator
 from .async_spa import GeckoAsyncSpa
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_tasks import AsyncTasks
+from .automation import GeckoAsyncFacade, GeckoAutomationBase, GeckoButton
 from .const import GeckoConstants
 from .spa_events import GeckoSpaEvent
 from .spa_state import GeckoSpaState
-
-import logging
-from typing import Optional, List
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -211,9 +210,11 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         if self._spa_name == "":
             self._spa_name = None
 
-        self._spa_descriptors: Optional[List[GeckoAsyncSpaDescriptor]] = None
-        self._facade: Optional[GeckoAsyncFacade] = None
-        self._spa: Optional[GeckoAsyncSpa] = None
+        self._spa_descriptors: list[GeckoAsyncSpaDescriptor] | None = None
+        self._has_descriptors = asyncio.Event()
+        self._facade: GeckoAsyncFacade | None = None
+        self._facade_state_known = asyncio.Event()
+        self._spa: GeckoAsyncSpa | None = None
         self._spa_state = GeckoSpaState.IDLE
 
         self._status_sensor: Optional[GeckoAsyncSpaMan.StatusSensor] = None
@@ -244,11 +245,13 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     #
 
     async def async_reset(self) -> None:
-        """Reset the spa manager"""
+        """Reset the spa manager."""
         self._spa_descriptors = None
+        self._has_descriptors.clear()
         if self._facade is not None:
             await self._facade.disconnect()
             self._facade = None
+            self._facade_state_known.clear()
         if self._spa is not None:
             await self._spa.disconnect()
             self._spa = None
@@ -275,6 +278,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             )
             await locator.discover()
             self._spa_descriptors = locator.spas
+            self._has_descriptors.set()
             del locator
 
         finally:
@@ -301,6 +305,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             # Check state now
             if self._spa_state == GeckoSpaState.SPA_READY:
                 self._facade = GeckoAsyncFacade(self._spa, self)
+                self._facade_state_known.set()
 
         finally:
             await self._handle_event(
@@ -350,17 +355,13 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         await self.async_reset()
 
     async def wait_for_descriptors(self) -> None:
-        """Wait for descriptors to be available"""
-        while self._spa_descriptors is None:
-            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
+        """Wait for descriptors to be available."""
+        await self._has_descriptors.wait()
 
     async def wait_for_facade(self) -> bool:
-        """Wait for facade to be available"""
-        while self._facade is None:
-            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
-            if self.spa_state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
-                return False
-        return True
+        """Wait for facade to be available."""
+        await self._facade_state_known.wait()
+        return self._facade is not None
 
     ########################################################################
     #
@@ -369,29 +370,29 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
     @property
     def unique_id(self) -> str:
-        """A unique id for the spa manager"""
+        """A unique id for the spa manager."""
         assert self._spa_identifier is not None
         return f"{self._spa_identifier.replace(':', '')}"
 
     @property
     def spa_name(self) -> str:
-        """The name of the spa being managed"""
+        """The name of the spa being managed."""
         assert self._spa_name is not None
         return self._spa_name
 
     @property
     def spa_descriptors(self) -> Optional[List[GeckoAsyncSpaDescriptor]]:
-        """Get a list of the discovered spas, or None"""
+        """Get a list of the discovered spas, or None."""
         return self._spa_descriptors
 
     @property
     def facade(self) -> Optional[GeckoAsyncFacade]:
-        """Get the connected facade, or None"""
+        """Get the connected facade, or None."""
         return self._facade
 
     @property
     def spa_state(self) -> GeckoSpaState:
-        """Get the spa state"""
+        """Get the spa state."""
         return self._spa_state
 
     @property
@@ -422,8 +423,8 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     #   Abstract methods
     #
     @abstractmethod
-    async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
-        pass
+    async def handle_event(self, event: GeckoSpaEvent, **_kwargs) -> None:
+        """Handle the event."""
 
     ########################################################################
     #
@@ -431,7 +432,6 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     #
 
     async def _handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
-
         if (
             self._status_sensor is None
             and self._spa_identifier is not None
@@ -528,7 +528,6 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         try:
             while True:
-
                 if (
                     self.spa_state == GeckoSpaState.IDLE
                     and self._spa_descriptors is None

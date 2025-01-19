@@ -1,4 +1,4 @@
-""" GeckoAsyncSpa class """
+"""GeckoAsyncSpa class"""
 
 from datetime import datetime, timezone
 from functools import partial
@@ -143,7 +143,9 @@ class GeckoAsyncSpa(Observable):
             await self._event_handler(GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS)
 
     async def _async_import_module(self, loop, module):
-        return await loop.run_in_executor(None, partial(importlib.import_module, module))
+        return await loop.run_in_executor(
+            None, partial(importlib.import_module, module)
+        )
 
     async def _connect(self) -> None:
         loop = asyncio.get_running_loop()
@@ -272,7 +274,9 @@ class GeckoAsyncSpa(Observable):
 
         pack_module_name = f"geckolib.driver.packs.{plateform_key}"
         try:
-            GeckoPack = (await self._async_import_module( loop, pack_module_name)).GeckoPack
+            GeckoPack = (
+                await self._async_import_module(loop, pack_module_name)
+            ).GeckoPack
             self.pack_class = GeckoPack(self.struct)
             # TODO: Need to add base classes and type hinting to auto-generated
             # pack code and remove type-hint suppression below
@@ -291,7 +295,9 @@ class GeckoAsyncSpa(Observable):
             f"geckolib.driver.packs.{plateform_key}-cfg-{self.config_version}"
         )
         try:
-            GeckoConfigStruct = (await self._async_import_module(loop, config_module_name )).GeckoConfigStruct
+            GeckoConfigStruct = (
+                await self._async_import_module(loop, config_module_name)
+            ).GeckoConfigStruct
             self.config_class = GeckoConfigStruct(self.struct)
         except ModuleNotFoundError:
             await self._event_handler(
@@ -309,7 +315,9 @@ class GeckoAsyncSpa(Observable):
             f"geckolib.driver.packs.{plateform_key}-log-{self.log_version}"
         )
         try:
-            GeckoLogStruct = (await self._async_import_module(loop, log_module_name)).GeckoLogStruct
+            GeckoLogStruct = (
+                await self._async_import_module(loop, log_module_name)
+            ).GeckoLogStruct
             self.log_class = GeckoLogStruct(self.struct)
         except ModuleNotFoundError:
             await self._event_handler(
@@ -373,7 +381,7 @@ class GeckoAsyncSpa(Observable):
             raise
 
     async def disconnect(self) -> None:
-        """Disconnect the spa from the async protocol"""
+        """Disconnect the spa from the async protocol."""
         self._is_connected = False
         await self._event_handler(GeckoSpaEvent.RUNNING_SPA_DISCONNECTED)
         self.struct.reset()
@@ -426,7 +434,6 @@ class GeckoAsyncSpa(Observable):
 
         try:
             while self.isopen:
-
                 assert self._protocol is not None
                 ping_handler = await self._protocol.get(
                     lambda: GeckoPingProtocolHandler.request(parms=self.sendparms),

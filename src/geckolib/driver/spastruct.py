@@ -1,6 +1,7 @@
 """Spa Structure block"""
 
 import logging
+from warnings import deprecated
 
 from .protocol import GeckoStatusBlockProtocolHandler
 from .udp_socket import GeckoUdpSocket
@@ -12,8 +13,9 @@ class GeckoStructureTypeBase:
     """Base class to allow typing."""
 
 
+@deprecated("Replace with GeckoAsyncStructure")
 class GeckoStructure(GeckoStructureTypeBase):
-    """Class to host/manage the raw data block for a spa structure"""
+    """Class to host/manage the raw data block for a spa structure."""
 
     def __init__(self, on_set_value):
         self._status_block = b"\x00" * 1024

@@ -59,6 +59,6 @@ class AsyncTasks:
 
     @property
     def spa_name(self) -> str:
-        """Dummy function designed to be overridden"""
+        """Dummy function designed to be overridden."""
         # TODO: Find a better way, this isn't functionality that the task manager needs
         return ""

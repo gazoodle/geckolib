@@ -1,7 +1,8 @@
-""" Structure accessor """
+"""Structure accessor."""
 
-import struct
 import logging
+import struct
+from warnings import deprecated
 
 from ..const import GeckoConstants
 from .observable import Observable
@@ -110,9 +111,10 @@ class GeckoStructAccessor(Observable):
                     data,
                 )
         elif self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
-            data = f"{int(data/256):02}:{data%256:02}"
+            data = f"{int(data / 256):02}:{data % 256:02}"
         return data
 
+    @deprecated("Use _async_set_value")
     def _set_value(self, newvalue):
         """Set a value in the pack structure using the initialized declaration"""
         if self.read_write is None:

@@ -1,4 +1,4 @@
-""" Gecko Async Locator class """
+"""Gecko Async Locator class"""
 
 import logging
 import time
@@ -15,40 +15,39 @@ from .config import GeckoConfig
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .spa_events import GeckoSpaEvent
 from .driver import Observable
-from typing import Optional, List
+from typing import Any, Optional, List
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoAsyncLocator(Observable):
-    """
-    GeckoAsyncLocator class locates in.touch2 devices on your local LAN
-    """
+    """GeckoAsyncLocator class locates in.touch2 devices on your local LAN."""
 
     def __init__(
         self,
         taskman: AsyncTasks,
         event_handler: GeckoSpaEvent.CallBack,
-        **kwargs: Optional[str],
+        **kwargs: str | None,
     ) -> None:
+        """Init the async locator."""
         super().__init__()
         # Get the arguments
         self._task_man: AsyncTasks = taskman
         self._event_handler: GeckoSpaEvent.CallBack = event_handler
-        self._spa_address: Optional[str] = kwargs.get("spa_address", None)
+        self._spa_address: str | None = kwargs.get("spa_address")
         if self._spa_address == "":
             self._spa_address = None
-        self._spa_identifier: Optional[str] = kwargs.get("spa_identifier", None)
+        self._spa_identifier: str | None = kwargs.get("spa_identifier")
         if self._spa_identifier == "":
             self._spa_identifier = None
 
-        self._spas: Optional[List[GeckoAsyncSpaDescriptor]] = None
-        self._spa_identifiers: List[bytes] = []
+        self._spas: list[GeckoAsyncSpaDescriptor] | None = None
+        self._spa_identifiers: list[bytes] = []
 
         self._has_found_spa: bool = False
-        self._started: Optional[float] = None
-        self._transport: Optional[asyncio.BaseTransport] = None
-        self._protocol: Optional[GeckoAsyncUdpProtocol] = None
+        self._started: float | None = None
+        self._transport: asyncio.BaseTransport | None = None
+        self._protocol: GeckoAsyncUdpProtocol | None = None
 
     async def _async_on_discovered(
         self, handler: GeckoHelloProtocolHandler, sender: tuple
@@ -91,21 +90,23 @@ class GeckoAsyncLocator(Observable):
         return time.monotonic() - self._started
 
     @property
-    def spas(self) -> Optional[List[GeckoAsyncSpaDescriptor]]:
+    def spas(self) -> list[GeckoAsyncSpaDescriptor] | None:
         return self._spas
 
     @property
     def has_had_enough_time(self) -> bool:
+        """Return if we have had enough time to discover the spas."""
         return self.age > GeckoConfig.DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS
 
     @property
     def is_running(self) -> bool:
+        """Return the running state."""
         if self._started is None:
             return False
         return self._protocol is not None
 
     async def _broadcast_loop(self, hello_handler) -> None:
-        """Send a discovery message every second"""
+        """Send a discovery message every second."""
         while True:
             if self._protocol is not None:
                 self._protocol.queue_send(
@@ -114,10 +115,10 @@ class GeckoAsyncLocator(Observable):
                         static_ip=self._spa_address
                     ),
                 )
-                await asyncio.sleep(1)
-            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
+            await asyncio.sleep(1)
 
     async def discover(self) -> None:
+        """Discover spas on the local lan."""
         loop = asyncio.get_running_loop()
         on_con_lost = loop.create_future()
         self._transport, _protocol = await loop.create_datagram_endpoint(
@@ -144,10 +145,9 @@ class GeckoAsyncLocator(Observable):
         self._on_change(self)
 
         while self.age < GeckoConfig.DISCOVERY_TIMEOUT_IN_SECONDS:
-            if self.has_had_enough_time:
-                if len(self._spas) > 0:
-                    _LOGGER.info("Found %d spas ... %s", len(self._spas), self._spas)
-                    break
+            if self.has_had_enough_time and len(self._spas) > 0:
+                _LOGGER.info("Found %d spas ... %s", len(self._spas), self._spas)
+                break
             if self._has_found_spa:
                 break
             await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)

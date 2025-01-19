@@ -1,28 +1,32 @@
-""" Gecko handler for unhanded verbs """
+"""Gecko handler for unhanded verbs"""
 
 import asyncio
 import logging
+from typing import Any
 
 from geckolib.const import GeckoConstants
-from ..udp_socket import GeckoUdpProtocolHandler
 
+from ..udp_socket import GeckoUdpProtocolHandler
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoUnhandledProtocolHandler(GeckoUdpProtocolHandler):
-    """Protocol handler to deal with unhandled or unsolicited messages"""
+    """Protocol handler to deal with unhandled or unsolicited messages."""
 
     def __init__(self, **kwargs) -> None:
+        """Initialize the default handler."""
         super().__init__(**kwargs)
 
     def can_handle(self, _received_bytes: bytes, _sender: tuple) -> bool:
+        """You can't handle the truth ... wait! No actually you can."""
         return True
 
     def handle(self, received_bytes: bytes, sender: tuple) -> None:
-        pass
+        """Go on then, handle it."""
 
-    async def consume(self, protocol):
+    async def consume(self, protocol: Any):
+        """Consume the packet."""
         while True:
             if protocol.queue.head is not None:
                 # First time we see this, we mark the queue

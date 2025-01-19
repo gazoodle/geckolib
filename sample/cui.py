@@ -1,28 +1,28 @@
-""" Complete sample client CUI - Console User Interface
-
-    All the code to drive the CUI is in this file, it should only
-    talk to the facade as it is the example of how to integrate
-    geckolib into an automation system
+"""Complete sample client CUI - Console User Interface."""
 
 """
+All the code to drive the CUI is in this file, it should only
+talk to the facade as it is the example of how to integrate
+geckolib into an automation system
+"""
 
+import _curses
 import asyncio
 import curses
-import _curses
 import inspect
 import logging
 import time
 from datetime import datetime
+from typing import Any, Optional, Self
+
 from abstract_display import AbstractDisplay
 from config import Config
-from context_sample import (  # type: ignore
-    GeckoAsyncSpaMan,
-    GeckoSpaEvent,
+from context_sample import (
     GeckoAsyncSpaDescriptor,
+    GeckoAsyncSpaMan,
     GeckoConstants,
-    GeckoConfig,
+    GeckoSpaEvent,
 )
-from typing import Optional
 
 from geckolib.spa_state import GeckoSpaState
 
@@ -53,7 +53,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         # automation client
         self._can_use_facade = False
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         await GeckoAsyncSpaMan.__aenter__(self)
         self.add_task(self._timer_loop(), "Timer", "CUI")
         await self.async_set_spa_info(
@@ -70,7 +70,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             self.make_display()
             await asyncio.sleep(1)
 
-    async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
+    async def handle_event(self, event: GeckoSpaEvent, **_kwargs: Any) -> None:
         # Always rebuild the UI when there is an event
         _LOGGER.debug(f"{event} : {self.spa_state}")
         if event == GeckoSpaEvent.CLIENT_FACADE_IS_READY:
@@ -131,7 +131,6 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             self._commands = {}
 
             if self._can_use_facade:
-
                 assert self.facade is not None
                 lines.append(f"{self.facade.name} is ready")
                 lines.append("")
@@ -157,9 +156,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 lines.append(f"{self.facade.error_sensor}")
 
             else:
-
                 if self.spa_state == GeckoSpaState.LOCATED_SPAS:
-
                     if self.spa_descriptors is not None:
                         # If the _spas property is available, that means we've got
                         # a list of spas that we can choose from
@@ -178,7 +175,6 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                     lines.append("")
 
                 elif self.spa_state == GeckoSpaState.ERROR_RF_FAULT:
-
                     lines.append(f"{self.spa_name} not ready")
                     lines.append(f"{self.ping_sensor}")
                     lines.append(f"{self.radio_sensor}")
@@ -189,7 +185,6 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                     )
 
                 elif self.spa_state == GeckoSpaState.ERROR_PING_MISSED:
-
                     lines.append(f"{self.spa_name} not ready")
                     lines.append(f"{self.ping_sensor}")
                     lines.append(f"{self.radio_sensor}")
@@ -257,12 +252,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
         self.stdscr.refresh()
 
-        # window = curses.newwin(5, 20, 10, 10)
-        # window.box()
-        # window.addstr(2, 2, "Window")
-        # window.refresh()
-
     async def handle_char(self, char: int) -> None:
+        """Handle a command character."""
         cmd = chr(char)
         if cmd in self._commands:
             func = self._commands[cmd]
