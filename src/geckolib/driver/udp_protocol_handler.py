@@ -1,9 +1,10 @@
-"""GeckoUdpProtocolHandler base class"""
+"""GeckoUdpProtocolHandler base class."""
 
 from __future__ import annotations
+
+import asyncio
 import logging
 import time
-import asyncio
 from typing import TYPE_CHECKING
 
 from geckolib.const import GeckoConstants
@@ -19,7 +20,9 @@ _LOGGER = logging.getLogger(__name__)
 
 class GeckoUdpProtocolHandler(ABC):
     """
-    Protocol handlers manage both sides of a specific conversation part with
+    Protocol handlers class.
+
+    Manage both sides of a specific conversation part with
     a remote end.
 
     The protocol is either initiated by a client or by a server, but either
@@ -39,24 +42,24 @@ class GeckoUdpProtocolHandler(ABC):
     The base protocol handler will manage the lifetime of the handlers within
     the socket, and mechanisms are in place to allow retries to be handled
     with failure exit points available to allow clients to make class decisions
-    or instance decisions, either by overridden methods, or by instance handlers
-
+    or instance decisions, either by overridden methods, or by instance handlers.
     """
 
     def __init__(self, **kwargs) -> None:
+        """Initialize the protocol handler class."""
         # Send functionality
-        self._send_bytes = kwargs.get("send_bytes", None)
+        self._send_bytes = kwargs.get("send_bytes")
         self.last_destination = None
 
         # Receive functionality
-        self._on_handled = kwargs.get("on_handled", None)
-        self._async_on_handled = kwargs.get("async_on_handled", None)
+        self._on_handled = kwargs.get("on_handled")
+        self._async_on_handled = kwargs.get("async_on_handled")
 
         # Lifetime functionality
         self._start_time = time.monotonic()
         self._timeout_in_seconds = kwargs.get("timeout", 0)
         self._retry_count = kwargs.get("retry_count", 0)
-        self._on_retry_failed = kwargs.get("on_retry_failed", None)
+        self._on_retry_failed = kwargs.get("on_retry_failed")
         self._should_remove_handler = False
 
     ##########################################################################
@@ -66,8 +69,12 @@ class GeckoUdpProtocolHandler(ABC):
     ##########################################################################
     @property
     def send_bytes(self) -> bytes:
-        """The bytes to send to the remote end. Either uses the class instance
-        data _send_bytes or can be overridden in a base class"""
+        """
+        The bytes to send to the remote end.
+
+        Either uses the class instancedata _send_bytes or can be overridden
+        in a base class.
+        """
         if self._send_bytes is None:
             raise NotImplementedError
         return self._send_bytes
@@ -80,21 +87,27 @@ class GeckoUdpProtocolHandler(ABC):
 
     @abstractmethod
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
-        """Check if you can handle these bytes. If you return True, then your
-        handle method will get called and no other handlers will be given a
-        chance to process this data. If you return False then the search for a
-        suitable handler will continue"""
+        """
+        Check if you can handle these bytes.
+
+        If you return True, then your handle method will get called and no
+        more handlers will be given a chance to process this data. If you
+        return False then the search for a suitable handler will continue
+        """
         return False
 
     @abstractmethod
     def handle(self, received_bytes: bytes, sender: tuple) -> None:
-        """Handle this data. This will only be called if you returned True
-        from the `can_handle` function. If you wish to remove this handler
-        from the system, then you should set the `should_remove_handler`
-        member."""
+        """
+        Handle this data.
+
+        This will only be called if you returned True from the `can_handle`
+        function. If you wish to remove this handler from the system, then
+        you should set the `should_remove_handler member.
+        """
 
     def handled(self, sender: tuple) -> None:
-        """Base class implementation for when the data has been handled"""
+        """Handle the data in the base class. Derivatives must call this."""
         self._reset_timeout()
         assert self._async_on_handled is None
         if self._on_handled is not None:
@@ -107,25 +120,29 @@ class GeckoUdpProtocolHandler(ABC):
     ##########################################################################
 
     async def async_handle(self, received_bytes: bytes, sender: tuple) -> None:
-        """Handle this data. This will only be called if you returned True
-        from the `can_handle` function. If you wish to remove this handler
-        from the system, then you should set the `should_remove_handler`
-        member."""
+        """
+        Handle this data.
+
+        This will only be called if you returned True from the `can_handle`
+        function. If you wish to remove this handler from the system, then you
+        should set the `should_remove_handler` member.
+        """
         self.handle(received_bytes, sender)
 
     async def async_handled(self, sender: tuple) -> None:
-        """Base class implementation for when the data has been handled"""
+        """Handle the data in the base class. Derivatives must call this."""
         self._reset_timeout()
         assert self._on_handled is None
         if self._async_on_handled is not None:
             await self._async_on_handled(self, sender)
 
     async def wait_for_response(self, protocol: GeckoAsyncUdpProtocol) -> None:
-        """Wait for a response that this command can handle, return True if handled,
-        False if timed-out.
+        """
+        Wait for a response that this command can handle.
 
         This function doesn't respect the _on_handled functionality since its
-        use is for inline async stuff"""
+        use is for inline async stuff.
+        """
         assert self._timeout_in_seconds > 0
         while True:
             if protocol.queue.head is not None:
@@ -144,7 +161,6 @@ class GeckoUdpProtocolHandler(ABC):
 
     async def consume(self, protocol: GeckoAsyncUdpProtocol) -> None:
         """Async coroutine to handle datagram."""
-
         assert self._timeout_in_seconds == 0
         while True:
             if protocol.queue.head is not None:
@@ -171,6 +187,7 @@ class GeckoUdpProtocolHandler(ABC):
 
     @property
     def has_timedout(self) -> bool:
+        """Get the timedout status."""
         return (
             self.age > self._timeout_in_seconds
             if self._timeout_in_seconds > 0
@@ -179,12 +196,14 @@ class GeckoUdpProtocolHandler(ABC):
 
     @property
     def should_remove_handler(self) -> bool:
+        """Get the should remove handler property."""
         return self._should_remove_handler
 
     def _reset_timeout(self) -> None:
         self._start_time = time.monotonic()
 
     def retry(self, socket) -> bool:
+        """Retry the protocol."""
         if self._retry_count == 0:
             return False
         self._retry_count -= 1
@@ -196,7 +215,7 @@ class GeckoUdpProtocolHandler(ABC):
         return True
 
     def loop(self, socket) -> None:
-        """Executed each time around the socket loop"""
+        """Execute each time around the socket loop."""
         if not self.has_timedout:
             return
         _LOGGER.debug(f"Handler {self.__class__.__name__} has timed out")
@@ -212,6 +231,7 @@ class GeckoUdpProtocolHandler(ABC):
 
     # Pythonic methods
     def __repr__(self) -> str:
+        """Get string representation of this class."""
         return (
             f"{self.__class__.__name__}(send_bytes={self._send_bytes!r},"
             f" age={self.age}, has_timedout={self.has_timedout},"
