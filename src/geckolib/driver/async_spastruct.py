@@ -71,38 +71,34 @@ class GeckoAsyncStructure(GeckoStructureTypeBase):
 
                 while True:
                     # Wait for a response up to a certain amount of time
-                    if await request.wait_for_response(protocol):
-                        if next_expected == request.sequence:
-                            segments.append(request.data)
-                            next_expected = request.next
-
-                            if request.next == 0:
-                                _LOGGER.debug(
-                                    (
-                                        "Status block segments complete, "
-                                        "update and complete"
-                                    )
-                                )
-
-                                self.replace_status_block_segment(
-                                    request.start,
-                                    b"".join(segments),
-                                )
-
-                                return True
-
-                        else:
-                            _LOGGER.debug(
-                                "Out-of-sequence status block segment %d - ignored",
-                                request.sequence,
-                            )
-
-                            if request.next == 0:
-                                break
-
-                    else:
+                    await request.wait_for_response(protocol)
+                    if request.has_timedout:
                         _LOGGER.debug("timeout waiting for any block")
                         break
+
+                    if next_expected == request.sequence:
+                        segments.append(request.data)
+                        next_expected = request.next
+
+                        if request.next == 0:
+                            _LOGGER.debug(
+                                ("Status block segments complete, update and complete")
+                            )
+
+                            self.replace_status_block_segment(
+                                request.start,
+                                b"".join(segments),
+                            )
+
+                            return True
+                    else:
+                        _LOGGER.debug(
+                            "Out-of-sequence status block segment %d - ignored",
+                            request.sequence,
+                        )
+
+                        if request.next == 0:
+                            break
 
                 retry_count -= 1
             return False

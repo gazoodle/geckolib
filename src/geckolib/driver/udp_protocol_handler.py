@@ -120,7 +120,7 @@ class GeckoUdpProtocolHandler(ABC):
         if self._async_on_handled is not None:
             await self._async_on_handled(self, sender)
 
-    async def wait_for_response(self, protocol: GeckoAsyncUdpProtocol) -> bool:
+    async def wait_for_response(self, protocol: GeckoAsyncUdpProtocol) -> None:
         """Wait for a response that this command can handle, return True if handled,
         False if timed-out.
 
@@ -134,11 +134,11 @@ class GeckoUdpProtocolHandler(ABC):
                     protocol.queue.pop()
                     await self.async_handle(data, sender)
                     self._reset_timeout()
-                    return True
+                    return
 
             if self.has_timedout:
                 _LOGGER.debug("Handler %s timed out", self)
-                return False
+                return
 
             await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
 

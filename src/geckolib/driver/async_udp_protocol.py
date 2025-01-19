@@ -1,4 +1,4 @@
-""" GeckoAsyncUdpProtocol - Gecko Async UDP protocol implementation """
+"""GeckoAsyncUdpProtocol - Gecko Async UDP protocol implementation"""
 
 import asyncio
 import logging
@@ -122,19 +122,17 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         destination: Optional[tuple] = None,
         retry_count: int = GeckoConfig.PROTOCOL_RETRY_COUNT,
     ) -> Optional[T]:
-
         _LOGGER.debug("Async get started")
         async with self.Lock:
-
             while retry_count > 0:
-
                 # Create the request
                 request = create_func()
                 # Queue it for delivery
                 self.queue_send(request, destination)
 
                 # Wait for a response up to a certain amount of time
-                if await request.wait_for_response(self):
+                await request.wait_for_response(self)
+                if not request.has_timedout:
                     # If handled, then return the handler which ought
                     # to contain the information as requested
                     return request
@@ -149,6 +147,5 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
 
     def __repr__(self) -> str:
         return (
-            f"{self.__class__.__name__} on {self.transport!r}\n"
-            f" isopen: {self.isopen}"
+            f"{self.__class__.__name__} on {self.transport!r}\n isopen: {self.isopen}"
         )
