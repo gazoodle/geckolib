@@ -1,10 +1,12 @@
-"""Constants Class"""
+"""Constants Class."""
 
 from warnings import deprecated
 
 
 class GeckoConstants:
     """
+    All the constants in one place.
+
     GeckoConstants is a literal class so that we can program in a mostly DRY fashion,
     for example a filename or url would be present as would values that could be changed
     and might be difficult to discover inline, but some constants that form part of a

@@ -144,20 +144,35 @@ class GeckoUdpProtocolHandler(ABC):
         use is for inline async stuff.
         """
         assert self._timeout_in_seconds > 0
-        while True:
-            if protocol.queue.head is not None:
-                data, sender = protocol.queue.head
-                if self.can_handle(data, sender):
-                    protocol.queue.pop()
-                    await self.async_handle(data, sender)
-                    self._reset_timeout()
+        try:
+            while True:
+                try:
+                    await asyncio.sleep(0)
+
+                    async with asyncio.timeout(self._timeout_in_seconds):
+                        await protocol.queue.wait()
+
+                    data, sender = protocol.queue.head
+                    if self.can_handle(data, sender):
+                        protocol.queue.pop()
+                        await self.async_handle(data, sender)
+                        self._reset_timeout()
+                        return
+
+                except TimeoutError:
+                    _LOGGER.debug(
+                        "TIMEOUT: Handler %s threw TimeoutError, status is %d",
+                        self,
+                        self.has_timedout,
+                    )
                     return
 
-            if self.has_timedout:
-                _LOGGER.debug("Handler %s timed out", self)
-                return
-
-            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
+        except asyncio.CancelledError:
+            _LOGGER.debug(f"wait_for_response loop for {self} cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception(f"wait_for_response loop for {self} caught exception")
+            raise
 
     async def consume(self, protocol: GeckoAsyncUdpProtocol) -> None:
         """Async coroutine to handle datagram."""
@@ -168,8 +183,6 @@ class GeckoUdpProtocolHandler(ABC):
                 await protocol.queue.wait()
 
                 if protocol.queue.head is not None:
-                    _LOGGER.debug(f"{self} Protocol has item {protocol.queue.head}")
-
                     data, sender = protocol.queue.head
                     if self.can_handle(data, sender):
                         protocol.queue.pop()

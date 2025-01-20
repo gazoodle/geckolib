@@ -1,4 +1,4 @@
-"""Library to communicate with Gecko Alliance products via the in.touch2 module"""
+"""Library to communicate with Gecko Alliance products via the in.touch2 module."""
 
 import logging
 

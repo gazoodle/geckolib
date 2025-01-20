@@ -352,6 +352,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Removed unprintable charater in RF Channel name
 - Reworked packgen.py so that the code is RUFF compliant, working towards getting Github actions working
 - Fixed simulator to load new HA snapshots
+- Significant work on refactoring now with better async understanding
+- Lots of RUFF updates
+- Removed weird sleep constant that was the root of some CPU usaghe issues, hopefully this has
+  gone now we're using a better async pattern.
 
 ## Done/Fixed in 0.4.18
 

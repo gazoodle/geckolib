@@ -1,7 +1,8 @@
-"""AsyncTasks is a class to farm intenal new tasks out to an awaiter"""
+"""AsyncTasks is a class to farm intenal new tasks out to an awaiter."""
 
 import logging
 import asyncio
+from venv import create
 from .config import GeckoConfig, config_sleep
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,24 +30,32 @@ class AsyncTasks:
                 task.cancel()
 
     async def gather(self) -> None:
-        # Cancel all tasks
+        """Cancel all tasks."""
         for task in self._tasks:
             _LOGGER.debug("Cancel task %s", task)
             task.cancel()
         # Wait for all tasks to complete
-        _results = await asyncio.gather(*self._tasks, return_exceptions=True)
-        for item in zip(self._tasks, _results):
-            _LOGGER.debug("    Task %s result `%r`", item[0].get_name(), item[1])
+        try:
+            _results = await asyncio.gather(*self._tasks, return_exceptions=True)
+            for item in zip(self._tasks, _results):
+                _LOGGER.debug("    Task %s result `%r`", item[0].get_name(), item[1])
+        except Exception:
+            _LOGGER.exception("AsyncTasks:gather caught exception")
+            raise
 
     async def _tidy(self) -> None:
         try:
             while True:
                 await config_sleep(GeckoConfig.TASK_TIDY_FREQUENCY_IN_SECONDS)
+                create_new_tasks = False
                 if _LOGGER.isEnabledFor(logging.DEBUG):
                     for task in self._tasks:
                         if task.done():
                             _LOGGER.debug("Tidy task %s", task)
-                self._tasks = [task for task in self._tasks if not task.done()]
+                            create_new_tasks = True
+                # Create a new task list with the currently running ones
+                if create_new_tasks:
+                    self._tasks = [task for task in self._tasks if not task.done()]
         except asyncio.CancelledError:
             _LOGGER.debug("Tidy loop cancelled")
             raise

@@ -6,6 +6,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
+from sched import Event
 from typing import Any, List, Optional
 
 from .async_locator import GeckoAsyncLocator
@@ -21,7 +22,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoAsyncSpaMan(ABC, AsyncTasks):
-    """GeckoAsyncSpaMan class manages the lifetime of a connection to a spa
+    """
+    GeckoAsyncSpaMan class.
+
+    Manage the lifetime of a connection to a spa.
 
     This class is deliberately an abstract because you must provide your own
     implementation to manage the essential events that are required during operation
@@ -73,7 +77,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             return f"{self.name}: {self.state}"
 
     class StatusSensor(GeckoAutomationBase):
-        """Sensor with the current state"""
+        """Sensor with the current state."""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
             super().__init__(spaman.unique_id, "Status", spaman.spa_name, "STATUS")
@@ -116,7 +120,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             return f"{self.name}: {self.state}"
 
     class RadioConnectionSensor(GeckoAutomationBase):
-        """Sensor with the current radio connection data"""
+        """Sensor with the current radio connection data."""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
             super().__init__(spaman.unique_id, "RF Signal", spaman.spa_name, "RADIO")
@@ -146,7 +150,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             return f"{self.name}: {self.state}{self.unit_of_measurement}"
 
     class RadioChannelSensor(GeckoAutomationBase):
-        """Sensor with the current radio connection data"""
+        """Sensor with the current radio connection data."""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
             super().__init__(spaman.unique_id, "RF Channel", spaman.spa_name, "CHANNEL")
@@ -174,7 +178,8 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             return f"{self.name}: {self.state}"
 
     def __init__(self, client_uuid: str, **kwargs: str) -> None:
-        """Initialize a SpaMan class
+        """
+        Initialize a SpaMan class.
 
         The preferred pattern is to derive a class from SpaMan and then use it in
         an async with
@@ -215,6 +220,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         self._facade: GeckoAsyncFacade | None = None
         self._facade_state_known = asyncio.Event()
         self._spa: GeckoAsyncSpa | None = None
+        self._state_change = asyncio.Event()
         self.set_spa_state(GeckoSpaState.IDLE)
 
         self._status_sensor: Optional[GeckoAsyncSpaMan.StatusSensor] = None
@@ -396,19 +402,24 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         return self._spa_state
 
     def set_spa_state(self, state: GeckoSpaState) -> None:
-        """Set the spa state"""
+        """Set the spa state."""
+        _LOGGER.debug("Spa state set to %s", state)
         self._spa_state = state
+        self._state_change.set()
 
     @property
-    def status_sensor(self) -> Optional[GeckoAsyncSpaMan.StatusSensor]:
+    def status_sensor(self) -> GeckoAsyncSpaMan.StatusSensor | None:
+        """Get the status sensor."""
         return self._status_sensor
 
     @property
-    def radio_sensor(self) -> Optional[GeckoAsyncSpaMan.RadioConnectionSensor]:
+    def radio_sensor(self) -> GeckoAsyncSpaMan.RadioConnectionSensor | None:
+        """Get the radio sensor."""
         return self._radio_sensor
 
     @property
-    def channel_sensor(self) -> Optional[GeckoAsyncSpaMan.RadioChannelSensor]:
+    def channel_sensor(self) -> GeckoAsyncSpaMan.RadioChannelSensor | None:
+        """Get the channel sensor."""
         return self._channel_sensor
 
     @property
@@ -526,17 +537,24 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         # Any post-processing goes here
 
     async def _sequence_pump(self) -> None:
-        """SpaMan sequence pump coordinates running the manager from the
-        parameterized constructor and machine state"""
+        """
+        SpaMan sequence pump loop.
 
+        This class coordinates running the manager from the
+        parameterized constructor and machine state.
+        """
         _LOGGER.debug("SpaMan sequence pump started")
 
         try:
             while True:
+                await self._state_change.wait()
+                self._state_change.clear()
+
                 if (
                     self.spa_state == GeckoSpaState.IDLE
                     and self._spa_descriptors is None
                 ):
+                    _LOGGER.debug("Sequence pump did locate")
                     await self.async_locate_spas(self._spa_address)
 
                 if (
@@ -544,9 +562,8 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
                     and self._spa_identifier is not None
                     and self._facade is None
                 ):
+                    _LOGGER.debug("Sequence pump did connect")
                     await self.async_connect(self._spa_identifier, self._spa_address)
-
-                await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
 
         except asyncio.CancelledError:
             _LOGGER.debug("Spaman sequence pump cancelled")

@@ -1,21 +1,20 @@
 """Gecko Async Locator class"""
 
-import logging
-import time
 import asyncio
+import logging
 import socket
+import time
 
-from .async_tasks import AsyncTasks
-from .driver import (
-    GeckoHelloProtocolHandler,
-    GeckoAsyncUdpProtocol,
-)
-from .const import GeckoConstants
-from .config import GeckoConfig
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
+from .async_tasks import AsyncTasks
+from .config import GeckoConfig
+from .const import GeckoConstants
+from .driver import (
+    GeckoAsyncUdpProtocol,
+    GeckoHelloProtocolHandler,
+    Observable,
+)
 from .spa_events import GeckoSpaEvent
-from .driver import Observable
-from typing import Any, Optional, List
 
 _LOGGER = logging.getLogger(__name__)
 
