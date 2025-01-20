@@ -107,15 +107,22 @@ class GeckoAsyncLocator(Observable):
 
     async def _broadcast_loop(self, hello_handler) -> None:
         """Send a discovery message every second."""
-        while True:
-            if self._protocol is not None:
-                self._protocol.queue_send(
-                    hello_handler,
-                    GeckoHelloProtocolHandler.broadcast_address(
-                        static_ip=self._spa_address
-                    ),
-                )
-            await asyncio.sleep(1)
+        try:
+            while True:
+                if self._protocol is not None:
+                    self._protocol.queue_send(
+                        hello_handler,
+                        GeckoHelloProtocolHandler.broadcast_address(
+                            static_ip=self._spa_address
+                        ),
+                    )
+                await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            _LOGGER.debug("Broadcast loop cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception("Broadcast loop caught exception")
+            raise
 
     async def discover(self) -> None:
         """Discover spas on the local lan."""

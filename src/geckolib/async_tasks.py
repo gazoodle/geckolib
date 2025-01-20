@@ -50,6 +50,9 @@ class AsyncTasks:
         except asyncio.CancelledError:
             _LOGGER.debug("Tidy loop cancelled")
             raise
+        except Exception:
+            _LOGGER.exception("Tidy loop caught exception")
+            raise
 
     @property
     def unique_id(self) -> str:

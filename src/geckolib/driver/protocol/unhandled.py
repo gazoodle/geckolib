@@ -1,7 +1,8 @@
-"""Gecko handler for unhanded verbs"""
+"""Gecko handler for unhanded verbs."""
 
 import asyncio
 import logging
+from time import thread_time
 from typing import Any
 
 from geckolib.const import GeckoConstants
@@ -25,20 +26,28 @@ class GeckoUnhandledProtocolHandler(GeckoUdpProtocolHandler):
     def handle(self, received_bytes: bytes, sender: tuple) -> None:
         """Go on then, handle it."""
 
-    async def consume(self, protocol: Any):
+    async def consume(self, protocol: Any) -> None:
         """Consume the packet."""
-        while True:
-            if protocol.queue.head is not None:
-                # First time we see this, we mark the queue
-                protocol.queue.mark()
-                # Allow the rest of the tasks to operate
-                await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
-                # If we get here then no one processed the datagram
-                # so we can remove it and moan about it
+        try:
+            while True:
+                await asyncio.sleep(0)
+                await protocol.queue.wait()
+                if protocol.queue.head is not None:
+                    break
                 if protocol.queue.is_marked:
                     data, sender = protocol.queue.head
                     protocol.queue.pop()
                     _LOGGER.debug(
-                        "No handler for %s from %s found, message ignored", data, sender
+                        "No handler for %s from %s found, message ignored",
+                        data,
+                        sender,
                     )
-            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
+                else:
+                    protocol.queue.mark()
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("Unhandled handler loop cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception("Unhandled handler consume function caught exception")
+            raise

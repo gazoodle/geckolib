@@ -373,10 +373,10 @@ class GeckoAsyncSpa(Observable):
         _LOGGER.debug("Spa connected")
 
     async def connect(self) -> None:
-        """Connection wrapper with exception safety"""
+        """Wrap the connection with exception safety."""
         try:
             await self._connect()
-        except:  # noqa
+        except Exception:
             _LOGGER.exception("Exception during spa connection")
             raise
 
@@ -394,13 +394,14 @@ class GeckoAsyncSpa(Observable):
 
     @property
     def isopen(self) -> bool:
-        """Return True if the spa has a UDP socket with the in.touch EN module"""
+        """Return True if the spa has a UDP socket with the in.touch EN module."""
         if self._protocol is None:
             return False
         return self._protocol.isopen
 
     @property
     def is_responding_to_pings(self) -> bool:
+        """Is the remote end responding to pings."""
         if self._last_ping is None:
             return False
         # Allow twice as much time as ping frequency to make sure boundary tests
@@ -493,34 +494,39 @@ class GeckoAsyncSpa(Observable):
         of the live parts of the spastruct are always up-to-date. We
         shouldn't need to do this, but this is belt and braces stuff"""
 
-        _LOGGER.debug("Refresh loop started")
-        while self.isopen:
-            await config_sleep(GeckoConfig.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS)
-            if not self.is_connected:
-                continue
-            if not self.is_responding_to_pings:
-                continue
-            if not await self.struct.get(
-                self._protocol, self._get_status_block_handler_func
-            ):
-                await self._event_handler(
-                    GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED
-                )
+        try:
+            _LOGGER.debug("Refresh loop started")
+            while self.isopen:
+                await config_sleep(GeckoConfig.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS)
+                if not self.is_connected:
+                    continue
+                if not self.is_responding_to_pings:
+                    continue
+                if not await self.struct.get(
+                    self._protocol, self._get_status_block_handler_func
+                ):
+                    await self._event_handler(
+                        GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED
+                    )
 
-            get_channel_handler = await self._protocol.get(
-                self._get_channel_handler_func
-            )
-            if get_channel_handler is None:
-                _LOGGER.error("Cannot get channel, protocol retry count exceeded")
-                await self._event_handler(
-                    GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+                get_channel_handler = await self._protocol.get(
+                    self._get_channel_handler_func
                 )
-                continue
+                if get_channel_handler is None:
+                    _LOGGER.error("Cannot get channel, protocol retry count exceeded")
+                    await self._event_handler(
+                        GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+                    )
+                    continue
 
-            self.channel = get_channel_handler.channel
-            self.signal = get_channel_handler.signal_strength
-            _LOGGER.debug("Refresh channel %s/%s", self.channel, self.signal)
-            await self._event_handler(GeckoSpaEvent.RUNNING_SPA_PACK_REFRESHED)
+                self.channel = get_channel_handler.channel
+                self.signal = get_channel_handler.signal_strength
+                _LOGGER.debug("Refresh channel %s/%s", self.channel, self.signal)
+                await self._event_handler(GeckoSpaEvent.RUNNING_SPA_PACK_REFRESHED)
+
+        except Exception:
+            _LOGGER.exception("Refresh loop caught exception")
+            raise
 
     async def _async_on_partial_status_update(
         self,
@@ -531,30 +537,40 @@ class GeckoAsyncSpa(Observable):
             self.struct.replace_status_block_segment(change[0], change[1])
 
     async def _on_async_set_value(self, pos, length, newvalue) -> None:
-        assert self._protocol is not None
-        if not self.is_connected:
-            _LOGGER.warning("Cannot set value when spa not connected")
-            return
-        if not self.is_responding_to_pings:
-            _LOGGER.debug("Cannot set value when spa not responding to pings")
-            return
+        try:
+            assert self._protocol is not None
+            if not self.is_connected:
+                _LOGGER.warning("Cannot set value when spa not connected")
+                return
+            if not self.is_responding_to_pings:
+                _LOGGER.debug("Cannot set value when spa not responding to pings")
+                return
 
-        pack_command_handler = await self._protocol.get(
-            lambda: GeckoPackCommandProtocolHandler.set_value(
-                self._protocol.get_and_increment_sequence_counter(True),  # type: ignore
-                self.pack_type,
-                self.config_version,
-                self.log_version,
-                pos,
-                length,
-                newvalue,
-                parms=self.sendparms,
+            pack_command_handler = await self._protocol.get(
+                lambda: GeckoPackCommandProtocolHandler.set_value(
+                    self._protocol.get_and_increment_sequence_counter(True),  # type: ignore
+                    self.pack_type,
+                    self.config_version,
+                    self.log_version,
+                    pos,
+                    length,
+                    newvalue,
+                    parms=self.sendparms,
+                )
             )
-        )
 
-        if pack_command_handler is None:
-            _LOGGER.error("Cannot set value, protocol retry count exceeded")
-            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
+            if pack_command_handler is None:
+                _LOGGER.error("Cannot set value, protocol retry count exceeded")
+                await self._event_handler(
+                    GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED
+                )
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("Async set value cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception("Async set value caught exception")
+            raise
 
     def _on_set_value(self, pos, length, newvalue) -> None:
         self._taskman.add_task(
@@ -566,27 +582,36 @@ class GeckoAsyncSpa(Observable):
         return self.struct.accessors
 
     async def async_press(self, keypad) -> None:
-        """Simulate a button press async"""
-        assert self._protocol is not None
-        if not self.is_connected:
-            _LOGGER.warning("Cannot press keypad when spa not connected")
-            return
-        if not self.is_responding_to_pings:
-            _LOGGER.debug("Cannot press keypad when spa not responding to pings")
-            return
+        """Simulate a button press async."""
+        try:
+            assert self._protocol is not None
+            if not self.is_connected:
+                _LOGGER.warning("Cannot press keypad when spa not connected")
+                return
+            if not self.is_responding_to_pings:
+                _LOGGER.debug("Cannot press keypad when spa not responding to pings")
+                return
 
-        pack_command_handler = await self._protocol.get(
-            lambda: GeckoPackCommandProtocolHandler.keypress(
-                self._protocol.get_and_increment_sequence_counter(True),  # type: ignore
-                self.pack_type,
-                keypad,
-                parms=self.sendparms,
+            pack_command_handler = await self._protocol.get(
+                lambda: GeckoPackCommandProtocolHandler.keypress(
+                    self._protocol.get_and_increment_sequence_counter(True),  # type: ignore
+                    self.pack_type,
+                    keypad,
+                    parms=self.sendparms,
+                )
             )
-        )
 
-        if pack_command_handler is None:
-            _LOGGER.error("Cannot press keypad, protocol retry count exceeded")
-            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
+            if pack_command_handler is None:
+                _LOGGER.error("Cannot press keypad, protocol retry count exceeded")
+                await self._event_handler(
+                    GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED
+                )
+        except asyncio.CancelledError:
+            _LOGGER.debug("Async press cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception("Async press caught exception")
+            raise
 
     def press(self, keypad) -> None:
         """Simulate a button press"""

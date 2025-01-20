@@ -161,20 +161,30 @@ class GeckoUdpProtocolHandler(ABC):
 
     async def consume(self, protocol: GeckoAsyncUdpProtocol) -> None:
         """Async coroutine to handle datagram."""
-        assert self._timeout_in_seconds == 0
-        while True:
-            if protocol.queue.head is not None:
-                data, sender = protocol.queue.head
-                if self.can_handle(data, sender):
-                    protocol.queue.pop()
-                    await self.async_handle(data, sender)
-                    await self.async_handled(sender)
+        try:
+            assert self._timeout_in_seconds == 0
+            while True:
+                await asyncio.sleep(0)
+                await protocol.queue.wait()
 
-            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
+                if protocol.queue.head is not None:
+                    _LOGGER.debug(f"{self} Protocol has item {protocol.queue.head}")
 
-            if self.should_remove_handler:
-                _LOGGER.debug("%s will be removed, consume loop terminating", self)
-                break
+                    data, sender = protocol.queue.head
+                    if self.can_handle(data, sender):
+                        protocol.queue.pop()
+                        await self.async_handle(data, sender)
+                        await self.async_handled(sender)
+
+                if self.should_remove_handler:
+                    _LOGGER.debug("%s will be removed, consume loop terminating", self)
+                    break
+        except asyncio.CancelledError:
+            _LOGGER.debug(f"Consume loop for {self} cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception(f"Consume loop for {self} caught exception")
+            raise
 
     ##########################################################################
     #
@@ -183,6 +193,7 @@ class GeckoUdpProtocolHandler(ABC):
     ##########################################################################
     @property
     def age(self) -> float:
+        """Get the age of this handler."""
         return time.monotonic() - self._start_time
 
     @property

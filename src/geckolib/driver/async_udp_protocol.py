@@ -34,13 +34,16 @@ class DbgLock(asyncio.Lock):
 
 
 class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
-    """Gecko in.touch2 uses UDP to communicate. This class is an async
-    UDP protocol handler for asyncio. It dispatches to classes derived
-    from GeckoUdpProtocolHandler. Since it doesn't need to be thread safe
-    it's a good deal more simple that its predecessor
+    """
+    Gecko in.touch2 uses UDP to communicate.
+
+    This class is an async UDP protocol handler for asyncio. It dispatches
+    to classes derived from GeckoUdpProtocolHandler. Since it doesn't need
+    to be thread safe it's a good deal more simple that its predecessor.
     """
 
     def __init__(self, on_connection_lost, destination) -> None:
+        """Initialize the protocol class."""
         self.transport = None
         self._on_connection_lost = on_connection_lost
         self._destination = destination
@@ -72,7 +75,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
 
     @property
     def isopen(self) -> bool:
-        """Check to see if the transport is connected"""
+        """Check to see if the transport is connected."""
         return self.transport is not None
 
     def disconnect(self) -> None:
@@ -85,7 +88,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     def queue_send(
         self, protocol_handler: GeckoUdpProtocolHandler, destination=None
     ) -> None:
-        """Queue a message to be sent async later"""
+        """Queue a message to be sent async later."""
         if not self.isopen:
             _LOGGER.warning("Cannot queue message as transport is closed")
             return
@@ -96,6 +99,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
 
         send_bytes = protocol_handler.send_bytes
         _LOGGER.debug("Sending %s to %s", send_bytes, destination)
+        # transport.sendto is a non-blocking call.
         self.transport.sendto(send_bytes, destination)
 
     def get_and_increment_sequence_counter(self, command: bool) -> int:
@@ -111,7 +115,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
             return self._sequence_counter_protocol
 
     def datagram_received(self, data, addr) -> None:
-        _LOGGER.debug("Received %s from %s", data, addr)
+        _LOGGER.debug("Datagram received: %s from %s", data, addr)
         self.queue.put_nowait((data, addr))
 
     T = TypeVar("T", bound="GeckoUdpProtocolHandler")

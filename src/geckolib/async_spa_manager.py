@@ -524,6 +524,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     async def _sequence_pump(self) -> None:
         """SpaMan sequence pump coordinates running the manager from the
         parameterized constructor and machine state"""
+
         _LOGGER.debug("SpaMan sequence pump started")
 
         try:
@@ -545,4 +546,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         except asyncio.CancelledError:
             _LOGGER.debug("Spaman sequence pump cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception("Sequence pump caught exception")
             raise

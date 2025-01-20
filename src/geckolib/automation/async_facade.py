@@ -104,6 +104,9 @@ class GeckoAsyncFacade(Observable):
         except asyncio.CancelledError:
             _LOGGER.debug("Facade update loop cancelled")
             raise
+        except Exception:
+            _LOGGER.exception("Facade update loop caught execption")
+            raise
 
     async def wait_for_one_update(self) -> None:
         """Wait until the first update has occurred."""

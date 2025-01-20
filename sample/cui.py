@@ -66,9 +66,16 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         return await GeckoAsyncSpaMan.__aexit__(self, *exc_info)
 
     async def _timer_loop(self) -> None:
-        while True:
-            self.make_display()
-            await asyncio.sleep(1)
+        try:
+            while True:
+                self.make_display()
+                await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            _LOGGER.debug("Timer loop cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception("Timer loop caught exception")
+            raise
 
     async def handle_event(self, event: GeckoSpaEvent, **_kwargs: Any) -> None:
         # Always rebuild the UI when there is an event
