@@ -215,7 +215,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         self._facade: GeckoAsyncFacade | None = None
         self._facade_state_known = asyncio.Event()
         self._spa: GeckoAsyncSpa | None = None
-        self._spa_state = GeckoSpaState.IDLE
+        self.set_spa_state(GeckoSpaState.IDLE)
 
         self._status_sensor: Optional[GeckoAsyncSpaMan.StatusSensor] = None
         self._reconnect_button: Optional[GeckoAsyncSpaMan.ReconnectButton] = None
@@ -255,7 +255,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         if self._spa is not None:
             await self._spa.disconnect()
             self._spa = None
-        self._spa_state = GeckoSpaState.IDLE
+        self.set_spa_state(GeckoSpaState.IDLE)
 
     async def async_locate_spas(
         self, spa_address: Optional[str] = None, spa_identifier: Optional[str] = None
@@ -303,7 +303,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             )
             await self._spa.connect()
             # Check state now
-            if self._spa_state == GeckoSpaState.SPA_READY:
+            if self.spa_state == GeckoSpaState.SPA_READY:
                 self._facade = GeckoAsyncFacade(self._spa, self)
                 self._facade_state_known.set()
 
@@ -395,6 +395,10 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         """Get the spa state."""
         return self._spa_state
 
+    def set_spa_state(self, state: GeckoSpaState) -> None:
+        """Set the spa state"""
+        self._spa_state = state
+
     @property
     def status_sensor(self) -> Optional[GeckoAsyncSpaMan.StatusSensor]:
         return self._status_sensor
@@ -443,16 +447,16 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         # Do any pre-processing of the event, such as setting the state or
         # updating the status line
         if event == GeckoSpaEvent.LOCATING_STARTED:
-            self._spa_state = GeckoSpaState.LOCATING_SPAS
+            self.set_spa_state(GeckoSpaState.LOCATING_SPAS)
 
         elif event == GeckoSpaEvent.LOCATING_FINISHED:
-            self._spa_state = GeckoSpaState.LOCATED_SPAS
+            self.set_spa_state(GeckoSpaState.LOCATED_SPAS)
 
         elif event == GeckoSpaEvent.SPA_NOT_FOUND:
-            self._spa_state = GeckoSpaState.ERROR_SPA_NOT_FOUND
+            self.set_spa_state(GeckoSpaState.ERROR_SPA_NOT_FOUND)
 
         elif event == GeckoSpaEvent.CONNECTION_STARTED:
-            self._spa_state = GeckoSpaState.CONNECTING
+            self.set_spa_state(GeckoSpaState.CONNECTING)
             self._reconnect_button = GeckoAsyncSpaMan.ReconnectButton(self)
             await self._handle_event(GeckoSpaEvent.CLIENT_HAS_RECONNECT_BUTTON)
 
@@ -463,20 +467,20 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             await self._handle_event(GeckoSpaEvent.CLIENT_HAS_PING_SENSOR)
 
         elif event == GeckoSpaEvent.CONNECTION_SPA_COMPLETE:
-            self._spa_state = GeckoSpaState.SPA_READY
+            self.set_spa_state(GeckoSpaState.SPA_READY)
 
         elif event == GeckoSpaEvent.CONNECTION_FINISHED:
             if self._facade is not None:
-                self._spa_state = GeckoSpaState.CONNECTED
+                self.set_spa_state(GeckoSpaState.CONNECTED)
                 await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_IS_READY)
 
         elif event == GeckoSpaEvent.RUNNING_PING_NO_RESPONSE:
-            if self._spa_state == GeckoSpaState.CONNECTED:
-                self._spa_state = GeckoSpaState.ERROR_PING_MISSED
+            if self.spa_state == GeckoSpaState.CONNECTED:
+                self.set_spa_state(GeckoSpaState.ERROR_PING_MISSED)
                 await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         elif event == GeckoSpaEvent.RUNNING_PING_RECEIVED:
-            if self._spa_state in (
+            if self.spa_state in (
                 GeckoSpaState.ERROR_PING_MISSED,
                 GeckoSpaState.ERROR_RF_FAULT,
                 GeckoSpaState.ERROR_NEEDS_ATTENTION,
@@ -484,13 +488,13 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
                 await self.async_reset()
 
         elif event == GeckoSpaEvent.ERROR_RF_ERROR:
-            if self._spa_state == GeckoSpaState.CONNECTED:
-                self._spa_state = GeckoSpaState.ERROR_RF_FAULT
+            if self.spa_state == GeckoSpaState.CONNECTED:
+                self.spa_state = GeckoSpaState.ERROR_RF_FAULT
                 await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         elif event == GeckoSpaEvent.RUNNING_SPA_DISCONNECTED:
-            if self._spa_state == GeckoSpaState.CONNECTED:
-                self._spa_state = GeckoSpaState.IDLE
+            if self.spa_state == GeckoSpaState.CONNECTED:
+                self.set_spa_state(GeckoSpaState.IDLE)
                 await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         elif event == GeckoSpaEvent.RUNNING_SPA_PACK_REFRESHED:
@@ -502,7 +506,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED,
             GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS,
         ):
-            self._spa_state = GeckoSpaState.ERROR_NEEDS_ATTENTION
+            self.set_spa_state(GeckoSpaState.ERROR_NEEDS_ATTENTION)
 
         elif event == GeckoSpaEvent.RUNNING_SPA_WATER_CARE_ERROR:
             assert self.facade is not None

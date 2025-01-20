@@ -157,7 +157,7 @@ class GeckoAsyncLocator(Observable):
                 break
             if self._has_found_spa:
                 break
-            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
+            await asyncio.sleep(1)
 
         _LOGGER.debug("Discovery complete, close transport")
         self._task_man.cancel_key_tasks("LOC")
