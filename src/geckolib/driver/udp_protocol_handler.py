@@ -153,12 +153,13 @@ class GeckoUdpProtocolHandler(ABC):
                     async with asyncio.timeout(self._timeout_in_seconds):
                         await protocol.queue.wait()
 
-                    data, sender = protocol.queue.head
-                    if self.can_handle(data, sender):
-                        protocol.queue.pop()
-                        await self.async_handle(data, sender)
-                        self._reset_timeout()
-                        return
+                    if protocol.queue.head is not None:
+                        data, sender = protocol.queue.head
+                        if self.can_handle(data, sender):
+                            protocol.queue.pop()
+                            await self.async_handle(data, sender)
+                            self._reset_timeout()
+                            return
 
                 except TimeoutError:
                     _LOGGER.debug(
