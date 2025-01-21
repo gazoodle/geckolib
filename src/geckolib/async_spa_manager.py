@@ -33,7 +33,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     """
 
     class ReconnectButton(GeckoButton):
-        """Perform reconnect of the spa"""
+        """Perform reconnect of the spa."""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
             super().__init__(
@@ -224,11 +224,11 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         self._state_change = asyncio.Event()
         self.set_spa_state(GeckoSpaState.IDLE)
 
-        self._status_sensor: Optional[GeckoAsyncSpaMan.StatusSensor] = None
-        self._reconnect_button: Optional[GeckoAsyncSpaMan.ReconnectButton] = None
-        self._ping_sensor: Optional[GeckoAsyncSpaMan.PingSensor] = None
-        self._radio_sensor: Optional[GeckoAsyncSpaMan.RadioConnectionSensor] = None
-        self._channel_sensor: Optional[GeckoAsyncSpaMan.RadioChannelSensor] = None
+        self._status_sensor: GeckoAsyncSpaMan.StatusSensor | None = None
+        self._reconnect_button: GeckoAsyncSpaMan.ReconnectButton | None = None
+        self._ping_sensor: GeckoAsyncSpaMan.PingSensor | None = None
+        self._radio_sensor: GeckoAsyncSpaMan.RadioConnectionSensor | None = None
+        self._channel_sensor: GeckoAsyncSpaMan.RadioChannelSensor | None = None
 
     ########################################################################
     #
@@ -424,7 +424,8 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         return self._channel_sensor
 
     @property
-    def reconnect_button(self) -> Optional[GeckoAsyncSpaMan.ReconnectButton]:
+    def reconnect_button(self) -> GeckoAsyncSpaMan.ReconnectButton | None:
+        """Get the reconnect button."""
         return self._reconnect_button
 
     @property
@@ -465,6 +466,8 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
             self.set_spa_state(GeckoSpaState.LOCATED_SPAS)
 
         elif event == GeckoSpaEvent.SPA_NOT_FOUND:
+            self._reconnect_button = GeckoAsyncSpaMan.ReconnectButton(self)
+            await self._handle_event(GeckoSpaEvent.CLIENT_HAS_RECONNECT_BUTTON)
             self.set_spa_state(GeckoSpaState.ERROR_SPA_NOT_FOUND)
 
         elif event == GeckoSpaEvent.CONNECTION_STARTED:
