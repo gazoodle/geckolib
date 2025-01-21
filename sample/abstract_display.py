@@ -1,19 +1,19 @@
-"""Abstract curses display class for use in asyncio app."""
+"""
+Abstract curses display class for use in asyncio app.
 
-"""Thanks to https://gist.github.com/davesteele/8838f03e0594ef11c89f77a7bca91206"""
+Thanks to https://gist.github.com/davesteele/8838f03e0594ef11c89f77a7bca91206
+"""
 
 import _curses
 import asyncio
 from abc import ABC, abstractmethod
 from curses import ERR, KEY_RESIZE, curs_set
 
-from context_sample import GeckoConstants  # type: ignore
-
 
 class AbstractDisplay(ABC):
     """Abstract display class."""
 
-    def __init__(self, stdscr: "_curses._CursesWindow") -> None:  # type: ignore
+    def __init__(self, stdscr: _curses.window) -> None:
         """Initialize the class."""
         self.stdscr = stdscr
         self.done_event = asyncio.Event()
@@ -53,7 +53,7 @@ class AbstractDisplay(ABC):
     async def run(self) -> None:
         """Run the display class."""
         curs_set(0)
-        self.stdscr.nodelay(True)
+        self.stdscr.nodelay(True)  # noqa: FBT003
 
         self.make_display()
 

@@ -1,9 +1,9 @@
-"""Complete sample client CUI - Console User Interface."""
-
 """
+Complete sample client CUI - Console User Interface.
+
 All the code to drive the CUI is in this file, it should only
 talk to the facade as it is the example of how to integrate
-geckolib into an automation system
+geckolib into an automation system.
 """
 
 import _curses
@@ -13,7 +13,7 @@ import inspect
 import logging
 import time
 from datetime import datetime
-from typing import Any, Optional, Self
+from typing import Any, Self
 
 from abstract_display import AbstractDisplay
 from config import Config
@@ -34,7 +34,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CUI(AbstractDisplay, GeckoAsyncSpaMan):
-    def __init__(self, stdscr: "_curses._CursesWindow"):
+    """The console UI implementation."""
+
+    def __init__(self, stdscr: _curses.window) -> None:
+        """Initialize the CUI class."""
         AbstractDisplay.__init__(self, stdscr)
         GeckoAsyncSpaMan.__init__(self, CLIENT_ID)
 
@@ -42,7 +45,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         curses.mousemask(1)
 
         self._config = Config()
-        self._spas: Optional[GeckoAsyncSpaDescriptor] = None
+        self._spas: GeckoAsyncSpaDescriptor | None = None
 
         self._last_update = time.monotonic()
         self._last_char = None
@@ -54,6 +57,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         self._can_use_facade = False
 
     async def __aenter__(self) -> Self:
+        """Async enter for with statement."""
         await GeckoAsyncSpaMan.__aenter__(self)
         self.add_task(self._timer_loop(), "Timer", "CUI")
         await self.async_set_spa_info(
@@ -62,7 +66,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         await self.run()
         return self
 
-    async def __aexit__(self, *exc_info):
+    async def __aexit__(self, *exc_info: object) -> None:
+        """Async exit."""
         return await GeckoAsyncSpaMan.__aexit__(self, *exc_info)
 
     async def _timer_loop(self) -> None:
@@ -78,7 +83,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             raise
 
     async def handle_event(self, event: GeckoSpaEvent, **_kwargs: Any) -> None:
-        # Always rebuild the UI when there is an event
+        """Rebuild the UI when there is an event."""
         _LOGGER.debug(f"{event} : {self.spa_state}")
         if event == GeckoSpaEvent.CLIENT_FACADE_IS_READY:
             self._can_use_facade = True
@@ -90,7 +95,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
         self.make_display()
 
-    async def _select_spa(self, spa):
+    async def _select_spa(self, spa) -> None:
         self._config.set_spa_id(spa.identifier_as_string)
         self._config.set_spa_address(spa.ipaddress)
         self._config.set_spa_name(spa.name)

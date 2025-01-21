@@ -2,12 +2,9 @@
 
 import asyncio
 import logging
-from time import thread_time
 from typing import Any
 
-from geckolib.const import GeckoConstants
-
-from ..udp_socket import GeckoUdpProtocolHandler
+from geckolib.driver.udp_socket import GeckoUdpProtocolHandler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,7 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoUnhandledProtocolHandler(GeckoUdpProtocolHandler):
     """Protocol handler to deal with unhandled or unsolicited messages."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize the default handler."""
         super().__init__(**kwargs)
 
