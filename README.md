@@ -346,6 +346,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Lots of RUFF updates
 - Removed weird sleep constant that was the root of some CPU usaghe issues, hopefully this has
   gone now we're using a better async pattern.
+- Shell and Simulator moving to async pattern in prep for deleting the sync API.
 
 ## Done/Fixed in 0.4.18
 

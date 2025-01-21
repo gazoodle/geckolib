@@ -1,12 +1,11 @@
-"""Class to manage the clienting of a Gecko in.touch2 enabled device"""
+"""Class to manage the clienting of a Gecko in.touch2 enabled device."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import TYPE_CHECKING, Any, Optional, Self
+from typing import TYPE_CHECKING, Optional, Self
 
 from .async_locator import GeckoAsyncLocator
 from .async_spa import GeckoAsyncSpa
@@ -17,6 +16,8 @@ from .spa_events import GeckoSpaEvent
 from .spa_state import GeckoSpaState
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 
 _LOGGER = logging.getLogger(__name__)

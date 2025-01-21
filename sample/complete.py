@@ -26,7 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def install_logging() -> None:
     """Everyone needs logging, you say when, you say where, you say how much."""
-    Path("cui.log").unlink()
+    Path("cui.log").unlink(True)
     file_logger = logging.FileHandler("cui.log")
     file_logger.setLevel(logging.DEBUG)
     file_logger.setFormatter(

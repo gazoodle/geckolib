@@ -1,11 +1,18 @@
-""" GeckoShell class """
+"""GeckoShell class."""
 
+import datetime
+import logging
 import sys
 import traceback
-import logging
-import datetime
+
+from geckolib import VERSION, GeckoConstants, GeckoPump
+from geckolib.async_locator import GeckoAsyncLocator
+from geckolib.async_spa import GeckoAsyncSpa
+from geckolib.automation.async_facade import GeckoAsyncFacade
+from geckolib.config import config_sleep, set_config_mode
+from geckolib.spa_events import GeckoSpaEvent
+
 from .shared_command import GeckoCmd
-from .. import GeckoConstants, GeckoLocator, GeckoPump, VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +21,7 @@ SHELL_UUID = "02ac6d28-42d0-41e3-ad22-274d0aa491da"
 
 
 class GeckoShell(GeckoCmd):
-    """GeckoShell is a client application to drive the geckolib automation
-    interface"""
+    """Client shell to explore spa capabilities."""
 
     BANNER = """
 
@@ -34,11 +40,12 @@ class GeckoShell(GeckoCmd):
 
     """
 
-    def __init__(self, first_commands=None):
+    def __init__(self) -> None:
+        """Initialize the GeckoShell class."""
         self.spas = None
         self.facade = None
 
-        super().__init__(first_commands)
+        super().__init__()
 
         self.do_watercare.__func__.__doc__ = self.do_watercare.__doc__.format(
             GeckoConstants.WATERCARE_MODE_STRING
@@ -46,15 +53,20 @@ class GeckoShell(GeckoCmd):
 
         self.intro = "Welcome to the Gecko shell. Type help or ? to list commands.\n"
         self.prompt = "(Gecko) "
-        self.onecmd("discover")
+        self.push_command("discover")
 
-    def __exit__(self, *args):
-        super().__exit__(args)
+    async def __aexit__(self, *args: object) -> None:
+        """Suport pythion 'with'."""
         if self.facade:
-            self.facade.complete()
+            await self.facade.disconnect()
+            self.facade = None
+        await super().__aexit__(args)
 
-    def do_discover(self, arg):
-        """Discover all the in.touch2 devices on your network : discover [<ip address>]"""
+    async def _handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
+        pass
+
+    async def do_discover(self, arg) -> None:
+        """Discover all the in.touch2 devices on your network : discover [<ip address>]."""
         if self.spas is not None:
             return
 
@@ -64,8 +76,13 @@ class GeckoShell(GeckoCmd):
             flush=True,
         )
 
-        with GeckoLocator(SHELL_UUID, static_ip=arg) as locator:
-            self.spas = locator.spas
+        locator = GeckoAsyncLocator(
+            self,
+            self._handle_event,
+            spa_address=arg,
+        )
+        await locator.discover()
+        self.spas = locator.spas
 
         number_of_spas = len(self.spas)
         print("Found {0} spas".format(number_of_spas))
@@ -76,23 +93,37 @@ class GeckoShell(GeckoCmd):
             )
             sys.exit(1)
         if number_of_spas == 1:
-            self.onecmd("manage 1")
+            self.push_command("manage 1")
 
-    def do_list(self, _arg):
-        """List the spas that are available to manage : list"""
+    def do_list(self, _arg) -> None:
+        """List the spas that are available to manage : list."""
         for idx, spa in enumerate(self.spas):
             print("{0}. {1}".format(idx + 1, spa.name))
 
-    def do_manage(self, arg):
-        """Manage a named or numbered spa : manage 1"""
+    async def do_manage(self, arg) -> None:
+        """Manage a named or numbered spa : manage 1."""
         spa_to_manage = int(arg)
-        spa = self.spas[spa_to_manage - 1]
+        spa_descriptor = self.spas[spa_to_manage - 1]
         print(
-            "Connecting to spa `{0}` at {1} ... ".format(spa.name, spa.ipaddress),
+            "Connecting to spa `{0}` at {1} ... ".format(
+                spa_descriptor.name, spa_descriptor.ipaddress
+            ),
             end="",
             flush=True,
         )
-        self.facade = spa.get_facade()
+
+        spa = GeckoAsyncSpa(
+            GeckoConstants.FORMAT_CLIENT_IDENTIFIER.format(SHELL_UUID).encode(
+                GeckoConstants.MESSAGE_ENCODING
+            ),
+            spa_descriptor,
+            self,
+            self._handle_event,
+        )
+        await spa.connect()
+
+        self.facade = GeckoAsyncFacade(spa, self)
+        await self.facade.wait_for_one_update()
         print("connected!")
         self.prompt = "{0}$ ".format(self.facade.name)
 
@@ -121,10 +152,11 @@ class GeckoShell(GeckoCmd):
                     device.name, device.ui_key
                 )
 
-        self.onecmd("state")
+        self.push_command("state")
+        set_config_mode(True)
 
     def device_command(self, arg, device):
-        """Turn a device on or off"""
+        """Turn a device on or off."""
         print("Turn device {0} {1}".format(device.name, arg))
         if arg.lower() == "on":
             device.turn_on()
@@ -151,22 +183,24 @@ class GeckoShell(GeckoCmd):
             print(blower)
         for light in self.facade.lights:
             print(light)
-        for reminder in self.facade.reminders:
+        for reminder in self.facade.reminders_manager.reminders:
             print(reminder)
         print(self.facade.water_care)
-        for sensor in [*self.facade.sensors, *self.facade.binary_sensors,]:
+        for sensor in [
+            *self.facade.sensors,
+            *self.facade.binary_sensors,
+        ]:
             print(sensor)
         print(self.facade.eco_mode)
         print(self.facade.error_sensor)
 
     def monitor_get_states(self):
-
         states = [
             self.facade.water_heater,
             *self.facade.pumps,
             *self.facade.blowers,
             *self.facade.lights,
-            #*self.facade.reminders,
+            # *self.facade.reminders,
             self.facade.water_care,
             *self.facade.sensors,
             *self.facade.binary_sensors,
@@ -182,7 +216,7 @@ class GeckoShell(GeckoCmd):
     def monitor_print_states(self, states):
         print(f"{datetime.datetime.now()} : {' '.join(states)}")
 
-    def do_monitor(self, _arg):
+    async def do_monitor(self, _arg):
         """Monitor the state of the managed spa outputting a new line for each change : monitor"""
         if self.facade is None:
             print("Must be connected to a spa")
@@ -195,7 +229,7 @@ class GeckoShell(GeckoCmd):
                 if self.monitor_compare_states(current_state):
                     current_state = self.monitor_get_states()
                     self.monitor_print_states(current_state)
-                self.facade.wait(1)
+                await config_sleep(1)
             except KeyboardInterrupt:
                 print("")
                 print("Monitor stopped")

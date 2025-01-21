@@ -39,7 +39,7 @@ class GeckoSimulator(GeckoCmd):
 
     _STATUS_BLOCK_SEGMENT_SIZE = 39
 
-    def __init__(self, first_commands=None):
+    def __init__(self):
         self._socket = GeckoUdpSocket()
         self._install_standard_handlers()
         self.structure = GeckoStructure(self._on_set_value)
@@ -50,7 +50,7 @@ class GeckoSimulator(GeckoCmd):
         self._clients = []
         random.seed()
 
-        super().__init__(first_commands)
+        super().__init__()
 
         self.intro = (
             "Welcome to the Gecko simulator. Type help or ? to list commands.\n"

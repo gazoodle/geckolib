@@ -1,7 +1,11 @@
-""" Shared command functionality """
+"""Shared command functionality."""
 
+import asyncio
 import cmd
 import logging
+from typing import Self
+
+from geckolib.async_tasks import AsyncTasks
 
 LICENSE = """
 #
@@ -23,20 +27,34 @@ LICENSE = """
 """
 
 
-class GeckoCmd(cmd.Cmd):
-    """GeckoCmd is a shared command processor. It implements shared
-    functionality between the Shell and the Simulator"""
+class GeckoCmd(cmd.Cmd, AsyncTasks):
+    """
+    Shared command processor.
+
+    Implements shared functionality between the Shell and the Simulator
+
+    This version is now async.
+    """
 
     BANNER = None
 
     @classmethod
-    def run(cls, first_commands=None):
-        """Convenience function to run a command loop"""
-        with cls(first_commands) as cmd:
-            cmd.cmdloop()
+    def run(cls, first_commands: list[str] | None = None) -> None:
+        """Run command loop."""
+        asyncio.run(cls.async_run(first_commands))
 
-    def __init__(self, first_commands=None):
-        super().__init__()
+    @classmethod
+    async def async_run(cls, first_commands: list[str] | None = None) -> None:
+        async with cls() as cmd:
+            if first_commands is not None:
+                for command in first_commands:
+                    cmd.push_command(command)
+            await cmd.cmdloop()
+
+    def __init__(self) -> None:
+        """Initialize the command class."""
+        AsyncTasks.__init__(self)
+        cmd.Cmd.__init__(self)
 
         if self.BANNER is not None:
             print(self.BANNER)
@@ -45,28 +63,31 @@ class GeckoCmd(cmd.Cmd):
         self.file_logger = None
         self._init_logging()
 
-        if first_commands is not None:
-            for command in first_commands:
-                self.onecmd(command)
-
-    def __enter__(self):
+    async def __aenter__(self) -> Self:
+        """Async enter for with statement."""
+        await AsyncTasks.__aenter__(self)
         return self
 
-    def __exit__(self, *args):
-        pass
+    async def __aexit__(self, *exc_info: object) -> None:
+        """Support for 'with'."""
+        await AsyncTasks.__aexit__(self, exc_info)
 
-    def do_exit(self, _arg):
-        """Exit this shell: exit"""
+    def push_command(self, cmd: str) -> None:
+        """Add a command to the queue."""
+        self.cmdqueue.append(cmd)
+
+    def do_exit(self, _arg: str) -> bool:
+        """Exit this shell: exit."""
         return True
 
-    def do_loglevel(self, arg):
-        """Set the logging level : loglevel <ERROR|WARNING|INFO|DEBUG>"""
+    def do_loglevel(self, arg) -> None:
+        """Set the logging level : loglevel <ERROR|WARNING|INFO|DEBUG>."""
         for handler in logging.getLogger().handlers:
             handler.setLevel(arg)
         self._set_root_log_level()
 
-    def do_logfile(self, arg):
-        """Add a file logger to the system : logfile <filename>"""
+    def do_logfile(self, arg: str) -> None:
+        """Add a file logger to the system : logfile <filename>."""
         if self.file_logger is not None:
             print("There is already a file logger installed")
             return
@@ -78,7 +99,13 @@ class GeckoCmd(cmd.Cmd):
         logging.getLogger().addHandler(self.file_logger)
         self._set_root_log_level()
 
-    def _init_logging(self):
+    async def do_async(self, arg: str) -> None:
+        """Async test function."""
+        print("Start async task, wait for 1 second")
+        await asyncio.sleep(1)
+        print("Async sleep complete")
+
+    def _init_logging(self) -> None:
         self.stream_logger = logging.StreamHandler()
         self.stream_logger.setLevel(logging.WARNING)
         self.stream_logger.setFormatter(
@@ -87,12 +114,104 @@ class GeckoCmd(cmd.Cmd):
         logging.getLogger().addHandler(self.stream_logger)
         self._set_root_log_level()
 
-    def _set_root_log_level(self):
+    def _set_root_log_level(self) -> None:
         # Set root log level
         logging.getLogger().setLevel(
             min(handler.level for handler in logging.getLogger().handlers)
         )
 
-    def do_license(self, _arg):
-        """Display the license details : license"""
+    def do_license(self, _arg: str) -> None:
+        """Display the license details : license."""
         print(LICENSE)
+
+    async def onecmd(self, line: str) -> bool:
+        """
+        Async single command.
+
+        Interpret the argument as though it had been typed in response to the prompt.
+
+        This may be overridden, but should not normally need to be;
+        see the precmd() and postcmd() methods for useful execution hooks.
+        The return value is a flag indicating whether interpretation of
+        commands by the interpreter should stop.
+
+        Support async commands.
+        """
+        cmd, arg, line = self.parseline(line)
+        if not line:
+            return self.emptyline()
+        if cmd is None:
+            return self.default(line)
+        self.lastcmd = line
+        if line == "EOF":
+            self.lastcmd = ""
+        if cmd == "":
+            return self.default(line)
+        func = getattr(self, "do_" + cmd, None)
+        if func is None:
+            return self.default(line)
+        if asyncio.iscoroutinefunction(func):
+            return await func(arg)
+        return func(arg)
+
+    async def cmdloop(self, intro=None):
+        """
+        Async command loop.
+
+        Repeatedly issue a prompt, accept input, parse an initial prefix
+        off the received input, and dispatch to action methods, passing them
+        the remainder of the line as argument.
+        """
+        self.preloop()
+        if self.use_rawinput and self.completekey:
+            try:
+                import readline
+
+                self.old_completer = readline.get_completer()
+                readline.set_completer(self.complete)
+                if readline.backend == "editline":
+                    if self.completekey == "tab":
+                        # libedit uses "^I" instead of "tab"
+                        command_string = "bind ^I rl_complete"
+                    else:
+                        command_string = f"bind {self.completekey} rl_complete"
+                else:
+                    command_string = f"{self.completekey}: complete"
+                readline.parse_and_bind(command_string)
+            except ImportError:
+                pass
+        try:
+            if intro is not None:
+                self.intro = intro
+            if self.intro:
+                self.stdout.write(str(self.intro) + "\n")
+            stop = None
+            while not stop:
+                if self.cmdqueue:
+                    line = self.cmdqueue.pop(0)
+                else:
+                    if self.use_rawinput:
+                        try:
+                            line = input(self.prompt)
+                        except EOFError:
+                            line = "EOF"
+                    else:
+                        self.stdout.write(self.prompt)
+                        self.stdout.flush()
+                        line = self.stdin.readline()
+                        if not len(line):
+                            line = "EOF"
+                        else:
+                            line = line.rstrip("\r\n")
+                line = self.precmd(line)
+                stop = await self.onecmd(line)
+                stop = self.postcmd(stop, line)
+            self.postloop()
+        finally:
+            if self.use_rawinput and self.completekey:
+                try:
+                    import readline
+
+                    readline.set_completer(self.old_completer)
+                except ImportError:
+                    pass

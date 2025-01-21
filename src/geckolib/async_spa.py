@@ -498,6 +498,7 @@ class GeckoAsyncSpa(Observable):
             _LOGGER.debug("Refresh loop started")
             while self.isopen:
                 await config_sleep(GeckoConfig.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS)
+                _LOGGER.debug("Refresh status block")
                 if not self.is_connected:
                     continue
                 if not self.is_responding_to_pings:

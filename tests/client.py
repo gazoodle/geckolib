@@ -10,5 +10,5 @@ from pathlib import Path
 from context import GeckoShell
 
 # Run the shell with any extra arguments
-Path("client.log").unlink()
+Path("client.log").unlink(True)
 GeckoShell.run(["logfile client.log"] + sys.argv[1:])

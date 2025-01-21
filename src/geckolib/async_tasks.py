@@ -3,7 +3,6 @@
 import asyncio
 import logging
 from typing import Any, Self
-from venv import create
 
 from .config import GeckoConfig, config_sleep
 
