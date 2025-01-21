@@ -19,7 +19,6 @@ class GeckoConstants:
 
     CONNECTION_STEP_PAUSE_IN_SECONDS = 0  # Time between connection steps
     MAX_RF_ERRORS_BEFORE_HALT = 50
-    ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD = 0.1
 
     BROADCAST_ADDRESS = "<broadcast>"
     MESSAGE_ENCODING = "latin1"
@@ -58,6 +57,7 @@ class GeckoConstants:
     KEY_FILTER_PURGE = "Purge"
     KEY_FILTER_CLEAN = "Clean"
     KEY_ECON_ACTIVE = "EconActive"
+    KEY_INGRID_DETECTED = "InGridDetected"
     KEY_COOLZONE_DETECTED = "CoolZoneDetected"
     KEY_COOLZONE_MODE = "CoolZoneMode"
 

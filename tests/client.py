@@ -1,11 +1,14 @@
-#!/usr/bin/python3
 """
-    Sample client program for geckolib, searches for in.touch2 devices and
-    then allows interaction with them
-"""
+Sample client program for geckolib.
+
+Search for in.touch2 devices and then allows interaction with them
+"""  # noqa: INP001
+
+import sys
+from pathlib import Path
 
 from context import GeckoShell
-import sys
 
 # Run the shell with any extra arguments
+Path("client.log").unlink()
 GeckoShell.run(["logfile client.log"] + sys.argv[1:])

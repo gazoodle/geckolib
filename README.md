@@ -317,26 +317,16 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 # Todo
 
-- Spa state (errors)
 - Error handling (ongoing)
 - Pythonize where possible
-- APIs to support integration into automation systems (Ongoing)
-  - Warnings/Errors
-  - Diagnostics
 - More unit tests
 - Handle other device types such as Waterfall
 - Handle inMix for lighting control
 - Add API documentation
-- Merge reminders branch from @kalinrow
-- List property for User demands in pack classes
-- List property for errors in pack classes
 - Tidy up support files. One class per file
 - Full sweep for typing hints - Ongoing
-- Add sensor for errors
 - Add switch for winterizing
 - Add ability to set hours so we can implement a crude clock sync mechanism
-- Think about a way to provide access to behaviour refresh frequencies so that
-  it can be customised
 - Look into getting shell & simulator using async API so that there are no
   internal dependencies on the sync code any longer
 - Move to pytest unit test framework

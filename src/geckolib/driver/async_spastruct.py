@@ -48,7 +48,7 @@ class GeckoAsyncStructure(GeckoStructureTypeBase):
         self.error_keys = log_class.error_keys
 
     def reset(self) -> None:
-        """Reset this status block to initialization state"""
+        """Reset this status block to initialization state."""
         self.accessors = {}
         self.all_outputs = []
         self.all_devices = []

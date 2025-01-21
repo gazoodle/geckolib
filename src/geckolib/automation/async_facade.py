@@ -7,6 +7,7 @@ import logging
 from typing import List, Optional
 
 from geckolib.automation.base import GeckoAutomationBase
+from geckolib.driver.accessor import GeckoBoolStructAccessor
 
 from ..async_spa import GeckoAsyncSpa
 from ..async_tasks import AsyncTasks
@@ -233,11 +234,17 @@ class GeckoAsyncFacade(Observable):
                 ),
             )
 
-        # Check if there are alternate heating sources available
-        if GeckoConstants.KEY_COOLZONE_DETECTED in self._spa.accessors:
-            _LOGGER.info("CoolZoneDetected is present")
-        if GeckoConstants.KEY_COOLZONE_MODE in self._spa.accessors:
-            _LOGGER.info("CoolZoneMode is present")
+        # Check if in.Grid is detected
+        if GeckoConstants.KEY_INGRID_DETECTED in self._spa.accessors:
+            in_grid_detected: GeckoBoolStructAccessor = self._spa.accessors[
+                GeckoConstants.KEY_INGRID_DETECTED
+            ]
+            if in_grid_detected.value:
+                _LOGGER.info("in.grid detected")
+                if GeckoConstants.KEY_COOLZONE_MODE in self._spa.accessors:
+                    _LOGGER.info(
+                        "CoolZoneMode is present, so we can offer these options now"
+                    )
 
     @property
     def unique_id(self) -> str:

@@ -2,20 +2,19 @@
 
 import asyncio.queues
 import collections
-from asyncio import QueueShutDown
 from typing import Any
 
 
 class AsyncPeekableQueue(asyncio.queues.Queue):
     """A peekable async queue which allows queue filtering in consumers."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the async peekable queue."""
         super().__init__()
         self._marked = False
         self._data_available = asyncio.Event()
 
-    def _init(self, maxsize) -> None:
+    def _init(self, _maxsize: int) -> None:
         self._queue = collections.deque()
 
     def _get(self) -> Any:
