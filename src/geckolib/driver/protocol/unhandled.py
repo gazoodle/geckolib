@@ -4,6 +4,7 @@ import asyncio
 import logging
 from typing import Any
 
+from geckolib.config import config_sleep
 from geckolib.driver.udp_socket import GeckoUdpProtocolHandler
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ class GeckoUnhandledProtocolHandler(GeckoUdpProtocolHandler):
         """Consume the packet."""
         try:
             while True:
-                await asyncio.sleep(0)
+                await config_sleep(0)
                 await protocol.queue.wait()
                 if protocol.queue.head is not None:
                     break

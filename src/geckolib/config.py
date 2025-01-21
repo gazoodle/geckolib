@@ -1,9 +1,8 @@
-"""Configuration management for geckolib"""
+"""Configuration management for geckolib."""
 
 import asyncio
-from dataclasses import dataclass
 import logging
-from typing import Optional
+from dataclasses import dataclass
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,7 +51,7 @@ CONFIG_MEMBERS = [
 
 @dataclass
 class _GeckoActiveConfig(_GeckoConfig):
-    """Gecko active configuration"""
+    """Gecko active configuration."""
 
     DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS = 4
     DISCOVERY_TIMEOUT_IN_SECONDS = 10
@@ -68,7 +67,7 @@ class _GeckoActiveConfig(_GeckoConfig):
 
 @dataclass
 class _GeckoIdleConfig(_GeckoConfig):
-    """Gecko idle configuration"""
+    """Gecko idle configuration."""
 
     DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS = 4
     DISCOVERY_TIMEOUT_IN_SECONDS = 10
@@ -84,7 +83,7 @@ class _GeckoIdleConfig(_GeckoConfig):
 
 # Root config
 GeckoConfig: _GeckoConfig = _GeckoIdleConfig()
-ConfigChange: Optional[asyncio.Future] = None
+ConfigChange: asyncio.Future | None = None
 
 
 def set_config_mode(active: bool) -> None:
@@ -99,6 +98,7 @@ def set_config_mode(active: bool) -> None:
 
 
 async def config_sleep(delay: float) -> None:
+    """Sleep wrapper that also handles config changes."""
     global ConfigChange
     if ConfigChange is None or ConfigChange.done():
         ConfigChange = asyncio.get_running_loop().create_future()

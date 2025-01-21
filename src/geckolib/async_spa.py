@@ -160,7 +160,7 @@ class GeckoAsyncSpa(Observable):
         )
         assert isinstance(_protocol, GeckoAsyncUdpProtocol)
         self._protocol = _protocol
-        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
+        await config_sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         self._taskman.add_task(
             GeckoUnhandledProtocolHandler().consume(self._protocol),
@@ -197,7 +197,7 @@ class GeckoAsyncSpa(Observable):
         )
         self._taskman.add_task(self._ping_loop(), "Ping loop", "SPA")
         self._taskman.add_task(self._refresh_loop(), "Refresh loop", "SPA")
-        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
+        await config_sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         version_handler = await self._protocol.get(self._get_version_handler_func)
         if version_handler is None:
@@ -223,7 +223,7 @@ class GeckoAsyncSpa(Observable):
             intouch_version_en=self.intouch_version_en,
             intouch_version_co=self.intouch_version_co,
         )
-        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
+        await config_sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         get_channel_handler = await self._protocol.get(self._get_channel_handler_func)
         if get_channel_handler is None:
@@ -241,7 +241,7 @@ class GeckoAsyncSpa(Observable):
             channel=self.channel,
             signal=self.signal,
         )
-        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
+        await config_sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         config_file_handler = await self._protocol.get(
             self._get_config_file_handler_func
@@ -270,7 +270,7 @@ class GeckoAsyncSpa(Observable):
             config_version=self.config_version,
             log_version=self.log_version,
         )
-        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
+        await config_sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         pack_module_name = f"geckolib.driver.packs.{plateform_key}"
         try:
@@ -340,7 +340,7 @@ class GeckoAsyncSpa(Observable):
         )
 
         await self._event_handler(GeckoSpaEvent.CONNECTION_INITIAL_DATA_BLOCK_REQUEST)
-        await asyncio.sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
+        await config_sleep(GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS)
 
         if not await self.struct.get(
             self._protocol,

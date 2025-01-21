@@ -7,6 +7,7 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
+from geckolib.config import config_sleep
 from geckolib.const import GeckoConstants
 
 if TYPE_CHECKING:
@@ -147,7 +148,7 @@ class GeckoUdpProtocolHandler(ABC):
         try:
             while True:
                 try:
-                    await asyncio.sleep(0)
+                    await config_sleep(0)
 
                     async with asyncio.timeout(self._timeout_in_seconds):
                         await protocol.queue.wait()
@@ -179,7 +180,7 @@ class GeckoUdpProtocolHandler(ABC):
         try:
             assert self._timeout_in_seconds == 0
             while True:
-                await asyncio.sleep(0)
+                await config_sleep(0)
                 await protocol.queue.wait()
 
                 if protocol.queue.head is not None:

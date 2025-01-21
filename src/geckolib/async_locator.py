@@ -7,7 +7,7 @@ import time
 
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_tasks import AsyncTasks
-from .config import GeckoConfig
+from .config import GeckoConfig, config_sleep
 from .const import GeckoConstants
 from .driver import (
     GeckoAsyncUdpProtocol,
@@ -115,7 +115,7 @@ class GeckoAsyncLocator(Observable):
                             static_ip=self._spa_address
                         ),
                     )
-                await asyncio.sleep(1)
+                await config_sleep(1)
         except asyncio.CancelledError:
             _LOGGER.debug("Broadcast loop cancelled")
             raise
@@ -156,7 +156,7 @@ class GeckoAsyncLocator(Observable):
                 break
             if self._has_found_spa:
                 break
-            await asyncio.sleep(1)
+            await config_sleep(1)
 
         _LOGGER.debug("Discovery complete, close transport")
         self._task_man.cancel_key_tasks("LOC")

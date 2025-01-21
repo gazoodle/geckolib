@@ -6,17 +6,18 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
-from sched import Event
-from typing import Any, List, Optional
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 from .async_locator import GeckoAsyncLocator
 from .async_spa import GeckoAsyncSpa
-from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_tasks import AsyncTasks
 from .automation import GeckoAsyncFacade, GeckoAutomationBase, GeckoButton
 from .const import GeckoConstants
 from .spa_events import GeckoSpaEvent
 from .spa_state import GeckoSpaState
+
+if TYPE_CHECKING:
+    from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -234,13 +235,13 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     #   Usage helpers
     #
 
-    async def __aenter__(self) -> GeckoAsyncSpaMan:
+    async def __aenter__(self) -> Self:
         await AsyncTasks.__aenter__(self)
         await self._handle_event(GeckoSpaEvent.SPA_MAN_ENTER)
         self.add_task(self._sequence_pump(), "Sequence Pump", "SPAMAN")
         return self
 
-    async def __aexit__(self, *exc_info) -> None:
+    async def __aexit__(self, *exc_info: object) -> None:
         self.cancel_key_tasks("SPAMAN")
         await self._handle_event(GeckoSpaEvent.SPA_MAN_EXIT, exc_info=exc_info)
         await AsyncTasks.__aexit__(self, exc_info)

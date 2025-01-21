@@ -24,6 +24,7 @@ from context_sample import (
     GeckoSpaEvent,
 )
 
+from geckolib.config import config_sleep
 from geckolib.spa_state import GeckoSpaState
 
 # Replace with your own UUID, see https://www.uuidgenerator.net/>
@@ -74,7 +75,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         try:
             while True:
                 self.make_display()
-                await asyncio.sleep(1)
+                await config_sleep(1)
         except asyncio.CancelledError:
             _LOGGER.debug("Timer loop cancelled")
             raise
