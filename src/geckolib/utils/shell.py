@@ -9,7 +9,7 @@ from geckolib import VERSION, GeckoConstants, GeckoPump
 from geckolib.async_locator import GeckoAsyncLocator
 from geckolib.async_spa import GeckoAsyncSpa
 from geckolib.automation.async_facade import GeckoAsyncFacade
-from geckolib.config import config_sleep, set_config_mode
+from geckolib.config import config_sleep
 from geckolib.spa_events import GeckoSpaEvent
 
 from .shared_command import GeckoCmd
@@ -153,7 +153,6 @@ class GeckoShell(GeckoCmd):
                 )
 
         self.push_command("state")
-        set_config_mode(True)
 
     def device_command(self, arg, device):
         """Turn a device on or off."""
@@ -272,10 +271,6 @@ class GeckoShell(GeckoCmd):
             " devices with in.touch2 communication modules"
         )
         print("Library version v{0}".format(VERSION))
-
-    def do_refresh(self, _arg):
-        """Refresh the live data from your spa : refresh"""
-        self.facade.spa.refresh()
 
     def do_get(self, arg):
         """Get the value of the specified spa pack structure element : get <Element>"""
