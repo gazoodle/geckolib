@@ -21,8 +21,6 @@ from pathlib import Path
 
 from cui import CUI
 
-_LOGGER = logging.getLogger(__name__)
-
 
 def install_logging() -> None:
     """Everyone needs logging, you say when, you say where, you say how much."""

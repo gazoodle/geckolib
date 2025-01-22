@@ -1,7 +1,8 @@
-""" Gecko STATU/STATV/STATQ/STATP handlers """
+"""Gecko STATU/STATV/STATQ/STATP handlers"""
 
 import logging
 import struct
+from warnings import deprecated
 
 from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
@@ -87,6 +88,7 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
         )
 
 
+@deprecated("Use GeckoAsyncPartialStatusBlockProtocolHandler instead")
 class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
     @staticmethod
     def report_changes(socket, changes, **kwargs):

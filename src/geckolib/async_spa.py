@@ -534,7 +534,9 @@ class GeckoAsyncSpa(Observable):
         handler: GeckoAsyncPartialStatusBlockProtocolHandler,
         sender: tuple,
     ) -> None:
+        _LOGGER.debug(f"Change count {len(handler.changes)}")
         for change in handler.changes:
+            _LOGGER.debug(f"  Change {change}")
             self.struct.replace_status_block_segment(change[0], change[1])
 
     async def _on_async_set_value(self, pos, length, newvalue) -> None:
@@ -592,6 +594,7 @@ class GeckoAsyncSpa(Observable):
             if not self.is_responding_to_pings:
                 _LOGGER.debug("Cannot press keypad when spa not responding to pings")
                 return
+            _LOGGER.info("Async press of key %d", keypad)
 
             pack_command_handler = await self._protocol.get(
                 lambda: GeckoPackCommandProtocolHandler.keypress(

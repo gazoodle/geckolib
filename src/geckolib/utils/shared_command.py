@@ -7,6 +7,8 @@ from typing import Self
 
 from geckolib.async_tasks import AsyncTasks
 
+_LOGGER = logging.getLogger(__name__)
+
 LICENSE = """
 #
 #   Copyright (C) 2020, Gazoodle (https://github.com/gazoodle)
@@ -45,11 +47,13 @@ class GeckoCmd(cmd.Cmd, AsyncTasks):
 
     @classmethod
     async def async_run(cls, first_commands: list[str] | None = None) -> None:
+        _LOGGER.debug("*** Shell %s started ***", cls.__name__)
         async with cls() as cmd:
             if first_commands is not None:
                 for command in first_commands:
                     cmd.push_command(command)
             await cmd.cmdloop()
+        _LOGGER.debug("*** Shell %s stopped ***", cls.__name__)
 
     def __init__(self) -> None:
         """Initialize the command class."""
@@ -137,6 +141,7 @@ class GeckoCmd(cmd.Cmd, AsyncTasks):
 
         Support async commands.
         """
+        _LOGGER.debug("Handle command `%s`", line)
         cmd, arg, line = self.parseline(line)
         if not line:
             return self.emptyline()

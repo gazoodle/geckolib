@@ -14,7 +14,7 @@ from geckolib.spa_events import GeckoSpaEvent
 
 from .shared_command import GeckoCmd
 
-logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 SHELL_UUID = "02ac6d28-42d0-41e3-ad22-274d0aa491da"
@@ -87,7 +87,7 @@ class GeckoShell(GeckoCmd):
         number_of_spas = len(self.spas)
         print("Found {0} spas".format(number_of_spas))
         if number_of_spas == 0:
-            logger.warning(
+            _LOGGER.warning(
                 "Try using the iOS or Android app to confirm they are "
                 "functioning correctly"
             )
@@ -169,6 +169,10 @@ class GeckoShell(GeckoCmd):
             device.set_mode(arg)
         except Exception:
             traceback.print_exc()
+
+    async def do_key(self, arg):
+        """Press keyboard button 1."""
+        await self.facade.spa.async_press(GeckoConstants.KEYPAD_PUMP_1)
 
     def do_state(self, _arg):
         """Show the state of the managed spa : state"""
@@ -277,7 +281,7 @@ class GeckoShell(GeckoCmd):
         try:
             print("{0} = {1}".format(arg, self.facade.spa.accessors[arg].value))
         except Exception:  # pylint: disable=broad-except
-            logger.exception("Exception getting '%s'", arg)
+            _LOGGER.exception("Exception getting '%s'", arg)
 
     def do_peek(self, arg):
         """Get the byte value from the structure at the specified position : peek <pos>"""
@@ -285,7 +289,7 @@ class GeckoShell(GeckoCmd):
             pos = int(arg)
             print(f"Byte at {pos} = {self.facade.spa.struct.status_block[pos]}")
         except Exception:  # pylint: disable=broad-except
-            logger.exception("Exception peeking at '%s'", arg)
+            _LOGGER.exception("Exception peeking at '%s'", arg)
 
     def do_set(self, arg):
         """Set the value of the specified spa pack structure
@@ -294,14 +298,14 @@ class GeckoShell(GeckoCmd):
             key, val = arg.split("=")
             self.facade.spa.accessors[key].value = val
         except Exception:  # pylint: disable=broad-except
-            logger.exception("Exception handling 'set %s'", arg)
+            _LOGGER.exception("Exception handling 'set %s'", arg)
 
     def do_watercare(self, arg):
         """Set the active watercare mode to one of {0} : WATERCARE <mode>"""
         try:
             self.facade.water_care.set_mode(arg)
         except Exception:  # pylint: disable=broad-except
-            logger.exception("Exception setting watercare to '%s'", arg)
+            _LOGGER.exception("Exception setting watercare to '%s'", arg)
 
     def do_setpoint(self, arg):
         """Set the spa setpoint temperature : setpoint <temp>"""
@@ -317,7 +321,7 @@ class GeckoShell(GeckoCmd):
     def do_snapshot(self, arg):
         """Take a snapshot of the spa data structure with a descriptive
         message : SNAPSHOT <desc>"""
-        logger.info("Snapshot (%s)", arg)
+        _LOGGER.info("Snapshot (%s)", arg)
         for ver_str in self.version_strings:
-            logger.info(ver_str)
-        logger.info([hex(b) for b in self.facade.spa.struct.status_block])
+            _LOGGER.info(ver_str)
+        _LOGGER.info([hex(b) for b in self.facade.spa.struct.status_block])

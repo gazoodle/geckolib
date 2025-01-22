@@ -391,6 +391,20 @@ class GeckoSimulator(GeckoCmd):
             sender,
         )
 
+    def _handle_key_press(self, keycode) -> None:
+        _LOGGER.debug(f"Pack command press key {keycode}")
+        print(f"Key press {keycode}")
+        if keycode == GeckoConstants.KEYPAD_PUMP_1:
+            p1 = self.structure.accessors["P1"]
+            udp1 = self.structure.accessors["UdP1"]
+
+            if p1.value == "OFF":
+                udp1.value = "HI"
+                p1.value = "HIGH"
+            else:
+                udp1.value = "OFF"
+                p1.value = "OFF"
+
     def _on_pack_command(self, handler: GeckoPackCommandProtocolHandler, sender):
         if self._should_ignore(handler, sender):
             return
@@ -398,11 +412,15 @@ class GeckoSimulator(GeckoCmd):
             GeckoPackCommandProtocolHandler.response(parms=sender), sender
         )
         if handler.is_key_press:
-            print(f"Pressed a key ({handler.keycode})")
+            self._handle_key_press(handler.keycode)
         elif handler.is_set_value:
+            _LOGGER.debug(
+                f"Pack command set a value ({handler.position} = {handler.new_data})"
+            )
             print(f"Set a value ({handler.position} = {handler.new_data})")
 
     def _on_set_value(self, pos, length, newvalue):
+        _LOGGER.debug(f"Simulator: Set value @{pos} len {length} to {newvalue}")
         print(f"Simulator: Set value @{pos} len {length} to {newvalue}")
         change = None
         if length == 1:
