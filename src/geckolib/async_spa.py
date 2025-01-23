@@ -61,7 +61,7 @@ class GeckoAsyncSpa(Observable):
         self._taskman = taskman
         self._event_handler: GeckoSpaEvent.CallBack = event_handler
 
-        self._con_lost: asyncio.Future | None = None
+        self._con_lost: asyncio.Event = asyncio.Event()
         self._transport: asyncio.BaseTransport | None = None
         self._protocol: GeckoAsyncUdpProtocol | None = None
         self._is_connected = False
@@ -150,7 +150,7 @@ class GeckoAsyncSpa(Observable):
 
     async def _connect(self) -> None:
         loop = asyncio.get_running_loop()
-        self._con_lost = loop.create_future()
+        self._con_lost.clear()
 
         self._transport, _protocol = await loop.create_datagram_endpoint(
             lambda: GeckoAsyncUdpProtocol(

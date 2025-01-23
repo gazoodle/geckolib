@@ -129,44 +129,46 @@ class GeckoAsyncLocator(Observable):
     async def discover(self) -> None:
         """Discover spas on the local lan."""
         loop = asyncio.get_running_loop()
-        on_con_lost = loop.create_future()
+        on_con_lost = asyncio.Event()
         self._transport, _protocol = await loop.create_datagram_endpoint(
             lambda: GeckoAsyncUdpProtocol(self._task_man, on_con_lost, None),
             family=socket.AF_INET,
             allow_broadcast=True,
         )
-        assert isinstance(_protocol, GeckoAsyncUdpProtocol)
-        self._protocol = _protocol
-        assert self._transport is not None
-        self._spas = []
+        try:
+            assert isinstance(_protocol, GeckoAsyncUdpProtocol)
+            self._protocol = _protocol
+            assert self._transport is not None
+            self._spas = []
 
-        hello_handler = GeckoHelloProtocolHandler.broadcast(
-            async_on_handled=self._async_on_discovered
-        )
-        self._task_man.add_task(
-            hello_handler.consume(self._protocol), "Hello handler", "LOC"
-        )
-        self._task_man.add_task(
-            self._broadcast_loop(hello_handler), "Broadcast loop", "LOC"
-        )
-
-        self._started = time.monotonic()
-        self._on_change(self)
-
-        while self.age < GeckoConfig.DISCOVERY_TIMEOUT_IN_SECONDS:
-            if self.has_had_enough_time and len(self._spas) > 0:
-                _LOGGER.info("Found %d spas ... %s", len(self._spas), self._spas)
-                break
-            if self._has_found_spa:
-                break
-            await config_sleep(
-                GeckoConstants.ASYNC_LOCATOR_BROADCAST_SLEEP,
-                "Async locator discovery loop",
+            hello_handler = GeckoHelloProtocolHandler.broadcast(
+                async_on_handled=self._async_on_discovered
+            )
+            self._task_man.add_task(
+                hello_handler.consume(self._protocol), "Hello handler", "LOC"
+            )
+            self._task_man.add_task(
+                self._broadcast_loop(hello_handler), "Broadcast loop", "LOC"
             )
 
-        _LOGGER.debug("Discovery complete, close transport")
-        self._task_man.cancel_key_tasks("LOC")
-        self._transport.close()
-        self._transport = None
-        self._protocol = None
-        self._on_change(self)
+            self._started = time.monotonic()
+            self._on_change(self)
+
+            while self.age < GeckoConfig.DISCOVERY_TIMEOUT_IN_SECONDS:
+                if self.has_had_enough_time and len(self._spas) > 0:
+                    _LOGGER.info("Found %d spas ... %s", len(self._spas), self._spas)
+                    break
+                if self._has_found_spa:
+                    break
+                await config_sleep(
+                    GeckoConstants.ASYNC_LOCATOR_BROADCAST_SLEEP,
+                    "Async locator discovery loop",
+                )
+
+        finally:
+            _LOGGER.debug("Discovery complete, close transport")
+            self._task_man.cancel_key_tasks("LOC")
+            self._transport.close()
+            self._transport = None
+            self._protocol = None
+            self._on_change(self)

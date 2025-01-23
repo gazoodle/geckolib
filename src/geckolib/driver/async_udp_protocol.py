@@ -53,11 +53,11 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     """
 
     def __init__(
-        self, taskman: GeckoAsyncTaskMan, on_connection_lost, destination
+        self, taskman: GeckoAsyncTaskMan, on_connection_lost: asyncio.Event, destination
     ) -> None:
         """Initialize the protocol class."""
         self.transport = None
-        self._on_connection_lost = on_connection_lost
+        self._on_connection_lost: asyncio.Event = on_connection_lost
         self._destination = destination
 
         self._sequence_counter_protocol = 0
@@ -74,14 +74,16 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     def connection_made(self, transport) -> None:
         _LOGGER.debug("GeckoAsyncUdpProtocol: connection made to %s", transport)
         self.transport = transport
+        self._on_connection_lost.clear()
 
     def connection_lost(self, exc) -> None:
         _LOGGER.debug(
             "GeckoAsyncUdpProtocol: connection lost from %s (%s)", self.transport, exc
         )
-        self.transport = None
-        if self._on_connection_lost is not None:
-            self._on_connection_lost.set_result(True)
+        if self.transport is not None:
+            self.transport.close()
+            self.transport = None
+        self._on_connection_lost.set()
 
     def error_received(self, exc) -> None:
         _LOGGER.exception("GeckoAsyncUdpProtocol: Exception received %s", exc)
