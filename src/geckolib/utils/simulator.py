@@ -1,45 +1,55 @@
 """GeckoSimulator class"""
 
+import glob
+import importlib
 import logging
 import os
-import glob
 import random
-import importlib
 import struct
-from ..const import GeckoConstants
 
-from .shared_command import GeckoCmd
+from geckolib.async_taskman import GeckoAsyncTaskMan
+
+from .. import VERSION
+from ..const import GeckoConstants
 from ..driver import (
-    GeckoHelloProtocolHandler,
-    GeckoPacketProtocolHandler,
-    GeckoPingProtocolHandler,
-    GeckoVersionProtocolHandler,
-    GeckoGetChannelProtocolHandler,
     GeckoConfigFileProtocolHandler,
-    GeckoStatusBlockProtocolHandler,
+    GeckoGetChannelProtocolHandler,
+    GeckoHelloProtocolHandler,
+    GeckoPackCommandProtocolHandler,
+    GeckoPacketProtocolHandler,
     GeckoPartialStatusBlockProtocolHandler,
-    GeckoWatercareProtocolHandler,
-    GeckoUpdateFirmwareProtocolHandler,
+    GeckoPingProtocolHandler,
     GeckoRemindersProtocolHandler,
     GeckoReminderType,
     GeckoRFErrProtocolHandler,
-    GeckoPackCommandProtocolHandler,
+    GeckoStatusBlockProtocolHandler,
     GeckoStructure,
     GeckoUdpSocket,
+    GeckoUpdateFirmwareProtocolHandler,
+    GeckoVersionProtocolHandler,
+    GeckoWatercareProtocolHandler,
 )
+from .shared_command import GeckoCmd
 from .snapshot import GeckoSnapshot
-from .. import VERSION
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoSimulator(GeckoCmd):
-    """GeckoSimulator is a server application to aid with investigating
-    Gecko protocol"""
+class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
+    """
+    GeckoSimulator.
+
+    This is a server application to aid with investigating
+    the Gecko protocol.
+    """
 
     _STATUS_BLOCK_SEGMENT_SIZE = 39
 
     def __init__(self):
+        """Initialize the simulator class."""
+        GeckoAsyncTaskMan.__init__(self)
+        GeckoCmd.__init__(self, self)
+
         self._socket = GeckoUdpSocket()
         self._install_standard_handlers()
         self.structure = GeckoStructure(self._on_set_value)
@@ -49,8 +59,6 @@ class GeckoSimulator(GeckoCmd):
         self._send_structure_change = False
         self._clients = []
         random.seed()
-
-        super().__init__()
 
         self.intro = (
             "Welcome to the Gecko simulator. Type help or ? to list commands.\n"

@@ -80,6 +80,11 @@ class GeckoUdpProtocolHandler(ABC):
             raise NotImplementedError
         return self._send_bytes
 
+    @property
+    def timeout_in_seconds(self) -> int:
+        """The timeout in seconds."""
+        return self._timeout_in_seconds
+
     ##########################################################################
     #
     #                        RECEIVE FUNCTIONALITY
@@ -144,17 +149,17 @@ class GeckoUdpProtocolHandler(ABC):
         This function doesn't respect the _on_handled functionality since its
         use is for inline async stuff.
         """
-        assert self._timeout_in_seconds > 0
+        assert self.timeout_in_seconds > 0
         try:
             while True:
                 try:
-                    await config_sleep(0)
+                    await config_sleep(None, "Async UDP handler - wait for response")
 
-                    async with asyncio.timeout(self._timeout_in_seconds):
+                    async with asyncio.timeout(self.timeout_in_seconds):
                         await protocol.queue.wait()
 
-                    if protocol.queue.head is not None:
-                        data, sender = protocol.queue.head
+                    if protocol.queue.peek() is not None:
+                        data, sender = protocol.queue.peek()
                         if self.can_handle(data, sender):
                             protocol.queue.pop()
                             await self.async_handle(data, sender)
@@ -163,29 +168,37 @@ class GeckoUdpProtocolHandler(ABC):
 
                 except TimeoutError:
                     _LOGGER.debug(
-                        "TIMEOUT: Handler %s threw TimeoutError, status is %d",
+                        "TIMEOUT: Handler %s threw TimeoutError (%ds), status is %d",
                         self,
+                        self.timeout_in_seconds,
                         self.has_timedout,
                     )
                     return
 
         except asyncio.CancelledError:
-            _LOGGER.debug(f"wait_for_response loop for {self} cancelled")
+            _LOGGER.debug("wait_for_response loop for %r cancelled", self)
             raise
         except Exception:
-            _LOGGER.exception(f"wait_for_response loop for {self} caught exception")
+            _LOGGER.exception("wait_for_response loop for %r caught exception", self)
             raise
+        finally:
+            _LOGGER.debug("wait_for_response loop for %r terminated", self)
+
+    def _can_handle(
+        self, _protocol: GeckoAsyncUdpProtocol, received_bytes: bytes, sender: tuple
+    ) -> bool:
+        return self.can_handle(received_bytes, sender)
 
     async def consume(self, protocol: GeckoAsyncUdpProtocol) -> None:
         """Async coroutine to handle datagram."""
         try:
-            assert self._timeout_in_seconds == 0
+            assert self.timeout_in_seconds == 0
             while True:
-                await config_sleep(0)
+                await config_sleep(None, f"Async UDP handler - consume for {self}")
                 await protocol.queue.wait()
 
-                if protocol.queue.head is not None:
-                    data, sender = protocol.queue.head
+                if protocol.queue.peek() is not None:
+                    data, sender = protocol.queue.peek()
                     if self.can_handle(data, sender):
                         protocol.queue.pop()
                         await self.async_handle(data, sender)
@@ -195,11 +208,13 @@ class GeckoUdpProtocolHandler(ABC):
                     _LOGGER.debug("%s will be removed, consume loop terminating", self)
                     break
         except asyncio.CancelledError:
-            _LOGGER.debug(f"Consume loop for {self} cancelled")
+            _LOGGER.debug("Consume loop for %r cancelled", self)
             raise
         except Exception:
-            _LOGGER.exception(f"Consume loop for {self} caught exception")
+            _LOGGER.exception("Consume loop for %r caught exception", self)
             raise
+        finally:
+            _LOGGER.debug("Consume loop for %r terminated", self)
 
     ##########################################################################
     #
@@ -215,9 +230,7 @@ class GeckoUdpProtocolHandler(ABC):
     def has_timedout(self) -> bool:
         """Get the timedout status."""
         return (
-            self.age > self._timeout_in_seconds
-            if self._timeout_in_seconds > 0
-            else False
+            self.age > self.timeout_in_seconds if self.timeout_in_seconds > 0 else False
         )
 
     @property
@@ -262,7 +275,7 @@ class GeckoUdpProtocolHandler(ABC):
             f"{self.__class__.__name__}(send_bytes={self._send_bytes!r},"
             f" age={self.age}, has_timedout={self.has_timedout},"
             f" should_remove_handler={self.should_remove_handler},"
-            f" timeout={self._timeout_in_seconds}s,"
+            f" timeout={self.timeout_in_seconds}s,"
             f" retry_count={self._retry_count}"
             f")"
         )

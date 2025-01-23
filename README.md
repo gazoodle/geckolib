@@ -336,6 +336,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - There is a lock issue when a command is being retried as the protocol lock
   is busy and the CUI won't exit until the timeout has been reached (this can
   be reproduced by making the simulator stop responding to watercare requests)
+- API set_config_mode needs to be per device rather than global
 
 ## Done/Fixed in 0.4.19
 
@@ -347,6 +348,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Removed weird sleep constant that was the root of some CPU usaghe issues, hopefully this has
   gone now we're using a better async pattern.
 - Shell and Simulator moving to async pattern in prep for deleting the sync API.
+- Big refactor to help track down some obscure bugs, including a rare and hard to reproduce deadlock
 
 ## Done/Fixed in 0.4.18
 

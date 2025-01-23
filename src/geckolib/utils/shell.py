@@ -8,6 +8,7 @@ import traceback
 from geckolib import VERSION, GeckoConstants, GeckoPump
 from geckolib.async_locator import GeckoAsyncLocator
 from geckolib.async_spa import GeckoAsyncSpa
+from geckolib.async_taskman import GeckoAsyncTaskMan
 from geckolib.automation.async_facade import GeckoAsyncFacade
 from geckolib.config import config_sleep
 from geckolib.spa_events import GeckoSpaEvent
@@ -20,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 SHELL_UUID = "02ac6d28-42d0-41e3-ad22-274d0aa491da"
 
 
-class GeckoShell(GeckoCmd):
+class GeckoShell(GeckoCmd, GeckoAsyncTaskMan):
     """Client shell to explore spa capabilities."""
 
     BANNER = """
@@ -45,7 +46,8 @@ class GeckoShell(GeckoCmd):
         self.spas = None
         self.facade = None
 
-        super().__init__()
+        GeckoAsyncTaskMan.__init__(self)
+        GeckoCmd.__init__(self, self)
 
         self.do_watercare.__func__.__doc__ = self.do_watercare.__doc__.format(
             GeckoConstants.WATERCARE_MODE_STRING
@@ -63,7 +65,7 @@ class GeckoShell(GeckoCmd):
         await super().__aexit__(args)
 
     async def _handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
-        pass
+        _LOGGER.debug("Handle event %s", event)
 
     async def do_discover(self, arg) -> None:
         """Discover all the in.touch2 devices on your network : discover [<ip address>]."""
@@ -124,8 +126,8 @@ class GeckoShell(GeckoCmd):
 
         self.facade = GeckoAsyncFacade(spa, self)
         await self.facade.wait_for_one_update()
-        print("connected!")
-        self.prompt = "{0}$ ".format(self.facade.name)
+        print(f"connected to {self.facade.name}!")
+        self.prompt = "{}$ ".format(self.facade.name)
 
         # Build list of spa commands
         for device in self.facade.all_user_devices:
@@ -232,7 +234,7 @@ class GeckoShell(GeckoCmd):
                 if self.monitor_compare_states(current_state):
                     current_state = self.monitor_get_states()
                     self.monitor_print_states(current_state)
-                await config_sleep(1)
+                await config_sleep(1, "Shell monitor loop")
             except KeyboardInterrupt:
                 print("")
                 print("Monitor stopped")

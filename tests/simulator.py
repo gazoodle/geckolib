@@ -5,7 +5,6 @@ Pretends to be a spa on the network,
 used by integration tests to prevent regression
 """
 
-from gettext import install
 import logging
 from pathlib import Path
 

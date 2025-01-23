@@ -6,8 +6,13 @@ Thanks to https://gist.github.com/davesteele/8838f03e0594ef11c89f77a7bca91206
 
 import _curses
 import asyncio
+import logging
 from abc import ABC, abstractmethod
 from curses import ERR, KEY_RESIZE, curs_set
+
+from context_sample import GeckoAsyncTaskMan
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class AbstractDisplay(ABC):
@@ -39,25 +44,37 @@ class AbstractDisplay(ABC):
 
     async def process_input(self) -> None:
         """Get queue data and process it."""
-        while not self.done_event.is_set():
-            char = await self.queue.get()
-            if char == ERR:
-                # Do nothing and let the loop continue without sleeping continue
-                pass
-            elif char == KEY_RESIZE:
-                self.make_display()
-            else:
-                await self.handle_char(char)
-            self.queue.task_done()
+        try:
+            while not self.done_event.is_set():
+                char = await self.queue.get()
+                if char == ERR:
+                    # Do nothing and let the loop continue without sleeping continue
+                    pass
+                elif char == KEY_RESIZE:
+                    self.make_display()
+                else:
+                    await self.handle_char(char)
+                self.queue.task_done()
 
-    async def run(self) -> None:
+        except asyncio.CancelledError:
+            _LOGGER.debug("Input loop cancelled")
+            raise
+
+        except:  # noqa
+            _LOGGER.exception("Exception in input loop")
+            raise
+
+        finally:
+            _LOGGER.debug("Input loop finished")
+
+    async def run(self, taskman: GeckoAsyncTaskMan) -> None:
         """Run the display class."""
         curs_set(0)
         self.stdscr.nodelay(True)  # noqa: FBT003
 
         self.make_display()
 
-        input_task = asyncio.create_task(self.enqueue_input())
-        process_task = asyncio.create_task(self.process_input())
-
-        await asyncio.gather(input_task, process_task)
+        taskman.add_task(self.enqueue_input(), "Input gather", "CUI")
+        taskman.add_task(self.process_input(), "Process input", "CUI")
+        await self.done_event.wait()
+        taskman.cancel_key_tasks("CUI")

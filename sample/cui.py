@@ -64,7 +64,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         await self.async_set_spa_info(
             self._config.spa_address, self._config.spa_id, self._config.spa_name
         )
-        await self.run()
+        await self.run(self)
         return self
 
     async def __aexit__(self, *exc_info: object) -> None:
@@ -75,7 +75,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         try:
             while True:
                 self.make_display()
-                await config_sleep(1)
+                await config_sleep(1, "CUI Timer")
         except asyncio.CancelledError:
             _LOGGER.debug("Timer loop cancelled")
             raise
@@ -132,6 +132,9 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             self.facade.water_heater.target_temperature - 0.5
         )
 
+    async def key_press(self, keypad):
+        await self.facade.spa.async_press(keypad)
+
     def make_display(self) -> None:
         try:
             maxy, maxx = self.stdscr.getmaxyx()
@@ -163,7 +166,9 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 ]:
                     lines.append(f"{sensor}")
                 lines.append(f"{self.facade.eco_mode}")
-                lines.append(f"{self.ping_sensor}")
+                lines.append(
+                    f"{self.ping_sensor} (Responding: {self._spa.is_responding_to_pings})"
+                )
                 lines.append(f"{self.radio_sensor}")
                 lines.append(f"{self.channel_sensor}")
                 lines.append(f"{self.facade.error_sensor}")
@@ -229,6 +234,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                             self.facade.pumps[0].async_set_mode,
                             "OFF",
                         )
+                    lines.append("Press '1' to simulate keypad 1 press")
+                    self._commands["1"] = (self.key_press, GeckoConstants.KEYPAD_PUMP_1)
 
                 lines.append("Press '+' to increase setpoint")
                 self._commands["+"] = self.increase_temp
@@ -276,6 +283,9 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 func, *parms = func
                 if inspect.iscoroutinefunction(func):
                     await func(*parms)
+                else:
+                    func(*parms)
             else:
                 func()
+            _LOGGER.debug("Back from handling %c", char)
         self._last_char = char

@@ -1,11 +1,16 @@
-""" Unit tests for the actual snapshots """
+"""Unit tests for the actual snapshots"""
 
-from unittest import IsolatedAsyncioTestCase, main
 import importlib
 import pathlib
+from unittest import IsolatedAsyncioTestCase, main
 
-
-from context import GeckoStructure, GeckoSnapshot, GeckoConstants, GeckoAsyncFacade, AsyncTasks  # type: ignore
+from context import (
+    GeckoAsyncFacade,
+    GeckoAsyncTaskMan,
+    GeckoConstants,
+    GeckoSnapshot,
+    GeckoStructure,
+)  # type: ignore
 
 
 class GeckoAsyncSpa:
@@ -71,7 +76,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
     """Test all the snapshots"""
 
     def setUp(self) -> None:
-        self.taskman = AsyncTasks()
+        self.taskman = GeckoAsyncTaskMan()
 
     async def asyncSetUp(self) -> None:
         await self.taskman.__aenter__()

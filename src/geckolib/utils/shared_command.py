@@ -3,9 +3,13 @@
 import asyncio
 import cmd
 import logging
+import sys
+from enum import member
+from importlib.metadata import files
 from typing import Self
 
-from geckolib.async_tasks import AsyncTasks
+from geckolib.async_taskman import GeckoAsyncTaskMan
+from geckolib.config import set_config_mode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +33,7 @@ LICENSE = """
 """
 
 
-class GeckoCmd(cmd.Cmd, AsyncTasks):
+class GeckoCmd(cmd.Cmd):
     """
     Shared command processor.
 
@@ -48,6 +52,7 @@ class GeckoCmd(cmd.Cmd, AsyncTasks):
     @classmethod
     async def async_run(cls, first_commands: list[str] | None = None) -> None:
         _LOGGER.debug("*** Shell %s started ***", cls.__name__)
+        set_config_mode(True)
         async with cls() as cmd:
             if first_commands is not None:
                 for command in first_commands:
@@ -55,10 +60,10 @@ class GeckoCmd(cmd.Cmd, AsyncTasks):
             await cmd.cmdloop()
         _LOGGER.debug("*** Shell %s stopped ***", cls.__name__)
 
-    def __init__(self) -> None:
+    def __init__(self, taskman: GeckoAsyncTaskMan) -> None:
         """Initialize the command class."""
-        AsyncTasks.__init__(self)
         cmd.Cmd.__init__(self)
+        self._taskman = taskman
 
         if self.BANNER is not None:
             print(self.BANNER)
@@ -69,12 +74,12 @@ class GeckoCmd(cmd.Cmd, AsyncTasks):
 
     async def __aenter__(self) -> Self:
         """Async enter for with statement."""
-        await AsyncTasks.__aenter__(self)
+        await GeckoAsyncTaskMan.__aenter__(self)
         return self
 
     async def __aexit__(self, *exc_info: object) -> None:
         """Support for 'with'."""
-        await AsyncTasks.__aexit__(self, exc_info)
+        await GeckoAsyncTaskMan.__aexit__(self, exc_info)
 
     def push_command(self, cmd: str) -> None:
         """Add a command to the queue."""
@@ -128,6 +133,9 @@ class GeckoCmd(cmd.Cmd, AsyncTasks):
         """Display the license details : license."""
         print(LICENSE)
 
+    def emptyline(self) -> None:
+        """Call when an empty line is entered in response to the prompt."""
+
     async def onecmd(self, line: str) -> bool:
         """
         Async single command.
@@ -158,6 +166,16 @@ class GeckoCmd(cmd.Cmd, AsyncTasks):
         if asyncio.iscoroutinefunction(func):
             return await func(arg)
         return func(arg)
+
+    async def _input(self, string: str) -> str:
+        _LOGGER.debug("Prompt is %s", string)
+        await asyncio.get_event_loop().run_in_executor(
+            None, lambda s=string: sys.stdout.write(s + " ")
+        )
+
+        await asyncio.get_event_loop().run_in_executor(None, sys.stdout.flush)
+
+        return await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
 
     async def cmdloop(self, intro=None):
         """
@@ -197,7 +215,7 @@ class GeckoCmd(cmd.Cmd, AsyncTasks):
                 else:
                     if self.use_rawinput:
                         try:
-                            line = input(self.prompt)
+                            line = await self._input(self.prompt)
                         except EOFError:
                             line = "EOF"
                     else:

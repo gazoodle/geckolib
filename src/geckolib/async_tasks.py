@@ -26,6 +26,7 @@ class AsyncTasks:
 
     async def __aenter__(self) -> Self:
         """Async enter, used from python's with statement."""
+        _LOGGER.debug("Async start, adding tidy routine")
         self.add_task(self._tidy(), "Tidy tasks", "ASYNC")
         return self
 
@@ -63,7 +64,9 @@ class AsyncTasks:
     async def _tidy(self) -> None:
         try:
             while True:
-                await config_sleep(GeckoConfig.TASK_TIDY_FREQUENCY_IN_SECONDS)
+                await config_sleep(
+                    GeckoConfig.TASK_TIDY_FREQUENCY_IN_SECONDS, "Async task tidy"
+                )
                 create_new_tasks = False
                 if _LOGGER.isEnabledFor(logging.DEBUG):
                     for task in self._tasks:
@@ -79,15 +82,3 @@ class AsyncTasks:
         except Exception:
             _LOGGER.exception("Tidy loop caught exception")
             raise
-
-    @property
-    def unique_id(self) -> str:
-        """Dummy function designed to be overridden."""
-        # TODO: Find a better way, this isn't functionality that the task manager needs
-        return ""
-
-    @property
-    def spa_name(self) -> str:
-        """Dummy function designed to be overridden."""
-        # TODO: Find a better way, this isn't functionality that the task manager needs
-        return ""

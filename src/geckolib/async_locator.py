@@ -6,7 +6,7 @@ import socket
 import time
 
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
-from .async_tasks import AsyncTasks
+from .async_taskman import GeckoAsyncTaskMan
 from .config import GeckoConfig, config_sleep
 from .const import GeckoConstants
 from .driver import (
@@ -24,14 +24,14 @@ class GeckoAsyncLocator(Observable):
 
     def __init__(
         self,
-        taskman: AsyncTasks,
+        taskman: GeckoAsyncTaskMan,
         event_handler: GeckoSpaEvent.CallBack,
         **kwargs: str | None,
     ) -> None:
         """Init the async locator."""
         super().__init__()
         # Get the arguments
-        self._task_man: AsyncTasks = taskman
+        self._task_man: GeckoAsyncTaskMan = taskman
         self._event_handler: GeckoSpaEvent.CallBack = event_handler
         self._spa_address: str | None = kwargs.get("spa_address")
         if self._spa_address == "":
@@ -115,7 +115,10 @@ class GeckoAsyncLocator(Observable):
                             static_ip=self._spa_address
                         ),
                     )
-                await config_sleep(1)
+                await config_sleep(
+                    GeckoConstants.ASYNC_LOCATOR_BROADCAST_SLEEP,
+                    "Async locator broadcast loop",
+                )
         except asyncio.CancelledError:
             _LOGGER.debug("Broadcast loop cancelled")
             raise
@@ -128,7 +131,7 @@ class GeckoAsyncLocator(Observable):
         loop = asyncio.get_running_loop()
         on_con_lost = loop.create_future()
         self._transport, _protocol = await loop.create_datagram_endpoint(
-            lambda: GeckoAsyncUdpProtocol(on_con_lost, None),
+            lambda: GeckoAsyncUdpProtocol(self._task_man, on_con_lost, None),
             family=socket.AF_INET,
             allow_broadcast=True,
         )
@@ -156,7 +159,10 @@ class GeckoAsyncLocator(Observable):
                 break
             if self._has_found_spa:
                 break
-            await config_sleep(1)
+            await config_sleep(
+                GeckoConstants.ASYNC_LOCATOR_BROADCAST_SLEEP,
+                "Async locator discovery loop",
+            )
 
         _LOGGER.debug("Discovery complete, close transport")
         self._task_man.cancel_key_tasks("LOC")

@@ -5,32 +5,28 @@ import collections
 from typing import Any
 
 
-class AsyncPeekableQueue(asyncio.queues.Queue):
+class AsyncPeekableQueue:
     """A peekable async queue which allows queue filtering in consumers."""
 
     def __init__(self) -> None:
         """Initialize the async peekable queue."""
-        super().__init__()
         self._marked = False
-        self._data_available = asyncio.Event()
-
-    def _init(self, _maxsize: int) -> None:
         self._queue = collections.deque()
-
-    def _get(self) -> Any:
-        item = self._queue.popleft()
-        if self.empty():
-            self._data_available.clear()
-        return item
+        self._data_available = asyncio.Event()
 
     def _put(self, item: Any) -> None:
         self._queue.append(item)
         self._data_available.set()
 
-    @property
-    def head(self) -> Any:
+    def _set_state(self) -> None:
+        if self._queue:
+            self._data_available.set()
+        else:
+            self._data_available.clear()
+
+    def peek(self) -> Any:
         """Get the queue head or None."""
-        if self.qsize() > 0:
+        if self._queue:
             return self._queue[0]
         return None
 
@@ -41,10 +37,16 @@ class AsyncPeekableQueue(asyncio.queues.Queue):
 
     def pop(self) -> Any:
         """Pop the item off the top of the queue."""
-        item = self.get_nowait()
-        self.task_done()
+        item = self._queue.popleft()
+        self._set_state()
         self._marked = False
         return item
+
+    def push(self, item: Any) -> None:
+        """Push an item on the bottom of the queue."""
+        self._queue.append(item)
+        self._set_state()
+        self._marked = False
 
     def mark(self) -> None:
         """Mark the queue."""

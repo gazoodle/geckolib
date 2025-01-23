@@ -10,7 +10,7 @@ from geckolib.automation.base import GeckoAutomationBase
 from geckolib.driver.accessor import GeckoBoolStructAccessor
 
 from ..async_spa import GeckoAsyncSpa
-from ..async_tasks import AsyncTasks
+from ..async_taskman import GeckoAsyncTaskMan
 from ..config import GeckoConfig, config_sleep, set_config_mode
 from ..const import GeckoConstants
 from ..driver import Observable
@@ -30,12 +30,14 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoAsyncFacade(Observable):
     """Async facade."""
 
-    def __init__(self, spa: GeckoAsyncSpa, taskman: AsyncTasks, **_kwargs: str) -> None:
+    def __init__(
+        self, spa: GeckoAsyncSpa, taskman: GeckoAsyncTaskMan, **_kwargs: str
+    ) -> None:
         """Initialize the facade, a thin automation-friendly client on the spa implementation."""
         Observable.__init__(self)
 
         self._spa: GeckoAsyncSpa = spa
-        self._taskman: AsyncTasks = taskman
+        self._taskman: GeckoAsyncTaskMan = taskman
 
         # Declare all the class members
         self._sensors: list[GeckoSensorBase] = []
@@ -79,10 +81,10 @@ class GeckoAsyncFacade(Observable):
         _LOGGER.debug("Facade update task started")
         try:
             while True:
-                try:
-                    if not self._spa.is_responding_to_pings:
-                        continue
-
+                wait_time = GeckoConfig.FACADE_UPDATE_FREQUENCY_IN_SECONDS
+                if not self._spa.is_responding_to_pings:
+                    wait_time = GeckoConfig.PING_FREQUENCY_IN_SECONDS
+                else:
                     self._water_care.change_watercare_mode(
                         await self._spa.async_get_watercare()
                     )
@@ -94,13 +96,7 @@ class GeckoAsyncFacade(Observable):
                     # After we've been round here at least once, we're ready
                     self._ready.set()
 
-                finally:
-                    wait_time = (
-                        GeckoConfig.FACADE_UPDATE_FREQUENCY_IN_SECONDS
-                        if self._spa.is_responding_to_pings
-                        else GeckoConfig.PING_FREQUENCY_IN_SECONDS
-                    )
-                    await config_sleep(wait_time)
+                await config_sleep(wait_time, "Async facade update loop")
 
         except asyncio.CancelledError:
             _LOGGER.debug("Facade update loop cancelled")

@@ -16,8 +16,10 @@ class GeckoConstants:
     INTOUCH2_PORT = 10022
     # Maximum time to wait for full connection for a responding spa
     CONNECTION_TIMEOUT_IN_SECONDS = 45
+    # Async Locator sleep times
+    ASYNC_LOCATOR_BROADCAST_SLEEP = 1
 
-    CONNECTION_STEP_PAUSE_IN_SECONDS = 0  # Time between connection steps
+    CONNECTION_STEP_PAUSE_IN_SECONDS = None  # Time between connection steps
     MAX_RF_ERRORS_BEFORE_HALT = 50
 
     BROADCAST_ADDRESS = "<broadcast>"

@@ -83,7 +83,7 @@ class _GeckoIdleConfig(_GeckoConfig):
 
 # Root config
 GeckoConfig: _GeckoConfig = _GeckoIdleConfig()
-ConfigChange: asyncio.Future | None = None
+ConfigChangeEvent: asyncio.Event = asyncio.Event()
 
 
 def set_config_mode(active: bool) -> None:
@@ -92,14 +92,17 @@ def set_config_mode(active: bool) -> None:
     new_config = _GeckoActiveConfig() if active else _GeckoIdleConfig()
     for member in CONFIG_MEMBERS:
         setattr(GeckoConfig, member, getattr(new_config, member))
-    assert ConfigChange is not None
-    if not ConfigChange.done():
-        ConfigChange.set_result(True)
+    ConfigChangeEvent.set()
+    ConfigChangeEvent.clear()
 
 
-async def config_sleep(delay: float) -> None:
+async def config_sleep(delay: float | None, reason: str) -> None:
     """Sleep wrapper that also handles config changes."""
-    global ConfigChange
-    if ConfigChange is None or ConfigChange.done():
-        ConfigChange = asyncio.get_running_loop().create_future()
-    await asyncio.wait([ConfigChange], timeout=delay)
+    if delay is None:
+        await asyncio.sleep(0)
+        return
+    try:
+        async with asyncio.timeout(delay):
+            await ConfigChangeEvent.wait()
+    except TimeoutError:
+        pass

@@ -1,11 +1,11 @@
-""" Gecko <HELLO> handlers """
+"""Gecko <HELLO> handlers"""
 
 import logging
-from ..udp_socket import GeckoUdpSocket
-from ..udp_protocol_handler import GeckoUdpProtocolHandler
-from ...const import GeckoConstants
-
 from typing import Optional
+
+from ...const import GeckoConstants
+from ..udp_protocol_handler import GeckoUdpProtocolHandler
+from ..udp_socket import GeckoUdpSocket
 
 HELLO_OPEN = b"<HELLO>"
 HELLO_CLOSE = b"</HELLO>"
@@ -47,19 +47,19 @@ class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
 
     @property
     def client_identifier(self) -> bytes:
-        """Get the client identifier or raise exception if not set"""
+        """Get the client identifier or raise exception if not set."""
         assert self._client_identifier is not None
         return self._client_identifier
 
     @property
     def spa_identifier(self) -> bytes:
-        """Get the spa identifier or raise exception if not set"""
+        """Get the spa identifier or raise exception if not set."""
         assert self._spa_identifier is not None
         return self._spa_identifier
 
     @property
     def spa_name(self) -> str:
-        """Get the spa name or raise exception if not set"""
+        """Get the spa name or raise exception if not set."""
         assert self._spa_name is not None
         return self._spa_name
 

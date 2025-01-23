@@ -9,8 +9,12 @@ from typing import TYPE_CHECKING, Optional, Self
 
 from .async_locator import GeckoAsyncLocator
 from .async_spa import GeckoAsyncSpa
-from .async_tasks import AsyncTasks
-from .automation import GeckoAsyncFacade, GeckoAutomationBase, GeckoButton
+from .async_taskman import GeckoAsyncTaskMan
+from .automation import (
+    GeckoAsyncFacade,
+    GeckoAutomationBase,
+    GeckoButton,
+)
 from .const import GeckoConstants
 from .spa_events import GeckoSpaEvent
 from .spa_state import GeckoSpaState
@@ -23,7 +27,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoAsyncSpaMan(ABC, AsyncTasks):
+class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
     """
     GeckoAsyncSpaMan class.
 
@@ -201,7 +205,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
         If any of the **kwargs are provided then the spam manager will automatically
         run the sequence discover and connect
         """
-        AsyncTasks.__init__(self)
+        GeckoAsyncTaskMan.__init__(self)
         self._client_id = GeckoConstants.FORMAT_CLIENT_IDENTIFIER.format(
             client_uuid
         ).encode(GeckoConstants.MESSAGE_ENCODING)
@@ -237,7 +241,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     #
 
     async def __aenter__(self) -> Self:
-        await AsyncTasks.__aenter__(self)
+        await GeckoAsyncTaskMan.__aenter__(self)
         await self._handle_event(GeckoSpaEvent.SPA_MAN_ENTER)
         self.add_task(self._sequence_pump(), "Sequence Pump", "SPAMAN")
         return self
@@ -245,7 +249,7 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
     async def __aexit__(self, *exc_info: object) -> None:
         self.cancel_key_tasks("SPAMAN")
         await self._handle_event(GeckoSpaEvent.SPA_MAN_EXIT, exc_info=exc_info)
-        await AsyncTasks.__aexit__(self, exc_info)
+        await GeckoAsyncTaskMan.__aexit__(self, exc_info)
 
     ########################################################################
     #
@@ -297,10 +301,12 @@ class GeckoAsyncSpaMan(ABC, AsyncTasks):
 
         return self._spa_descriptors
 
-    async def async_connect_to_spa(self, spa_descriptor) -> Optional[GeckoAsyncFacade]:
-        """Connect to spa.
+    async def async_connect_to_spa(self, spa_descriptor) -> GeckoAsyncFacade | None:
+        """
+        Connect to spa.
 
-        This API will connect to the specified spa using the supplied descriptor"""
+        This API will connect to the specified spa using the supplied descriptor.
+        """
         assert self._facade is None
 
         try:

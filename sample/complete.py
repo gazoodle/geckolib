@@ -36,6 +36,8 @@ def install_logging() -> None:
 
 async def async_main(stdscr: curses.window) -> None:
     """Async main manages the console UI."""
+    task = asyncio.current_task()
+    task.set_name("CUI main")
     async with CUI(stdscr):
         pass
 
@@ -43,7 +45,9 @@ async def async_main(stdscr: curses.window) -> None:
 def main(stdscr: curses.window) -> None:
     """Install logging and then runs the async loop."""
     install_logging()
-    asyncio.run(async_main(stdscr))
+    asyncio.run(
+        async_main(stdscr),
+    )
 
 
 ########################################################################################

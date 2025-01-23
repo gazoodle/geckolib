@@ -7,6 +7,7 @@ from .async_locator import GeckoAsyncLocator
 from .async_spa import GeckoAsyncSpa
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_spa_manager import GeckoAsyncSpaMan
+from .async_taskman import GeckoAsyncTaskMan
 from .async_tasks import AsyncTasks
 from .automation import (
     GeckoAsyncFacade,
@@ -75,6 +76,7 @@ __all__ = [
     "GeckoAsyncSpaDescriptor",
     "GeckoAsyncSpaMan",
     "GeckoAsyncStructure",
+    "GeckoAsyncTaskMan",
     "GeckoAutomationBase",
     "GeckoAutomationFacadeBase",
     "GeckoBinarySensor",
