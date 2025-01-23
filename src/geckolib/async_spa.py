@@ -456,7 +456,6 @@ class GeckoAsyncSpa(Observable):
         try:
             while self.isopen:
                 assert self._protocol is not None
-                _LOGGER.debug("Do a ping")
                 ping_handler = await self._protocol.get(
                     lambda: GeckoPingProtocolHandler.request(parms=self.sendparms),
                     None,

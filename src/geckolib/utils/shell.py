@@ -7,9 +7,7 @@ import traceback
 
 from geckolib import VERSION, GeckoConstants, GeckoPump
 from geckolib.async_locator import GeckoAsyncLocator
-from geckolib.async_spa import GeckoAsyncSpa
-from geckolib.async_taskman import GeckoAsyncTaskMan
-from geckolib.automation.async_facade import GeckoAsyncFacade
+from geckolib.async_spa_manager import GeckoAsyncSpaMan
 from geckolib.config import config_sleep
 from geckolib.spa_events import GeckoSpaEvent
 
@@ -21,7 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 SHELL_UUID = "02ac6d28-42d0-41e3-ad22-274d0aa491da"
 
 
-class GeckoShell(GeckoCmd, GeckoAsyncTaskMan):
+class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
     """Client shell to explore spa capabilities."""
 
     BANNER = """
@@ -44,9 +42,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncTaskMan):
     def __init__(self) -> None:
         """Initialize the GeckoShell class."""
         self.spas = None
-        self.facade = None
-
-        GeckoAsyncTaskMan.__init__(self)
+        GeckoAsyncSpaMan.__init__(self, SHELL_UUID)
         GeckoCmd.__init__(self, self)
 
         self.do_watercare.__func__.__doc__ = self.do_watercare.__doc__.format(
@@ -57,14 +53,8 @@ class GeckoShell(GeckoCmd, GeckoAsyncTaskMan):
         self.prompt = "(Gecko) "
         self.push_command("discover")
 
-    async def __aexit__(self, *args: object) -> None:
-        """Suport pythion 'with'."""
-        if self.facade:
-            await self.facade.disconnect()
-            self.facade = None
-        await super().__aexit__(args)
-
-    async def _handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
+    async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
+        """Handle the event."""
         _LOGGER.debug("Handle event %s", event)
 
     async def do_discover(self, arg) -> None:
@@ -113,18 +103,10 @@ class GeckoShell(GeckoCmd, GeckoAsyncTaskMan):
             end="",
             flush=True,
         )
+        _LOGGER.debug(spa_descriptor)
 
-        spa = GeckoAsyncSpa(
-            GeckoConstants.FORMAT_CLIENT_IDENTIFIER.format(SHELL_UUID).encode(
-                GeckoConstants.MESSAGE_ENCODING
-            ),
-            spa_descriptor,
-            self,
-            self._handle_event,
-        )
-        await spa.connect()
-
-        self.facade = GeckoAsyncFacade(spa, self)
+        await self.async_connect_to_spa(spa_descriptor)
+        await self.wait_for_facade()
         await self.facade.wait_for_one_update()
         print(f"connected to {self.facade.name}!")
         self.prompt = "{}$ ".format(self.facade.name)

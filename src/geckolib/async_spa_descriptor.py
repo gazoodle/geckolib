@@ -38,4 +38,4 @@ class GeckoAsyncSpaDescriptor:
 
     def __repr__(self) -> str:
         """Get then string representation."""
-        return f"{self.name}({self.identifier_as_string})"
+        return f"{self.name}({self.identifier_as_string}) [{self.destination}]"

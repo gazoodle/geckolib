@@ -211,13 +211,13 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         ).encode(GeckoConstants.MESSAGE_ENCODING)
 
         # Optional parameters as supplied from config
-        self._spa_address: Optional[str] = kwargs.get("spa_address", None)
+        self._spa_address: str | None = kwargs.get("spa_address")
         if self._spa_address == "":
             self._spa_address = None
-        self._spa_identifier: Optional[str] = kwargs.get("spa_identifier", None)
+        self._spa_identifier: str | None = kwargs.get("spa_identifier")
         if self._spa_identifier == "":
             self._spa_identifier = None
-        self._spa_name: Optional[str] = kwargs.get("spa_name", None)
+        self._spa_name: str | None = kwargs.get("spa_name")
         if self._spa_name == "":
             self._spa_name = None
 
@@ -301,7 +301,9 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
 
         return self._spa_descriptors
 
-    async def async_connect_to_spa(self, spa_descriptor) -> GeckoAsyncFacade | None:
+    async def async_connect_to_spa(
+        self, spa_descriptor: GeckoAsyncSpaDescriptor
+    ) -> GeckoAsyncFacade | None:
         """
         Connect to spa.
 
@@ -311,6 +313,8 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
 
         try:
             self._spa_name = spa_descriptor.name
+            if spa_descriptor.identifier is not None:
+                self._spa_identifier = spa_descriptor.identifier_as_string
             await self._handle_event(GeckoSpaEvent.CONNECTION_STARTED)
             self._spa = GeckoAsyncSpa(
                 self._client_id, spa_descriptor, self, self._handle_event
