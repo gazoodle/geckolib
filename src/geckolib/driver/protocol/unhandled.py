@@ -28,6 +28,11 @@ class GeckoUnhandledProtocolHandler(GeckoUdpProtocolHandler):
         # If the protocol queue is marked, then we can handle it because no
         # one else can
         if protocol.queue.is_marked:
+            _LOGGER.debug(
+                "Packet %s from %s is unhandled and will be ignored",
+                _received_bytes,
+                _sender,
+            )
             return True
         # Mark the queue and let others have a go
         protocol.queue.mark()

@@ -1,4 +1,4 @@
-""" Gecko <PACKT> handlers """
+"""Gecko <PACKT> handlers"""
 
 import logging
 import re
@@ -22,8 +22,9 @@ class GeckoPacketProtocolHandler(GeckoUdpProtocolHandler):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._parms = kwargs.get("parms")
-        self._content = kwargs.get("content", None)
-        self._socket = kwargs.get("socket", None)
+        self._content = kwargs.get("content")
+        self._socket = kwargs.get("socket")
+        self._on_get_parms = kwargs.get("on_get_parms")
         if self._content is not None:
             if not isinstance(self._content, bytes):
                 raise TypeError(self._content, "Content must be of type `bytes`")
@@ -32,14 +33,15 @@ class GeckoPacketProtocolHandler(GeckoUdpProtocolHandler):
 
     @property
     def send_bytes(self):
+        parms = self.parms
         return b"".join(
             [
                 PACKET_OPEN,
                 SRCCN_OPEN,
-                self._parms[3],
+                parms[3],
                 SRCCN_CLOSE,
                 DESCN_OPEN,
-                self._parms[2],
+                parms[2],
                 DESCN_CLOSE,
                 DATAS_OPEN,
                 self._content,
@@ -50,9 +52,12 @@ class GeckoPacketProtocolHandler(GeckoUdpProtocolHandler):
 
     @property
     def parms(self):
-        return self._parms
+        if self._on_get_parms is None:
+            return self._parms
+        return self._on_get_parms(self)
 
-    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
+    def can_handle(self, received_bytes: bytes, _sender: tuple) -> bool:
+        """Can we unwrap this packet."""
         # If the received bytes start with <PACKET>, we can help
         return received_bytes.startswith(PACKET_OPEN) and received_bytes.endswith(
             PACKET_CLOSE
@@ -81,6 +86,7 @@ class GeckoPacketProtocolHandler(GeckoUdpProtocolHandler):
         return (None, None, None)
 
     def handle(self, received_bytes: bytes, sender: tuple) -> None:
+        """Unwrap the packet and dispatch."""
         (
             src_identifier,
             dest_identifier,

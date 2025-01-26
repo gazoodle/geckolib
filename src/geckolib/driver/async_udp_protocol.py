@@ -4,6 +4,7 @@ import asyncio
 import logging
 from operator import contains
 from typing import Callable, Optional, TypeVar
+from warnings import deprecated
 
 from ..async_taskman import GeckoAsyncTaskMan
 from ..config import GeckoConfig, config_sleep
@@ -66,6 +67,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self._taskman = taskman
         # self._lock = DbgLock()  # asyncio.Lock()
         self._lock = asyncio.Lock()
+        _LOGGER.debug("AsyncUdpProtocol started")
 
     @property
     def Lock(self):
@@ -95,14 +97,25 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         return self.transport is not None
 
     def disconnect(self) -> None:
+        """Disconnect the protocol from the socket."""
+        if self.queue:
+            _LOGGER.warning(
+                "UDP protocol datagram queue not empty during disconnection",
+            )
+            while self.queue:
+                item = self.queue.pop()
+                _LOGGER.debug("Unprocessed[%s]", item)
         self.connection_lost(None)
 
     @property
     def queue(self) -> AsyncPeekableQueue:
+        """Get the datagram queue."""
         return self._queue
 
     def queue_send(
-        self, protocol_handler: GeckoUdpProtocolHandler, destination=None
+        self,
+        protocol_handler: GeckoUdpProtocolHandler,
+        destination: tuple | None = None,
     ) -> None:
         """Queue a message to be sent async later."""
         if not self.isopen:
@@ -114,6 +127,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         protocol_handler.last_destination = destination
 
         send_bytes = protocol_handler.send_bytes
+        destination = (destination[0], destination[1])
         _LOGGER.debug("Sending %s to %s", send_bytes, destination)
         # transport.sendto is a non-blocking call.
         self.transport.sendto(send_bytes, destination)

@@ -168,14 +168,13 @@ class GeckoCmd(cmd.Cmd):
         return func(arg)
 
     async def _input(self, string: str) -> str:
-        _LOGGER.debug("Prompt is %s", string)
         await asyncio.get_event_loop().run_in_executor(
-            None, lambda s=string: sys.stdout.write(s + " ")
+            None, lambda s=string: sys.stdout.write(s)
         )
-
         await asyncio.get_event_loop().run_in_executor(None, sys.stdout.flush)
-
-        return await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
+        return (
+            await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
+        ).strip()
 
     async def cmdloop(self, intro=None):
         """

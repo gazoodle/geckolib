@@ -6,6 +6,7 @@ used by integration tests to prevent regression
 """
 
 import logging
+import sys
 from pathlib import Path
 
 from context import GeckoSimulator
@@ -24,4 +25,4 @@ def install_logging() -> None:
 
 
 install_logging()
-GeckoSimulator.run(["load snapshots/default.snapshot", "start"])
+GeckoSimulator.run(["load snapshots/default.snapshot", "start"] + sys.argv[1:])

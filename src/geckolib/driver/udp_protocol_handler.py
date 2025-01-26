@@ -6,6 +6,7 @@ import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING
+from warnings import deprecated
 
 from geckolib.config import config_sleep
 from geckolib.const import GeckoConstants
@@ -115,7 +116,7 @@ class GeckoUdpProtocolHandler(ABC):
     def handled(self, sender: tuple) -> None:
         """Handle the data in the base class. Derivatives must call this."""
         self._reset_timeout()
-        assert self._async_on_handled is None
+        assert self._async_on_handled is None  # noqa: S101
         if self._on_handled is not None:
             self._on_handled(self, sender)
 
@@ -138,7 +139,7 @@ class GeckoUdpProtocolHandler(ABC):
     async def async_handled(self, sender: tuple) -> None:
         """Handle the data in the base class. Derivatives must call this."""
         self._reset_timeout()
-        assert self._on_handled is None
+        assert self._on_handled is None  # noqa: S101
         if self._async_on_handled is not None:
             await self._async_on_handled(self, sender)
 
@@ -192,14 +193,14 @@ class GeckoUdpProtocolHandler(ABC):
     async def consume(self, protocol: GeckoAsyncUdpProtocol) -> None:
         """Async coroutine to handle datagram."""
         try:
-            assert self.timeout_in_seconds == 0
+            assert self.timeout_in_seconds == 0  # noqa: S101
             while True:
                 await config_sleep(None, f"Async UDP handler - consume for {self}")
                 await protocol.queue.wait()
 
                 if protocol.queue.peek() is not None:
                     data, sender = protocol.queue.peek()
-                    if self.can_handle(data, sender):
+                    if self._can_handle(protocol, data, sender):
                         protocol.queue.pop()
                         await self.async_handle(data, sender)
                         await self.async_handled(sender)
@@ -241,6 +242,13 @@ class GeckoUdpProtocolHandler(ABC):
     def _reset_timeout(self) -> None:
         self._start_time = time.monotonic()
 
+    ##########################################################################
+    #
+    #                      DEPRECATED SYNC SUPPORT
+    #
+    ##########################################################################
+
+    @deprecated("Retry shouldn't still be here")
     def retry(self, socket) -> bool:
         """Retry the protocol."""
         if self._retry_count == 0:
@@ -253,6 +261,7 @@ class GeckoUdpProtocolHandler(ABC):
             socket.queue_send(self, self.last_destination)
         return True
 
+    @deprecated("Loop shouldn't still be here")
     def loop(self, socket) -> None:
         """Execute each time around the socket loop."""
         if not self.has_timedout:

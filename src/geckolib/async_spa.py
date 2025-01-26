@@ -644,10 +644,6 @@ class GeckoAsyncSpa(Observable):
             _LOGGER.exception("Async press caught exception")
             raise
 
-    def press(self, keypad) -> None:
-        """Simulate a button press"""
-        self._taskman.add_task(self.async_press(keypad), "Button press task", "SPA")
-
     def _get_watercare_handler_func(self) -> GeckoWatercareProtocolHandler:
         assert self._protocol is not None
         return GeckoWatercareProtocolHandler.request(

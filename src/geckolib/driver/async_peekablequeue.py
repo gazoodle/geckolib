@@ -55,3 +55,11 @@ class AsyncPeekableQueue:
     async def wait(self) -> None:
         """Wait for there to be data queued."""
         await self._data_available.wait()
+
+    def __bool__(self) -> bool:
+        """Determine if there are any items in the queue."""
+        return len(self._queue) > 0
+
+    def __len__(self) -> int:
+        """Implement the __len__ function."""
+        return self._queue.__len__()
