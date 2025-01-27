@@ -4,7 +4,6 @@ import asyncio
 import logging
 from operator import contains
 from typing import Callable, Optional, TypeVar
-#from warnings import deprecated
 
 from ..async_taskman import GeckoAsyncTaskMan
 from ..config import GeckoConfig, config_sleep

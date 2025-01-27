@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import struct
-#from warnings import deprecated
+from warnings import deprecated
 
 from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
@@ -90,7 +90,7 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
         )
 
 
-#@deprecated("Use GeckoAsyncPartialStatusBlockProtocolHandler instead")
+@deprecated("Use GeckoAsyncPartialStatusBlockProtocolHandler instead")
 class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
     @staticmethod
     def report_changes(socket, changes, **kwargs):

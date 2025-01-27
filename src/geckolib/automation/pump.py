@@ -1,7 +1,7 @@
 """Gecko Pumps"""
 
 import logging
-#from warnings import deprecated
+from warnings import deprecated
 
 from ..const import GeckoConstants
 from .base import GeckoAutomationFacadeBase
@@ -43,7 +43,7 @@ class GeckoPump(GeckoAutomationFacadeBase):
     def mode(self):
         return self._state_sensor.state
 
-    #@deprecated("Use async_set_mode instead")
+    @deprecated("Use async_set_mode instead")
     def set_mode(self, mode):
         try:
             _LOGGER.debug("%s set mode %s", self.name, mode)

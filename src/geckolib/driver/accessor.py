@@ -3,7 +3,7 @@
 import logging
 import struct
 from typing import Any
-#from warnings import deprecated
+from warnings import deprecated
 
 from geckolib.driver.spastruct import GeckoStructureTypeBase
 
@@ -138,7 +138,7 @@ class GeckoStructAccessor(Observable):
             data = f"{int(data / 256):02}:{data % 256:02}"
         return data
 
-    #@deprecated("Use _async_set_value")
+    @deprecated("Use _async_set_value")
     def _set_value(self, newvalue) -> None:
         """Set a value in the pack structure using the initialized declaration."""
         if self.read_write is None:
@@ -205,7 +205,7 @@ class GeckoStructAccessor(Observable):
         return self._get_raw_value()
 
     @value.setter
-    #@deprecated("Use async")
+    @deprecated("Use async")
     def value(self, newvalue):
         """Set a value in the pack structure using the initialized declaration."""
         self._set_value(newvalue)
@@ -261,7 +261,7 @@ class GeckoStructAccessor(Observable):
         # We can't handle this here, we must delegate via the structure
         await self.struct.async_set_value(self.pos, self.length, newvalue)
 
-    #@deprecated("This function seems unused")
+    @deprecated("This function seems unused")
     def trigger(self) -> None:
         """Triger a change event."""
         current_value = self.value
