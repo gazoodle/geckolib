@@ -110,6 +110,7 @@ class GeckoAsyncStructure(GeckoStructureTypeBase):
 
     def set_value(self, pos: int, length: int, newvalue: Any) -> None:
         """Set the value of a block."""
+        _LOGGER.warning("Ought to use async")
         self._on_set_value(pos, length, newvalue)
 
     async def async_set_value(self, pos, length, newvalue):

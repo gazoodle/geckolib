@@ -659,6 +659,54 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 udp1.value = "OFF"
                 p1.value = "OFF"
 
+    async def _async_on_set_value(self, pos, length, newvalue):
+        _LOGGER.debug(f"Simulator: Async Set value @{pos} len {length} to {newvalue}")
+        print(f"Simulator: Set value @{pos} len {length} to {newvalue}")
+        change = None
+        if length == 1:
+            change = (pos, struct.pack(">B", newvalue))
+        elif length == 2:
+            change = (pos, struct.pack(">H", newvalue))
+        else:
+            print("**** UNHANDLED SET SIZE ****")
+            return
+
+        self.async_structure.replace_status_block_segment(change[0], change[1])
+        assert self._protocol is not None
+
+        if self._send_structure_change:
+            for client in self._clients:
+                self._protocol.queue_send(
+                    GeckoAsyncPartialStatusBlockProtocolHandler.report_changes(
+                        self._socket, [change], parms=client
+                    ),
+                    client,
+                )
+
+    async def _process_value_updates(self) -> None:
+        try:
+            while True:
+                pass
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("AsyncSpaStruct value update loop cancelled")
+            raise
+
+        except:
+            _LOGGER.exception("AsyncSpaStruct value update loop exception")
+            raise
+
+        finally:
+            _LOGGER.debug("AsyncSpaStruct value update loop finished")
+
+    ################################################################################################################
+    #
+    #
+    #           SYNC API DUE TO GET REMOVED
+    #
+    #
+    ################################################################################################################
+
     def _on_hello(self, handler: GeckoHelloProtocolHandler, sender):
         if handler.was_broadcast_discovery:
             if self._should_ignore(handler, sender, False):
@@ -809,54 +857,37 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         ##    )
 
     def _on_set_value(self, pos, length, newvalue):
-        _LOGGER.debug(f"Simulator: Set value @{pos} len {length} to {newvalue}")
-        print(f"Simulator: Set value @{pos} len {length} to {newvalue}")
-        change = None
-        if length == 1:
-            change = (pos, struct.pack(">B", newvalue))
-        elif length == 2:
-            change = (pos, struct.pack(">H", newvalue))
-        else:
-            print("**** UNHANDLED SET SIZE ****")
-            return
-
         if USE_ASYNC_API:
-            raise Exception("Shouldn't use this as async")
+            _LOGGER.debug(
+                "Hmm, we ought to queue a set request rather than another task"
+            )
+            self._taskman.add_task(
+                self._async_on_set_value(pos, length, newvalue),
+                "Async Set Value",
+                "SIM",
+            )
         else:
+            _LOGGER.debug(f"Simulator: Set value @{pos} len {length} to {newvalue}")
+            print(f"Simulator: Set value @{pos} len {length} to {newvalue}")
+            change = None
+            if length == 1:
+                change = (pos, struct.pack(">B", newvalue))
+            elif length == 2:
+                change = (pos, struct.pack(">H", newvalue))
+            else:
+                print("**** UNHANDLED SET SIZE ****")
+                return
+
             self.structure.replace_status_block_segment(change[0], change[1])
 
-        if self._send_structure_change:
-            for client in self._clients:
-                if USE_ASYNC_API:
-                    pass
-                else:
-                    self._socket.queue_send(
-                        GeckoPartialStatusBlockProtocolHandler.report_changes(
-                            self._socket, [change], parms=client
-                        ),
-                        client,
-                    )
-
-    async def _async_on_set_value(self, pos, length, newvalue):
-        _LOGGER.debug(f"Simulator: Async Set value @{pos} len {length} to {newvalue}")
-        print(f"Simulator: Set value @{pos} len {length} to {newvalue}")
-        change = None
-        if length == 1:
-            change = (pos, struct.pack(">B", newvalue))
-        elif length == 2:
-            change = (pos, struct.pack(">H", newvalue))
-        else:
-            print("**** UNHANDLED SET SIZE ****")
-            return
-
-        self.async_structure.replace_status_block_segment(change[0], change[1])
-        assert self._protocol is not None
-
-        if self._send_structure_change:
-            for client in self._clients:
-                self._protocol.queue_send(
-                    GeckoAsyncPartialStatusBlockProtocolHandler.report_changes(
-                        self._socket, [change], parms=client
-                    ),
-                    client,
-                )
+            if self._send_structure_change:
+                for client in self._clients:
+                    if USE_ASYNC_API:
+                        pass
+                    else:
+                        self._socket.queue_send(
+                            GeckoPartialStatusBlockProtocolHandler.report_changes(
+                                self._socket, [change], parms=client
+                            ),
+                            client,
+                        )
