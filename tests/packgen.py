@@ -20,7 +20,7 @@ ACCESSOR_IMPORTED_CLASSES = [
     "GeckoWordStructAccessor",
 ]
 
-STRUCT_IMPORTED_CLASES = ["GeckoStructureTypeBase"]
+STRUCT_IMPORTED_CLASES = ["GeckoAsyncStructure"]
 
 IMPORTED_CLASSES = ACCESSOR_IMPORTED_CLASSES + STRUCT_IMPORTED_CLASES
 IMPORTED_CLASSES.sort()
@@ -28,7 +28,6 @@ IMPORTED_CLASSES.sort()
 OBFUSCATE_CONSTANTS = False
 OBFUSCATE_STRINGS = False
 OBFUSCATE_LISTS = False
-RUFF_COMPATIBLE = True
 USE_LOGGING = False
 
 KEY_GEN_STRING = (
@@ -80,16 +79,11 @@ module_constants = {}
 
 def write_module_init(file: TextIOWrapper) -> None:
     """Write a module inititalization file."""
-    if RUFF_COMPATIBLE:
-        file.write('"""Pack Module Initialization."""\n\n')
-        file.write(
-            f"from geckolib.driver.accessor import {', '.join(ACCESSOR_IMPORTED_CLASSES)}\n"
-        )
-        file.write("from geckolib.driver.spastruct import GeckoStructureTypeBase\n\n")
-
-    else:
-        file.write(f"from ..accessor import {', '.join(ACCESSOR_IMPORTED_CLASSES)}\n")
-        file.write("from ..spastruct import GeckoStructureTypeBase\n\n")
+    file.write('"""Pack Module Initialization."""\n\n')
+    file.write(
+        f"from geckolib.driver.accessor import {', '.join(ACCESSOR_IMPORTED_CLASSES)}\n"
+    )
+    file.write("from geckolib.driver.async_spastruct import GeckoAsyncStructure\n\n")
     file.write(f"__all__ = {IMPORTED_CLASSES}\n")
 
 
@@ -99,15 +93,14 @@ def write_pack_preamble(
     """Write the preamble for this class."""
     file.write('"""')
     file.write(f"GeckoPack - A class to manage the pack for '{plateform_name}'")
-    if RUFF_COMPATIBLE:
-        file.write('.""" # noqa: N999\n')
+    file.write('.""" # noqa: N999\n')
     file.write("\n")
-    file.write("from . import GeckoStructureTypeBase\n")
+    file.write("from . import GeckoAsyncStructure\n")
     file.write("\n")
     file.write("class GeckoPack:\n")
     file.write('    """A GeckoPack class for a specific spa."""\n')
     file.write("\n")
-    file.write("    def __init__(self, struct_:GeckoStructureTypeBase) -> None:\n")
+    file.write("    def __init__(self, struct_:GeckoAsyncStructure) -> None:\n")
     file.write('        """Initialize the GeckoPack class."""\n')
     file.write("        self.struct = struct_\n")
     file.write("\n")
@@ -215,8 +208,7 @@ def write_log_preamble(
         f" v{logstruct.attrib['LibRev']}'"
     )
     file.write('."""')
-    if RUFF_COMPATIBLE:
-        file.write(" # noqa: N999\n")
+    file.write(" # noqa: N999\n")
     file.write("\n\n")
     write_import(file)
 
@@ -229,7 +221,7 @@ def write_log_preamble(
     file.write("class GeckoLogStruct:\n")
     file.write('    """Log Struct Class."""\n')
     file.write("\n")
-    file.write("    def __init__(self, struct_:GeckoStructureTypeBase) -> None:\n")
+    file.write("    def __init__(self, struct_:GeckoAsyncStructure) -> None:\n")
     file.write('        """Initialize the log struct class."""\n')
     file.write("        self.struct = struct_\n")
     file.write("\n")
@@ -259,8 +251,7 @@ def write_cfg_preamble(
         f" '{plateform_name} v{configstruct.attrib['LibRev']}'"
     )
     file.write('."""')
-    if RUFF_COMPATIBLE:
-        file.write(" # noqa: N999")
+    file.write(" # noqa: N999")
     file.write("\n\n")
     write_import(file)
 
@@ -271,7 +262,7 @@ def write_cfg_preamble(
     file.write("class GeckoConfigStruct:\n")
     file.write('    """Config Struct Class."""\n')
     file.write("\n")
-    file.write("    def __init__(self, struct_:GeckoStructureTypeBase) -> None:\n")
+    file.write("    def __init__(self, struct_:GeckoAsyncStructure) -> None:\n")
     file.write('        """Initialize the config struct class."""\n')
     file.write("        self.struct = struct_\n")
     file.write("\n")

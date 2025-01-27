@@ -3,12 +3,10 @@
 import logging
 from typing import Any
 
-from .spastruct import GeckoStructureTypeBase
-
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoAsyncStructure(GeckoStructureTypeBase):
+class GeckoAsyncStructure:
     """Class to host/manage the raw data block for a spa structure."""
 
     def __init__(self, on_set_value, on_async_set_value) -> None:

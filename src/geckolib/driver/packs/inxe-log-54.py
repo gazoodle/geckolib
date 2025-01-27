@@ -1,11 +1,11 @@
 """GeckoLogStruct - A class to manage the LogStruct for 'InXE v54'."""  # noqa: N999
 
 from . import (
+    GeckoAsyncStructure,
     GeckoBoolStructAccessor,
     GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
     GeckoStructAccessor,
-    GeckoStructureTypeBase,
     GeckoTempStructAccessor,
     GeckoTimeStructAccessor,
     GeckoWordStructAccessor,
@@ -15,7 +15,7 @@ from . import (
 class GeckoLogStruct:
     """Log Struct Class."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the log struct class."""
         self.struct = struct_
 
@@ -76,34 +76,34 @@ class GeckoLogStruct:
     def error_keys(self) -> list[str]:
         """Get all error keys."""
         return [
+            "RelayStuck",
+            "P1HStuck",
+            "SlaveRelayStuck",
+            "OverTemp",
+            "ThermFuseErr",
+            "SlaveHLErr",
             "RhRegProbeErr",
-            "RegOverHeat",
+            "FiltSuspendedByErr",
             "SlaveOverTemp",
+            "SlaveNoFloErr",
+            "SlaveKinNoFloErr",
+            "RegOverHeat",
+            "TempNotValid",
+            "SlaveKinPumpOff",
+            "SlaveHtrStuck",
             "SlaveRegProbeErr",
             "SlaveThermistanceErr",
-            "SlaveP2HStuck",
-            "RelayStuck",
-            "SlaveNoFloErr",
-            "SlaveRelayStuck",
-            "SlaveMissingErr",
-            "SlaveKinPumpOff",
-            "FiltSuspendedByErr",
-            "OverTemp",
             "SlaveAmbiantOHLevel2",
-            "P2HStuck",
             "SlaveP1HStuck",
-            "SlaveKinNoFloErr",
-            "SlaveRegOverHeat",
-            "KinPumpOff",
-            "SlaveHtrStuck",
-            "P1HStuck",
-            "AmbiantOHLevel2",
-            "HeaterStuck",
-            "SlaveHLErr",
             "ThermistanceErr",
-            "TempNotValid",
+            "KinPumpOff",
+            "P2HStuck",
+            "SlaveMissingErr",
+            "HeaterStuck",
+            "AmbiantOHLevel2",
+            "SlaveP2HStuck",
             "SlaveThermFuseErr",
-            "ThermFuseErr",
+            "SlaveRegOverHeat",
         ]
 
     @property

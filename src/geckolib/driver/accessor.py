@@ -5,7 +5,7 @@ import struct
 from typing import Any
 from warnings import deprecated
 
-from geckolib.driver.spastruct import GeckoStructureTypeBase
+from .async_spastruct import GeckoAsyncStructure
 
 from ..const import GeckoConstants
 from .observable import Observable
@@ -22,7 +22,7 @@ class GeckoStructAccessor(Observable):
 
     def __init__(
         self,
-        struct_: GeckoStructureTypeBase,
+        struct_: GeckoAsyncStructure,
         tag: str,
         pos: int,
         accessor_type: str,
@@ -36,7 +36,7 @@ class GeckoStructAccessor(Observable):
         super().__init__()
 
         self.tag: str = tag
-        self.struct: GeckoStructureTypeBase = struct_
+        self.struct: GeckoAsyncStructure = struct_
         self.pos: int = pos
         self.accessor_type: str = accessor_type
         self.bitpos: int = bitpos

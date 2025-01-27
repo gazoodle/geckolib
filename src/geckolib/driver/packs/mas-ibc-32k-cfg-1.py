@@ -1,16 +1,16 @@
 """GeckoConfigStruct - A class to manage the ConfigStruct for 'MAS-IBC-32K v1'."""  # noqa: N999
 
 from . import (
+    GeckoAsyncStructure,
     GeckoEnumStructAccessor,
     GeckoStructAccessor,
-    GeckoStructureTypeBase,
 )
 
 
 class GeckoConfigStruct:
     """Config Struct Class."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the config struct class."""
         self.struct = struct_
 

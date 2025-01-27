@@ -1,10 +1,10 @@
 """GeckoLogStruct - A class to manage the LogStruct for 'MAS-IBC-32K v1'."""  # noqa: N999
 
 from . import (
+    GeckoAsyncStructure,
     GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
     GeckoStructAccessor,
-    GeckoStructureTypeBase,
     GeckoWordStructAccessor,
 )
 
@@ -12,7 +12,7 @@ from . import (
 class GeckoLogStruct:
     """Log Struct Class."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the log struct class."""
         self.struct = struct_
 

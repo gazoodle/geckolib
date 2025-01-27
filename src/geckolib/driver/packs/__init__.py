@@ -9,14 +9,14 @@ from geckolib.driver.accessor import (
     GeckoTimeStructAccessor,
     GeckoWordStructAccessor,
 )
-from geckolib.driver.spastruct import GeckoStructureTypeBase
+from geckolib.driver.async_spastruct import GeckoAsyncStructure
 
 __all__ = [
+    "GeckoAsyncStructure",
     "GeckoBoolStructAccessor",
     "GeckoByteStructAccessor",
     "GeckoEnumStructAccessor",
     "GeckoStructAccessor",
-    "GeckoStructureTypeBase",
     "GeckoTempStructAccessor",
     "GeckoTimeStructAccessor",
     "GeckoWordStructAccessor",

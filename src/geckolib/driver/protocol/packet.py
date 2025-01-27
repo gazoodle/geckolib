@@ -1,10 +1,9 @@
-"""Gecko <PACKT> handlers"""
+"""Gecko <PACKT> handlers."""
 
 import logging
 import re
 
 from ..udp_protocol_handler import GeckoUdpProtocolHandler
-from ..udp_socket import GeckoUdpSocket
 
 PACKET_OPEN = b"<PACKT>"
 PACKET_CLOSE = b"</PACKT>"

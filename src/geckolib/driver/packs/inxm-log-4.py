@@ -1,11 +1,11 @@
 """GeckoLogStruct - A class to manage the LogStruct for 'InXM v4'."""  # noqa: N999
 
 from . import (
+    GeckoAsyncStructure,
     GeckoBoolStructAccessor,
     GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
     GeckoStructAccessor,
-    GeckoStructureTypeBase,
     GeckoTempStructAccessor,
     GeckoTimeStructAccessor,
     GeckoWordStructAccessor,
@@ -15,7 +15,7 @@ from . import (
 class GeckoLogStruct:
     """Log Struct Class."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the log struct class."""
         self.struct = struct_
 
@@ -85,26 +85,26 @@ class GeckoLogStruct:
     def error_keys(self) -> list[str]:
         """Get all error keys."""
         return [
-            "RhRegProbeErr",
-            "RegOverHeat",
-            "ScanErr",
             "RelayStuck",
-            "Fuse3Err",
-            "Fuse1Err",
             "rHId",
-            "ContactorCoilFailErr",
-            "RhDutyErr",
-            "Fuse2Err",
-            "KinPumpOff",
-            "SupplyErr",
-            "AmbiantOHLevel2",
             "RhCommErr",
-            "FreqDetecErr",
-            "AmbiantOHLevel1",
-            "ThermistanceErr",
-            "TempNotValid",
-            "LearnPhaseErr",
+            "RhDutyErr",
             "NoHeaterCurrentErr",
+            "ScanErr",
+            "LearnPhaseErr",
+            "RhRegProbeErr",
+            "Fuse3Err",
+            "SupplyErr",
+            "Fuse2Err",
+            "RegOverHeat",
+            "ContactorCoilFailErr",
+            "TempNotValid",
+            "FreqDetecErr",
+            "ThermistanceErr",
+            "KinPumpOff",
+            "AmbiantOHLevel1",
+            "Fuse1Err",
+            "AmbiantOHLevel2",
         ]
 
     @property

@@ -4,7 +4,6 @@ from .async_facade import GeckoAsyncFacade
 from .base import GeckoAutomationBase, GeckoAutomationFacadeBase
 from .blower import GeckoBlower
 from .button import GeckoButton
-from .facade import GeckoFacade
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
@@ -22,7 +21,6 @@ __all__ = [
     "GeckoBlower",
     "GeckoButton",
     "GeckoErrorSensor",
-    "GeckoFacade",
     "GeckoKeypad",
     "GeckoLight",
     "GeckoPump",

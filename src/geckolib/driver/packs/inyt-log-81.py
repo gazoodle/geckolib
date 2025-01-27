@@ -1,11 +1,11 @@
 """GeckoLogStruct - A class to manage the LogStruct for 'InYT v81'."""  # noqa: N999
 
 from . import (
+    GeckoAsyncStructure,
     GeckoBoolStructAccessor,
     GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
     GeckoStructAccessor,
-    GeckoStructureTypeBase,
     GeckoTempStructAccessor,
     GeckoTimeStructAccessor,
     GeckoWordStructAccessor,
@@ -15,7 +15,7 @@ from . import (
 class GeckoLogStruct:
     """Log Struct Class."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the log struct class."""
         self.struct = struct_
 
@@ -93,44 +93,44 @@ class GeckoLogStruct:
     def error_keys(self) -> list[str]:
         """Get all error keys."""
         return [
-            "RhRegProbeErr",
-            "RegOverHeat",
-            "SlaveOverTemp",
-            "SlaveRegProbeErr",
-            "FLCErr",
-            "SlaveThermistanceErr",
-            "VSP4CommLost",
-            "VSP3CommLost",
-            "ModbusHeatPumpErrorID",
-            "SlaveP2HStuck",
             "RelayStuck",
-            "SlaveNoFloErr",
-            "SlaveRelayStuck",
-            "SlaveMissingErr",
-            "SlaveKinPumpOff",
-            "FiltSuspendedByErr",
-            "VSP5ErrorID",
-            "OverTemp",
             "VSP3ErrorID",
-            "SlaveAmbiantOHLevel2",
-            "P2HStuck",
-            "SlaveP1HStuck",
             "VSP1ErrorID",
-            "SlaveKinNoFloErr",
-            "SlaveRegOverHeat",
-            "VSP1CommLost",
-            "VSP2CommLost",
-            "KinPumpOff",
-            "VSP2ErrorID",
-            "SlaveHtrStuck",
             "P1HStuck",
-            "AmbiantOHLevel2",
-            "HeaterStuck",
-            "VSP5CommLost",
+            "SlaveRelayStuck",
+            "VSP1CommLost",
+            "OverTemp",
             "SlaveHLErr",
-            "VSP4ErrorID",
-            "ThermistanceErr",
+            "RhRegProbeErr",
+            "FiltSuspendedByErr",
+            "SlaveOverTemp",
+            "SlaveNoFloErr",
+            "SlaveKinNoFloErr",
+            "VSP2ErrorID",
+            "RegOverHeat",
+            "ModbusHeatPumpErrorID",
             "TempNotValid",
+            "SlaveKinPumpOff",
+            "FLCErr",
+            "SlaveHtrStuck",
+            "SlaveRegProbeErr",
+            "SlaveThermistanceErr",
+            "SlaveAmbiantOHLevel2",
+            "VSP4ErrorID",
+            "VSP3CommLost",
+            "VSP4CommLost",
+            "SlaveP1HStuck",
+            "VSP2CommLost",
+            "ThermistanceErr",
+            "VSP5ErrorID",
+            "KinPumpOff",
+            "P2HStuck",
+            "VSP5CommLost",
+            "SlaveMissingErr",
+            "HeaterStuck",
+            "AmbiantOHLevel2",
+            "SlaveP2HStuck",
+            "SlaveRegOverHeat",
         ]
 
     @property

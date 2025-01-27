@@ -1,11 +1,11 @@
 """GeckoLogStruct - A class to manage the LogStruct for 'MrSteam v1'."""  # noqa: N999
 
 from . import (
+    GeckoAsyncStructure,
     GeckoBoolStructAccessor,
     GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
     GeckoStructAccessor,
-    GeckoStructureTypeBase,
     GeckoWordStructAccessor,
 )
 
@@ -13,7 +13,7 @@ from . import (
 class GeckoLogStruct:
     """Log Struct Class."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the log struct class."""
         self.struct = struct_
 
@@ -47,11 +47,11 @@ class GeckoLogStruct:
         """Get all error keys."""
         return [
             "PowerFailErr",
-            "KeyStuckErr",
-            "SlaveH2O2Err",
             "Prr1Err",
             "H2O2Err",
             "Prr2Err",
+            "KeyStuckErr",
+            "SlaveH2O2Err",
         ]
 
     @property

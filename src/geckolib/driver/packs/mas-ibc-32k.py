@@ -1,12 +1,12 @@
 """GeckoPack - A class to manage the pack for 'MAS-IBC-32K'."""  # noqa: N999
 
-from . import GeckoStructureTypeBase
+from . import GeckoAsyncStructure
 
 
 class GeckoPack:
     """A GeckoPack class for a specific spa."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the GeckoPack class."""
         self.struct = struct_
 
