@@ -1,34 +1,34 @@
-""" GeckoLib automation interface """
+"""GeckoLib automation interface."""
 
+from .async_facade import GeckoAsyncFacade
 from .base import GeckoAutomationBase, GeckoAutomationFacadeBase
 from .blower import GeckoBlower
 from .button import GeckoButton
 from .facade import GeckoFacade
-from .async_facade import GeckoAsyncFacade
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
 from .reminders import GeckoReminders
-from .sensors import GeckoSensor, GeckoBinarySensor, GeckoErrorSensor
+from .sensors import GeckoBinarySensor, GeckoErrorSensor, GeckoSensor
 from .switch import GeckoSwitch
 from .watercare import GeckoWaterCare
 
 __all__ = [
-    "GeckoAutomationFacadeBase",
+    "GeckoAsyncFacade",
     "GeckoAutomationBase",
+    "GeckoAutomationFacadeBase",
+    "GeckoBinarySensor",
     "GeckoBlower",
     "GeckoButton",
+    "GeckoErrorSensor",
     "GeckoFacade",
-    "GeckoAsyncFacade",
-    "GeckoWaterHeater",
     "GeckoKeypad",
     "GeckoLight",
     "GeckoPump",
+    "GeckoReminders",
     "GeckoSensor",
-    "GeckoBinarySensor",
-    "GeckoErrorSensor",
     "GeckoSwitch",
     "GeckoWaterCare",
-    "GeckoReminders",
+    "GeckoWaterHeater",
 ]

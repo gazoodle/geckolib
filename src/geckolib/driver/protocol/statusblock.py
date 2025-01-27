@@ -1,7 +1,10 @@
-""" Gecko STATU/STATV/STATQ/STATP handlers """
+"""Gecko STATU/STATV/STATQ/STATP handlers."""
+
+from __future__ import annotations
 
 import logging
 import struct
+from warnings import deprecated
 
 from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
@@ -87,6 +90,7 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
         )
 
 
+@deprecated("Use GeckoAsyncPartialStatusBlockProtocolHandler instead")
 class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
     @staticmethod
     def report_changes(socket, changes, **kwargs):
@@ -139,20 +143,38 @@ class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
 
 
 class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
+    """Async partial status block handler."""
+
     def __init__(self, protocol, **kwargs):
+        """Initialize the class."""
         super().__init__(**kwargs)
         self._protocol = protocol
         self.changes = []
 
-    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
-        return received_bytes.startswith(STATQ_VERB) or received_bytes.startswith(
-            STATP_VERB
+    @staticmethod
+    def report_changes(
+        socket, changes, **kwargs
+    ) -> GeckoAsyncPartialStatusBlockProtocolHandler:
+        """Report changes as a list of change tuples, (pos, data)."""
+        change_bin = [(struct.pack(">H", change[0]), change[1]) for change in changes]
+        change_list = [item for change in change_bin for item in change]
+        return GeckoAsyncPartialStatusBlockProtocolHandler(
+            socket,
+            content=b"".join(
+                [STATP_VERB, struct.pack(">B", len(changes)), *change_list]
+            ),
+            **kwargs,
         )
 
-    def handle(self, received_bytes: bytes, sender: tuple):
-        pass
+    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
+        """Decide what we can handle."""
+        return received_bytes.startswith((STATQ_VERB, STATP_VERB))
+
+    def handle(self, received_bytes: bytes, sender: tuple) -> None:
+        """Handle the block."""
 
     async def async_handle(self, received_bytes: bytes, sender: tuple) -> None:
+        """Handle the block."""
         remainder = received_bytes[5:]
         if received_bytes.startswith(STATQ_VERB):
             (self.sequence,) = struct.unpack(">B", remainder)

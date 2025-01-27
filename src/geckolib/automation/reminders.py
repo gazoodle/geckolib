@@ -1,4 +1,5 @@
-""" Gecko Reminders """
+"""Gecko Reminders"""
+
 from __future__ import annotations
 
 import logging
@@ -12,22 +13,22 @@ logger = logging.getLogger(__name__)
 
 
 class GeckoReminders(GeckoAutomationFacadeBase):
-    """Reminders management"""
+    """Reminders management."""
 
     class Reminder:
         """A single reminder instance"""
 
         def __init__(self, rem: Tuple[GeckoReminderType, int]) -> None:
-            self._type: GeckoReminderType = rem[0]
+            self._reminder_type: GeckoReminderType = rem[0]
             self._days: int = rem[1]
 
         @property
-        def type(self) -> GeckoReminderType:
-            return self._type
+        def reminder_type(self) -> GeckoReminderType:
+            return self._reminder_type
 
         @property
         def description(self) -> str:
-            return GeckoReminderType.to_string(self.type)
+            return GeckoReminderType.to_string(self.reminder_type)
 
         @property
         def days(self) -> int:
@@ -63,7 +64,7 @@ class GeckoReminders(GeckoAutomationFacadeBase):
     ) -> Optional[GeckoReminders.Reminder]:
         """Get the reminder of the specified type, or None if not found"""
         for reminder in self.reminders:
-            if reminder.type == reminder_type:
+            if reminder.reminder_type == reminder_type:
                 return reminder
         return None
 
@@ -92,9 +93,7 @@ class GeckoReminders(GeckoAutomationFacadeBase):
             for reminder in handler.reminders:
                 if reminder[0] != GeckoReminderType.INVALID:
                     self._active_reminders.append(
-                        tuple(
-                            (GeckoReminderType.to_string(reminder[0]), reminder[1])
-                        )  # type: ignore
+                        tuple((GeckoReminderType.to_string(reminder[0]), reminder[1]))  # type: ignore
                     )
 
         self._reminders_handler = None

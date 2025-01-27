@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/../tests"
+python3 packgen.py
+
+cd "../src/geckolib/driver/packs"
+
+ruff format .
+ruff check . --fix

@@ -1,9 +1,8 @@
-"""Configuration management for geckolib"""
+"""Configuration management for geckolib."""
 
 import asyncio
-from dataclasses import dataclass
 import logging
-from typing import Optional
+from dataclasses import dataclass
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,7 +51,7 @@ CONFIG_MEMBERS = [
 
 @dataclass
 class _GeckoActiveConfig(_GeckoConfig):
-    """Gecko active configuration"""
+    """Gecko active configuration."""
 
     DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS = 4
     DISCOVERY_TIMEOUT_IN_SECONDS = 10
@@ -68,7 +67,7 @@ class _GeckoActiveConfig(_GeckoConfig):
 
 @dataclass
 class _GeckoIdleConfig(_GeckoConfig):
-    """Gecko idle configuration"""
+    """Gecko idle configuration."""
 
     DISCOVERY_INITIAL_TIMEOUT_IN_SECONDS = 4
     DISCOVERY_TIMEOUT_IN_SECONDS = 10
@@ -84,7 +83,7 @@ class _GeckoIdleConfig(_GeckoConfig):
 
 # Root config
 GeckoConfig: _GeckoConfig = _GeckoIdleConfig()
-ConfigChange: Optional[asyncio.Future] = None
+ConfigChangeEvent: asyncio.Event = asyncio.Event()
 
 
 def set_config_mode(active: bool) -> None:
@@ -93,13 +92,17 @@ def set_config_mode(active: bool) -> None:
     new_config = _GeckoActiveConfig() if active else _GeckoIdleConfig()
     for member in CONFIG_MEMBERS:
         setattr(GeckoConfig, member, getattr(new_config, member))
-    assert ConfigChange is not None
-    if not ConfigChange.done():
-        ConfigChange.set_result(True)
+    ConfigChangeEvent.set()
+    ConfigChangeEvent.clear()
 
 
-async def config_sleep(delay: float) -> None:
-    global ConfigChange
-    if ConfigChange is None or ConfigChange.done():
-        ConfigChange = asyncio.get_running_loop().create_future()
-    await asyncio.wait([ConfigChange], timeout=delay)
+async def config_sleep(delay: float | None, reason: str) -> None:
+    """Sleep wrapper that also handles config changes."""
+    if delay is None:
+        await asyncio.sleep(0)
+        return
+    try:
+        async with asyncio.timeout(delay):
+            await ConfigChangeEvent.wait()
+    except TimeoutError:
+        pass

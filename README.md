@@ -13,6 +13,11 @@ Home Assistant integration. This has now been released, in preview, and can be
 found at https://github.com/gazoodle/gecko-home-assistant, or from HACS by adding
 a new integration and seaching for Gecko_
 
+## WARNING
+This is the last version of this library that will support sync and async. The
+next release will remove the sync API as it's too convoluted to support both in
+the same codebase now.
+
 # Async support
 
 The core of the library has been rewritten to be async based. This is for several
@@ -293,7 +298,7 @@ Turning pump 1 off
 
 There is also a complete async sample which can be found in the repo under
 the /sample folder. This can be run using `python3 complete.py`. Full path
-https://github.com/gazoodle/geckolib/tree/main/sample
+https://github.com/gazoodle/geckolib/tree/main/sample. Only works on Linux
 
 # Home Assistant integration
 
@@ -317,35 +322,68 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 # Todo
 
-- Spa state (errors)
 - Error handling (ongoing)
 - Pythonize where possible
-- APIs to support integration into automation systems (Ongoing)
-  - Warnings/Errors
-  - Diagnostics
 - More unit tests
 - Handle other device types such as Waterfall
 - Handle inMix for lighting control
 - Add API documentation
-- Merge reminders branch from @kalinrow
-- List property for User demands in pack classes
-- List property for errors in pack classes
 - Tidy up support files. One class per file
 - Full sweep for typing hints - Ongoing
-- Add sensor for errors
 - Add switch for winterizing
 - Add ability to set hours so we can implement a crude clock sync mechanism
-- Think about a way to provide access to behaviour refresh frequencies so that
-  it can be customised
 - Look into getting shell & simulator using async API so that there are no
   internal dependencies on the sync code any longer
 - Move to pytest unit test framework
 - Use snapshots to generate some specific tests
 - Build some documentation
 - Add coverage to GitHub package workflow
-- There is a lock issue when a command is being retried as the protocol lock
+- API set_config_mode needs to be per device rather than global
+
+## Done/Fixed in 0.4.19
+
+- Removed unprintable charater in RF Channel name
+- Reworked packgen.py so that the code is RUFF compliant, working towards getting Github actions working
+- Fixed simulator to load new HA snapshots
+- Significant work on refactoring now with better async understanding
+- Lots of RUFF updates
+- Removed weird sleep constant that was the root of some CPU usaghe issues, hopefully this has
+  gone now we're using a better async pattern.
+- Shell and Simulator moving to async pattern in prep for deleting the sync API.
+- Big refactor to help track down some obscure bugs, including a rare and hard to reproduce deadlock
+- More robust pattern for transport socket usage hopefully clean-up potential
+  leaking socket.
+- Fixed lock issue when a command is being retried as the protocol lock
   is busy and the CUI won't exit until the timeout has been reached (this can
   be reproduced by making the simulator stop responding to watercare requests)
+- Marked all sync APIs as deprecated
+- Push this code to github and release it as it will be the last version that
+  supports the sync API. It's getting too cluttered to maintain sync and async
+  in the same codebase.
+
+## Done/Fixed in 0.4.18
+
+- Actually increment the version number and push to GIT before publishing. I might get the hang of
+  this one day :-)
+
+## Done/Fixed in 0.4.17
+
+- Expose water heater internal sensors so they can be exposed in the home assistant integration
+
+## Done/Fixed in 0.4.16
+
+- Change min temperature from 15C to 8C
+- Handle unnamed SPA (Issue #54)
+- Prevent watercare from being out-of-range at the expense of knowing if it was ... it's more stable for users (#40)
+- Fixed async importlib code from blocking by using loop executor
+
+## Done/Fixed in 0.4.15
+
+- Merged latest SpaPackStruct data from BenSeverson
+
+## Done/Fixed in 0.4.9
+
+- Merged pull to reduce asyncio sleep timeout to reduce processor usage
 
 ## Done/Fixed in 0.4.8
 

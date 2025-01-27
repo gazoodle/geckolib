@@ -1,8 +1,12 @@
-""" Constants Class """
+"""Constants Class."""
+
+from warnings import deprecated
 
 
 class GeckoConstants:
     """
+    All the constants in one place.
+
     GeckoConstants is a literal class so that we can program in a mostly DRY fashion,
     for example a filename or url would be present as would values that could be changed
     and might be difficult to discover inline, but some constants that form part of a
@@ -12,10 +16,11 @@ class GeckoConstants:
     INTOUCH2_PORT = 10022
     # Maximum time to wait for full connection for a responding spa
     CONNECTION_TIMEOUT_IN_SECONDS = 45
+    # Async Locator sleep times
+    ASYNC_LOCATOR_BROADCAST_SLEEP = 1
 
-    CONNECTION_STEP_PAUSE_IN_SECONDS = 0  # Time between connection steps
+    CONNECTION_STEP_PAUSE_IN_SECONDS = None  # Time between connection steps
     MAX_RF_ERRORS_BEFORE_HALT = 50
-    ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD = 0.001
 
     BROADCAST_ADDRESS = "<broadcast>"
     MESSAGE_ENCODING = "latin1"
@@ -54,6 +59,9 @@ class GeckoConstants:
     KEY_FILTER_PURGE = "Purge"
     KEY_FILTER_CLEAN = "Clean"
     KEY_ECON_ACTIVE = "EconActive"
+    KEY_INGRID_DETECTED = "InGridDetected"
+    KEY_COOLZONE_DETECTED = "CoolZoneDetected"
+    KEY_COOLZONE_MODE = "CoolZoneMode"
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 

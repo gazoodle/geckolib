@@ -1,4 +1,4 @@
-""" Gecko SPACK/PACKS handlers """
+"""Gecko SPACK/PACKS handlers."""
 
 import logging
 import struct
@@ -50,7 +50,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def keypress(seq, pack_type, key, **kwargs):
+    def keypress(seq, pack_type, key: int, **kwargs):
         return GeckoPackCommandProtocolHandler(
             content=b"".join(
                 [

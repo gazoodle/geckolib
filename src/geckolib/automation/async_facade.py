@@ -1,54 +1,51 @@
-""" Async Facade to hide implementation details """
+"""Async Facade to hide implementation details"""
 
 from __future__ import annotations
 
-import logging
 import asyncio
+import logging
+from typing import List, Optional
 
 from geckolib.automation.base import GeckoAutomationBase
+from geckolib.driver.accessor import GeckoBoolStructAccessor
 
-from .blower import GeckoBlower
-from ..const import GeckoConstants
+from ..async_spa import GeckoAsyncSpa
+from ..async_taskman import GeckoAsyncTaskMan
 from ..config import GeckoConfig, config_sleep, set_config_mode
+from ..const import GeckoConstants
+from ..driver import Observable
+from .blower import GeckoBlower
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
 from .pump import GeckoPump
 from .reminders import GeckoReminders
+from .sensors import GeckoBinarySensor, GeckoErrorSensor, GeckoSensor, GeckoSensorBase
 from .switch import GeckoSwitch
-from .sensors import (
-    GeckoSensor,
-    GeckoBinarySensor,
-    GeckoSensorBase,
-    GeckoErrorSensor
-)
 from .watercare import GeckoWaterCare
-from ..driver import Observable
-from ..async_spa import GeckoAsyncSpa
-from ..async_tasks import AsyncTasks
-
-from typing import Optional, List
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoAsyncFacade(Observable):
-    """Async facade"""
+    """Async facade."""
 
-    def __init__(self, spa: GeckoAsyncSpa, taskman: AsyncTasks, **kwargs: str) -> None:
-        """The facade is a thin automation-friendly client on the spa implementation."""
+    def __init__(
+        self, spa: GeckoAsyncSpa, taskman: GeckoAsyncTaskMan, **_kwargs: str
+    ) -> None:
+        """Initialize the facade, a thin automation-friendly client on the spa implementation."""
         Observable.__init__(self)
 
         self._spa: GeckoAsyncSpa = spa
-        self._taskman: AsyncTasks = taskman
+        self._taskman: GeckoAsyncTaskMan = taskman
 
         # Declare all the class members
-        self._sensors: List[GeckoSensorBase] = []
-        self._binary_sensors: List[GeckoBinarySensor] = []
-        self._pumps: List[GeckoPump] = []
-        self._blowers: List[GeckoBlower] = []
-        self._lights: List[GeckoLight] = []
-        self._ecomode: Optional[GeckoSwitch] = None
+        self._sensors: list[GeckoSensorBase] = []
+        self._binary_sensors: list[GeckoBinarySensor] = []
+        self._pumps: list[GeckoPump] = []
+        self._blowers: list[GeckoBlower] = []
+        self._lights: list[GeckoLight] = []
+        self._ecomode: GeckoSwitch | None = None
 
         # Build the automation items
         self._reminders_manager = GeckoReminders(self)
@@ -64,9 +61,10 @@ class GeckoAsyncFacade(Observable):
             device.watch(self._on_config_device_change)
 
         self._taskman.add_task(self._facade_update(), "Facade update", "FACADE")
-        self._ready = False
+        self._ready = asyncio.Event()
 
     async def disconnect(self) -> None:
+        """Disconnect the facade."""
         _LOGGER.debug("Disconnect facade")
         self._taskman.cancel_key_tasks("FACADE")
         for device in self.all_automation_devices:
@@ -83,11 +81,10 @@ class GeckoAsyncFacade(Observable):
         _LOGGER.debug("Facade update task started")
         try:
             while True:
-
-                try:
-                    if not self._spa.is_responding_to_pings:
-                        continue
-
+                wait_time = GeckoConfig.FACADE_UPDATE_FREQUENCY_IN_SECONDS
+                if not self._spa.is_responding_to_pings:
+                    wait_time = GeckoConfig.PING_FREQUENCY_IN_SECONDS
+                else:
                     self._water_care.change_watercare_mode(
                         await self._spa.async_get_watercare()
                     )
@@ -97,26 +94,23 @@ class GeckoAsyncFacade(Observable):
                     self._on_config_device_change()
 
                     # After we've been round here at least once, we're ready
-                    self._ready = True
+                    self._ready.set()
 
-                finally:
-                    wait_time = (
-                        GeckoConfig.FACADE_UPDATE_FREQUENCY_IN_SECONDS
-                        if self._spa.is_responding_to_pings
-                        else GeckoConfig.PING_FREQUENCY_IN_SECONDS
-                    )
-                    await config_sleep(wait_time)
+                await config_sleep(wait_time, "Async facade update loop")
 
         except asyncio.CancelledError:
             _LOGGER.debug("Facade update loop cancelled")
             raise
+        except Exception:
+            _LOGGER.exception("Facade update loop caught execption")
+            raise
 
-    async def wait_for_one_update(self):
-        while not self._ready:
-            await asyncio.sleep(GeckoConstants.ASYNCIO_SLEEP_TIMEOUT_FOR_YIELD)
+    async def wait_for_one_update(self) -> None:
+        """Wait until the first update has occurred."""
+        await self._ready.wait()
 
     def _scan_outputs(self) -> None:
-        """Scan the spa outputs to decide what user options are available"""
+        """Scan the spa outputs to decide what user options are available."""
 
         assert self._spa is not None
         _LOGGER.debug("All outputs are %s", self._spa.struct.all_outputs)
@@ -235,6 +229,18 @@ class GeckoAsyncFacade(Observable):
                     GeckoConstants.DEVICE_CLASS_SWITCH,
                 ),
             )
+
+        # Check if in.Grid is detected
+        if GeckoConstants.KEY_INGRID_DETECTED in self._spa.accessors:
+            in_grid_detected: GeckoBoolStructAccessor = self._spa.accessors[
+                GeckoConstants.KEY_INGRID_DETECTED
+            ]
+            if in_grid_detected.value:
+                _LOGGER.info("in.grid detected")
+                if GeckoConstants.KEY_COOLZONE_MODE in self._spa.accessors:
+                    _LOGGER.info(
+                        "CoolZoneMode is present, so we can offer these options now"
+                    )
 
     @property
     def unique_id(self) -> str:

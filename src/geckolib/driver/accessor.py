@@ -1,7 +1,11 @@
-""" Structure accessor """
+"""Structure accessor."""
 
-import struct
 import logging
+import struct
+from typing import Any
+from warnings import deprecated
+
+from geckolib.driver.spastruct import GeckoStructureTypeBase
 
 from ..const import GeckoConstants
 from .observable import Observable
@@ -10,19 +14,34 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoStructAccessor(Observable):
-    """Class to access the spa data structure according to the declaration in the
-    specific modules"""
+    """
+    Class to access the spa data structure.
 
-    def __init__(self, struct_, tag, pos, type, bitpos, items, size, maxitems, rw):
+    Uses the declaration in the specific modules.
+    """
+
+    def __init__(
+        self,
+        struct_: GeckoStructureTypeBase,
+        tag: str,
+        pos: int,
+        accessor_type: str,
+        bitpos: int,
+        items: Any,
+        size: int,
+        maxitems: int,
+        rw: bool,
+    ) -> None:
+        """Initialize the accessor class."""
         super().__init__()
 
-        self.tag = tag
-        self.struct = struct_
-        self.pos = pos
-        self.type = type
-        self.bitpos = bitpos
-        self.items = items
-        self.maxitems = maxitems
+        self.tag: str = tag
+        self.struct: GeckoStructureTypeBase = struct_
+        self.pos: int = pos
+        self.accessor_type: str = accessor_type
+        self.bitpos: int = bitpos
+        self.items: Any = items
+        self.maxitems: int = maxitems
 
         if bitpos is not None:
             self.bitmask = 1
@@ -41,9 +60,9 @@ class GeckoStructAccessor(Observable):
             if self.length == 2:
                 self.format = ">H"
 
-        if (
-            self.type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE
-            or self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE
+        if self.accessor_type in (
+            GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE,
+            GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE,
         ):
             self.length = 2
             self.format = ">H"
@@ -57,12 +76,14 @@ class GeckoStructAccessor(Observable):
             elif self.maxitems > 2:
                 self.bitmask = 3
 
-        self.read_write = rw
+        self.read_write: bool = rw
 
-    def set_read_write(self, mode):
+    def set_read_write(self, mode) -> None:
+        """Set read/write state. Used by simulator."""
         self.read_write = mode
 
-    def status_block_changed(self, offset, len, previous):
+    def status_block_changed(self, offset, len, previous) -> None:
+        """Status block has changed."""
         # Does the notified range intersect us, if not then we don't care!
         intersection_start = max(offset, self.pos)
         intersection_end = min(offset + len, self.pos + self.length)
@@ -82,9 +103,13 @@ class GeckoStructAccessor(Observable):
 
         self._on_change(self, old_value, new_value)
 
-    def _get_raw_value(self, status_block=None):
-        """Get a value from the pack structure using the initialized declaration
-        or using the optionally supplied status_block (used by change notification)"""
+    def _get_raw_value(self, status_block: bytes | None = None) -> Any:
+        """
+        Get a value from the pack structure.
+
+        Either use the initialized declaration or using the optionally
+        supplied status_block (used by change notification).
+        """
         if status_block is None:
             status_block = self.struct.status_block
         data = struct.unpack(
@@ -94,11 +119,11 @@ class GeckoStructAccessor(Observable):
             data = (data >> self.bitpos) & self.bitmask
         return data
 
-    def _get_value(self, status_block=None):
+    def _get_value(self, status_block: bytes | None = None) -> Any:
         data = self._get_raw_value(status_block)
-        if self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
+        if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
             data = data == 1
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
+        elif self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             try:
                 data = self.items[data]
             except IndexError:
@@ -109,32 +134,36 @@ class GeckoStructAccessor(Observable):
                     self.items,
                     data,
                 )
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
-            data = f"{int(data/256):02}:{data%256:02}"
+        elif self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
+            data = f"{int(data / 256):02}:{data % 256:02}"
         return data
 
-    def _set_value(self, newvalue):
-        """Set a value in the pack structure using the initialized declaration"""
+    @deprecated("Use _async_set_value")
+    def _set_value(self, newvalue) -> None:
+        """Set a value in the pack structure using the initialized declaration."""
         if self.read_write is None:
             raise Exception(
                 GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag)
             )
 
-        if self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
+        if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             newvalue = self.items.index(newvalue)
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
+        elif self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
             bits = newvalue.split(":")
             newvalue = (int(bits[0]) * 256) + (int(bits[1]) % 256)
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE and isinstance(
-            newvalue, str
+        elif (
+            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE
+            and isinstance(newvalue, str)
         ):
             newvalue = int(newvalue)
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE and isinstance(
-            newvalue, str
+        elif (
+            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE
+            and isinstance(newvalue, str)
         ):
             newvalue = int(newvalue)
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE and isinstance(
-            newvalue, str
+        elif (
+            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE
+            and isinstance(newvalue, str)
         ):
             newvalue = newvalue.lower() == "true"
 
@@ -152,7 +181,7 @@ class GeckoStructAccessor(Observable):
             "Length is %d",
             self.tag,
             self.pos,
-            self.type,
+            self.accessor_type,
             newvalue,
             existing,
             self.length,
@@ -162,19 +191,23 @@ class GeckoStructAccessor(Observable):
         self.struct.set_value(self.pos, self.length, newvalue)
 
     @property
-    def value(self):
-        """Get a value from the pack structure using the initialized declaration"""
+    def value(self) -> Any:
+        """Get a value from the pack structure using the initialized declaration."""
         return self._get_value()
 
     @property
-    def raw_value(self):
-        """Get a raw integer value from the pack structure using the initialized
-        declaration"""
+    def raw_value(self) -> Any:
+        """
+        Get a raw integer value from the pack structure.
+
+        Uses the initialized declaration.
+        """
         return self._get_raw_value()
 
     @value.setter
+    @deprecated("Use async")
     def value(self, newvalue):
-        """Set a value in the pack structure using the initialized declaration"""
+        """Set a value in the pack structure using the initialized declaration."""
         self._set_value(newvalue)
 
     async def async_set_value(self, newvalue):
@@ -184,21 +217,24 @@ class GeckoStructAccessor(Observable):
                 GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag)
             )
 
-        if self.type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
+        if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             newvalue = self.items.index(newvalue)
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
+        elif self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
             bits = newvalue.split(":")
             newvalue = (int(bits[0]) * 256) + (int(bits[1]) % 256)
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE and isinstance(
-            newvalue, str
+        elif (
+            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE
+            and isinstance(newvalue, str)
         ):
             newvalue = int(newvalue)
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE and isinstance(
-            newvalue, str
+        elif (
+            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE
+            and isinstance(newvalue, str)
         ):
             newvalue = int(newvalue)
-        elif self.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE and isinstance(
-            newvalue, str
+        elif (
+            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE
+            and isinstance(newvalue, str)
         ):
             newvalue = newvalue.lower() == "true"
 
@@ -216,7 +252,7 @@ class GeckoStructAccessor(Observable):
             "Length is %d",
             self.tag,
             self.pos,
-            self.type,
+            self.accessor_type,
             newvalue,
             existing,
             self.length,
@@ -225,57 +261,75 @@ class GeckoStructAccessor(Observable):
         # We can't handle this here, we must delegate via the structure
         await self.struct.async_set_value(self.pos, self.length, newvalue)
 
-    def trigger(self):
+    @deprecated("This function seems unused")
+    def trigger(self) -> None:
+        """Triger a change event."""
         current_value = self.value
         _LOGGER.info("Value for %s is %s", self.tag, current_value)
         self._on_change(self, current_value, current_value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Get string representation."""
         return f"{self.tag!r}: {self.value!r}"
 
 
 class GeckoByteStructAccessor(GeckoStructAccessor):
+    """Structure accessor for bytes."""
+
     def __init__(self, struct_, tag, pos, rw):
+        """Initialize the byte accessor."""
         super().__init__(struct_, tag, pos, "Byte", None, None, None, None, rw)
 
 
 class GeckoWordStructAccessor(GeckoStructAccessor):
+    """Structure accessor for words."""
+
     def __init__(self, struct_, tag, pos, rw):
+        """Initialize the word accessor."""
         super().__init__(struct_, tag, pos, "Word", None, None, None, None, rw)
 
 
 class GeckoTimeStructAccessor(GeckoStructAccessor):
+    """Structure accessor for times."""
+
     def __init__(self, struct_, tag, pos, rw):
+        """Initialize the time accessor."""
         super().__init__(struct_, tag, pos, "Time", None, None, None, None, rw)
 
 
 class GeckoBoolStructAccessor(GeckoStructAccessor):
+    """Structure accessor to bools."""
+
     def __init__(self, struct_, tag, pos, bitpos, rw):
+        """Initialie the bool accessor."""
         super().__init__(struct_, tag, pos, "Bool", bitpos, None, None, None, rw)
 
 
 class GeckoEnumStructAccessor(GeckoStructAccessor):
+    """Structure accessopr for enumerations."""
+
     def __init__(self, struct_, tag, pos, bitpos, items, size, maxitems, rw):
+        """Initialize the enum accessor."""
         super().__init__(struct_, tag, pos, "Enum", bitpos, items, size, maxitems, rw)
 
 
 class GeckoTempStructAccessor(GeckoWordStructAccessor):
-    """Class to decorate a temperature accessor so that the farenheight tenths, offset
-    from freezing are handled"""
+    """
+    Handle Gecko temperatures.
 
-    def _get_value(self, status_block=None):
-        """Get the temperature"""
+    The spa handles all temperatures in tenths of a degree farenheit offset
+    from freezing. This class handles that in one place.
+    """
+
+    def _get_value(self, status_block=None) -> float:
+        """Get the temperature."""
         # Internally, temp is in farenheight tenths, offset from freezing point
-        temp = super()._get_value(status_block)
+        temp: float = super()._get_value(status_block)
         units = self.struct.accessors[GeckoConstants.KEY_TEMP_UNITS].value
-        if units == "C":
-            temp = temp / 18.0
-        else:
-            temp = (temp + 320) / 10.0
-        return temp
+        return temp / 18.0 if units == "C" else (temp + 320) / 10.0
 
     def _set_value(self, temp):
-        """Set the temperature"""
+        """Set the temperature."""
         units = self.struct.accessors[GeckoConstants.KEY_TEMP_UNITS].value
         if units == "C":
             temp = float(temp) * 18.0
@@ -284,7 +338,7 @@ class GeckoTempStructAccessor(GeckoWordStructAccessor):
         super()._set_value(int(temp))
 
     async def async_set_value(self, temp):
-        """Set the temperature"""
+        """Set the temperature."""
         units = self.struct.accessors[GeckoConstants.KEY_TEMP_UNITS].value
         if units == "C":
             temp = float(temp) * 18.0

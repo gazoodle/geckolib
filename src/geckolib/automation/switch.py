@@ -1,4 +1,4 @@
-""" Automation switches """
+"""Automation switches"""
 
 import logging
 
@@ -25,7 +25,7 @@ class GeckoSwitch(GeckoAutomationFacadeBase):
     @property
     def is_on(self):
         """True if the device is ON, False otherwise"""
-        if self._accessor.type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
+        if self._accessor.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
             return self._state_sensor.state
         return self._state_sensor.state != "OFF"
 

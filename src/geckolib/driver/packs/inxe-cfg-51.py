@@ -1,652 +1,687 @@
-#!/usr/bin/python3
-"""
-    GeckoConfigStruct - A class to manage the ConfigStruct for 'InXE v51'
-"""
+"""GeckoConfigStruct - A class to manage the ConfigStruct for 'InXE v51'."""  # noqa: N999
 
 from . import (
-    GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
-    GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
+    GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoStructAccessor,
+    GeckoStructureTypeBase,
     GeckoTempStructAccessor,
+    GeckoTimeStructAccessor,
+    GeckoWordStructAccessor,
 )
-
-# Constants for this class
-ACCPQI = "".join(chr(c) for c in [65, 76, 87, 65, 89, 83, 95, 79, 78])
-AHEOCT = "".join(chr(c) for c in [79, 117, 116, 53, 67, 117, 114])
-AJVDQL = 64
-AKQXPI = 14
-AMJMAO = 77
-AOAWBS = "".join(chr(c) for c in [67, 69])
-AONPYY = 81
-ASSAKQ = "".join(chr(c) for c in [79, 117, 116, 50])
-AWBSIR = "".join(chr(c) for c in [78, 98, 80, 104, 97, 115, 101, 115])
-BFEGZU = "".join(chr(c) for c in [79, 117, 116, 49, 49, 67, 117, 114])
-BLKXSJ = "".join(chr(c) for c in [68, 114, 97, 105, 110, 77, 111, 100, 101])
-BMJVHF = "".join(chr(c) for c in [79, 117, 116, 49])
-BQFYLJ = "".join(chr(c) for c in [70, 105, 108, 116, 70, 114, 101, 113])
-BQSNQL = 3
-BSIRYX = "".join(
-    chr(c) for c in [73, 110, 112, 117, 116, 67, 117, 114, 114, 101, 110, 116]
-)
-BSKSOK = 18
-BWJYKL = "".join(chr(c) for c in [83, 101, 116, 112, 111, 105, 110, 116, 71])
-BXYBQS = "".join(
-    chr(c) for c in [79, 102, 102, 79, 110, 67, 117, 115, 116, 111, 109, 75, 101, 121]
-)
-CBFEGZ = 45
-CPQIPO = "".join(chr(c) for c in [79, 116, 79, 112, 116, 105, 111, 110])
-CQBMJV = 0
-CTHBSK = "".join(chr(c) for c in [79, 117, 116, 54])
-CVYYPI = "".join(chr(c) for c in [80, 52, 72])
-CWAONP = 56
-CXQIEF = 26
-ECVYYP = "".join(chr(c) for c in [80, 51, 76])
-EFXQGL = 36
-EGZUQE = "".join(chr(c) for c in [79, 117, 116, 49, 50, 67, 117, 114])
-EJNIBX = 82
-EKCWAO = 55
-EOCTHB = "".join(chr(c) for c in [79, 117, 116, 72, 116, 82, 67, 117, 114])
-EXLSXU = 49
-FEFJTA = "".join(chr(c) for c in [70, 105, 108, 116, 80, 49])
-FEGZUQ = 46
-FJBIAM = 70
-FJTACC = "".join(chr(c) for c in [67, 112, 85, 115, 97, 103, 101])
-FTHECV = "".join(chr(c) for c in [80, 50, 72])
-FTSIFJ = 66
-FWRKIN = 10
-FXQGLR = "".join(chr(c) for c in [79, 117, 116, 50, 67, 117, 114])
-FYLJUI = "".join(chr(c) for c in [70, 105, 108, 116, 83, 116, 97, 114, 116])
-GLRAHE = 38
-GYOUSP = 30
-GZUQEX = 47
-HBSKSO = "".join(chr(c) for c in [79, 117, 116, 55])
-HECVYY = "".join(chr(c) for c in [80, 51, 72])
-HEOCTH = 40
-HFTHEC = "".join(chr(c) for c in [80, 49, 76])
-HUOJRJ = "".join(chr(c) for c in [79, 117, 116, 49, 49])
-HXEKVK = "".join(chr(c) for c in [77, 97, 115, 116, 101, 114])
-IAMJMA = "".join(
-    chr(c) for c in [78, 111, 72, 101, 97, 116, 80, 101, 114, 105, 111, 100]
-)
-IBXYBQ = "".join(
-    chr(c)
-    for c in [83, 111, 97, 107, 79, 110, 67, 117, 115, 116, 111, 109, 75, 101, 121]
-)
-ICXQIE = "".join(chr(c) for c in [79, 117, 116, 72, 116, 114])
-IEFXQG = "".join(chr(c) for c in [79, 117, 116, 49, 67, 117, 114])
-IFJBIA = "".join(chr(c) for c in [69, 99, 111, 110, 84, 121, 112, 101])
-IGYOUS = "".join(chr(c) for c in [79, 51, 84, 121, 112, 101])
-IKFWRK = 8
-ILXWAJ = "".join(chr(c) for c in [65, 109, 80, 109])
-IPIVLA = "".join(chr(c) for c in [79, 51])
-IPOUYN = "".join(
-    chr(c) for c in [65, 108, 119, 97, 121, 115, 69, 110, 97, 98, 108, 101, 100]
-)
-IRYXBQ = "".join(chr(c) for c in [73, 110, 112, 117, 116, 77, 101, 110, 117])
-IUSOOQ = "".join(chr(c) for c in [68, 105, 114, 101, 99, 116, 50])
-IUXFEF = 32
-IVLASS = "".join(chr(c) for c in [])
-JBIAMJ = "".join(chr(c) for c in [78, 105, 103, 104, 116])
-JHIUSO = 24
-JMAOAW = 51
-JMCBFE = 44
-JNIBXY = "".join(
-    chr(c)
-    for c in [
-        69,
-        99,
-        111,
-        110,
-        67,
-        111,
-        110,
-        116,
-        114,
-        111,
-        108,
-        97,
-        98,
-        108,
-        101,
-        77,
-        97,
-        110,
-        117,
-        97,
-        108,
-        108,
-        121,
-    ]
-)
-JRJHIU = 23
-JTACCP = 27
-JUIKFW = 6
-JUTYEK = 80
-JVHFTH = "".join(chr(c) for c in [78, 65])
-JWMNZM = 28
-JYKLGQ = "".join(chr(c) for c in [84, 101, 109, 112, 85, 110, 105, 116, 115])
-JYMOUN = "".join(
-    chr(c)
-    for c in [
-        67,
-        112,
-        79,
-        102,
-        102,
-        84,
-        105,
-        109,
-        101,
-        68,
-        117,
-        114,
-        105,
-        110,
-        103,
-        79,
-        84,
-    ]
-)
-KCWAON = "".join(chr(c) for c in [76, 49, 50, 48, 84, 105, 109, 101, 79, 117, 116])
-KFWRKI = "".join(chr(c) for c in [69, 99, 111, 110, 68, 117, 114])
-KINEJN = "".join(chr(c) for c in [65, 118, 97, 105, 108, 97, 98, 108, 101])
-KLGQPL = "".join(chr(c) for c in [70])
-KPHUOJ = "".join(chr(c) for c in [79, 117, 116, 49, 48])
-KQXPIC = "".join(chr(c) for c in [79, 117, 116, 52])
-KSOKPH = 19
-KVKZIL = "".join(chr(c) for c in [83, 108, 97, 118, 101, 67, 111, 110, 102, 105, 103])
-KXSJWM = "".join(chr(c) for c in [80, 49])
-KZILXW = "".join(chr(c) for c in [84, 105, 109, 101, 70, 111, 114, 109, 97, 116])
-LGQPLS = "".join(chr(c) for c in [67])
-LIUXFE = "".join(
-    chr(c) for c in [70, 105, 108, 116, 73, 110, 116, 101, 114, 102, 97, 99, 101]
-)
-LJUIKF = "".join(chr(c) for c in [70, 105, 108, 116, 68, 117, 114])
-LKXSJW = 78
-LRAHEO = "".join(chr(c) for c in [79, 117, 116, 52, 67, 117, 114])
-LSPFTS = "".join(
-    chr(c) for c in [67, 111, 111, 108, 100, 111, 119, 110, 84, 105, 109, 101]
-)
-LSXUJU = 79
-LXWAJV = "".join(chr(c) for c in [50, 52, 104])
-MAOAWB = "".join(chr(c) for c in [85, 76])
-MCBFEG = "".join(chr(c) for c in [79, 117, 116, 49, 48, 67, 117, 114])
-MHXEKV = 73
-MJIGYO = 29
-MJMAOA = "".join(chr(c) for c in [85, 76, 95, 67, 69])
-MJVHFT = 12
-MNZMJI = "".join(chr(c) for c in [65, 108, 119, 97, 121, 115])
-MOUNBL = "".join(
-    chr(c)
-    for c in [
-        70,
-        105,
-        108,
-        116,
-        79,
-        110,
-        84,
-        105,
-        109,
-        101,
-        68,
-        117,
-        114,
-        105,
-        110,
-        103,
-        79,
-        84,
-    ]
-)
-NBLKXS = 62
-NEJNIB = "".join(chr(c) for c in [85, 68, 80, 114, 111, 103, 69, 99, 111, 110])
-NIBXYB = 72
-NMHXEK = "".join(chr(c) for c in [77, 97, 115, 116, 101, 114, 83, 108, 97, 118, 101])
-NPYYLI = "".join(chr(c) for c in [79, 119, 110])
-NQJYMO = "".join(
-    chr(c)
-    for c in [67, 112, 79, 110, 84, 105, 109, 101, 68, 117, 114, 105, 110, 103, 79, 84]
-)
-NQLNMH = "".join(
-    chr(c) for c in [78, 111, 66, 108, 111, 119, 101, 114, 79, 110, 73, 50, 67]
-)
-NRSJMC = "".join(chr(c) for c in [79, 117, 116, 56, 67, 117, 114])
-OCTHBS = 50
-OJRJHI = "".join(chr(c) for c in [79, 117, 116, 49, 50])
-OKPHUO = 20
-ONPYYL = "".join(chr(c) for c in [83, 104, 97, 114, 101, 100])
-OOQNRS = 41
-OQNRSJ = "".join(chr(c) for c in [79, 117, 116, 55, 67, 117, 114])
-OUNBLK = 61
-OUSPBW = "".join(chr(c) for c in [84, 111, 103, 103, 108, 101])
-PBWJYK = 63
-PFTSIF = "".join(
-    chr(c) for c in [77, 105, 110, 83, 101, 116, 112, 111, 105, 110, 116, 71]
-)
-PHUOJR = 21
-PICXQI = 16
-PIPIVL = "".join(chr(c) for c in [67, 80])
-PIVLAS = "".join(chr(c) for c in [76, 49, 50, 48])
-PLSPFT = 31
-POUYNQ = "".join(
-    chr(c) for c in [87, 105, 116, 104, 83, 80, 79, 118, 101, 114, 57, 53, 70]
-)
-PQIPOU = 57
-QBMJVH = "".join(chr(c) for c in [65, 76, 76])
-QEXLSX = "".join(chr(c) for c in [68, 105, 114, 101, 99, 116, 50, 67, 117, 114])
-QFYLJU = 3
-QGLRAH = "".join(chr(c) for c in [79, 117, 116, 51, 67, 117, 114])
-QIPOUY = "".join(chr(c) for c in [68, 105, 115, 97, 98, 108, 101, 100])
-QJYMOU = 59
-QLAIID = 51
-QLNMHX = "".join(chr(c) for c in [66, 108, 111, 119, 101, 114, 79, 110, 73, 50, 67])
-QNRSJM = 42
-QPLSPF = "".join(chr(c) for c in [72, 101, 97, 116, 101, 114, 80, 117, 109, 112])
-QSNQLN = "".join(
-    chr(c) for c in [77, 117, 108, 116, 105, 75, 101, 121, 79, 112, 116, 105, 111, 110]
-)
-QXPICX = 15
-RAHEOC = 39
-RJHIUS = "".join(chr(c) for c in [68, 105, 114, 101, 99, 116])
-RKINEJ = 71
-RSJMCB = 43
-RYXBQF = 74
-SAKQXP = "".join(chr(c) for c in [79, 117, 116, 51])
-SIFJBI = 68
-SIRYXB = 53
-SJMCBF = "".join(chr(c) for c in [79, 117, 116, 57, 67, 117, 114])
-SJWMNZ = "".join(chr(c) for c in [79, 51, 85, 115, 97, 103, 101])
-SKSOKP = "".join(chr(c) for c in [79, 117, 116, 56])
-SNQLNM = 76
-SOKPHU = "".join(chr(c) for c in [79, 117, 116, 57])
-SOOQNR = "".join(chr(c) for c in [79, 117, 116, 54, 67, 117, 114])
-SPBWJY = "".join(
-    chr(c) for c in [79, 51, 83, 117, 115, 112, 101, 110, 100, 84, 105, 109, 101]
-)
-SPFTSI = 35
-SSAKQX = 13
-SXUJUT = "".join(chr(c) for c in [76, 73])
-TACCPQ = "".join(chr(c) for c in [83, 84, 65, 78, 68, 65, 82, 68])
-THBSKS = 17
-THECVY = "".join(chr(c) for c in [80, 50, 76])
-TSIFJB = "".join(
-    chr(c) for c in [77, 97, 120, 83, 101, 116, 112, 111, 105, 110, 116, 71]
-)
-TYEKCW = 54
-UIKFWR = "".join(chr(c) for c in [69, 99, 111, 110, 83, 116, 97, 114, 116])
-UJUTYE = "".join(chr(c) for c in [76, 105, 103, 104, 116, 73, 110, 116, 115])
-UNBLKX = "".join(
-    chr(c)
-    for c in [70, 105, 108, 116, 83, 117, 115, 112, 101, 110, 100, 84, 105, 109, 101]
-)
-UOJRJH = 22
-UQEXLS = 48
-USOOQN = 25
-UTYEKC = "".join(chr(c) for c in [80, 117, 109, 112, 84, 105, 109, 101, 79, 117, 116])
-UXFEFJ = "".join(chr(c) for c in [80, 117, 114, 103, 101, 79, 110, 108, 121])
-UYNQJY = "".join(chr(c) for c in [79, 84, 84, 114, 105, 103, 103, 101, 114, 71])
-VHFTHE = "".join(chr(c) for c in [80, 49, 72])
-VKZILX = 75
-VLASSA = "".join(chr(c) for c in [70, 117, 108, 108, 79, 110])
-VYYPIP = "".join(chr(c) for c in [80, 52, 76])
-WAJVDQ = "".join(
-    chr(c)
-    for c in [65, 109, 98, 105, 97, 110, 116, 79, 72, 84, 114, 105, 103, 65, 68, 67]
-)
-WAONPY = "".join(chr(c) for c in [76, 49, 50, 48, 84, 105, 109, 101, 114])
-WBSIRY = 52
-WJYKLG = 1
-WMNZMJ = "".join(chr(c) for c in [70, 105, 108, 116, 101, 114])
-WRKINE = "".join(
-    chr(c)
-    for c in [
-        69,
-        99,
-        111,
-        110,
-        80,
-        114,
-        111,
-        103,
-        65,
-        118,
-        97,
-        105,
-        108,
-        97,
-        98,
-        108,
-        101,
-    ]
-)
-XEKVKZ = "".join(chr(c) for c in [83, 108, 97, 118, 101])
-XFEFJT = "".join(chr(c) for c in [70, 105, 108, 116, 67, 80])
-XLSXUJ = "".join(chr(c) for c in [79, 117, 116, 76, 105])
-XPICXQ = "".join(chr(c) for c in [79, 117, 116, 53])
-XQGLRA = 37
-XQIEFX = "".join(chr(c) for c in [72, 84, 82])
-XYBQSN = 1
-YBQSNQ = "".join(
-    chr(c)
-    for c in [
-        67,
-        108,
-        101,
-        97,
-        110,
-        117,
-        112,
-        79,
-        110,
-        67,
-        117,
-        115,
-        116,
-        111,
-        109,
-        75,
-        101,
-        121,
-    ]
-)
-YEKCWA = "".join(
-    chr(c) for c in [76, 105, 103, 104, 116, 84, 105, 109, 101, 79, 117, 116]
-)
-YKLGQP = 33
-YLIUXF = 2
-YLJUIK = 4
-YMOUNB = 60
-YNQJYM = 58
-YOUSPB = "".join(chr(c) for c in [83, 116, 97, 110, 100, 97, 114, 100])
-YPIPIV = "".join(chr(c) for c in [66, 76, 79])
-YXBQFY = "".join(chr(c) for c in [68, 117, 97, 108, 80, 97, 99, 107])
-YYLIUX = 0
-YYPIPI = "".join(chr(c) for c in [80, 53])
-ZCQBMJ = "".join(
-    chr(c) for c in [67, 111, 110, 102, 105, 103, 78, 117, 109, 98, 101, 114]
-)
-ZILXWA = 34
-ZMJIGY = "".join(chr(c) for c in [79, 51, 80, 117, 109, 112])
-ZUQEXL = "".join(chr(c) for c in [68, 105, 114, 101, 99, 116, 67, 117, 114])
-BIAMJM = [YOUSPB, JBIAMJ]
-CCPQIP = [TACCPQ, ACCPQI]
-DQLAII = []
-EFJTAC = [UXFEFJ, XFEFJT, FEFJTA]
-EKVKZI = [IVLASS, HXEKVK, XEKVKZ]
-GQPLSP = [KLGQPL, LGQPLS]
-HIUSOO = [
-    JVHFTH,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    PIPIVL,
-]
-INEJNI = [JVHFTH, KINEJN]
-JIGYOU = [PIPIVL, KXSJWM]
-JVDQLA = [
-    BMJVHF,
-    ASSAKQ,
-    SAKQXP,
-    KQXPIC,
-    XPICXQ,
-    ICXQIE,
-    CTHBSK,
-    HBSKSO,
-    SKSOKP,
-    SOKPHU,
-    KPHUOJ,
-    HUOJRJ,
-    OJRJHI,
-    RJHIUS,
-    IUSOOQ,
-    XLSXUJ,
-]
-LASSAK = [
-    JVHFTH,
-    VHFTHE,
-    HFTHEC,
-    FTHECV,
-    THECVY,
-    HECVYY,
-    ECVYYP,
-    CVYYPI,
-    VYYPIP,
-    YYPIPI,
-    YPIPIV,
-    PIPIVL,
-    IPIVLA,
-    PIVLAS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    VLASSA,
-]
-LNMHXE = [NQLNMH, QLNMHX]
-NZMJIG = [WMNZMJ, MNZMJI]
-OAWBSI = [MAOAWB, AOAWBS]
-OUYNQJ = [QIPOUY, IPOUYN, POUYNQ]
-PYYLIU = [ONPYYL, NPYYLI]
-QIEFXQ = [
-    JVHFTH,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    XQIEFX,
-]
-USPBWJ = [YOUSPB, OUSPBW]
-VDQLAI = [SXUJUT]
-XBQFYL = [YOUSPB, YXBQFY]
-XSJWMN = [JVHFTH, KXSJWM, PIPIVL]
-XUJUTY = [
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    IVLASS,
-    SXUJUT,
-]
-XWAJVD = [JVHFTH, ILXWAJ, LXWAJV]
 
 
 class GeckoConfigStruct:
-    def __init__(self, struct_):
+    """Config Struct Class."""
+
+    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+        """Initialize the config struct class."""
         self.struct = struct_
 
     @property
-    def version(self):
-        return QLAIID
+    def version(self) -> int:
+        """Get the config struct class version."""
+        return 51
 
     @property
-    def output_keys(self):
-        return JVDQLA
+    def output_keys(self) -> list[str]:
+        """Output keys property."""
+        return [
+            "Out1",
+            "Out2",
+            "Out3",
+            "Out4",
+            "Out5",
+            "OutHtr",
+            "Out6",
+            "Out7",
+            "Out8",
+            "Out9",
+            "Out10",
+            "Out11",
+            "Out12",
+            "Direct",
+            "Direct2",
+            "OutLi",
+        ]
 
     @property
-    def accessors(self):
+    def accessors(self) -> dict[str, GeckoStructAccessor]:
+        """The structure accessors."""
         return {
-            ZCQBMJ: GeckoByteStructAccessor(self.struct, ZCQBMJ, CQBMJV, QBMJVH),
-            BMJVHF: GeckoEnumStructAccessor(
-                self.struct, BMJVHF, MJVHFT, None, LASSAK, None, None, QBMJVH
+            "ConfigNumber": GeckoByteStructAccessor(
+                self.struct, "ConfigNumber", 0, "ALL"
             ),
-            ASSAKQ: GeckoEnumStructAccessor(
-                self.struct, ASSAKQ, SSAKQX, None, LASSAK, None, None, QBMJVH
+            "Out1": GeckoEnumStructAccessor(
+                self.struct,
+                "Out1",
+                12,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            SAKQXP: GeckoEnumStructAccessor(
-                self.struct, SAKQXP, AKQXPI, None, LASSAK, None, None, QBMJVH
+            "Out2": GeckoEnumStructAccessor(
+                self.struct,
+                "Out2",
+                13,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            KQXPIC: GeckoEnumStructAccessor(
-                self.struct, KQXPIC, QXPICX, None, LASSAK, None, None, QBMJVH
+            "Out3": GeckoEnumStructAccessor(
+                self.struct,
+                "Out3",
+                14,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            XPICXQ: GeckoEnumStructAccessor(
-                self.struct, XPICXQ, PICXQI, None, LASSAK, None, None, QBMJVH
+            "Out4": GeckoEnumStructAccessor(
+                self.struct,
+                "Out4",
+                15,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            ICXQIE: GeckoEnumStructAccessor(
-                self.struct, ICXQIE, CXQIEF, None, QIEFXQ, None, None, QBMJVH
+            "Out5": GeckoEnumStructAccessor(
+                self.struct,
+                "Out5",
+                16,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            IEFXQG: GeckoByteStructAccessor(self.struct, IEFXQG, EFXQGL, QBMJVH),
-            FXQGLR: GeckoByteStructAccessor(self.struct, FXQGLR, XQGLRA, QBMJVH),
-            QGLRAH: GeckoByteStructAccessor(self.struct, QGLRAH, GLRAHE, QBMJVH),
-            LRAHEO: GeckoByteStructAccessor(self.struct, LRAHEO, RAHEOC, QBMJVH),
-            AHEOCT: GeckoByteStructAccessor(self.struct, AHEOCT, HEOCTH, QBMJVH),
-            EOCTHB: GeckoByteStructAccessor(self.struct, EOCTHB, OCTHBS, QBMJVH),
-            CTHBSK: GeckoEnumStructAccessor(
-                self.struct, CTHBSK, THBSKS, None, LASSAK, None, None, QBMJVH
+            "OutHtr": GeckoEnumStructAccessor(
+                self.struct,
+                "OutHtr",
+                26,
+                None,
+                ["NA", "", "", "", "", "", "", "", "", "", "", "", "", "", "HTR"],
+                None,
+                None,
+                "ALL",
             ),
-            HBSKSO: GeckoEnumStructAccessor(
-                self.struct, HBSKSO, BSKSOK, None, LASSAK, None, None, QBMJVH
+            "Out1Cur": GeckoByteStructAccessor(self.struct, "Out1Cur", 36, "ALL"),
+            "Out2Cur": GeckoByteStructAccessor(self.struct, "Out2Cur", 37, "ALL"),
+            "Out3Cur": GeckoByteStructAccessor(self.struct, "Out3Cur", 38, "ALL"),
+            "Out4Cur": GeckoByteStructAccessor(self.struct, "Out4Cur", 39, "ALL"),
+            "Out5Cur": GeckoByteStructAccessor(self.struct, "Out5Cur", 40, "ALL"),
+            "OutHtRCur": GeckoByteStructAccessor(self.struct, "OutHtRCur", 50, "ALL"),
+            "Out6": GeckoEnumStructAccessor(
+                self.struct,
+                "Out6",
+                17,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            SKSOKP: GeckoEnumStructAccessor(
-                self.struct, SKSOKP, KSOKPH, None, LASSAK, None, None, QBMJVH
+            "Out7": GeckoEnumStructAccessor(
+                self.struct,
+                "Out7",
+                18,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            SOKPHU: GeckoEnumStructAccessor(
-                self.struct, SOKPHU, OKPHUO, None, LASSAK, None, None, QBMJVH
+            "Out8": GeckoEnumStructAccessor(
+                self.struct,
+                "Out8",
+                19,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            KPHUOJ: GeckoEnumStructAccessor(
-                self.struct, KPHUOJ, PHUOJR, None, LASSAK, None, None, QBMJVH
+            "Out9": GeckoEnumStructAccessor(
+                self.struct,
+                "Out9",
+                20,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            HUOJRJ: GeckoEnumStructAccessor(
-                self.struct, HUOJRJ, UOJRJH, None, LASSAK, None, None, QBMJVH
+            "Out10": GeckoEnumStructAccessor(
+                self.struct,
+                "Out10",
+                21,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            OJRJHI: GeckoEnumStructAccessor(
-                self.struct, OJRJHI, JRJHIU, None, LASSAK, None, None, QBMJVH
+            "Out11": GeckoEnumStructAccessor(
+                self.struct,
+                "Out11",
+                22,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            RJHIUS: GeckoEnumStructAccessor(
-                self.struct, RJHIUS, JHIUSO, None, HIUSOO, None, None, QBMJVH
+            "Out12": GeckoEnumStructAccessor(
+                self.struct,
+                "Out12",
+                23,
+                None,
+                [
+                    "NA",
+                    "P1H",
+                    "P1L",
+                    "P2H",
+                    "P2L",
+                    "P3H",
+                    "P3L",
+                    "P4H",
+                    "P4L",
+                    "P5",
+                    "BLO",
+                    "CP",
+                    "O3",
+                    "L120",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "FullOn",
+                ],
+                None,
+                None,
+                "ALL",
             ),
-            IUSOOQ: GeckoEnumStructAccessor(
-                self.struct, IUSOOQ, USOOQN, None, HIUSOO, None, None, QBMJVH
+            "Direct": GeckoEnumStructAccessor(
+                self.struct,
+                "Direct",
+                24,
+                None,
+                ["NA", "", "", "", "", "", "", "", "", "", "", "CP"],
+                None,
+                None,
+                "ALL",
             ),
-            SOOQNR: GeckoByteStructAccessor(self.struct, SOOQNR, OOQNRS, QBMJVH),
-            OQNRSJ: GeckoByteStructAccessor(self.struct, OQNRSJ, QNRSJM, QBMJVH),
-            NRSJMC: GeckoByteStructAccessor(self.struct, NRSJMC, RSJMCB, QBMJVH),
-            SJMCBF: GeckoByteStructAccessor(self.struct, SJMCBF, JMCBFE, QBMJVH),
-            MCBFEG: GeckoByteStructAccessor(self.struct, MCBFEG, CBFEGZ, QBMJVH),
-            BFEGZU: GeckoByteStructAccessor(self.struct, BFEGZU, FEGZUQ, QBMJVH),
-            EGZUQE: GeckoByteStructAccessor(self.struct, EGZUQE, GZUQEX, QBMJVH),
-            ZUQEXL: GeckoByteStructAccessor(self.struct, ZUQEXL, UQEXLS, QBMJVH),
-            QEXLSX: GeckoByteStructAccessor(self.struct, QEXLSX, EXLSXU, QBMJVH),
-            XLSXUJ: GeckoEnumStructAccessor(
-                self.struct, XLSXUJ, LSXUJU, None, XUJUTY, None, None, None
+            "Direct2": GeckoEnumStructAccessor(
+                self.struct,
+                "Direct2",
+                25,
+                None,
+                ["NA", "", "", "", "", "", "", "", "", "", "", "CP"],
+                None,
+                None,
+                "ALL",
             ),
-            UJUTYE: GeckoByteStructAccessor(self.struct, UJUTYE, JUTYEK, None),
-            UTYEKC: GeckoByteStructAccessor(self.struct, UTYEKC, TYEKCW, QBMJVH),
-            YEKCWA: GeckoByteStructAccessor(self.struct, YEKCWA, EKCWAO, QBMJVH),
-            KCWAON: GeckoByteStructAccessor(self.struct, KCWAON, CWAONP, QBMJVH),
-            WAONPY: GeckoEnumStructAccessor(
-                self.struct, WAONPY, AONPYY, YYLIUX, PYYLIU, None, YLIUXF, QBMJVH
+            "Out6Cur": GeckoByteStructAccessor(self.struct, "Out6Cur", 41, "ALL"),
+            "Out7Cur": GeckoByteStructAccessor(self.struct, "Out7Cur", 42, "ALL"),
+            "Out8Cur": GeckoByteStructAccessor(self.struct, "Out8Cur", 43, "ALL"),
+            "Out9Cur": GeckoByteStructAccessor(self.struct, "Out9Cur", 44, "ALL"),
+            "Out10Cur": GeckoByteStructAccessor(self.struct, "Out10Cur", 45, "ALL"),
+            "Out11Cur": GeckoByteStructAccessor(self.struct, "Out11Cur", 46, "ALL"),
+            "Out12Cur": GeckoByteStructAccessor(self.struct, "Out12Cur", 47, "ALL"),
+            "DirectCur": GeckoByteStructAccessor(self.struct, "DirectCur", 48, "ALL"),
+            "Direct2Cur": GeckoByteStructAccessor(self.struct, "Direct2Cur", 49, "ALL"),
+            "OutLi": GeckoEnumStructAccessor(
+                self.struct,
+                "OutLi",
+                79,
+                None,
+                ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "LI"],
+                None,
+                None,
+                None,
             ),
-            LIUXFE: GeckoEnumStructAccessor(
-                self.struct, LIUXFE, IUXFEF, None, EFJTAC, None, None, QBMJVH
+            "LightInts": GeckoByteStructAccessor(self.struct, "LightInts", 80, None),
+            "PumpTimeOut": GeckoByteStructAccessor(
+                self.struct, "PumpTimeOut", 54, "ALL"
             ),
-            FJTACC: GeckoEnumStructAccessor(
-                self.struct, FJTACC, JTACCP, None, CCPQIP, None, None, QBMJVH
+            "LightTimeOut": GeckoByteStructAccessor(
+                self.struct, "LightTimeOut", 55, "ALL"
             ),
-            CPQIPO: GeckoEnumStructAccessor(
-                self.struct, CPQIPO, PQIPOU, None, OUYNQJ, None, None, QBMJVH
+            "L120TimeOut": GeckoByteStructAccessor(
+                self.struct, "L120TimeOut", 56, "ALL"
             ),
-            UYNQJY: GeckoByteStructAccessor(self.struct, UYNQJY, YNQJYM, QBMJVH),
-            NQJYMO: GeckoByteStructAccessor(self.struct, NQJYMO, QJYMOU, QBMJVH),
-            JYMOUN: GeckoByteStructAccessor(self.struct, JYMOUN, YMOUNB, QBMJVH),
-            MOUNBL: GeckoByteStructAccessor(self.struct, MOUNBL, OUNBLK, QBMJVH),
-            UNBLKX: GeckoByteStructAccessor(self.struct, UNBLKX, NBLKXS, QBMJVH),
-            BLKXSJ: GeckoEnumStructAccessor(
-                self.struct, BLKXSJ, LKXSJW, None, XSJWMN, None, None, QBMJVH
+            "L120Timer": GeckoEnumStructAccessor(
+                self.struct, "L120Timer", 81, 0, ["Shared", "Own"], None, 2, "ALL"
             ),
-            SJWMNZ: GeckoEnumStructAccessor(
-                self.struct, SJWMNZ, JWMNZM, None, NZMJIG, None, None, QBMJVH
+            "FiltInterface": GeckoEnumStructAccessor(
+                self.struct,
+                "FiltInterface",
+                32,
+                None,
+                ["PurgeOnly", "FiltCP", "FiltP1"],
+                None,
+                None,
+                "ALL",
             ),
-            ZMJIGY: GeckoEnumStructAccessor(
-                self.struct, ZMJIGY, MJIGYO, None, JIGYOU, None, None, QBMJVH
+            "CpUsage": GeckoEnumStructAccessor(
+                self.struct,
+                "CpUsage",
+                27,
+                None,
+                ["STANDARD", "ALWAYS_ON"],
+                None,
+                None,
+                "ALL",
             ),
-            IGYOUS: GeckoEnumStructAccessor(
-                self.struct, IGYOUS, GYOUSP, None, USPBWJ, None, None, QBMJVH
+            "OtOption": GeckoEnumStructAccessor(
+                self.struct,
+                "OtOption",
+                57,
+                None,
+                ["Disabled", "AlwaysEnabled", "WithSPOver95F"],
+                None,
+                None,
+                "ALL",
             ),
-            SPBWJY: GeckoByteStructAccessor(self.struct, SPBWJY, PBWJYK, QBMJVH),
-            BWJYKL: GeckoTempStructAccessor(self.struct, BWJYKL, WJYKLG, QBMJVH),
-            JYKLGQ: GeckoEnumStructAccessor(
-                self.struct, JYKLGQ, YKLGQP, None, GQPLSP, None, None, QBMJVH
+            "OTTriggerG": GeckoByteStructAccessor(self.struct, "OTTriggerG", 58, "ALL"),
+            "CpOnTimeDuringOT": GeckoByteStructAccessor(
+                self.struct, "CpOnTimeDuringOT", 59, "ALL"
             ),
-            QPLSPF: GeckoEnumStructAccessor(
-                self.struct, QPLSPF, PLSPFT, None, JIGYOU, None, None, QBMJVH
+            "CpOffTimeDuringOT": GeckoByteStructAccessor(
+                self.struct, "CpOffTimeDuringOT", 60, "ALL"
             ),
-            LSPFTS: GeckoByteStructAccessor(self.struct, LSPFTS, SPFTSI, QBMJVH),
-            PFTSIF: GeckoTempStructAccessor(self.struct, PFTSIF, FTSIFJ, QBMJVH),
-            TSIFJB: GeckoTempStructAccessor(self.struct, TSIFJB, SIFJBI, QBMJVH),
-            IFJBIA: GeckoEnumStructAccessor(
-                self.struct, IFJBIA, FJBIAM, None, BIAMJM, None, None, QBMJVH
+            "FiltOnTimeDuringOT": GeckoByteStructAccessor(
+                self.struct, "FiltOnTimeDuringOT", 61, "ALL"
             ),
-            IAMJMA: GeckoByteStructAccessor(self.struct, IAMJMA, AMJMAO, QBMJVH),
-            MJMAOA: GeckoEnumStructAccessor(
-                self.struct, MJMAOA, JMAOAW, None, OAWBSI, None, None, QBMJVH
+            "FiltSuspendTime": GeckoByteStructAccessor(
+                self.struct, "FiltSuspendTime", 62, "ALL"
             ),
-            AWBSIR: GeckoByteStructAccessor(self.struct, AWBSIR, WBSIRY, QBMJVH),
-            BSIRYX: GeckoByteStructAccessor(self.struct, BSIRYX, SIRYXB, QBMJVH),
-            IRYXBQ: GeckoEnumStructAccessor(
-                self.struct, IRYXBQ, RYXBQF, None, XBQFYL, None, None, QBMJVH
+            "DrainMode": GeckoEnumStructAccessor(
+                self.struct,
+                "DrainMode",
+                78,
+                None,
+                ["NA", "P1", "CP"],
+                None,
+                None,
+                "ALL",
             ),
-            BQFYLJ: GeckoByteStructAccessor(self.struct, BQFYLJ, QFYLJU, QBMJVH),
-            FYLJUI: GeckoTimeStructAccessor(self.struct, FYLJUI, YLJUIK, QBMJVH),
-            LJUIKF: GeckoTimeStructAccessor(self.struct, LJUIKF, JUIKFW, QBMJVH),
-            UIKFWR: GeckoTimeStructAccessor(self.struct, UIKFWR, IKFWRK, QBMJVH),
-            KFWRKI: GeckoTimeStructAccessor(self.struct, KFWRKI, FWRKIN, QBMJVH),
-            WRKINE: GeckoEnumStructAccessor(
-                self.struct, WRKINE, RKINEJ, None, INEJNI, None, None, QBMJVH
+            "O3Usage": GeckoEnumStructAccessor(
+                self.struct,
+                "O3Usage",
+                28,
+                None,
+                ["Filter", "Always"],
+                None,
+                None,
+                "ALL",
             ),
-            NEJNIB: GeckoBoolStructAccessor(
-                self.struct, NEJNIB, EJNIBX, YYLIUX, QBMJVH
+            "O3Pump": GeckoEnumStructAccessor(
+                self.struct, "O3Pump", 29, None, ["CP", "P1"], None, None, "ALL"
             ),
-            JNIBXY: GeckoBoolStructAccessor(
-                self.struct, JNIBXY, NIBXYB, YLIUXF, QBMJVH
+            "O3Type": GeckoEnumStructAccessor(
+                self.struct,
+                "O3Type",
+                30,
+                None,
+                ["Standard", "Toggle"],
+                None,
+                None,
+                "ALL",
             ),
-            IBXYBQ: GeckoBoolStructAccessor(
-                self.struct, IBXYBQ, NIBXYB, YYLIUX, QBMJVH
+            "O3SuspendTime": GeckoByteStructAccessor(
+                self.struct, "O3SuspendTime", 63, "ALL"
             ),
-            BXYBQS: GeckoBoolStructAccessor(
-                self.struct, BXYBQS, NIBXYB, XYBQSN, QBMJVH
+            "SetpointG": GeckoTempStructAccessor(self.struct, "SetpointG", 1, "ALL"),
+            "TempUnits": GeckoEnumStructAccessor(
+                self.struct, "TempUnits", 33, None, ["F", "C"], None, None, "ALL"
             ),
-            YBQSNQ: GeckoBoolStructAccessor(
-                self.struct, YBQSNQ, NIBXYB, BQSNQL, QBMJVH
+            "HeaterPump": GeckoEnumStructAccessor(
+                self.struct, "HeaterPump", 31, None, ["CP", "P1"], None, None, "ALL"
             ),
-            QSNQLN: GeckoEnumStructAccessor(
-                self.struct, QSNQLN, SNQLNM, None, LNMHXE, None, None, QBMJVH
+            "CooldownTime": GeckoByteStructAccessor(
+                self.struct, "CooldownTime", 35, "ALL"
             ),
-            NMHXEK: GeckoEnumStructAccessor(
-                self.struct, NMHXEK, MHXEKV, None, EKVKZI, None, None, QBMJVH
+            "MinSetpointG": GeckoTempStructAccessor(
+                self.struct, "MinSetpointG", 66, "ALL"
             ),
-            KVKZIL: GeckoByteStructAccessor(self.struct, KVKZIL, VKZILX, QBMJVH),
-            KZILXW: GeckoEnumStructAccessor(
-                self.struct, KZILXW, ZILXWA, None, XWAJVD, None, None, QBMJVH
+            "MaxSetpointG": GeckoTempStructAccessor(
+                self.struct, "MaxSetpointG", 68, "ALL"
             ),
-            WAJVDQ: GeckoWordStructAccessor(self.struct, WAJVDQ, AJVDQL, QBMJVH),
+            "EconType": GeckoEnumStructAccessor(
+                self.struct,
+                "EconType",
+                70,
+                None,
+                ["Standard", "Night"],
+                None,
+                None,
+                "ALL",
+            ),
+            "NoHeatPeriod": GeckoByteStructAccessor(
+                self.struct, "NoHeatPeriod", 77, "ALL"
+            ),
+            "UL_CE": GeckoEnumStructAccessor(
+                self.struct, "UL_CE", 51, None, ["UL", "CE"], None, None, "ALL"
+            ),
+            "NbPhases": GeckoByteStructAccessor(self.struct, "NbPhases", 52, "ALL"),
+            "InputCurrent": GeckoByteStructAccessor(
+                self.struct, "InputCurrent", 53, "ALL"
+            ),
+            "InputMenu": GeckoEnumStructAccessor(
+                self.struct,
+                "InputMenu",
+                74,
+                None,
+                ["Standard", "DualPack"],
+                None,
+                None,
+                "ALL",
+            ),
+            "FiltFreq": GeckoByteStructAccessor(self.struct, "FiltFreq", 3, "ALL"),
+            "FiltStart": GeckoTimeStructAccessor(self.struct, "FiltStart", 4, "ALL"),
+            "FiltDur": GeckoTimeStructAccessor(self.struct, "FiltDur", 6, "ALL"),
+            "EconStart": GeckoTimeStructAccessor(self.struct, "EconStart", 8, "ALL"),
+            "EconDur": GeckoTimeStructAccessor(self.struct, "EconDur", 10, "ALL"),
+            "EconProgAvailable": GeckoEnumStructAccessor(
+                self.struct,
+                "EconProgAvailable",
+                71,
+                None,
+                ["NA", "Available"],
+                None,
+                None,
+                "ALL",
+            ),
+            "UDProgEcon": GeckoBoolStructAccessor(
+                self.struct, "UDProgEcon", 82, 0, "ALL"
+            ),
+            "EconControlableManually": GeckoBoolStructAccessor(
+                self.struct, "EconControlableManually", 72, 2, "ALL"
+            ),
+            "SoakOnCustomKey": GeckoBoolStructAccessor(
+                self.struct, "SoakOnCustomKey", 72, 0, "ALL"
+            ),
+            "OffOnCustomKey": GeckoBoolStructAccessor(
+                self.struct, "OffOnCustomKey", 72, 1, "ALL"
+            ),
+            "CleanupOnCustomKey": GeckoBoolStructAccessor(
+                self.struct, "CleanupOnCustomKey", 72, 3, "ALL"
+            ),
+            "MultiKeyOption": GeckoEnumStructAccessor(
+                self.struct,
+                "MultiKeyOption",
+                76,
+                None,
+                ["NoBlowerOnI2C", "BlowerOnI2C"],
+                None,
+                None,
+                "ALL",
+            ),
+            "MasterSlave": GeckoEnumStructAccessor(
+                self.struct,
+                "MasterSlave",
+                73,
+                None,
+                ["", "Master", "Slave"],
+                None,
+                None,
+                "ALL",
+            ),
+            "SlaveConfig": GeckoByteStructAccessor(
+                self.struct, "SlaveConfig", 75, "ALL"
+            ),
+            "TimeFormat": GeckoEnumStructAccessor(
+                self.struct,
+                "TimeFormat",
+                34,
+                None,
+                ["NA", "AmPm", "24h"],
+                None,
+                None,
+                "ALL",
+            ),
+            "AmbiantOHTrigADC": GeckoWordStructAccessor(
+                self.struct, "AmbiantOHTrigADC", 64, "ALL"
+            ),
         }

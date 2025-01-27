@@ -1,17 +1,15 @@
-""" GeckoSpaDescriptor class """
+"""GeckoSpaDescriptor class."""
 
-import logging
+from warnings import deprecated
 
-
-from .const import GeckoConstants
 from .automation import GeckoFacade
+from .const import GeckoConstants
 from .spa import GeckoSpa
 
-logger = logging.getLogger(__name__)
 
-
+@deprecated("Use GeckoAsyncSpaDescriptor")
 class GeckoSpaDescriptor:
-    """ A descriptor class for spas that have been discovered on the network """
+    """A descriptor class for spas that have been discovered on the network."""
 
     def __init__(
         self,
@@ -26,8 +24,7 @@ class GeckoSpaDescriptor:
         self.ipaddress, self.port = sender
 
     def get_facade(self, wait_for_connection=True):
-        """Get an automation facade to interact with the spa described
-        by this class"""
+        """Get an automation facade."""
         facade = GeckoFacade(GeckoSpa(self).start_connect())
         if wait_for_connection:
             while not facade.is_connected:

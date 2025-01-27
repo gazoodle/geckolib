@@ -1,9 +1,10 @@
-""" GeckoSpa class """
+"""GeckoSpa class"""
 
 import logging
 import threading
 import time
 import importlib
+from warnings import deprecated
 
 from .const import GeckoConstants
 from .config import GeckoConfig
@@ -26,6 +27,7 @@ from .driver import (
 logger = logging.getLogger(__name__)
 
 
+@deprecated("Use GeckoAsyncSpa instead")
 class GeckoSpa(GeckoUdpSocket):
     """
     GeckoSpa class manages an instance of a spa, and is the main point of contact for
@@ -103,7 +105,6 @@ class GeckoSpa(GeckoUdpSocket):
         )
 
     def _on_config_received(self, handler, sender):
-
         # Stash the config and log structure declarations
         self.config_version = handler.config_version
         self.log_version = handler.log_version
@@ -113,7 +114,7 @@ class GeckoSpa(GeckoUdpSocket):
         try:
             GeckoPack = importlib.import_module(pack_module_name).GeckoPack
             self.new_pack_class = GeckoPack(self.struct)
-            self.pack_type = self.new_pack_class.type
+            self.pack_type = self.new_pack_class.plateform_type
         except ModuleNotFoundError:
             self.is_in_error = True
             raise Exception(

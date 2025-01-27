@@ -1,6 +1,9 @@
-""" Spa Structure block """
+"""Spa Structure block"""
 
+from abc import abstractmethod
 import logging
+from typing import Any
+from warnings import deprecated
 
 from .protocol import GeckoStatusBlockProtocolHandler
 from .udp_socket import GeckoUdpSocket
@@ -8,8 +11,22 @@ from .udp_socket import GeckoUdpSocket
 logger = logging.getLogger(__name__)
 
 
-class GeckoStructure:
-    """Class to host/manage the raw data block for a spa structure"""
+class GeckoStructureTypeBase:
+    """Base class to allow typing."""
+
+    @abstractmethod
+    def set_value(self, pos: int, length: int, newvalue: Any) -> None:
+        """Set the value of the accessor."""
+
+    @property
+    @abstractmethod
+    def status_block(self) -> bytes:
+        """Get the status block bytes."""
+
+
+@deprecated("Replace with GeckoAsyncStructure")
+class GeckoStructure(GeckoStructureTypeBase):
+    """Class to host/manage the raw data block for a spa structure."""
 
     def __init__(self, on_set_value):
         self._status_block = b"\x00" * 1024
