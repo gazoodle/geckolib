@@ -1,8 +1,5 @@
 """Constants Class."""
 
-from warnings import deprecated
-
-
 class GeckoConstants:
     """
     All the constants in one place.

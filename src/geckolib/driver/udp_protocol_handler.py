@@ -6,7 +6,7 @@ import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING
-from warnings import deprecated
+#from warnings import deprecated
 
 from geckolib.config import config_sleep
 from geckolib.const import GeckoConstants
@@ -248,7 +248,7 @@ class GeckoUdpProtocolHandler(ABC):
     #
     ##########################################################################
 
-    @deprecated("Retry shouldn't still be here")
+    #@deprecated("Retry shouldn't still be here")
     def retry(self, socket) -> bool:
         """Retry the protocol."""
         if self._retry_count == 0:
@@ -261,7 +261,7 @@ class GeckoUdpProtocolHandler(ABC):
             socket.queue_send(self, self.last_destination)
         return True
 
-    @deprecated("Loop shouldn't still be here")
+    #@deprecated("Loop shouldn't still be here")
     def loop(self, socket) -> None:
         """Execute each time around the socket loop."""
         if not self.has_timedout:

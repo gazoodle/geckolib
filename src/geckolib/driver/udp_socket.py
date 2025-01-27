@@ -4,13 +4,13 @@ import socket
 import logging
 import threading
 import time
-from warnings import deprecated
+#from warnings import deprecated
 from .udp_protocol_handler import GeckoUdpProtocolHandler
 
 _LOGGER = logging.getLogger(__name__)
 
 
-@deprecated("Use async library now")
+#@deprecated("Use async library now")
 class GeckoUdpSocket:
     """Gecko in.touch2 uses UDP to communicate. This class is a wrapper around
     a socket and a thread and serviced by classes derived from GeckoUdpProtocolHandler

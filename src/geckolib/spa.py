@@ -4,7 +4,7 @@ import logging
 import threading
 import time
 import importlib
-from warnings import deprecated
+#from warnings import deprecated
 
 from .const import GeckoConstants
 from .config import GeckoConfig
@@ -27,7 +27,7 @@ from .driver import (
 logger = logging.getLogger(__name__)
 
 
-@deprecated("Use GeckoAsyncSpa instead")
+#@deprecated("Use GeckoAsyncSpa instead")
 class GeckoSpa(GeckoUdpSocket):
     """
     GeckoSpa class manages an instance of a spa, and is the main point of contact for

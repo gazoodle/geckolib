@@ -1,13 +1,13 @@
 """GeckoSpaDescriptor class."""
 
-from warnings import deprecated
+#from warnings import deprecated
 
 from .automation import GeckoFacade
 from .const import GeckoConstants
 from .spa import GeckoSpa
 
 
-@deprecated("Use GeckoAsyncSpaDescriptor")
+#@deprecated("Use GeckoAsyncSpaDescriptor")
 class GeckoSpaDescriptor:
     """A descriptor class for spas that have been discovered on the network."""
 
