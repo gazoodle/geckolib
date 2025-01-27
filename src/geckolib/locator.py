@@ -3,7 +3,7 @@
 import logging
 import time
 import threading
-from warnings import deprecated
+#from warnings import deprecated
 
 from .driver import (
     GeckoUdpSocket,
@@ -16,7 +16,7 @@ from .spa_descriptor import GeckoSpaDescriptor
 
 _LOGGER = logging.getLogger(__name__)
 
-@deprecated("Use GeckoAsyncLocator instead")
+#@deprecated("Use GeckoAsyncLocator instead")
 class GeckoLocator:
     """
     GeckoLocator class locates in.touch2 devices on your local LAN

@@ -3,7 +3,7 @@
 from abc import abstractmethod
 import logging
 from typing import Any
-from warnings import deprecated
+#from warnings import deprecated
 
 from .protocol import GeckoStatusBlockProtocolHandler
 from .udp_socket import GeckoUdpSocket
@@ -24,7 +24,7 @@ class GeckoStructureTypeBase:
         """Get the status block bytes."""
 
 
-@deprecated("Replace with GeckoAsyncStructure")
+#@deprecated("Replace with GeckoAsyncStructure")
 class GeckoStructure(GeckoStructureTypeBase):
     """Class to host/manage the raw data block for a spa structure."""
 

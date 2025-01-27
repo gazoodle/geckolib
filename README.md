@@ -340,6 +340,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Add coverage to GitHub package workflow
 - API set_config_mode needs to be per device rather than global
 
+## Done/Fixed in 0.4.20
+ - Remove deprecated constant, it's only available in Python 3.13 from warnings, we can re-add it
+   adter this package is released.
+
 ## Done/Fixed in 0.4.19
 
 - Removed unprintable charater in RF Channel name

@@ -2,7 +2,7 @@
 
 import logging
 import threading
-from warnings import deprecated
+#from warnings import deprecated
 
 from .blower import GeckoBlower
 from ..const import GeckoConstants
@@ -21,7 +21,7 @@ from ..driver import Observable
 logger = logging.getLogger(__name__)
 
 
-@deprecated("Use GeckoAsyncFacade instead")
+#@deprecated("Use GeckoAsyncFacade instead")
 class GeckoFacade(Observable):
     """Facade to abstract the Gecko implementation details and present an interface suitable
     for consumption by automation systems, e.g. Home Assistant. This class and all the
