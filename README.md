@@ -13,6 +13,11 @@ Home Assistant integration. This has now been released, in preview, and can be
 found at https://github.com/gazoodle/gecko-home-assistant, or from HACS by adding
 a new integration and seaching for Gecko_
 
+## WARNING
+This is the last version of this library that will support sync and async. The
+next release will remove the sync API as it's too convoluted to support both in
+the same codebase now.
+
 # Async support
 
 The core of the library has been rewritten to be async based. This is for several

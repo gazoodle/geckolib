@@ -270,15 +270,14 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         self.set_spa_state(GeckoSpaState.IDLE)
 
     async def async_locate_spas(
-        self, spa_address: Optional[str] = None, spa_identifier: Optional[str] = None
-    ) -> Optional[List[GeckoAsyncSpaDescriptor]]:
-        """Locate spas on this network
+        self, spa_address: str | None = None, spa_identifier: str | None = None
+    ) -> list[GeckoAsyncSpaDescriptor] | None:
+        """
+        Locate spas on this network.
 
         This API will return a list of GeckoAsyncSpaDescriptor that were
         found on the network. If there are none found, then the return will be
         None. Events will be issued as the locating process proceeds
-
-
         """
         try:
             await self._handle_event(GeckoSpaEvent.LOCATING_STARTED)
@@ -330,17 +329,18 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
                 GeckoSpaEvent.CONNECTION_FINISHED, facade=self._facade
             )
 
-        # return facade
         return self._facade
 
     async def async_connect(
-        self, spa_identifier: str, spa_address: Optional[str] = None
-    ) -> Optional[GeckoAsyncFacade]:
-        """Connect to spa.
+        self, spa_identifier: str, spa_address: str | None = None
+    ) -> GeckoAsyncFacade | None:
+        """
+        Connect to spa.
 
         This API will connect to the specified spa by doing a search with the
         supplied information. This is probably the API most commonly used by
-        automation systems to avoid storing too much information in configuration"""
+        automation systems to avoid storing too much information in configuration
+        """
         _LOGGER.debug("async_connect: ID:%s ADDR:%s", spa_identifier, spa_address)
 
         spa_descriptors = await self.async_locate_spas(spa_address, spa_identifier)
@@ -358,12 +358,16 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
 
     async def async_set_spa_info(
         self,
-        spa_address: Optional[str],
-        spa_identifier: Optional[str],
-        spa_name: Optional[str],
+        spa_address: str | None,
+        spa_identifier: str | None,
+        spa_name: str | None,
     ) -> None:
-        """Set the spa information so that the sequence pump can run the locate and
-        connect phases"""
+        """
+        Set the spa information.
+
+        Allows the sequence pump can run the locate and
+        connect phases.
+        """
         _LOGGER.debug(
             "set_spa_info: ADDR:%s ID:%s NAME:%s", spa_address, spa_identifier, spa_name
         )
