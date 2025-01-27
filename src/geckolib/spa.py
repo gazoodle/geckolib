@@ -1,4 +1,4 @@
-""" GeckoSpa class """
+"""GeckoSpa class"""
 
 import logging
 import threading
@@ -105,7 +105,6 @@ class GeckoSpa(GeckoUdpSocket):
         )
 
     def _on_config_received(self, handler, sender):
-
         # Stash the config and log structure declarations
         self.config_version = handler.config_version
         self.log_version = handler.log_version
@@ -115,7 +114,7 @@ class GeckoSpa(GeckoUdpSocket):
         try:
             GeckoPack = importlib.import_module(pack_module_name).GeckoPack
             self.new_pack_class = GeckoPack(self.struct)
-            self.pack_type = self.new_pack_class.type
+            self.pack_type = self.new_pack_class.plateform_type
         except ModuleNotFoundError:
             self.is_in_error = True
             raise Exception(

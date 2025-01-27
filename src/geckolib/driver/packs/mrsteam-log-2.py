@@ -48,14 +48,14 @@ class GeckoLogStruct:
         """Get all error keys."""
         return [
             "Prr4Err",
-            "SlaveH2O2Err",
+            "PowerFailErr",
             "KeyStuckErr",
-            "Prr1Err",
+            "SlaveH2O2Err",
             "Prr3Err",
+            "Prr1Err",
+            "H2O2Err",
             "FlashErr",
             "Prr2Err",
-            "H2O2Err",
-            "PowerFailErr",
         ]
 
     @property

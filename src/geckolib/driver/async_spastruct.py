@@ -1,6 +1,7 @@
 """Async Spa Structure block."""
 
 import logging
+from typing import Any
 
 from .spastruct import GeckoStructureTypeBase
 
@@ -8,16 +9,17 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoAsyncStructure(GeckoStructureTypeBase):
-    """Class to host/manage the raw data block for a spa structure"""
+    """Class to host/manage the raw data block for a spa structure."""
 
-    def __init__(self, on_set_value, on_async_set_value):
+    def __init__(self, on_set_value, on_async_set_value) -> None:
+        """Initialize the async version."""
         self._on_set_value = on_set_value
         self._on_async_set_value = on_async_set_value
         self.accessors = {}
         self.reset()
 
-    def replace_status_block_segment(self, offset, segment):
-        """Replace a segment of the status block"""
+    def replace_status_block_segment(self, offset, segment) -> None:
+        """Replace a segment of the status block."""
         previous_block = self._status_block
         segment_len = len(segment)
         self._status_block = (
@@ -30,13 +32,16 @@ class GeckoAsyncStructure(GeckoStructureTypeBase):
             accessor.status_block_changed(offset, segment_len, previous_block)
 
     @property
-    def status_block(self):
+    def status_block(self) -> bytes:
+        """Get the status block."""
         return self._status_block
 
-    def set_status_block(self, block):
+    def set_status_block(self, block: bytes) -> None:
+        """Set the status block."""
         self._status_block = block
 
-    def build_accessors(self, config_class, log_class):
+    def build_accessors(self, config_class, log_class) -> None:
+        """Build the accessors."""
         self.accessors = dict(config_class.accessors, **log_class.accessors)
         # Get all outputs
         self.all_outputs = config_class.output_keys
@@ -53,7 +58,7 @@ class GeckoAsyncStructure(GeckoStructureTypeBase):
         self.all_outputs = []
         self.all_devices = []
         self.user_demands = []
-        self._status_block = b"\x00" * 1024
+        self._status_block: bytes = b"\x00" * 1024
 
     async def get(self, protocol, create_func, retry_count=10):
         _LOGGER.debug("Async get for struct")
@@ -103,10 +108,10 @@ class GeckoAsyncStructure(GeckoStructureTypeBase):
                 retry_count -= 1
             return False
 
-    def set_value(self, pos, length, newvalue):
-        # Delegate this
+    def set_value(self, pos: int, length: int, newvalue: Any) -> None:
+        """Set the value of a block."""
         self._on_set_value(pos, length, newvalue)
 
     async def async_set_value(self, pos, length, newvalue):
-        # Delegate this
+        """Set the value of a block."""
         await self._on_async_set_value(pos, length, newvalue)

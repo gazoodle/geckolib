@@ -16,7 +16,7 @@ class GeckoPack:
         return "MAS-IBC-32K"
 
     @property
-    def type(self) -> int:
+    def plateform_type(self) -> int:
         """Get the plateform type."""
         return 2
 

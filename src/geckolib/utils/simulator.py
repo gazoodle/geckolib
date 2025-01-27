@@ -262,7 +262,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             try:
                 GeckoPack = importlib.import_module(pack_module_name).GeckoPack
                 self.pack_class = GeckoPack(struct)
-                self.pack_type = self.pack_class.type
+                self.pack_type = self.pack_class.plateform_type
             except ModuleNotFoundError:
                 raise Exception(
                     GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
@@ -644,6 +644,21 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             )
             print(f"Set a value ({handler.position} = {handler.new_data})")
 
+    async def _async_handle_key_press(self, keycode) -> None:
+        """Handle a key press command."""
+        _LOGGER.debug(f"Pack command press key {keycode}")
+        print(f"Key press {keycode}")
+        if keycode == GeckoConstants.KEYPAD_PUMP_1:
+            p1 = self.async_structure.accessors["P1"]
+            udp1 = self.async_structure.accessors["UdP1"]
+
+            if p1.value == "OFF":
+                udp1.value = "HI"
+                p1.value = "HIGH"
+            else:
+                udp1.value = "OFF"
+                p1.value = "OFF"
+
     def _on_hello(self, handler: GeckoHelloProtocolHandler, sender):
         if handler.was_broadcast_discovery:
             if self._should_ignore(handler, sender, False):
@@ -806,7 +821,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             return
 
         if USE_ASYNC_API:
-            pass
+            raise Exception("Shouldn't use this as async")
         else:
             self.structure.replace_status_block_segment(change[0], change[1])
 

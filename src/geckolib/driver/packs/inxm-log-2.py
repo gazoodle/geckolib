@@ -65,25 +65,25 @@ class GeckoLogStruct:
     def error_keys(self) -> list[str]:
         """Get all error keys."""
         return [
-            "RH_DutyCycleErr",
-            "ThermistanceErr",
-            "RH_RegProbeErr",
-            "AmbiantOHLevel1",
-            "Fuse3Err",
-            "RegOverHeatFlag",
+            "LearnDetectionErr",
+            "OHCondition",
             "ScanErr",
             "RelayStuck",
             "RH_CommErr",
-            "OHCondition",
-            "Fuse2Err",
-            "ContactorCoilFailErr",
+            "Fuse3Err",
             "Fuse1Err",
-            "NoHeaterCurrentErr",
-            "AmbiantOHLevel2",
-            "KinPumpOff",
+            "RH_RegProbeErr",
             "rHId",
+            "ContactorCoilFailErr",
+            "Fuse2Err",
+            "KinPumpOff",
             "SupplyErr",
-            "LearnDetectionErr",
+            "AmbiantOHLevel2",
+            "AmbiantOHLevel1",
+            "ThermistanceErr",
+            "RH_DutyCycleErr",
+            "RegOverHeatFlag",
+            "NoHeaterCurrentErr",
         ]
 
     @property

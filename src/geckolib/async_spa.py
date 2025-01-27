@@ -84,7 +84,9 @@ class GeckoAsyncSpa(Observable):
         self.version = ""
         self.config_number = 0
 
-        self.struct = GeckoAsyncStructure(self._on_set_value, self._on_async_set_value)
+        self.struct: GeckoAsyncStructure = GeckoAsyncStructure(
+            self._on_set_value, self._async_on_set_value
+        )
         self._last_ping_at: datetime | None = None
 
     @property
@@ -297,7 +299,7 @@ class GeckoAsyncSpa(Observable):
             self.pack_class = GeckoPack(self.struct)
             # TODO: Need to add base classes and type hinting to auto-generated
             # pack code and remove type-hint suppression below
-            self.pack_type = self.pack_class.type  # type: ignore
+            self.pack_type = self.pack_class.plateform_type
         except ModuleNotFoundError:
             await self._event_handler(
                 GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK,
@@ -566,7 +568,7 @@ class GeckoAsyncSpa(Observable):
             _LOGGER.debug(f"  Change {change}")
             self.struct.replace_status_block_segment(change[0], change[1])
 
-    async def _on_async_set_value(self, pos, length, newvalue) -> None:
+    async def _async_on_set_value(self, pos, length, newvalue) -> None:
         try:
             assert self._protocol is not None
             if not self.is_connected:
@@ -603,8 +605,9 @@ class GeckoAsyncSpa(Observable):
             raise
 
     def _on_set_value(self, pos, length, newvalue) -> None:
+        _LOGGER.debug("Hmm, we ought to queue a set request rather than another task")
         self._taskman.add_task(
-            self._on_async_set_value(pos, length, newvalue), "Set value task", "SPA"
+            self._async_on_set_value(pos, length, newvalue), "Set value task", "SPA"
         )
 
     @property

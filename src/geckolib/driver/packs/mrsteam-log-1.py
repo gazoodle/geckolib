@@ -46,12 +46,12 @@ class GeckoLogStruct:
     def error_keys(self) -> list[str]:
         """Get all error keys."""
         return [
-            "SlaveH2O2Err",
-            "KeyStuckErr",
-            "Prr1Err",
-            "Prr2Err",
-            "H2O2Err",
             "PowerFailErr",
+            "KeyStuckErr",
+            "SlaveH2O2Err",
+            "Prr1Err",
+            "H2O2Err",
+            "Prr2Err",
         ]
 
     @property

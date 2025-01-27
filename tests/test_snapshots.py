@@ -33,7 +33,7 @@ class GeckoAsyncSpa:
         try:
             GeckoPack = importlib.import_module(pack_module_name).GeckoPack
             self.pack_class = GeckoPack(self.struct)
-            self.pack_type = self.pack_class.type
+            self.pack_type = self.pack_class.plateform_type
         except ModuleNotFoundError:
             raise Exception(
                 GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(

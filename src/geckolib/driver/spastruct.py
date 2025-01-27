@@ -1,6 +1,8 @@
 """Spa Structure block"""
 
+from abc import abstractmethod
 import logging
+from typing import Any
 from warnings import deprecated
 
 from .protocol import GeckoStatusBlockProtocolHandler
@@ -11,6 +13,15 @@ logger = logging.getLogger(__name__)
 
 class GeckoStructureTypeBase:
     """Base class to allow typing."""
+
+    @abstractmethod
+    def set_value(self, pos: int, length: int, newvalue: Any) -> None:
+        """Set the value of the accessor."""
+
+    @property
+    @abstractmethod
+    def status_block(self) -> bytes:
+        """Get the status block bytes."""
 
 
 @deprecated("Replace with GeckoAsyncStructure")

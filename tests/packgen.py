@@ -117,7 +117,7 @@ def write_pack_preamble(
     file.write(f"        return '{plateform_name}'\n")
     file.write("\n")
     file.write("    @property\n")
-    file.write("    def type(self) -> int:\n")
+    file.write("    def plateform_type(self) -> int:\n")
     file.write('        """Get the plateform type."""\n')
     file.write(f"        return {plateform_type}\n")
     file.write("\n")
