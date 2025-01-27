@@ -1,52 +1,17 @@
 # GeckoLib
 
-Library to interface with Gecko Alliance spa pack systems via in.touch2
+Async library to interface with Gecko Alliance spa pack systems via in.touch2
 
 Written from the ground up using info gleaned from Wireshark captures to sniff
 the conversation between the iOS app and the inTouch2 home transmitter.
 
 Designed to be used by home automation systems such as Home Assistant or openHAB
 
-_This library is currently in Alpha, meaning that there may be large changes
+_This library is now Beta, meaning that there are unlikely to be major changes
 in library shape, class definitions, behaviours etc as I client it in my ongoing
 Home Assistant integration. This has now been released, in preview, and can be
 found at https://github.com/gazoodle/gecko-home-assistant, or from HACS by adding
 a new integration and seaching for Gecko_
-
-## WARNING
-This is the last version of this library that will support sync and async. The
-next release will remove the sync API as it's too convoluted to support both in
-the same codebase now.
-
-# Async support
-
-The core of the library has been rewritten to be async based. This is for several
-reasons;
-
-1. Home Assistant, my main client of the library prefers this pattern. I'd like to
-   get away from the "can't connect", "not supported" pattern and have the spa
-   connect immediately to the facade (which will do the handshake to the actual spa
-   asynchronously so that connection state can be shown in the UI if required).
-   This will improve HA startup performance and allow me to control
-   the retry connection pattern in the library without having to burden the HA
-   integration with this (HA doesn't like protocol in integrations)
-2. I've done loads of multi-threaded programming in my life and think I'm familiar
-   with almost all kinds of problems this brings, but ... why bother when this isn't
-   necessary
-3. While trying to implement a feature that supports occasionally disconnected
-   spas without generating reams of logging, I realized that I was fighting against
-   the previous architecture, so it's time to refactor that.
-4. Every day is a school day. I've not seriously explored Python's async support :-)
-
-Currently this isn't a breaking change, the sync library still has the functionality
-that it always had (albeit with some major refactoring). There is a completely parallel
-API and class set to support async clients.
-
-I'll update the HA integration to use the async version as it's much faster to start
-and it has more functionality. I know there are other automation clients using this
-library, so the sync API and classes will stay here for a while until those clients have
-had a chance to use the new async code, but I will deprecate them at some point,
-probably when the library goes to v1.0.0
 
 # Installation
 
@@ -305,11 +270,6 @@ https://github.com/gazoodle/geckolib/tree/main/sample. Only works on Linux
 The best example of use is in the Home Assistant integration which can be
 found here https://github.com/gazoodle/gecko-home-assistant
 
-# Sync API Usage
-
-**WARNING** Sync functionality will be removed in a future release,
-examples removed from README
-
 # Acknowledgements
 
 - Inspired by https://github.com/chicago6061/in.touch2.
@@ -339,6 +299,11 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Build some documentation
 - Add coverage to GitHub package workflow
 - API set_config_mode needs to be per device rather than global
+
+## Done/Fixed in 1.0.0
+ - Breaking change, removed all sync APIs
+ - Require Python 3.13 as minimum version
+
 
 ## Done/Fixed in 0.4.20
  - Remove deprecated constant, it's only available in Python 3.13 from warnings, we can re-add it

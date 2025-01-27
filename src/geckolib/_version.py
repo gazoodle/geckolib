@@ -1,3 +1,3 @@
 """Single module version."""
 
-VERSION = "0.4.20"
+VERSION = "1.0.0"
