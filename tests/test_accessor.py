@@ -1,4 +1,4 @@
-"""Unit tests for the structure accessor class"""
+"""Unit tests for the structure accessor class."""
 
 import struct
 import unittest
@@ -13,10 +13,10 @@ from context import (
 
 
 class TestStructAccessor(unittest.TestCase):
-    """Test the GeckoStructAccessor class"""
+    """Test the GeckoStructAccessor class."""
 
-    def setUp(self):
-        # self.spa = MockSpa()
+    def setUp(self) -> None:
+        """Set up the class."""
         self.struct = GeckoStructure(self._on_set_value)
         self.struct.set_status_block(
             # Bytes 0-16 are identity values
@@ -33,21 +33,21 @@ class TestStructAccessor(unittest.TestCase):
         self.last_data = None
         self.last_value = None
 
-    def _on_set_value(self, pos, len_, newvalue):
+    def _on_set_value(self, pos, len_, newvalue) -> None:
         self.last_pos = pos
         self.last_len = len_
         self.last_data = struct.pack(">B" if len_ == 1 else ">H", newvalue)
         self.struct.replace_status_block_segment(pos, self.last_data)
         self.last_value = newvalue
 
-    def test_read_byte(self):
-        """Can we read a byte from the structure"""
+    def test_read_byte(self) -> None:
+        """Can we read a byte from the structure."""
         accessor = GeckoByteStructAccessor(self.struct, "PackBootRev", 5, None)
         self.assertEqual(5, accessor.value)
 
     @unittest.expectedFailure
-    def test_write_byte_fails(self):
-        """Can we write a byte to the structure without the RW tag?"""
+    def test_write_byte_fails(self) -> None:
+        """Can we write a byte to the structure without the RW tag."""
         accessor = GeckoByteStructAccessor(self.struct, "PackBootRev", 5, None)
         accessor.value = 6
 

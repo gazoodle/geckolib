@@ -351,6 +351,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Fixed lock issue when a command is being retried as the protocol lock
   is busy and the CUI won't exit until the timeout has been reached (this can
   be reproduced by making the simulator stop responding to watercare requests)
+- Marked all sync APIs as deprecated
+- Push this code to github and release it as it will be the last version that
+  supports the sync API. It's getting too cluttered to maintain sync and async
+  in the same codebase.
 
 ## Done/Fixed in 0.4.18
 
