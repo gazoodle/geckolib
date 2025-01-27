@@ -6,7 +6,7 @@ import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING
-from warnings import deprecated
+#from warnings import deprecated
 
 from geckolib.config import config_sleep
 from geckolib.const import GeckoConstants
