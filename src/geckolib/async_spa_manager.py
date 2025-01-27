@@ -403,12 +403,12 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         return self._spa_name
 
     @property
-    def spa_descriptors(self) -> Optional[List[GeckoAsyncSpaDescriptor]]:
+    def spa_descriptors(self) -> list[GeckoAsyncSpaDescriptor] | None:
         """Get a list of the discovered spas, or None."""
         return self._spa_descriptors
 
     @property
-    def facade(self) -> Optional[GeckoAsyncFacade]:
+    def facade(self) -> GeckoAsyncFacade | None:
         """Get the connected facade, or None."""
         return self._facade
 
@@ -444,7 +444,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         return self._reconnect_button
 
     @property
-    def ping_sensor(self) -> Optional[GeckoAsyncSpaMan.PingSensor]:
+    def ping_sensor(self) -> GeckoAsyncSpaMan.PingSensor | None:
         return self._ping_sensor
 
     def __str__(self) -> str:
