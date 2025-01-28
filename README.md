@@ -294,7 +294,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Add ability to set hours so we can implement a crude clock sync mechanism
 - Look into getting shell & simulator using async API so that there are no
   internal dependencies on the sync code any longer
-- Move to pytest unit test framework
+- Move to pytest unit test framework (replace all unittest fixtures and custom asserts)
 - Use snapshots to generate some specific tests
 - Build some documentation
 - Add coverage to GitHub package workflow
@@ -303,7 +303,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 ## Done/Fixed in 1.0.0
  - Breaking change, removed all sync APIs
  - Require Python 3.13 as minimum version
-
+ - Made unit tests pass after sync API removal
 
 ## Done/Fixed in 0.4.20
  - Remove deprecated constant, it's only available in Python 3.13 from warnings, we can re-add it

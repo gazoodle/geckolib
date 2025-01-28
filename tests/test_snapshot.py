@@ -1,4 +1,4 @@
-"""Unit tests for the snapshot handlers"""
+"""Unit tests for the snapshot handlers."""
 
 import unittest
 import unittest.mock
@@ -163,13 +163,13 @@ LOG_LINES_CONNECTION = [
 
 
 class TestGeckoSnapshot(unittest.TestCase):
-    """Test the GeckoSnapshot classes"""
+    """Test the GeckoSnapshot classes."""
 
-    def test_constructor(self):
+    def test_constructor(self) -> None:
         snapshot = GeckoSnapshot()
         self.assertTrue(snapshot)
 
-    def test_parselines(self):
+    def test_parselines(self) -> None:
         snapshot = GeckoSnapshot()
         for line in LOG_LINES:
             snapshot.parse(line)
@@ -186,7 +186,7 @@ class TestGeckoSnapshot(unittest.TestCase):
         )
         self.assertEqual(snapshot.bytes[329:333], b"\x00\xba\x03\x00")
 
-    def test_parselines_alt(self):
+    def test_parselines_alt(self) -> None:
         snapshot = GeckoSnapshot()
         for line in LOG_LINES_ALT:
             snapshot.parse(line)
@@ -201,7 +201,7 @@ class TestGeckoSnapshot(unittest.TestCase):
             snapshot.bytes[29:39], b"\x00\x00\x01\x02\x00\x01\x1e\x00\n\x00"
         )
 
-    def test_parselines_connection(self):
+    def test_parselines_connection(self) -> None:
         snapshot = GeckoSnapshot()
         for line in LOG_LINES_CONNECTION:
             snapshot.parse(line)

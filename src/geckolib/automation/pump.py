@@ -1,7 +1,6 @@
-"""Gecko Pumps"""
+"""Gecko Pumps."""
 
 import logging
-from warnings import deprecated
 
 from ..const import GeckoConstants
 from .base import GeckoAutomationFacadeBase
@@ -11,7 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoPump(GeckoAutomationFacadeBase):
-    """Pumps are similar to switches, but might have variable speeds too"""
+    """Pumps are similar to switches, but might have variable speeds too."""
 
     def __init__(self, facade, key, props, user_demand):
         """Props is a tuple of (name, keypad_button, state_key, device_class)."""
@@ -37,23 +36,16 @@ class GeckoPump(GeckoAutomationFacadeBase):
 
     @property
     def modes(self):
+        """Get the pump modes."""
         return self._user_demand["options"]
 
     @property
     def mode(self):
+        """Get the pump mode."""
         return self._state_sensor.state
 
-    @deprecated("Use async_set_mode instead")
-    def set_mode(self, mode):
-        try:
-            _LOGGER.debug("%s set mode %s", self.name, mode)
-            self.facade.spa.accessors[self._user_demand["demand"]].value = mode
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.exception(
-                "Exception handling setting %s=%s", self._user_demand["demand"], mode
-            )
-
-    async def async_set_mode(self, mode):
+    async def async_set_mode(self, mode) -> None:
+        """Set the mode."""
         try:
             _LOGGER.debug("%s async set mode %s", self.name, mode)
             await self.facade.spa.accessors[

@@ -311,22 +311,22 @@ class GeckoAsyncFacade(Observable):
     @property
     def all_user_devices(self) -> list[GeckoAutomationBase]:
         """Get all the user controllable devices as a list."""
-        return self._pumps + self._blowers + self._lights  # type: ignore
+        return self._pumps + self._blowers + self._lights
 
     @property
     def all_config_change_devices(self) -> list[GeckoAutomationBase]:
         """Get all devices that can cause config change."""
-        return self._pumps + self._blowers  # type: ignore
+        return self._pumps + self._blowers
 
     @property
     def all_automation_devices(self) -> list[GeckoAutomationBase]:
         """Get all the automation devices as a list."""
         return (
             self.all_user_devices
-            + self.sensors  # type: ignore
-            + self.binary_sensors  # type: ignore
-            + [self.water_heater, self.water_care, self.reminders_manager]  # type: ignore
-            + [self.keypad, self.eco_mode]  # type: ignore
+            + self.sensors
+            + self.binary_sensors
+            + [self.water_heater, self.water_care, self.reminders_manager]
+            + [self.keypad, self.eco_mode]
         )
 
     def get_device(self, key) -> GeckoAutomationBase | None:

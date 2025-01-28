@@ -113,10 +113,14 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         for device in self.facade.all_user_devices:
             if isinstance(device, GeckoPump):
                 func_name = f"do_{device.ui_key}"
+
+                async def async_pump_command(self, arg, device=device):
+                    return await self.pump_command(arg, device)
+
                 setattr(
                     GeckoShell,
                     func_name,
-                    lambda self, arg, device=device: self.pump_command(arg, device),
+                    async_pump_command,
                 )
                 func_ptr = getattr(GeckoShell, func_name)
                 func_ptr.__doc__ = (
@@ -144,11 +148,11 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         else:
             device.turn_off()
 
-    def pump_command(self, arg, device):
+    async def pump_command(self, arg, device):
         """Set a pump mode <mode>"""
         print(f"Set pump {device.name} {arg}")
         try:
-            device.set_mode(arg)
+            await device.async_set_mode(arg)
         except Exception:
             traceback.print_exc()
 
@@ -273,27 +277,27 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Exception peeking at '%s'", arg)
 
-    def do_set(self, arg):
+    async def do_set(self, arg):
         """
         Set the value of the specified spa pack structure
         element : set <Element>=<value>
         """
         try:
             key, val = arg.split("=")
-            self.facade.spa.accessors[key].value = val
+            await self.facade.spa.accessors[key].async_set_value(val)
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Exception handling 'set %s'", arg)
 
-    def do_watercare(self, arg):
+    async def do_watercare(self, arg):
         """Set the active watercare mode to one of {0} : WATERCARE <mode>"""
         try:
-            self.facade.water_care.set_mode(arg)
+            await self.facade.water_care.async_set_mode(arg)
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Exception setting watercare to '%s'", arg)
 
-    def do_setpoint(self, arg):
+    async def do_setpoint(self, arg):
         """Set the spa setpoint temperature : setpoint <temp>"""
-        self.facade.water_heater.set_target_temperature(float(arg))
+        await self.facade.water_heater.async_set_target_temperature(float(arg))
 
     def do_eco(self, arg):
         """Set the spa eco mode : eco on|off"""

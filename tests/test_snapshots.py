@@ -1,4 +1,4 @@
-"""Unit tests for the actual snapshots"""
+"""Unit tests for the actual snapshots."""
 
 import importlib
 import pathlib
@@ -6,18 +6,18 @@ from unittest import IsolatedAsyncioTestCase, main
 
 from context import (
     GeckoAsyncFacade,
+    GeckoAsyncStructure,
     GeckoAsyncTaskMan,
     GeckoConstants,
     GeckoSnapshot,
-    GeckoStructure,
-)  # type: ignore
+)
 
 
 class GeckoAsyncSpa:
-    """Mock spa for testing"""
+    """Mock spa for testing."""
 
     def __init__(self, snapshotfile):
-        self.struct = GeckoStructure(None)
+        self.struct = GeckoAsyncStructure(None, None)
 
         cwd = pathlib.Path(__file__).parent.resolve()
         snapshots = GeckoSnapshot.parse_log_file(f"{cwd}/{snapshotfile}")
@@ -73,7 +73,7 @@ class GeckoAsyncSpa:
 
 
 class TestSnapshots(IsolatedAsyncioTestCase):
-    """Test all the snapshots"""
+    """Test all the snapshots."""
 
     def setUp(self) -> None:
         self.taskman = GeckoAsyncTaskMan()
@@ -87,11 +87,11 @@ class TestSnapshots(IsolatedAsyncioTestCase):
     def tearDown(self) -> None:
         del self.taskman
 
-    async def build_facade(self, snapshotfile):
+    async def build_facade(self, snapshotfile) -> GeckoAsyncFacade:
         spa = GeckoAsyncSpa(snapshotfile)
         return GeckoAsyncFacade(spa, self.taskman)
 
-    async def test_default(self):
+    async def test_default(self) -> None:
         facade = await self.build_facade("snapshots/default.snapshot")
         self.assertListEqual(
             ["P1", "P2", "BL", "LI"],
@@ -104,7 +104,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         self.assertEqual(39.0, facade.water_heater.current_temperature)
         self.assertEqual("°C", facade.water_heater.temperature_unit)
 
-    async def test_inYT_Pump1Low(self):
+    async def test_inYT_Pump1Low(self) -> None:  # noqa: N802
         facade = await self.build_facade(
             "snapshots/inYT-Pump1Lo-2020-12-13 11_19_35.snapshot"
         )
@@ -120,7 +120,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         self.assertEqual(70.0, facade.water_heater.current_temperature)
         self.assertEqual("°F", facade.water_heater.temperature_unit)
 
-    async def test_inYT_Pump1High(self):
+    async def test_inYT_Pump1High(self) -> None:  # noqa: N802
         facade = await self.build_facade(
             "snapshots/inYT-Pump1Hi-2020-12-13 11_19_35.snapshot"
         )
@@ -136,7 +136,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         self.assertEqual(70.0, facade.water_heater.current_temperature)
         self.assertEqual("°F", facade.water_heater.temperature_unit)
 
-    async def test_inYT_WaterFall_On(self):
+    async def test_inYT_WaterFall_On(self) -> None:  # noqa: N802
         facade = await self.build_facade(
             "snapshots/inYT-waterfall on-2020-10-23 18_01_30.snapshot"
         )
@@ -153,7 +153,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         self.assertEqual(37.0, facade.water_heater.current_temperature)
         self.assertEqual("°C", facade.water_heater.temperature_unit)
 
-    async def test_inYJ_All_Off(self):
+    async def test_inYJ_All_Off(self) -> None:  # noqa: N802
         facade = await self.build_facade(
             "snapshots/inYJ-All off-2020-12-18 11_24_09.snapshot"
         )

@@ -61,7 +61,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self._protocol: GeckoAsyncUdpProtocol | None = None
         self._transport: asyncio.BaseTransport | None = None
         self._name: str = "Sim"
-        self.async_structure: GeckoAsyncStructure = GeckoAsyncStructure(
+        self.structure: GeckoAsyncStructure = GeckoAsyncStructure(
             self._on_set_value, self._async_on_set_value
         )
         self.snapshot = None
@@ -160,7 +160,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Exception getting '%s'", arg)
 
-    def do_set(self, arg):
+    async def do_set(self, arg):
         """
         Set the value of the specified spa pack structure
         element : set <Element>=<value>
@@ -168,7 +168,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self._send_structure_change = True
         try:
             key, val = arg.split("=")
-            self.structure.accessors[key].value = val
+            await self.structure.accessors[key].async_set_value(val)
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Exception handling 'set %s'", arg)
         finally:
@@ -211,7 +211,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
 
     def set_snapshot(self, snapshot):
         self.snapshot = snapshot
-        self.async_structure.replace_status_block_segment(0, self.snapshot.bytes)
+        self.structure.replace_status_block_segment(0, self.snapshot.bytes)
 
         try:
             # Attempt to get config and log classes
@@ -220,7 +220,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             pack_module_name = f"geckolib.driver.packs.{plateform_key}"
             try:
                 GeckoPack = importlib.import_module(pack_module_name).GeckoPack
-                self.pack_class = GeckoPack(self.async_structure)
+                self.pack_class = GeckoPack(self.structure)
                 self.pack_type = self.pack_class.plateform_type
             except ModuleNotFoundError:
                 raise Exception(
@@ -234,7 +234,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 GeckoConfigStruct = importlib.import_module(
                     config_module_name
                 ).GeckoConfigStruct
-                self.config_class = GeckoConfigStruct(self.async_structure)
+                self.config_class = GeckoConfigStruct(self.structure)
             except ModuleNotFoundError:
                 raise Exception(
                     f"Cannot find GeckoConfigStruct module for {self.snapshot.packtype} v{self.snapshot.config_version}"
@@ -245,14 +245,14 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             )
             try:
                 GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
-                self.log_class = GeckoLogStruct(self.async_structure)
+                self.log_class = GeckoLogStruct(self.structure)
             except ModuleNotFoundError:
                 raise Exception(
                     f"Cannot find GeckoLogStruct module for {self.snapshot.packtype} v{self.snapshot.log_version}"
                 )
 
-            self.async_structure.build_accessors(self.config_class, self.log_class)
-            for accessor in self.async_structure.accessors.values():
+            self.structure.build_accessors(self.config_class, self.log_class)
+            for accessor in self.structure.accessors.values():
                 accessor.set_read_write("ALL")
 
         except:  # noqa
@@ -475,7 +475,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         ):
             length = min(
                 self._STATUS_BLOCK_SEGMENT_SIZE,
-                len(self.async_structure.status_block) - start,
+                len(self.structure.status_block) - start,
             )
             next = (idx + 1) % ((handler.length // self._STATUS_BLOCK_SEGMENT_SIZE) + 1)
             if self._should_ignore(handler, sender, False):
@@ -485,7 +485,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 GeckoStatusBlockProtocolHandler.response(
                     idx,
                     next,
-                    self.async_structure.status_block[start : start + length],
+                    self.structure.status_block[start : start + length],
                     parms=sender,
                 ),
                 sender,
@@ -562,15 +562,15 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         _LOGGER.debug(f"Pack command press key {keycode}")
         print(f"Key press {keycode}")
         if keycode == GeckoConstants.KEYPAD_PUMP_1:
-            p1 = self.async_structure.accessors["P1"]
-            udp1 = self.async_structure.accessors["UdP1"]
+            p1 = self.structure.accessors["P1"]
+            udp1 = self.structure.accessors["UdP1"]
 
             if p1.value == "OFF":
-                udp1.value = "HI"
-                p1.value = "HIGH"
+                await udp1.async_set_value("HI")
+                await p1.async_set_value("HIGH")
             else:
-                udp1.value = "OFF"
-                p1.value = "OFF"
+                await udp1.async_set_value("OFF")
+                await p1.async_set_value("OFF")
 
     async def _async_on_set_value(self, pos, length, newvalue):
         _LOGGER.debug(f"Simulator: Async Set value @{pos} len {length} to {newvalue}")
@@ -584,14 +584,14 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             print("**** UNHANDLED SET SIZE ****")
             return
 
-        self.async_structure.replace_status_block_segment(change[0], change[1])
+        self.structure.replace_status_block_segment(change[0], change[1])
         assert self._protocol is not None
 
         if self._send_structure_change:
             for client in self._clients:
                 self._protocol.queue_send(
                     GeckoAsyncPartialStatusBlockProtocolHandler.report_changes(
-                        self._socket, [change], parms=client
+                        self._protocol, [change], parms=client
                     ),
                     client,
                 )
@@ -616,8 +616,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         _LOGGER.debug(f"Pack command press key {keycode}")
         print(f"Key press {keycode}")
         if keycode == GeckoConstants.KEYPAD_PUMP_1:
-            p1 = self.async_structure.accessors["P1"]
-            udp1 = self.async_structure.accessors["UdP1"]
+            p1 = self.structure.accessors["P1"]
+            udp1 = self.structure.accessors["UdP1"]
 
             if p1.value == "OFF":
                 udp1.value = "HI"

@@ -139,53 +139,7 @@ class GeckoStructAccessor(Observable):
 
     @deprecated("Use _async_set_value")
     def _set_value(self, newvalue) -> None:
-        """Set a value in the pack structure using the initialized declaration."""
-        if self.read_write is None:
-            raise Exception(
-                GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag)
-            )
-
-        if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
-            newvalue = self.items.index(newvalue)
-        elif self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
-            bits = newvalue.split(":")
-            newvalue = (int(bits[0]) * 256) + (int(bits[1]) % 256)
-        elif (
-            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE
-            and isinstance(newvalue, str)
-        ) or (
-            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE
-            and isinstance(newvalue, str)
-        ):
-            newvalue = int(newvalue)
-        elif (
-            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE
-            and isinstance(newvalue, str)
-        ):
-            newvalue = newvalue.lower() == "true"
-
-        # If it is a bitpos, then mask it with the existing value
-        existing = struct.unpack(
-            self.format, self.struct.status_block[self.pos : self.pos + self.length]
-        )[0]
-        if self.bitpos is not None:
-            newvalue = (existing & ~(self.bitmask << self.bitpos)) | (
-                (newvalue & self.bitmask) << self.bitpos
-            )
-
-        _LOGGER.debug(
-            "Accessor %s @ %s, %s setting value to %s, existing value was %s. "
-            "Length is %d",
-            self.tag,
-            self.pos,
-            self.accessor_type,
-            newvalue,
-            existing,
-            self.length,
-        )
-
-        # We can't handle this here, we must delegate via the structure
-        self.struct.set_value(self.pos, self.length, newvalue)
+        raise Exception("Use the async _set_value API")
 
     @property
     def value(self) -> Any:
@@ -200,12 +154,6 @@ class GeckoStructAccessor(Observable):
         Uses the initialized declaration.
         """
         return self._get_raw_value()
-
-    @value.setter
-    @deprecated("Use async")
-    def value(self, newvalue):
-        """Set a value in the pack structure using the initialized declaration."""
-        self._set_value(newvalue)
 
     async def async_set_value(self, newvalue):
         """Set a value in the pack structure using the initialized declaration"""
@@ -255,13 +203,6 @@ class GeckoStructAccessor(Observable):
 
         # We can't handle this here, we must delegate via the structure
         await self.struct.async_set_value(self.pos, self.length, newvalue)
-
-    @deprecated("This function seems unused")
-    def trigger(self) -> None:
-        """Triger a change event."""
-        current_value = self.value
-        _LOGGER.info("Value for %s is %s", self.tag, current_value)
-        self._on_change(self, current_value, current_value)
 
     def __repr__(self) -> str:
         """Get string representation."""

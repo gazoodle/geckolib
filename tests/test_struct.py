@@ -1,20 +1,20 @@
-"""Unit tests for the structure class"""
+"""Unit tests for the structure class."""
 
 import unittest
 import unittest.mock
 
 from context import (
+    GeckoAsyncStructure,
     GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
-    GeckoStructure,
 )
 
 
 class TestStruct(unittest.TestCase):
-    """Test the GeckoStruct class"""
+    """Test the GeckoStruct class."""
 
     def setUp(self):
-        self.struct = GeckoStructure(None)
+        self.struct = GeckoAsyncStructure(None, None)
 
         class log_class:
             def __init__(self, struct_):
@@ -125,18 +125,18 @@ class TestStruct(unittest.TestCase):
         self.last_len = len_
         self.last_value = newvalue
 
-    def test_constructor(self):
+    def test_constructor(self) -> None:
         self.assertEqual(self.struct.status_block, b"\0" * 1024)
         self.assertEqual(len(self.struct.accessors), 10)
         self.assertEqual(self.struct.accessors["UdL120"].value, "OFF")
 
-    def test_set_value_callback(self):
+    def test_set_value_callback(self) -> None:
         self.struct.accessors["UdP1"].value = "HI"
         self.assertEqual(self.last_pos, 275)
         self.assertEqual(self.last_len, 2)
         self.assertEqual(self.last_value, 0b1000000000000000)
 
-    def test_observer_callback(self):
+    def test_observer_callback(self) -> None:
         P2_info = {"oldvalue": None, "newvalue": None}
 
         def P2_Watch(sender, oldvalue, newvalue):

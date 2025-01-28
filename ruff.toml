@@ -24,3 +24,6 @@ keep-runtime-typing = true
 
 [lint.mccabe]
 max-complexity = 25
+
+[lint.per-file-ignores]
+"tests/test_*.py" = ["PT009", "D102", "SLF001", "S101"]
