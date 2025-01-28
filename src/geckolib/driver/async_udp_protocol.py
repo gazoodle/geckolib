@@ -72,7 +72,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         return self._lock
 
     def connection_made(self, transport) -> None:
-        _LOGGER.debug("GeckoAsyncUdpProtocol: connection made to %s", transport)
+        _LOGGER.debug("GeckoAsyncUdpProtocol: connection made to %s.", transport)
         self.transport = transport
         self._on_connection_lost.clear()
 
