@@ -1,8 +1,8 @@
-""" Gecko Water Heaters """
+"""Gecko Water Heaters"""
 
-from .base import GeckoAutomationFacadeBase
-from .sensors import GeckoSensor, GeckoBinarySensor
 from ..const import GeckoConstants
+from .base import GeckoAutomationFacadeBase
+from .sensors import GeckoBinarySensor, GeckoSensor
 
 
 class GeckoWaterHeater(GeckoAutomationFacadeBase):
@@ -139,7 +139,6 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
         """Get the current temperature sensor object"""
         return self._current_temperature_sensor
 
-
     def set_temperature_unit(self, new_unit):
         """Set the temperature units for the water heater"""
         if new_unit in (self.TEMP_FARENHEIGHT, "f", "F"):
@@ -157,7 +156,6 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
     @property
     def current_operation(self):
         """Return the current operation of the water heater"""
-
         # If we have both sensors, then these are the arbiters
         if (
             self._heating_action_sensor is not None
@@ -165,10 +163,9 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
         ):
             if self._heating_action_sensor.is_on:
                 return GeckoConstants.WATER_HEATER_HEATING
-            elif self._cooling_action_sensor.is_on:
+            if self._cooling_action_sensor.is_on:
                 return GeckoConstants.WATER_HEATER_COOLING
-            else:
-                return GeckoConstants.WATER_HEATER_IDLE
+            return GeckoConstants.WATER_HEATER_IDLE
 
         # Otherwise, we take what we can get
         if self._heating_action_sensor is not None:
@@ -181,7 +178,7 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
         # Finally, it's down to the actual temperatures
         if self.current_temperature < self.real_target_temperature:
             return GeckoConstants.WATER_HEATER_HEATING
-        elif self.current_temperature > self.real_target_temperature:
+        if self.current_temperature > self.real_target_temperature:
             return GeckoConstants.WATER_HEATER_COOLING
         return GeckoConstants.WATER_HEATER_IDLE
 

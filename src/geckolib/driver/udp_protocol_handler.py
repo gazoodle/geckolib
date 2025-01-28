@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 from warnings import deprecated
 
 from geckolib.config import config_sleep
-from geckolib.const import GeckoConstants
 
 if TYPE_CHECKING:
     from .async_udp_protocol import GeckoAsyncUdpProtocol

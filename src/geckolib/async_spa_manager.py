@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Self
+from typing import TYPE_CHECKING, Self
 
 from .async_locator import GeckoAsyncLocator
 from .async_spa import GeckoAsyncSpa
@@ -57,7 +57,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             self._spaman: GeckoAsyncSpaMan = spaman
             assert self._spaman._spa is not None
             self._spaman._spa.watch(self._on_spa_change)
-            self._last_ping_at: Optional[datetime] = self._spaman._spa.last_ping_at
+            self._last_ping_at: datetime | None = self._spaman._spa.last_ping_at
 
         @property
         def state(self):
@@ -135,8 +135,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
 
         def set_signal(self, signal):
             self.signal = signal
-            if self.signal > 100:
-                self.signal = 100
+            self.signal = min(self.signal, 100)
 
         @property
         def state(self):
@@ -519,7 +518,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
 
         elif event == GeckoSpaEvent.ERROR_RF_ERROR:
             if self.spa_state == GeckoSpaState.CONNECTED:
-                self.spa_state = GeckoSpaState.ERROR_RF_FAULT
+                self.set_spa_state(GeckoSpaState.ERROR_RF_FAULT)
                 await self._handle_event(GeckoSpaEvent.CLIENT_FACADE_TEARDOWN)
 
         elif event == GeckoSpaEvent.RUNNING_SPA_DISCONNECTED:

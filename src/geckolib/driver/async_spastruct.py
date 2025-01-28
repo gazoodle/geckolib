@@ -85,7 +85,7 @@ class GeckoAsyncStructure:
 
                         if request.next == 0:
                             _LOGGER.debug(
-                                ("Status block segments complete, update and complete")
+                                "Status block segments complete, update and complete"
                             )
 
                             self.replace_status_block_segment(

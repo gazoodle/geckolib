@@ -13,7 +13,7 @@ class GeckoSwitch(GeckoAutomationFacadeBase):
     """A switch can turn something on or off, and can report the current state"""
 
     def __init__(self, facade, key, props):
-        """props is a tuple of (name, keypad_button, state_key, device_class)"""
+        """Props is a tuple of (name, keypad_button, state_key, device_class)"""
         super().__init__(facade, props[0], key)
         self.ui_key = key
         self._accessor = self._spa.accessors[props[2]]

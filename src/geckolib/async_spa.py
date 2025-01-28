@@ -5,9 +5,8 @@ import importlib
 import logging
 import socket
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import partial
-from typing import List, Optional, Tuple
 
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_taskman import GeckoAsyncTaskMan
@@ -217,12 +216,8 @@ class GeckoAsyncSpa(Observable):
             )
             return
 
-        self.intouch_version_en = "{0} v{1}.{2}".format(
-            version_handler.en_build, version_handler.en_major, version_handler.en_minor
-        )
-        self.intouch_version_co = "{0} v{1}.{2}".format(
-            version_handler.co_build, version_handler.co_major, version_handler.co_minor
-        )
+        self.intouch_version_en = f"{version_handler.en_build} v{version_handler.en_major}.{version_handler.en_minor}"
+        self.intouch_version_co = f"{version_handler.co_build} v{version_handler.co_major}.{version_handler.co_minor}"
         _LOGGER.debug(
             "Got in.touch2 firmware version EN(Home) %s/CO(Spa) %s, now get channel",
             self.intouch_version_en,
@@ -383,11 +378,7 @@ class GeckoAsyncSpa(Observable):
         self.struct.build_accessors(self.config_class, self.log_class)
 
         self.pack = self.accessors[GeckoConstants.KEY_PACK_TYPE].value
-        self.version = "{0} v{1}.{2}".format(
-            self.accessors[GeckoConstants.KEY_PACK_CONFIG_ID].value,
-            self.accessors[GeckoConstants.KEY_PACK_CONFIG_REV].value,
-            self.accessors[GeckoConstants.KEY_PACK_CONFIG_REL].value,
-        )
+        self.version = f"{self.accessors[GeckoConstants.KEY_PACK_CONFIG_ID].value} v{self.accessors[GeckoConstants.KEY_PACK_CONFIG_REV].value}.{self.accessors[GeckoConstants.KEY_PACK_CONFIG_REL].value}"
         self.config_number = self.accessors[GeckoConstants.KEY_CONFIG_NUMBER].value
 
         self._is_connected = True
@@ -446,7 +437,7 @@ class GeckoAsyncSpa(Observable):
             )
 
     @property
-    def last_ping_at(self) -> Optional[datetime]:
+    def last_ping_at(self) -> datetime | None:
         """The datetime of the last successful ping response or None"""
         return self._last_ping_at
 
@@ -466,7 +457,7 @@ class GeckoAsyncSpa(Observable):
 
                 if ping_handler is not None:
                     self._last_ping = time.monotonic()
-                    self._last_ping_at = datetime.utcnow().replace(tzinfo=timezone.utc)
+                    self._last_ping_at = datetime.utcnow().replace(tzinfo=UTC)
                     self._on_change()
                     await self._event_handler(
                         GeckoSpaEvent.RUNNING_PING_RECEIVED,
@@ -498,7 +489,7 @@ class GeckoAsyncSpa(Observable):
             _LOGGER.debug("Ping loop cancelled")
             raise
 
-        except:  # noqa
+        except:
             _LOGGER.exception("Exception in ping loop")
             raise
 
@@ -516,10 +507,11 @@ class GeckoAsyncSpa(Observable):
         )
 
     async def _refresh_loop(self) -> None:
-        """The refresh loop is simply to ensure that our understanding
+        """
+        The refresh loop is simply to ensure that our understanding
         of the live parts of the spastruct are always up-to-date. We
-        shouldn't need to do this, but this is belt and braces stuff"""
-
+        shouldn't need to do this, but this is belt and braces stuff
+        """
         try:
             _LOGGER.debug("Refresh loop started")
             while self.isopen:
@@ -659,7 +651,7 @@ class GeckoAsyncSpa(Observable):
     ) -> None:
         await self._event_handler(GeckoSpaEvent.RUNNING_SPA_WATER_CARE_ERROR)
 
-    async def async_get_watercare(self) -> Optional[int]:
+    async def async_get_watercare(self) -> int | None:
         if not self.is_connected:
             _LOGGER.warning("Cannot get watercare when spa not connected")
             return 0
@@ -707,7 +699,7 @@ class GeckoAsyncSpa(Observable):
             parms=self.sendparms,
         )
 
-    async def async_get_reminders(self) -> List[Tuple]:
+    async def async_get_reminders(self) -> list[tuple]:
         if not self.is_connected:
             _LOGGER.warning("Cannot get reminders when spa not connected")
             return []

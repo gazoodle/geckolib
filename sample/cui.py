@@ -173,44 +173,43 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 lines.append(f"{self.channel_sensor}")
                 lines.append(f"{self.facade.error_sensor}")
 
-            else:
-                if self.spa_state == GeckoSpaState.LOCATED_SPAS:
-                    if self.spa_descriptors is not None:
-                        # If the _spas property is available, that means we've got
-                        # a list of spas that we can choose from
-                        for idx, spa in enumerate(self.spa_descriptors, start=1):
-                            lines.append(f"{idx}. {spa.name} at {spa.ipaddress}")
-                            self._commands[f"{idx}"] = (self._select_spa, spa)
+            elif self.spa_state == GeckoSpaState.LOCATED_SPAS:
+                if self.spa_descriptors is not None:
+                    # If the _spas property is available, that means we've got
+                    # a list of spas that we can choose from
+                    for idx, spa in enumerate(self.spa_descriptors, start=1):
+                        lines.append(f"{idx}. {spa.name} at {spa.ipaddress}")
+                        self._commands[f"{idx}"] = (self._select_spa, spa)
 
-                        if len(self.spa_descriptors) == 0:
-                            lines.append("No spas were found on your network")
+                    if len(self.spa_descriptors) == 0:
+                        lines.append("No spas were found on your network")
 
-                elif self.spa_state == GeckoSpaState.CONNECTED:
-                    lines.append(f"{self.spa_name} connecting")
-                    lines.append(f"{self.ping_sensor}")
-                    lines.append(f"{self.radio_sensor}")
-                    lines.append(f"{self.channel_sensor}")
-                    lines.append("")
+            elif self.spa_state == GeckoSpaState.CONNECTED:
+                lines.append(f"{self.spa_name} connecting")
+                lines.append(f"{self.ping_sensor}")
+                lines.append(f"{self.radio_sensor}")
+                lines.append(f"{self.channel_sensor}")
+                lines.append("")
 
-                elif self.spa_state == GeckoSpaState.ERROR_RF_FAULT:
-                    lines.append(f"{self.spa_name} not ready")
-                    lines.append(f"{self.ping_sensor}")
-                    lines.append(f"{self.radio_sensor}")
-                    lines.append(f"{self.channel_sensor}")
-                    lines.append("")
-                    lines.append(
-                        "Lost contact with your spa, it looks as if it is turned off"
-                    )
+            elif self.spa_state == GeckoSpaState.ERROR_RF_FAULT:
+                lines.append(f"{self.spa_name} not ready")
+                lines.append(f"{self.ping_sensor}")
+                lines.append(f"{self.radio_sensor}")
+                lines.append(f"{self.channel_sensor}")
+                lines.append("")
+                lines.append(
+                    "Lost contact with your spa, it looks as if it is turned off"
+                )
 
-                elif self.spa_state == GeckoSpaState.ERROR_PING_MISSED:
-                    lines.append(f"{self.spa_name} not ready")
-                    lines.append(f"{self.ping_sensor}")
-                    lines.append(f"{self.radio_sensor}")
-                    lines.append(f"{self.channel_sensor}")
-                    lines.append("")
-                    lines.append(
-                        "Lost contact with your intouch2 module, please investigate"
-                    )
+            elif self.spa_state == GeckoSpaState.ERROR_PING_MISSED:
+                lines.append(f"{self.spa_name} not ready")
+                lines.append(f"{self.ping_sensor}")
+                lines.append(f"{self.radio_sensor}")
+                lines.append(f"{self.channel_sensor}")
+                lines.append("")
+                lines.append(
+                    "Lost contact with your intouch2 module, please investigate"
+                )
 
             lines.append("")
 

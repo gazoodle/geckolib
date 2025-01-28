@@ -77,7 +77,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         self.spas = locator.spas
 
         number_of_spas = len(self.spas)
-        print("Found {0} spas".format(number_of_spas))
+        print(f"Found {number_of_spas} spas")
         if number_of_spas == 0:
             _LOGGER.warning(
                 "Try using the iOS or Android app to confirm they are "
@@ -90,16 +90,14 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
     def do_list(self, _arg) -> None:
         """List the spas that are available to manage : list."""
         for idx, spa in enumerate(self.spas):
-            print("{0}. {1}".format(idx + 1, spa.name))
+            print(f"{idx + 1}. {spa.name}")
 
     async def do_manage(self, arg) -> None:
         """Manage a named or numbered spa : manage 1."""
         spa_to_manage = int(arg)
         spa_descriptor = self.spas[spa_to_manage - 1]
         print(
-            "Connecting to spa `{0}` at {1} ... ".format(
-                spa_descriptor.name, spa_descriptor.ipaddress
-            ),
+            f"Connecting to spa `{spa_descriptor.name}` at {spa_descriptor.ipaddress} ... ",
             end="",
             flush=True,
         )
@@ -109,38 +107,34 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         await self.wait_for_facade()
         await self.facade.wait_for_one_update()
         print(f"connected to {self.facade.name}!")
-        self.prompt = "{}$ ".format(self.facade.name)
+        self.prompt = f"{self.facade.name}$ "
 
         # Build list of spa commands
         for device in self.facade.all_user_devices:
             if isinstance(device, GeckoPump):
-                func_name = "do_{0}".format(device.ui_key)
+                func_name = f"do_{device.ui_key}"
                 setattr(
                     GeckoShell,
                     func_name,
                     lambda self, arg, device=device: self.pump_command(arg, device),
                 )
                 func_ptr = getattr(GeckoShell, func_name)
-                func_ptr.__doc__ = "Set pump {0} mode: {1} <OFF|LO|HI>".format(
-                    device.name, device.ui_key
-                )
+                func_ptr.__doc__ = f"Set pump {device.name} mode: {device.ui_key} <OFF|LO|HI>"
             else:
-                func_name = "do_{0}".format(device.ui_key)
+                func_name = f"do_{device.ui_key}"
                 setattr(
                     GeckoShell,
                     func_name,
                     lambda self, arg, device=device: self.device_command(arg, device),
                 )
                 func_ptr = getattr(GeckoShell, func_name)
-                func_ptr.__doc__ = "Turn device {0} ON or OFF: {1} <ON|OFF>".format(
-                    device.name, device.ui_key
-                )
+                func_ptr.__doc__ = f"Turn device {device.name} ON or OFF: {device.ui_key} <ON|OFF>"
 
         self.push_command("state")
 
     def device_command(self, arg, device):
         """Turn a device on or off."""
-        print("Turn device {0} {1}".format(device.name, arg))
+        print(f"Turn device {device.name} {arg}")
         if arg.lower() == "on":
             device.turn_on()
         else:
@@ -148,7 +142,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
 
     def pump_command(self, arg, device):
         """Set a pump mode <mode>"""
-        print("Set pump {0} {1}".format(device.name, arg))
+        print(f"Set pump {device.name} {arg}")
         try:
             device.set_mode(arg)
         except Exception:
@@ -218,7 +212,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                     self.monitor_print_states(current_state)
                 await config_sleep(1, "Shell monitor loop")
             except KeyboardInterrupt:
-                print("")
+                print()
                 print("Monitor stopped")
                 break
 
@@ -246,24 +240,24 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         """Display the data from the accessors : accessors"""
         print("Accessors")
         print("=========")
-        print("")
+        print()
         for key in self.facade.spa.accessors:
-            print("   {0}: {1}".format(key, self.facade.spa.accessors[key].value))
-        print("")
+            print(f"   {key}: {self.facade.spa.accessors[key].value}")
+        print()
 
     def do_about(self, _arg):
         """Display information about this client program and support library : about"""
-        print("")
+        print()
         print(
             "GeckoShell: A python program using GeckoLib library to drive Gecko enabled"
             " devices with in.touch2 communication modules"
         )
-        print("Library version v{0}".format(VERSION))
+        print(f"Library version v{VERSION}")
 
     def do_get(self, arg):
         """Get the value of the specified spa pack structure element : get <Element>"""
         try:
-            print("{0} = {1}".format(arg, self.facade.spa.accessors[arg].value))
+            print(f"{arg} = {self.facade.spa.accessors[arg].value}")
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Exception getting '%s'", arg)
 
@@ -276,8 +270,10 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
             _LOGGER.exception("Exception peeking at '%s'", arg)
 
     def do_set(self, arg):
-        """Set the value of the specified spa pack structure
-        element : set <Element>=<value>"""
+        """
+        Set the value of the specified spa pack structure
+        element : set <Element>=<value>
+        """
         try:
             key, val = arg.split("=")
             self.facade.spa.accessors[key].value = val
@@ -303,8 +299,10 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
             self.facade.eco_mode.turn_on()
 
     def do_snapshot(self, arg):
-        """Take a snapshot of the spa data structure with a descriptive
-        message : SNAPSHOT <desc>"""
+        """
+        Take a snapshot of the spa data structure with a descriptive
+        message : SNAPSHOT <desc>
+        """
         _LOGGER.info("Snapshot (%s)", arg)
         for ver_str in self.version_strings:
             _LOGGER.info(ver_str)

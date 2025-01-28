@@ -1,4 +1,4 @@
-""" Gecko AVERS/SVERS handlers """
+"""Gecko AVERS/SVERS handlers"""
 
 import logging
 import struct

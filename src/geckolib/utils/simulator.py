@@ -88,12 +88,12 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
 
     def do_about(self, _arg) -> None:
         """Display information about this client program and support library : about."""
-        print("")
+        print()
         print(
             "GeckoSimulator: A python program using GeckoLib library to simulate Gecko"
             " enabled devices with in.touch2 communication modules"
         )
-        print("Library version v{0}".format(VERSION))
+        print(f"Library version v{VERSION}")
 
     async def do_start(self, args):
         """Start the configured simulator : start."""
@@ -126,19 +126,23 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         return glob.glob(path + "*")
 
     def do_parse(self, args):
-        """Parse logfiles to extract snapshots to the ./snapshot directory. Will
-        overwrite identically named snapshot files if present : parse <logfile>"""
+        """
+        Parse logfiles to extract snapshots to the ./snapshot directory. Will
+        overwrite identically named snapshot files if present : parse <logfile>
+        """
         for snapshot in GeckoSnapshot.parse_log_file(args):
             snapshot.save("snapshots")
             print(f"Saved snapshot snapshots/{snapshot.filename}")
 
     def do_reliability(self, args):
-        """Set simulator reliability factor. Reliability is a measure of how likely
+        """
+        Set simulator reliability factor. Reliability is a measure of how likely
         the simulator will respond to an incoming message. Reliability of 1.0 (default)
         means the simulator will always respond, whereas 0.0 means it will never
         respond. This does not take into account messages that actually don't get
         recieved : reliability <factor> where <factor> is a float between 0.0 and
-        1.0."""
+        1.0.
+        """
         if args == "":
             print(f"Current reliability is {self._reliability}")
             return
@@ -152,13 +156,15 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     def do_get(self, arg):
         """Get the value of the specified spa pack structure element : get <Element>"""
         try:
-            print("{0} = {1}".format(arg, self.structure.accessors[arg].value))
+            print(f"{arg} = {self.structure.accessors[arg].value}")
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Exception getting '%s'", arg)
 
     def do_set(self, arg):
-        """Set the value of the specified spa pack structure
-        element : set <Element>=<value>"""
+        """
+        Set the value of the specified spa pack structure
+        element : set <Element>=<value>
+        """
         self._send_structure_change = True
         try:
             key, val = arg.split("=")
@@ -172,10 +178,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         """Display the data from the accessors : accessors"""
         print("Accessors")
         print("=========")
-        print("")
+        print()
         for key in self.structure.accessors:
-            print("   {0}: {1}".format(key, self.structure.accessors[key].value))
-        print("")
+            print(f"   {key}: {self.structure.accessors[key].value}")
+        print()
 
     def complete_parse(self, text, line, start_idx, end_idx):
         return self._complete_path(text)
@@ -252,10 +258,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         except:  # noqa
             _LOGGER.exception("Exception during snapshot load")
 
-    def _should_ignore(self, handler, sender, respect_rferr=True)->bool:
+    def _should_ignore(self, handler, sender, respect_rferr=True) -> bool:
         if respect_rferr and self._do_rferr:
             self._protocol.queue_send(
-                GeckoRFErrProtocolHandler.response(parms=sender),sender
+                GeckoRFErrProtocolHandler.response(parms=sender), sender
             )
             # Always ignore responses because we've already replied with RFERR
             return True
@@ -287,9 +293,9 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         )
         # Helper to unwrap PACK packets
         self.add_task(
-            GeckoPacketProtocolHandler(
-                async_on_handled=self._async_on_packet
-            ).consume(self._protocol),
+            GeckoPacketProtocolHandler(async_on_handled=self._async_on_packet).consume(
+                self._protocol
+            ),
             "Packet handler",
             "SIM",
         )
@@ -621,9 +627,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 p1.value = "OFF"
 
     def _on_set_value(self, pos, length, newvalue):
-        _LOGGER.debug(
-            "Hmm, we ought to queue a set request rather than another task"
-        )
+        _LOGGER.debug("Hmm, we ought to queue a set request rather than another task")
         self._taskman.add_task(
             self._async_on_set_value(pos, length, newvalue),
             "Async Set Value",

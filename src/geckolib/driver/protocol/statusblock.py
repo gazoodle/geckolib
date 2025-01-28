@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import struct
-from warnings import deprecated
 
 from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
@@ -54,7 +53,7 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.start = kwargs.get("start", None)
+        self.start = kwargs.get("start")
         self.sequence = self.length = self.next = self.data = None
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:

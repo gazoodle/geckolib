@@ -1,7 +1,6 @@
-""" Unit tests for the Async locator class """
+"""Unit tests for the Async locator class"""
 
-from unittest import IsolatedAsyncioTestCase, main
-from unittest.mock import patch
+from unittest import IsolatedAsyncioTestCase
 
 from context import GeckoAsyncLocator
 

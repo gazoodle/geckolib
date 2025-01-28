@@ -39,19 +39,18 @@ class GeckoSpaState(Enum):
     def to_string(state: GeckoSpaState) -> str:
         if state == GeckoSpaState.CONNECTED:
             return "Connected"
-        elif state == GeckoSpaState.CONNECTING:
+        if state == GeckoSpaState.CONNECTING:
             return "Connecting..."
-        elif state == GeckoSpaState.ERROR_RF_FAULT:
+        if state == GeckoSpaState.ERROR_RF_FAULT:
             return "Lost contact with spa (RFERR)"
-        elif state == GeckoSpaState.ERROR_PING_MISSED:
+        if state == GeckoSpaState.ERROR_PING_MISSED:
             return "Lost contact with in.touch2 module"
-        elif state == GeckoSpaState.ERROR_NEEDS_ATTENTION:
+        if state == GeckoSpaState.ERROR_NEEDS_ATTENTION:
             return "Needs attention, check logs"
-        elif state == GeckoSpaState.LOCATING_SPAS:
+        if state == GeckoSpaState.LOCATING_SPAS:
             return "Searching for spas..."
-        elif state == GeckoSpaState.LOCATED_SPAS:
+        if state == GeckoSpaState.LOCATED_SPAS:
             return "Choose spa"
-        elif state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
+        if state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
             return "Cannot find spa, check logs"
-        else:
-            return f"{state}"
+        return f"{state}"

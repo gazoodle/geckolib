@@ -1,9 +1,9 @@
-""" Unit tests for the SpaMan class """
+"""Unit tests for the SpaMan class"""
 
 from unittest import IsolatedAsyncioTestCase, main
 from unittest.mock import patch
 
-from context import GeckoAsyncSpaMan, GeckoAsyncSpaDescriptor, GeckoSpaEvent
+from context import GeckoAsyncSpaDescriptor, GeckoAsyncSpaMan, GeckoSpaEvent
 
 
 class SpaManImpl(GeckoAsyncSpaMan):

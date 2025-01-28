@@ -60,7 +60,7 @@ class AbstractDisplay(ABC):
             _LOGGER.debug("Input loop cancelled")
             raise
 
-        except:  # noqa
+        except:
             _LOGGER.exception("Exception in input loop")
             raise
 

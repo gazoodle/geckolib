@@ -1,5 +1,6 @@
 """Constants Class."""
 
+
 class GeckoConstants:
     """
     All the constants in one place.

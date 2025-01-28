@@ -4,8 +4,6 @@ import asyncio
 import cmd
 import logging
 import sys
-from enum import member
-from importlib.metadata import files
 from typing import Self
 
 from geckolib.async_taskman import GeckoAsyncTaskMan
@@ -211,20 +209,19 @@ class GeckoCmd(cmd.Cmd):
             while not stop:
                 if self.cmdqueue:
                     line = self.cmdqueue.pop(0)
+                elif self.use_rawinput:
+                    try:
+                        line = await self._input(self.prompt)
+                    except EOFError:
+                        line = "EOF"
                 else:
-                    if self.use_rawinput:
-                        try:
-                            line = await self._input(self.prompt)
-                        except EOFError:
-                            line = "EOF"
+                    self.stdout.write(self.prompt)
+                    self.stdout.flush()
+                    line = self.stdin.readline()
+                    if not len(line):
+                        line = "EOF"
                     else:
-                        self.stdout.write(self.prompt)
-                        self.stdout.flush()
-                        line = self.stdin.readline()
-                        if not len(line):
-                            line = "EOF"
-                        else:
-                            line = line.rstrip("\r\n")
+                        line = line.rstrip("\r\n")
                 line = self.precmd(line)
                 stop = await self.onecmd(line)
                 stop = self.postcmd(stop, line)

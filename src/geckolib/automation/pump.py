@@ -14,7 +14,7 @@ class GeckoPump(GeckoAutomationFacadeBase):
     """Pumps are similar to switches, but might have variable speeds too"""
 
     def __init__(self, facade, key, props, user_demand):
-        """props is a tuple of (name, keypad_button, state_key, device_class)"""
+        """Props is a tuple of (name, keypad_button, state_key, device_class)."""
         super().__init__(facade, props[0], key)
         self.ui_key = key
         self._state_sensor = GeckoSensor(
@@ -27,7 +27,7 @@ class GeckoPump(GeckoAutomationFacadeBase):
 
     @property
     def is_on(self):
-        """True if the device is running, False otherwise"""
+        """Return True if the device is running, False otherwise."""
         if (
             self._state_sensor.accessor.accessor_type
             == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE

@@ -1,10 +1,10 @@
-""" Gecko Watercare """
+"""Gecko Watercare"""
 
 import logging
-from .base import GeckoAutomationFacadeBase
 
-from ..driver import GeckoWatercareProtocolHandler
 from ..const import GeckoConstants
+from ..driver import GeckoWatercareProtocolHandler
+from .base import GeckoAutomationFacadeBase
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +28,8 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
         return GeckoConstants.WATERCARE_MODE_STRING
 
     def set_mode(self, new_mode):
-        """Set the active watercare mode to new_mode.
+        """
+        Set the active watercare mode to new_mode.
         new_mode can be a string, in which case the value must be a member of
         GeckoConstants.WATERCARE_MODE_STRING, or it can be an integer from
         GeckoConstants.WATERCARE_MODE
@@ -47,7 +48,8 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
             self.active_mode = new_mode
 
     async def async_set_mode(self, new_mode):
-        """Set the active watercare mode to new_mode.
+        """
+        Set the active watercare mode to new_mode.
         new_mode can be a string, in which case the value must be a member of
         GeckoConstants.WATERCARE_MODE_STRING, or it can be an integer from
         GeckoConstants.WATERCARE_MODE

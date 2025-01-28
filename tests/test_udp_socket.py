@@ -1,9 +1,8 @@
-""" Unit tests for the UDP socket classes """
+"""Unit tests for the UDP socket classes"""
 
+import time
 import unittest
 import unittest.mock
-import time
-import socket
 
 from context import (  # type: ignore
     GeckoUdpProtocolHandler,
@@ -12,8 +11,10 @@ from context import (  # type: ignore
 
 
 class MockSocket:
-    """A class that looks like a socket, but doesn't really
-    send or receive anything - used in the tests"""
+    """
+    A class that looks like a socket, but doesn't really
+    send or receive anything - used in the tests
+    """
 
     def __init__(self):
         self.data_for_recvfrom = None
@@ -27,7 +28,7 @@ class MockSocket:
 
     def recvfrom(self, max_size):
         if self.data_for_recvfrom is None:
-            raise socket.timeout
+            raise TimeoutError
         data = self.data_for_recvfrom
         self.data_for_recvfrom = None
         return (data, ("Mock", "Port"))

@@ -5,9 +5,8 @@ import struct
 from typing import Any
 from warnings import deprecated
 
-from .async_spastruct import GeckoAsyncStructure
-
 from ..const import GeckoConstants
+from .async_spastruct import GeckoAsyncStructure
 from .observable import Observable
 
 _LOGGER = logging.getLogger(__name__)
@@ -154,9 +153,7 @@ class GeckoStructAccessor(Observable):
         elif (
             self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE
             and isinstance(newvalue, str)
-        ):
-            newvalue = int(newvalue)
-        elif (
+        ) or (
             self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE
             and isinstance(newvalue, str)
         ):
@@ -225,9 +222,7 @@ class GeckoStructAccessor(Observable):
         elif (
             self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE
             and isinstance(newvalue, str)
-        ):
-            newvalue = int(newvalue)
-        elif (
+        ) or (
             self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE
             and isinstance(newvalue, str)
         ):

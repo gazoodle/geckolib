@@ -1,22 +1,22 @@
-""" Unit tests for the UDP protocol handlers """
+"""Unit tests for the UDP protocol handlers"""
 
 import unittest
 import unittest.mock
 
-
 from context import (  # type: ignore
-    GeckoHelloProtocolHandler,
-    GeckoPacketProtocolHandler,
-    GeckoPingProtocolHandler,
-    GeckoVersionProtocolHandler,
-    GeckoGetChannelProtocolHandler,
     GeckoConfigFileProtocolHandler,
-    GeckoStatusBlockProtocolHandler,
-    GeckoPartialStatusBlockProtocolHandler,
-    GeckoWatercareProtocolHandler,
+    GeckoGetChannelProtocolHandler,
+    GeckoHelloProtocolHandler,
     GeckoPackCommandProtocolHandler,
+    GeckoPacketProtocolHandler,
+    GeckoPartialStatusBlockProtocolHandler,
+    GeckoPingProtocolHandler,
     GeckoRemindersProtocolHandler,
+    GeckoStatusBlockProtocolHandler,
+    GeckoVersionProtocolHandler,
+    GeckoWatercareProtocolHandler,
 )
+
 from geckolib.driver.protocol.reminders import GeckoReminderType
 
 PARMS = (1, 2, b"SRCID", b"DESTID")
@@ -513,7 +513,7 @@ class TestGeckoRemindersHandler(unittest.TestCase):
             handler.send_bytes,
             b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN>"
             b"<DATAS>RMREQ"
-            b"\x01\xF3\xFF\x01"
+            b"\x01\xf3\xff\x01"
             b"\x02\x01\x01\x01"
             b"\x03\x02\x00\x01"
             b"\x04\x00\x02\x01"
@@ -564,7 +564,7 @@ class TestGeckoRemindersHandler(unittest.TestCase):
         handler = GeckoRemindersProtocolHandler()
         handler.handle(
             b"RMREQ"
-            b"\x01\xF3\xFF\x01"
+            b"\x01\xf3\xff\x01"
             b"\x02\x01\x01\x01"
             b"\x03\x02\x00\x01"
             b"\x04\x00\x02\x01"

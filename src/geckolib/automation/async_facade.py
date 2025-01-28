@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import List, Optional
 
 from geckolib.automation.base import GeckoAutomationBase
 from geckolib.driver.accessor import GeckoBoolStructAccessor
@@ -111,7 +110,6 @@ class GeckoAsyncFacade(Observable):
 
     def _scan_outputs(self) -> None:
         """Scan the spa outputs to decide what user options are available."""
-
         assert self._spa is not None
         _LOGGER.debug("All outputs are %s", self._spa.struct.all_outputs)
 
@@ -164,8 +162,6 @@ class GeckoAsyncFacade(Observable):
         # P1 ...    Pump 1      Out1A->P1H      1           <Doesn't work as expected>
         # Pn ...    Pump n      Out?A/B->PnH/L  n                     ""
 
-        # Fix for issue#1 https://github.com/gazoodle/geckolib/issues/1
-        # self.actual_user_devices.append("Waterfall")
         # Remove unknown device classes
         self.actual_user_devices = [
             handled_device
@@ -244,7 +240,7 @@ class GeckoAsyncFacade(Observable):
 
     @property
     def unique_id(self) -> str:
-        """A unique id for the facade"""
+        """A unique id for the facade."""
         return self._taskman.unique_id
 
     @property
@@ -254,77 +250,77 @@ class GeckoAsyncFacade(Observable):
 
     @property
     def spa(self) -> GeckoAsyncSpa:
-        """Get the spa implementation instance"""
+        """Get the spa implementation instance."""
         return self._spa
 
     @property
     def reminders_manager(self) -> GeckoReminders:
-        """Get the reminders handler"""
+        """Get the reminders handler."""
         return self._reminders_manager
 
     @property
     def water_heater(self) -> GeckoWaterHeater:
-        """Get the water heater handler"""
+        """Get the water heater handler."""
         return self._water_heater
 
     @property
     def water_care(self) -> GeckoWaterCare:
-        """Get the water care handler"""
+        """Get the water care handler."""
         return self._water_care
 
     @property
     def keypad(self) -> GeckoKeypad:
-        """Get the keypad handler"""
+        """Get the keypad handler."""
         return self._keypad
 
     @property
-    def pumps(self) -> List[GeckoPump]:
-        """Get the pumps list"""
+    def pumps(self) -> list[GeckoPump]:
+        """Get the pumps list."""
         return self._pumps
 
     @property
-    def blowers(self) -> List[GeckoBlower]:
-        """Get the blowers list"""
+    def blowers(self) -> list[GeckoBlower]:
+        """Get the blowers list."""
         return self._blowers
 
     @property
-    def lights(self) -> List[GeckoLight]:
-        """Get the lights list"""
+    def lights(self) -> list[GeckoLight]:
+        """Get the lights list."""
         return self._lights
 
     @property
-    def sensors(self) -> List[GeckoSensorBase]:
-        """Get the sensor list"""
+    def sensors(self) -> list[GeckoSensorBase]:
+        """Get the sensor list."""
         return self._sensors
 
     @property
-    def binary_sensors(self) -> List[GeckoBinarySensor]:
-        """Get the binary sensor list"""
+    def binary_sensors(self) -> list[GeckoBinarySensor]:
+        """Get the binary sensor list."""
         return self._binary_sensors
 
     @property
     def error_sensor(self) -> GeckoErrorSensor:
-        """Get the error sensor"""
+        """Get the error sensor."""
         return self._error_sensor
 
     @property
-    def eco_mode(self) -> Optional[GeckoSwitch]:
-        """Get the Eco Mode switch if available"""
+    def eco_mode(self) -> GeckoSwitch | None:
+        """Get the Eco Mode switch if available."""
         return self._ecomode
 
     @property
-    def all_user_devices(self) -> List[GeckoAutomationBase]:
-        """Get all the user controllable devices as a list"""
+    def all_user_devices(self) -> list[GeckoAutomationBase]:
+        """Get all the user controllable devices as a list."""
         return self._pumps + self._blowers + self._lights  # type: ignore
 
     @property
-    def all_config_change_devices(self) -> List[GeckoAutomationBase]:
-        """Get all devices that can cause config change"""
+    def all_config_change_devices(self) -> list[GeckoAutomationBase]:
+        """Get all devices that can cause config change."""
         return self._pumps + self._blowers  # type: ignore
 
     @property
-    def all_automation_devices(self) -> List[GeckoAutomationBase]:
-        """Get all the automation devices as a list"""
+    def all_automation_devices(self) -> list[GeckoAutomationBase]:
+        """Get all the automation devices as a list."""
         return (
             self.all_user_devices
             + self.sensors  # type: ignore
@@ -333,15 +329,17 @@ class GeckoAsyncFacade(Observable):
             + [self.keypad, self.eco_mode]  # type: ignore
         )
 
-    def get_device(self, key) -> Optional[GeckoAutomationBase]:
-        """Get an automation device from the key, or None if not found"""
+    def get_device(self, key) -> GeckoAutomationBase | None:
+        """Get an automation device from the key, or None if not found."""
         for device in self.all_automation_devices:
             if device.key == key:
                 return device
         return None
 
     @property
-    def devices(self) -> List[str]:
-        """Get a list of automation device keys. Keys can be passed to get_device
-        to find the specific device"""
+    def devices(self) -> list[str]:
+        """
+        Get a list of automation device keys. Keys can be passed to get_device
+        to find the specific device.
+        """
         return [device.key for device in self.all_automation_devices]

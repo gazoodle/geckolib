@@ -1,8 +1,7 @@
-""" Gecko RFERR handlers """
+"""Gecko RFERR handlers"""
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 from .packet import GeckoPacketProtocolHandler
 
@@ -19,7 +18,7 @@ class GeckoRFErrProtocolHandler(GeckoPacketProtocolHandler):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._error_count: int = 0
-        self._last_error_at: Optional[datetime] = None
+        self._last_error_at: datetime | None = None
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
         return received_bytes.startswith(RFERR_VERB)
@@ -38,6 +37,6 @@ class GeckoRFErrProtocolHandler(GeckoPacketProtocolHandler):
         return self._error_count
 
     @property
-    def last_error_at(self) -> Optional[datetime]:
+    def last_error_at(self) -> datetime | None:
         """Return the last time an RFErr occurred, or None if never"""
         return self._last_error_at

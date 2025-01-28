@@ -1,4 +1,4 @@
-""" GeckoLib utilities """
+"""GeckoLib utilities."""
 
 from .shell import GeckoShell
 from .simulator import GeckoSimulator

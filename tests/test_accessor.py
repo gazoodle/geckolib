@@ -4,11 +4,11 @@ import struct
 import unittest
 
 from context import (
-    GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
     GeckoBoolStructAccessor,
+    GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
     GeckoStructure,
+    GeckoWordStructAccessor,
 )
 
 
@@ -216,7 +216,6 @@ class TestStructAccessor(unittest.TestCase):
 
     def test_multiple_write_bitpos_enum(self):
         """Can we write multiple bitpos enums to the structure"""
-
         accessor_p1 = GeckoEnumStructAccessor(
             self.struct, "UdP1", 21, 14, "OFF|LO|HI", 2, 4, "ALL"
         )

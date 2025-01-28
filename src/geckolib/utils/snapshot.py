@@ -2,9 +2,10 @@
 
 import ast
 import logging
-import re
 import os
+import re
 from datetime import datetime
+
 from ..driver import GeckoStatusBlockProtocolHandler
 
 _LOGGER = logging.getLogger(__name__)

@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Any, Self
+from typing import Self
 
 from .config import GeckoConfig, config_sleep
 
@@ -30,7 +30,7 @@ class AsyncTasks:
         self.add_task(self._tidy(), "Tidy tasks", "ASYNC")
         return self
 
-    async def __aexit__(self, *_exc_info: Any) -> None:
+    async def __aexit__(self, *_exc_info: object) -> None:
         """Async exit, when out of scope."""
         await self.gather()
 
@@ -55,7 +55,7 @@ class AsyncTasks:
         # Wait for all tasks to complete
         try:
             _results = await asyncio.gather(*self._tasks, return_exceptions=True)
-            for item in zip(self._tasks, _results):
+            for item in zip(self._tasks, _results, strict=False):
                 _LOGGER.debug("    Task %s result `%r`", item[0].get_name(), item[1])
         except Exception:
             _LOGGER.exception("AsyncTasks:gather caught exception")

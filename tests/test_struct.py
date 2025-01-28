@@ -1,19 +1,17 @@
-""" Unit tests for the structure class """
-
-from context import (
-    GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
-    GeckoBoolStructAccessor,
-    GeckoEnumStructAccessor,
-    GeckoStructure,
-)
+"""Unit tests for the structure class"""
 
 import unittest
 import unittest.mock
 
+from context import (
+    GeckoByteStructAccessor,
+    GeckoEnumStructAccessor,
+    GeckoStructure,
+)
+
 
 class TestStruct(unittest.TestCase):
-    """ Test the GeckoStruct class """
+    """Test the GeckoStruct class"""
 
     def setUp(self):
         self.struct = GeckoStructure(None)
