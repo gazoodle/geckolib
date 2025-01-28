@@ -1,7 +1,6 @@
-"""Unit tests for the structure class."""
+"""Unit tests for the structure class."""  # noqa: INP001
 
-import unittest
-import unittest.mock
+from typing import Any
 
 from context import (
     GeckoAsyncStructure,
@@ -10,11 +9,15 @@ from context import (
 )
 
 
-class TestStruct(unittest.TestCase):
-    """Test the GeckoStruct class."""
+class MockStructure(GeckoAsyncStructure):
+    """Wrapper to help testing."""
 
-    def setUp(self):
-        self.struct = GeckoAsyncStructure(None, None)
+    last_pos: int | None = None
+    last_len: int | None = None
+    last_value: Any | None = None
+
+    def __init__(self):
+        super().__init__(self.set_value_cb)
 
         class log_class:
             def __init__(self, struct_):
@@ -113,28 +116,29 @@ class TestStruct(unittest.TestCase):
                     # <UdL120Time Type="Byte" Pos="361" RW="ALL" />
                 }
 
-        self.struct.build_accessors(log_class(self.struct), cfg_class(self.struct))
+        self.build_accessors(log_class(self), cfg_class(self))
 
-        self.struct._on_set_value = self.set_value_cb
-        self.last_pos = None
-        self.last_len = None
-        self.last_value = None
-
-    def set_value_cb(self, pos, len_, newvalue):
+    async def set_value_cb(self, pos: int, len_: int, newvalue: Any) -> None:
         self.last_pos = pos
         self.last_len = len_
         self.last_value = newvalue
 
-    def test_constructor(self) -> None:
-        self.assertEqual(self.struct.status_block, b"\0" * 1024)
-        self.assertEqual(len(self.struct.accessors), 10)
-        self.assertEqual(self.struct.accessors["UdL120"].value, "OFF")
 
-    def test_set_value_callback(self) -> None:
-        self.struct.accessors["UdP1"].value = "HI"
-        self.assertEqual(self.last_pos, 275)
-        self.assertEqual(self.last_len, 2)
-        self.assertEqual(self.last_value, 0b1000000000000000)
+class TestStruct:
+    """Test the GeckoStruct class."""
+
+    struct = MockStructure()
+
+    def test_constructor(self) -> None:
+        assert self.struct.status_block == b"\x00" * 1024
+        assert len(self.struct.accessors) == 10
+        assert self.struct.accessors["UdL120"].value == "OFF"
+
+    async def test_set_value_callback(self) -> None:
+        await self.struct.accessors["UdP1"].async_set_value("HI")
+        assert self.struct.last_pos == 275
+        assert self.struct.last_len == 2
+        assert self.struct.last_value == 32768
 
     def test_observer_callback(self) -> None:
         P2_info = {"oldvalue": None, "newvalue": None}
@@ -145,8 +149,4 @@ class TestStruct(unittest.TestCase):
 
         self.struct.accessors["UdP2"].watch(P2_Watch)
         self.struct.replace_status_block_segment(275, b"\x20\x00")
-        self.assertEqual(P2_info["newvalue"], "HI")
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert P2_info["newvalue"] == "HI"

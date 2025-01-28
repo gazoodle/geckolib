@@ -3,7 +3,6 @@
 import logging
 import struct
 from typing import Any
-from warnings import deprecated
 
 from ..const import GeckoConstants
 from .async_spastruct import GeckoAsyncStructure
@@ -137,10 +136,6 @@ class GeckoStructAccessor(Observable):
             data = f"{int(data / 256):02}:{data % 256:02}"
         return data
 
-    @deprecated("Use _async_set_value")
-    def _set_value(self, newvalue) -> None:
-        raise Exception("Use the async _set_value API")
-
     @property
     def value(self) -> Any:
         """Get a value from the pack structure using the initialized declaration."""
@@ -155,10 +150,10 @@ class GeckoStructAccessor(Observable):
         """
         return self._get_raw_value()
 
-    async def async_set_value(self, newvalue):
-        """Set a value in the pack structure using the initialized declaration"""
+    async def async_set_value(self, newvalue: Any) -> None:
+        """Set a value in the pack structure using the initialized declaration."""
         if self.read_write is None:
-            raise Exception(
+            raise AttributeError(
                 GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag)
             )
 

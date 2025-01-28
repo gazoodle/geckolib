@@ -9,9 +9,8 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoAsyncStructure:
     """Class to host/manage the raw data block for a spa structure."""
 
-    def __init__(self, on_set_value, on_async_set_value) -> None:
+    def __init__(self, on_async_set_value) -> None:
         """Initialize the async version."""
-        self._on_set_value = on_set_value
         self._on_async_set_value = on_async_set_value
         self.accessors = {}
         self.reset()
@@ -106,11 +105,6 @@ class GeckoAsyncStructure:
                 retry_count -= 1
             return False
 
-    def set_value(self, pos: int, length: int, newvalue: Any) -> None:
-        """Set the value of a block."""
-        _LOGGER.warning("Ought to use async")
-        self._on_set_value(pos, length, newvalue)
-
-    async def async_set_value(self, pos, length, newvalue):
+    async def async_set_value(self, pos: int, length: int, newvalue: Any) -> None:
         """Set the value of a block."""
         await self._on_async_set_value(pos, length, newvalue)

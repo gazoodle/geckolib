@@ -17,7 +17,7 @@ class GeckoAsyncSpa:
     """Mock spa for testing."""
 
     def __init__(self, snapshotfile):
-        self.struct = GeckoAsyncStructure(None, None)
+        self.struct = GeckoAsyncStructure(None)
 
         cwd = pathlib.Path(__file__).parent.resolve()
         snapshots = GeckoSnapshot.parse_log_file(f"{cwd}/{snapshotfile}")

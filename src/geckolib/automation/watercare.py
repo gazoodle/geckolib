@@ -1,7 +1,6 @@
 """Gecko Watercare"""
 
 import logging
-from warnings import deprecated
 
 from ..const import GeckoConstants
 from ..driver import GeckoWatercareProtocolHandler
@@ -27,28 +26,6 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
     def modes(self):
         """Return all the possible water care modes"""
         return GeckoConstants.WATERCARE_MODE_STRING
-
-    @deprecated("Use the async API")
-    def set_mode(self, new_mode):
-        raise Exception("Use async API")
-        """
-        Set the active watercare mode to new_mode.
-        new_mode can be a string, in which case the value must be a member of
-        GeckoConstants.WATERCARE_MODE_STRING, or it can be an integer from
-        GeckoConstants.WATERCARE_MODE
-        """
-        if isinstance(new_mode, str):
-            new_mode = GeckoConstants.WATERCARE_MODE_STRING.index(new_mode)
-        self._spa.queue_send(
-            GeckoWatercareProtocolHandler.set(
-                self._spa.get_and_increment_sequence_counter(False),
-                new_mode,
-                parms=self._spa.sendparms,
-            ),
-            self._spa.sendparms,
-        )
-        if new_mode != self.active_mode:
-            self.active_mode = new_mode
 
     async def async_set_mode(self, new_mode):
         """

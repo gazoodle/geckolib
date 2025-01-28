@@ -83,9 +83,7 @@ class GeckoAsyncSpa(Observable):
         self.version = ""
         self.config_number = 0
 
-        self.struct: GeckoAsyncStructure = GeckoAsyncStructure(
-            self._on_set_value, self._async_on_set_value
-        )
+        self.struct: GeckoAsyncStructure = GeckoAsyncStructure(self._async_on_set_value)
         self._last_ping_at: datetime | None = None
 
     @property
@@ -595,12 +593,6 @@ class GeckoAsyncSpa(Observable):
         except Exception:
             _LOGGER.exception("Async set value caught exception")
             raise
-
-    def _on_set_value(self, pos, length, newvalue) -> None:
-        _LOGGER.debug("Hmm, we ought to queue a set request rather than another task")
-        self._taskman.add_task(
-            self._async_on_set_value(pos, length, newvalue), "Set value task", "SPA"
-        )
 
     @property
     def accessors(self) -> dict:

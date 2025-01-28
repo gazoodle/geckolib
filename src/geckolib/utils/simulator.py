@@ -62,7 +62,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self._transport: asyncio.BaseTransport | None = None
         self._name: str = "Sim"
         self.structure: GeckoAsyncStructure = GeckoAsyncStructure(
-            self._on_set_value, self._async_on_set_value
+            self._async_on_set_value
         )
         self.snapshot = None
         self._reliability = 1.0
@@ -550,7 +550,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             GeckoPackCommandProtocolHandler.response(parms=sender), sender
         )
         if handler.is_key_press:
-            self._handle_key_press(handler.keycode)
+            await self._async_handle_key_press(handler.keycode)
         elif handler.is_set_value:
             _LOGGER.debug(
                 f"Pack command set a value ({handler.position} = {handler.new_data})"
@@ -611,25 +611,3 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
 
         finally:
             _LOGGER.debug("AsyncSpaStruct value update loop finished")
-
-    def _handle_key_press(self, keycode) -> None:
-        _LOGGER.debug(f"Pack command press key {keycode}")
-        print(f"Key press {keycode}")
-        if keycode == GeckoConstants.KEYPAD_PUMP_1:
-            p1 = self.structure.accessors["P1"]
-            udp1 = self.structure.accessors["UdP1"]
-
-            if p1.value == "OFF":
-                udp1.value = "HI"
-                p1.value = "HIGH"
-            else:
-                udp1.value = "OFF"
-                p1.value = "OFF"
-
-    def _on_set_value(self, pos, length, newvalue):
-        _LOGGER.debug("Hmm, we ought to queue a set request rather than another task")
-        self._taskman.add_task(
-            self._async_on_set_value(pos, length, newvalue),
-            "Async Set Value",
-            "SIM",
-        )

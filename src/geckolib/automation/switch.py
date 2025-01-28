@@ -1,7 +1,6 @@
 """Automation switches"""
 
 import logging
-from warnings import deprecated
 
 from ..const import GeckoConstants
 from .base import GeckoAutomationFacadeBase
@@ -30,19 +29,6 @@ class GeckoSwitch(GeckoAutomationFacadeBase):
             return self._state_sensor.state
         return self._state_sensor.state != "OFF"
 
-    @deprecated("Use the async version")
-    def turn_on(self):
-        """Turn the device ON, but does nothing if it is already ON"""
-        _LOGGER.debug("%s turn ON", self.name)
-        if self.is_on:
-            _LOGGER.debug("%s request to turn ON ignored, it's already on!", self.name)
-            return
-        if self._keypad_button != 0:
-            self._spa.press(self._keypad_button)
-            return
-        _LOGGER.debug("Set state on accessor")
-        self._accessor.value = True
-
     async def async_turn_on(self):
         """Turn the device ON, but does nothing if it is already ON"""
         _LOGGER.debug("%s async turn ON", self.name)
@@ -54,21 +40,6 @@ class GeckoSwitch(GeckoAutomationFacadeBase):
             return
         _LOGGER.debug("Set async state on accessor")
         await self._accessor.async_set_value(True)
-
-    @deprecated("Use the async version")
-    def turn_off(self):
-        """Turn the device OFF, but does nothing if it is already OFF"""
-        _LOGGER.debug("%s turn OFF", self.name)
-        if not self.is_on:
-            _LOGGER.debug(
-                "%s request to turn OFF ignored, it's already off!", self.name
-            )
-            return
-        if self._keypad_button != 0:
-            self._spa.press(self._keypad_button)
-            return
-        _LOGGER.debug("Set state on accessor")
-        self._accessor.value = False
 
     async def async_turn_off(self):
         """Turn the device OFF, but does nothing if it is already OFF"""

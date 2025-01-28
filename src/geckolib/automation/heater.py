@@ -1,6 +1,5 @@
 """Gecko Water Heaters"""
 
-from warnings import deprecated
 from ..const import GeckoConstants
 from .base import GeckoAutomationFacadeBase
 from .sensors import GeckoBinarySensor, GeckoSensor
@@ -87,11 +86,6 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
         """Get the target temperature of the water"""
         return self._target_temperature_sensor.state
 
-    @deprecated("Use the async version")
-    def set_target_temperature(self, new_temperature):
-        """Set the target temperature of the water"""
-        self._target_temperature_sensor.accessor.value = new_temperature
-
     async def async_set_target_temperature(self, new_temperature):
         """Set the target temperature of the water"""
         await self._target_temperature_sensor.accessor.async_set_value(new_temperature)
@@ -140,14 +134,6 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
     def current_temperature_sensor(self):
         """Get the current temperature sensor object"""
         return self._current_temperature_sensor
-
-    @deprecated("Use the async version")
-    def set_temperature_unit(self, new_unit):
-        """Set the temperature units for the water heater"""
-        if new_unit in (self.TEMP_FARENHEIGHT, "f", "F"):
-            self._temperature_unit_accessor.value = "F"
-        else:
-            self._temperature_unit_accessor.value = "C"
 
     async def async_set_temperature_unit(self, new_unit):
         """Set the temperature units for the water heater"""
