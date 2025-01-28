@@ -119,7 +119,9 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                     lambda self, arg, device=device: self.pump_command(arg, device),
                 )
                 func_ptr = getattr(GeckoShell, func_name)
-                func_ptr.__doc__ = f"Set pump {device.name} mode: {device.ui_key} <OFF|LO|HI>"
+                func_ptr.__doc__ = (
+                    f"Set pump {device.name} mode: {device.ui_key} <OFF|LO|HI>"
+                )
             else:
                 func_name = f"do_{device.ui_key}"
                 setattr(
@@ -128,7 +130,9 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                     lambda self, arg, device=device: self.device_command(arg, device),
                 )
                 func_ptr = getattr(GeckoShell, func_name)
-                func_ptr.__doc__ = f"Turn device {device.name} ON or OFF: {device.ui_key} <ON|OFF>"
+                func_ptr.__doc__ = (
+                    f"Turn device {device.name} ON or OFF: {device.ui_key} <ON|OFF>"
+                )
 
         self.push_command("state")
 

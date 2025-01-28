@@ -88,9 +88,7 @@ class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
         # Otherwise must be RMREQ
         rest = remainder
         while len(rest) > 0:
-            (t, days, _push, rest) = struct.unpack(
-                f"<BhB{len(rest) - 4}s", rest
-            )
+            (t, days, _push, rest) = struct.unpack(f"<BhB{len(rest) - 4}s", rest)
             try:
                 self.reminders.append(tuple((GeckoReminderType(t), days)))
             except ValueError:
