@@ -65,7 +65,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self._taskman = taskman
         # self._lock = DbgLock()  # asyncio.Lock()
         self._lock = asyncio.Lock()
-        _LOGGER.debug("AsyncUdpProtocol started")
+        _LOGGER.debug("AsyncUdpProtocol started.")
 
     @property
     def Lock(self):
