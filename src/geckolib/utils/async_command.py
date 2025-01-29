@@ -33,12 +33,12 @@ class AsyncCmd(cmd.Cmd):
 
     def __enter__(self) -> Self:
         """Suport python 'with' syntax."""
-        _LOGGER.debug("** Start shell %s", self.__class__.__name__)
+        _LOGGER.debug("Start shell %s", self.__class__.__name__)
         return self
 
     def __exit__(self, *exc_info: object) -> None:
         """Suport puthon 'with' syntax."""
-        _LOGGER.debug("** Stop shell %s", self.__class__.__name__)
+        _LOGGER.debug("Stop shell %s", self.__class__.__name__)
 
     def run_async_loop(self) -> None:
         """Run the async loop."""
@@ -50,7 +50,7 @@ class AsyncCmd(cmd.Cmd):
         """Process command loop."""
         aenter = self.__getattribute__("__aenter__")
         if aenter is not None:
-            _LOGGER.debug("Calling aenter")
+            _LOGGER.debug("Calling aenter %s", aenter)
             await aenter()
 
         try:
@@ -65,7 +65,7 @@ class AsyncCmd(cmd.Cmd):
         finally:
             aexit = self.__getattribute__("__aexit__")
             if aexit is not None:
-                _LOGGER.debug("Calling aexit")
+                _LOGGER.debug("Calling aexit %s", aexit)
                 await aexit()
 
     def dispatch(self, coroutine: Any, *args: Any) -> None:

@@ -199,6 +199,19 @@ class GeckoStructAccessor(Observable):
         # We can't handle this here, we must delegate via the structure
         await self.struct.async_set_value(self.pos, self.length, newvalue)
 
+    def diag_info(self) -> str:
+        """Get diagnostic data for this accessor."""
+        info = f"{self.tag} = {self.value}\n"
+        info += "-------------------------------\n"
+        info += f"Pos: {self.pos}\n"
+        info += f"Len: {self.length}\n"
+        info += f"Type: {self.accessor_type}"
+        if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
+            info += f" one of {self.items}"
+        info += "\n"
+        info += f"Raw Value: {self.raw_value} ({self.struct.status_block[self.pos : self.pos + self.length]})"
+        return info
+
     def __repr__(self) -> str:
         """Get string representation."""
         return f"{self.tag!r}: {self.value!r}"

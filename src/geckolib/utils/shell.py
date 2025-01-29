@@ -53,9 +53,14 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         self.prompt = "(Gecko) "
         self.push_command("discover")
 
-    async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
+    async def handle_event(self, event: GeckoSpaEvent, **_kwargs: object) -> None:
         """Handle the event."""
         _LOGGER.debug("Handle event %s", event)
+        if event == GeckoSpaEvent.CLIENT_FACADE_IS_READY:
+            if self._spa is not None:
+                self.structure = self._spa.struct
+        elif event == GeckoSpaEvent.CLIENT_FACADE_TEARDOWN:
+            self.structure = None
 
     async def do_discover(self, arg) -> None:
         """Discover all the in.touch2 devices on your network : discover [<ip address>]."""
@@ -157,7 +162,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
             traceback.print_exc()
 
     async def do_key(self, arg):
-        """Press keyboard button 1."""
+        """Press keypad button 1."""
         await self.facade.spa.async_press(GeckoConstants.KEYPAD_PUMP_1)
 
     def do_state(self, _arg):
@@ -244,15 +249,6 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         for version_str in self.version_strings:
             print(version_str)
 
-    def do_accessors(self, _arg):
-        """Display the data from the accessors : accessors"""
-        print("Accessors")
-        print("=========")
-        print()
-        for key in self.facade.spa.accessors:
-            print(f"   {key}: {self.facade.spa.accessors[key].value}")
-        print()
-
     def do_about(self, _arg):
         """Display information about this client program and support library : about"""
         print()
@@ -261,32 +257,6 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
             " devices with in.touch2 communication modules"
         )
         print(f"Library version v{VERSION}")
-
-    def do_get(self, arg):
-        """Get the value of the specified spa pack structure element : get <Element>"""
-        try:
-            print(f"{arg} = {self.facade.spa.accessors[arg].value}")
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.exception("Exception getting '%s'", arg)
-
-    def do_peek(self, arg):
-        """Get the byte value from the structure at the specified position : peek <pos>"""
-        try:
-            pos = int(arg)
-            print(f"Byte at {pos} = {self.facade.spa.struct.status_block[pos]}")
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.exception("Exception peeking at '%s'", arg)
-
-    async def do_set(self, arg):
-        """
-        Set the value of the specified spa pack structure
-        element : set <Element>=<value>
-        """
-        try:
-            key, val = arg.split("=")
-            await self.facade.spa.accessors[key].async_set_value(val)
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.exception("Exception handling 'set %s'", arg)
 
     async def do_watercare(self, arg):
         """Set the active watercare mode to one of {0} : WATERCARE <mode>"""

@@ -155,36 +155,6 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self._do_rferr = args.lower() == "true"
         print(f"RFERR mode set to {self._do_rferr}")
 
-    def do_get(self, arg):
-        """Get the value of the specified spa pack structure element : get <Element>"""
-        try:
-            print(f"{arg} = {self.structure.accessors[arg].value}")
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.exception("Exception getting '%s'", arg)
-
-    async def do_set(self, arg):
-        """
-        Set the value of the specified spa pack structure
-        element : set <Element>=<value>
-        """
-        self._send_structure_change = True
-        try:
-            key, val = arg.split("=")
-            await self.structure.accessors[key].async_set_value(val)
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.exception("Exception handling 'set %s'", arg)
-        finally:
-            self._send_structure_change = False
-
-    def do_accessors(self, _arg):
-        """Display the data from the accessors : accessors"""
-        print("Accessors")
-        print("=========")
-        print()
-        for key in self.structure.accessors:
-            print(f"   {key}: {self.structure.accessors[key].value}")
-        print()
-
     def complete_parse(self, text, line, start_idx, end_idx):
         return self._complete_path(text)
 
