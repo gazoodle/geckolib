@@ -1,5 +1,7 @@
 """GeckoSimulator class."""
 
+# ruff: noqa: T201
+
 import asyncio
 import glob
 import importlib
@@ -82,11 +84,11 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         except ImportError:
             pass
 
-    async def __aexit__(self, *args):
+    async def __aexit__(self, *_args: object) -> None:
         """Support 'with' statements."""
-        await self.do_stop(None)
+        await self.do_stop("")
 
-    def do_about(self, _arg) -> None:
+    def do_about(self, _arg: str) -> None:
         """Display information about this client program and support library : about."""
         print()
         print(
@@ -95,7 +97,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         )
         print(f"Library version v{VERSION}")
 
-    async def do_start(self, args):
+    async def do_start(self, _args: str) -> None:
         """Start the configured simulator : start."""
         loop = asyncio.get_running_loop()
         self._con_lost.clear()
@@ -103,7 +105,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.bind(("0.0.0.0", 10022))
+        sock.bind(("0.0.0.0", 10022))  # noqa: S104
         # Start the transport and protocol handler
         self._transport, self._protocol = await loop.create_datagram_endpoint(
             lambda: GeckoAsyncUdpProtocol(self, self._con_lost, None),
@@ -111,7 +113,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         )
         self._install_standard_handlers()
 
-    async def do_stop(self, args) -> None:
+    async def do_stop(self, _args: str) -> None:
         """Stop the simulator : stop."""
         if self._protocol:
             self._protocol.disconnect()

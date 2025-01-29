@@ -1,13 +1,16 @@
 """Shared command functionality."""
 
+# ruff: noqa: T201
+
 import asyncio
-import cmd
 import logging
 import sys
 from typing import Self
 
 from geckolib.async_taskman import GeckoAsyncTaskMan
 from geckolib.config import set_config_mode
+
+from .async_command import AsyncCmd
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,7 +34,7 @@ LICENSE = """
 """
 
 
-class GeckoCmd(cmd.Cmd):
+class GeckoCmd(AsyncCmd):
     """
     Shared command processor.
 
@@ -45,22 +48,15 @@ class GeckoCmd(cmd.Cmd):
     @classmethod
     def run(cls, first_commands: list[str] | None = None) -> None:
         """Run command loop."""
-        asyncio.run(cls.async_run(first_commands))
-
-    @classmethod
-    async def async_run(cls, first_commands: list[str] | None = None) -> None:
-        _LOGGER.debug("*** Shell %s started ***", cls.__name__)
-        set_config_mode(True)
-        async with cls() as cmd:
+        with cls() as cmd:  # type: ignore
             if first_commands is not None:
                 for command in first_commands:
                     cmd.push_command(command)
-            await cmd.cmdloop()
-        _LOGGER.debug("*** Shell %s stopped ***", cls.__name__)
+            cmd.cmdloop()
 
     def __init__(self, taskman: GeckoAsyncTaskMan) -> None:
         """Initialize the command class."""
-        cmd.Cmd.__init__(self)
+        super().__init__()
         self._taskman = taskman
 
         if self.BANNER is not None:
@@ -82,10 +78,6 @@ class GeckoCmd(cmd.Cmd):
     def push_command(self, cmd: str) -> None:
         """Add a command to the queue."""
         self.cmdqueue.append(cmd)
-
-    def do_exit(self, _arg: str) -> bool:
-        """Exit this shell: exit."""
-        return True
 
     def do_loglevel(self, arg) -> None:
         """Set the logging level : loglevel <ERROR|WARNING|INFO|DEBUG>."""
@@ -134,7 +126,7 @@ class GeckoCmd(cmd.Cmd):
     def emptyline(self) -> None:
         """Call when an empty line is entered in response to the prompt."""
 
-    async def onecmd(self, line: str) -> bool:
+    async def aonecmd(self, line: str) -> bool:
         """
         Async single command.
 
@@ -174,7 +166,7 @@ class GeckoCmd(cmd.Cmd):
             await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
         ).strip()
 
-    async def cmdloop(self, intro=None):
+    async def acmdloop(self, intro=None):
         """
         Async command loop.
 
