@@ -581,7 +581,18 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
                     and self._facade is None
                 ):
                     _LOGGER.debug("Sequence pump did connect")
-                    await self.async_connect(self._spa_identifier, self._spa_address)
+                    if self._spa_descriptors is not None:
+                        await self.async_connect_to_spa(
+                            next(
+                                d
+                                for d in self._spa_descriptors
+                                if d.identifier_as_string == self._spa_identifier
+                            )
+                        )
+                    else:
+                        await self.async_connect(
+                            self._spa_identifier, self._spa_address
+                        )
 
         except asyncio.CancelledError:
             _LOGGER.debug("Spaman sequence pump cancelled")

@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Self
+from typing import Coroutine, Self
 
 from .config import GeckoConfig, config_sleep
 
@@ -22,7 +22,7 @@ class AsyncTasks:
 
     def __init__(self) -> None:
         """Initialize async tasks class."""
-        self._tasks = []
+        self._tasks: list[asyncio.Task] = []
 
     async def __aenter__(self) -> Self:
         """Async enter, used from python's with statement."""
@@ -34,10 +34,15 @@ class AsyncTasks:
         """Async exit, when out of scope."""
         await self.gather()
 
-    def add_task(self, coroutine, name_: str, key_: str) -> None:
+    def add_task(self, coroutine: Coroutine, name_: str, key_: str) -> None:
         """Add tasks to the task list."""
+        taskname = f"{key_}:{name_}"
+        for task in self._tasks:
+            if not task.done() and task.get_name() == taskname:
+                msg = f"Task {taskname} already running"
+                raise RuntimeError(msg)
         _LOGGER.debug("Starting task `%s` in domain `%s`", name_, key_)
-        task = asyncio.create_task(coroutine, name=f"{key_}:{name_}")
+        task = asyncio.create_task(coroutine, name=taskname)
         self._tasks.append(task)
 
     def cancel_key_tasks(self, key_: str) -> None:

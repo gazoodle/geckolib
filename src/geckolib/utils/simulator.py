@@ -10,6 +10,7 @@ import os
 import random
 import socket
 import struct
+from typing import Self
 
 from geckolib import VERSION
 from geckolib.async_taskman import GeckoAsyncTaskMan
@@ -83,6 +84,9 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             readline.set_completer_delims(" \r\n")
         except ImportError:
             pass
+
+    async def __aenter__(self) -> Self:
+        await GeckoAsyncTaskMan.__aenter__(self)
 
     async def __aexit__(self, *_args: object) -> None:
         """Support 'with' statements."""
