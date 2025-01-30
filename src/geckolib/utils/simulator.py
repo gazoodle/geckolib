@@ -617,7 +617,3 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
 
         finally:
             _LOGGER.debug("Simulator value update loop finished")
-
-{
-    GeckoConstants.KEY_PUMP_1: { if }
-}
