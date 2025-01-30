@@ -7,10 +7,11 @@ import glob
 import importlib
 import logging
 import os
+from pickle import NEWOBJ_EX
 import random
 import socket
 import struct
-from typing import Self
+from typing import Any, Self
 
 from geckolib import VERSION
 from geckolib.async_taskman import GeckoAsyncTaskMan
@@ -31,6 +32,7 @@ from geckolib.driver import (
     GeckoVersionProtocolHandler,
     GeckoWatercareProtocolHandler,
 )
+from geckolib.driver.accessor import GeckoStructAccessor
 from geckolib.driver.async_spastruct import GeckoAsyncStructure
 from geckolib.driver.async_udp_protocol import GeckoAsyncUdpProtocol
 from geckolib.driver.protocol.unhandled import GeckoUnhandledProtocolHandler
@@ -74,6 +76,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self._clients = []
         random.seed()
 
+        self._accessor_change_queue: asyncio.Queue = asyncio.Queue()
+
         self.intro = (
             "Welcome to the Gecko simulator. Type help or ? to list commands.\n"
         )
@@ -87,6 +91,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
 
     async def __aenter__(self) -> Self:
         await GeckoAsyncTaskMan.__aenter__(self)
+        GeckoAsyncTaskMan.add_task(
+            self, self._process_accesor_changes(), "Accessor Change Handler", "SIM"
+        )
+        return self
 
     async def __aexit__(self, *_args: object) -> None:
         """Support 'with' statements."""
@@ -116,6 +124,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             sock=sock,
         )
         self._install_standard_handlers()
+        self._send_structure_change = True
 
     async def do_stop(self, _args: str) -> None:
         """Stop the simulator : stop."""
@@ -230,6 +239,9 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             self.structure.build_accessors(self.config_class, self.log_class)
             for accessor in self.structure.accessors.values():
                 accessor.set_read_write("ALL")
+
+            # Watch some accessors
+            self.structure.accessors["UdP1"].watch(self._on_accessor_changed)
 
         except:  # noqa
             _LOGGER.exception("Exception during snapshot load")
@@ -522,44 +534,39 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     ) -> None:
         if self._should_ignore(handler, sender):
             return
-        self._protocol.queue_send(
-            GeckoPackCommandProtocolHandler.response(parms=sender), sender
-        )
         if handler.is_key_press:
             await self._async_handle_key_press(handler.keycode)
         elif handler.is_set_value:
-            _LOGGER.debug(
-                f"Pack command set a value ({handler.position} = {handler.new_data})"
+            await self.__async_handle_set_value(
+                handler.position, handler.length, handler.new_data
             )
-            print(f"Set a value ({handler.position} = {handler.new_data})")
+        assert self._protocol is not None  # noqa: S101
+        self._protocol.queue_send(
+            GeckoPackCommandProtocolHandler.response(parms=sender), sender
+        )
 
-    async def _async_handle_key_press(self, keycode) -> None:
+    async def _async_handle_key_press(self, keycode: int) -> None:
         """Handle a key press command."""
-        _LOGGER.debug(f"Pack command press key {keycode}")
-        print(f"Key press {keycode}")
-        if keycode == GeckoConstants.KEYPAD_PUMP_1:
-            p1 = self.structure.accessors["P1"]
-            udp1 = self.structure.accessors["UdP1"]
+        _LOGGER.debug("Pack command press key %d", keycode)
 
-            if p1.value == "OFF":
+        if keycode == GeckoConstants.KEYPAD_PUMP_1:
+            udp1 = self.structure.accessors["UdP1"]
+            if udp1.value == "OFF":
                 await udp1.async_set_value("HI")
-                await p1.async_set_value("HIGH")
             else:
                 await udp1.async_set_value("OFF")
-                await p1.async_set_value("OFF")
+
+    async def __async_handle_set_value(
+        self, pos: int, length: int, data: bytes
+    ) -> None:
+        """Handle set value."""
+        _LOGGER.debug("Pack command set value %d=%s", pos, data)
+        self.structure.replace_status_block_segment(pos, data)
 
     async def _async_on_set_value(self, pos, length, newvalue):
         _LOGGER.debug(f"Simulator: Async Set value @{pos} len {length} to {newvalue}")
         print(f"Simulator: Set value @{pos} len {length} to {newvalue}")
-        change = None
-        if length == 1:
-            change = (pos, struct.pack(">B", newvalue))
-        elif length == 2:
-            change = (pos, struct.pack(">H", newvalue))
-        else:
-            print("**** UNHANDLED SET SIZE ****")
-            return
-
+        change = (pos, GeckoPackCommandProtocolHandler.pack_data(length, newvalue))
         self.structure.replace_status_block_segment(change[0], change[1])
         assert self._protocol is not None
 
@@ -572,18 +579,45 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                     client,
                 )
 
-    async def _process_value_updates(self) -> None:
+    def _on_accessor_changed(
+        self, accessor: GeckoStructAccessor, old_value: Any, new_value: Any
+    ) -> None:
+        self._accessor_change_queue.put_nowait((accessor, old_value, new_value))
+
+    async def _process_accesor_changes(self) -> None:
+        accessor: GeckoStructAccessor
+        old_value: Any
+        new_value: Any
         try:
             while True:
-                pass
+                accessor, old_value, new_value = await self._accessor_change_queue.get()
+
+                if accessor.tag == "UdP1":
+                    p1: GeckoStructAccessor = self.structure.accessors["P1"]
+                    if new_value == "HI":
+                        await p1.async_set_value("HIGH")
+                    elif new_value == "LO":
+                        await p1.async_set_value("LOW")
+                    else:
+                        await p1.async_set_value("OFF")
+
+                else:
+                    _LOGGER.debug(
+                        "%s changed from %s to %s", accessor, old_value, new_value
+                    )
+                self._accessor_change_queue.task_done()
 
         except asyncio.CancelledError:
-            _LOGGER.debug("AsyncSpaStruct value update loop cancelled")
+            _LOGGER.debug("Simulator accessort change loop cancelled")
             raise
 
         except:
-            _LOGGER.exception("AsyncSpaStruct value update loop exception")
+            _LOGGER.exception("Simulator value update loop exception")
             raise
 
         finally:
-            _LOGGER.debug("AsyncSpaStruct value update loop finished")
+            _LOGGER.debug("Simulator value update loop finished")
+
+{
+    GeckoConstants.KEY_PUMP_1: { if }
+}

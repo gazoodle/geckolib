@@ -570,7 +570,7 @@ class GeckoAsyncSpa(Observable):
 
             pack_command_handler = await self._protocol.get(
                 lambda: GeckoPackCommandProtocolHandler.set_value(
-                    self._protocol.get_and_increment_sequence_counter(True),  # type: ignore
+                    self._protocol.get_and_increment_sequence_counter(True),
                     self.pack_type,
                     self.config_version,
                     self.log_version,
@@ -581,7 +581,11 @@ class GeckoAsyncSpa(Observable):
                 )
             )
 
-            if pack_command_handler is None:
+            if pack_command_handler is not None:
+                self.struct.replace_status_block_segment(
+                    pos, GeckoPackCommandProtocolHandler.pack_data(length, newvalue)
+                )
+            else:
                 _LOGGER.error("Cannot set value, protocol retry count exceeded")
                 await self._event_handler(
                     GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED

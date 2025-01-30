@@ -57,9 +57,7 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
         self.sequence = self.length = self.next = self.data = None
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
-        return received_bytes.startswith(STATU_VERB) or received_bytes.startswith(
-            STATV_VERB
-        )
+        return received_bytes.startswith((STATU_VERB, STATV_VERB))
 
     def handle(self, received_bytes: bytes, sender: tuple):
         remainder = received_bytes[5:]

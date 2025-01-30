@@ -2,6 +2,7 @@
 
 import logging
 import struct
+from typing import Any
 
 from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
@@ -16,16 +17,18 @@ _LOGGER = logging.getLogger(__name__)
 
 class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
     @staticmethod
+    def pack_data(len: int, data: Any) -> bytes:
+        """Pack the data into bytes."""
+        if len == 1:
+            return struct.pack(">B", data)
+        if len == 2:
+            return struct.pack(">H", data)
+        raise OverflowError(len)
+
+    @staticmethod
     def set_value(
         seq, pack_type, config_version, log_version, pos, len, data, **kwargs
     ):
-        if len == 1:
-            data = struct.pack(">B", data)
-        elif len == 2:
-            data = struct.pack(">H", data)
-        else:
-            raise OverflowError(len)
-
         return GeckoPackCommandProtocolHandler(
             content=b"".join(
                 [
@@ -40,7 +43,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                         log_version,
                         pos,
                     ),
-                    data,
+                    GeckoPackCommandProtocolHandler.pack_data(len, data),
                 ]
             ),
             timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
@@ -77,6 +80,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
         self.keycode = None
         self.is_set_value = False
         self.position = None
+        self.length = None
         self.new_data = None
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
@@ -90,11 +94,11 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
             self._should_remove_handler = True
             return
         # Otherwise must be SPACK, so work out what is going on ...
-        self._sequence, self.pack_type, length, command = struct.unpack(
+        self._sequence, self.pack_type, self.length, command = struct.unpack(
             ">BBBB", remainder[0:4]
         )
         if command == PACK_COMMAND_KEY_PRESS:
-            if length == 2:
+            if self.length == 2:
                 self.is_key_press = True
                 self.is_set_value = False
                 self.keycode = struct.unpack(">B", remainder[4:])[0]
@@ -103,6 +107,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
         elif command == PACK_COMMAND_SET_VALUE:
             self.is_set_value = True
             self.is_key_press = False
+            self.length -= 5
             config_version, log_version, self.position = struct.unpack(
                 ">BBH", remainder[4:8]
             )
