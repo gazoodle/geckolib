@@ -8,6 +8,8 @@ import time
 from datetime import UTC, datetime
 from functools import partial
 
+from geckolib.driver.accessor import GeckoStructAccessor
+
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_taskman import GeckoAsyncTaskMan
 from .config import GeckoConfig, config_sleep
@@ -583,7 +585,7 @@ class GeckoAsyncSpa(Observable):
 
             if pack_command_handler is not None:
                 self.struct.replace_status_block_segment(
-                    pos, GeckoPackCommandProtocolHandler.pack_data(length, newvalue)
+                    pos, GeckoStructAccessor.pack_data(length, newvalue)
                 )
             else:
                 _LOGGER.error("Cannot set value, protocol retry count exceeded")

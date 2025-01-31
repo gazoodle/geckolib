@@ -4,6 +4,8 @@ import logging
 import struct
 from typing import Any
 
+from geckolib.driver.accessor import GeckoStructAccessor
+
 from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
 
@@ -16,14 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
-    @staticmethod
-    def pack_data(len: int, data: Any) -> bytes:
-        """Pack the data into bytes."""
-        if len == 1:
-            return struct.pack(">B", data)
-        if len == 2:
-            return struct.pack(">H", data)
-        raise OverflowError(len)
+    """Pack Command handler."""
 
     @staticmethod
     def set_value(
@@ -43,7 +38,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                         log_version,
                         pos,
                     ),
-                    GeckoPackCommandProtocolHandler.pack_data(len, data),
+                    GeckoStructAccessor.pack_data(len, data),
                 ]
             ),
             timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,

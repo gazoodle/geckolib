@@ -103,11 +103,15 @@ class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
         """Report changes as a list of change tuples, (pos, data)."""
         change_bin = [(struct.pack(">H", change[0]), change[1]) for change in changes]
         change_list = [item for change in change_bin for item in change]
+        pack_data = b"".join(
+            [STATP_VERB, struct.pack(">B", len(changes)), *change_list]
+        )
+        if len(pack_data) % 2 != 0:
+            msg = "Pack data must be even length, check if there is a change of other than 2 bytes"
+            raise RuntimeError(msg)
         return GeckoAsyncPartialStatusBlockProtocolHandler(
             socket,
-            content=b"".join(
-                [STATP_VERB, struct.pack(">B", len(changes)), *change_list]
-            ),
+            content=pack_data,
             **kwargs,
         )
 

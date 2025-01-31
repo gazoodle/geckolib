@@ -363,7 +363,7 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
         self.assertEqual(handler.data, b"\x01\x02\x03\x04")
 
     def test_send_partial(self) -> None:
-        protocol = MockProtocol
+        protocol = MockProtocol()
         handler = GeckoAsyncPartialStatusBlockProtocolHandler.report_changes(
             protocol, [(365, b"\x03\x84"), (366, b"\x84\x0c")], parms=PARMS
         )
@@ -371,6 +371,35 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
         self.assertEqual(
             handler.send_bytes,
             b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATP\x02\x01\x6d\x03\x84\x01\x6e\x84\x0c</DATAS></PACKT>",
+        )
+
+    def test_send_partial_three(self) -> None:
+        protocol = MockProtocol()
+        handler = GeckoAsyncPartialStatusBlockProtocolHandler.report_changes(
+            protocol,
+            [(365, b"\x03\x84"), (366, b"\x84\x0c"), (367, b"\x01\x02")],
+            parms=PARMS,
+        )
+        print(handler.send_bytes)
+        self.assertFalse(handler.should_remove_handler)
+        self.assertEqual(
+            handler.send_bytes,
+            b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATP\x03\x01\x6d\x03\x84\x01\x6e\x84\x0c\x01\x6f\x01\x02</DATAS></PACKT>",
+        )
+
+    @unittest.expectedFailure
+    def test_send_partial_not_two_bytes(self) -> None:
+        protocol = MockProtocol()
+        handler = GeckoAsyncPartialStatusBlockProtocolHandler.report_changes(
+            protocol,
+            [(367, b"\x01")],
+            parms=PARMS,
+        )
+        print(handler.send_bytes)
+        self.assertFalse(handler.should_remove_handler)
+        self.assertEqual(
+            handler.send_bytes,
+            b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATP\x03\x01\x6d\x03\x84\x01\x6e\x84\x0c\x01\x6f\x01\x02</DATAS></PACKT>",
         )
 
 
@@ -382,6 +411,19 @@ class TestGeckoAsyncStatusBlockHandler:
         handler = GeckoAsyncPartialStatusBlockProtocolHandler(protocol)
         await handler.async_handle(b"STATV\x02\x01\x6d\x03\x84\x01\x6e\x84\x0c", PARMS)
         assert not handler.should_remove_handler
+        assert handler.changes == [(365, b"\x03\x84"), (366, b"\x84\x0c")]
+        assert (
+            protocol.sendbytes
+            == b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATQ\x01</DATAS></PACKT>"
+        )
+
+    async def test_change_unpack_more(self) -> None:
+        protocol = MockProtocol()
+        handler = GeckoAsyncPartialStatusBlockProtocolHandler(protocol)
+        await handler.async_handle(
+            b"STATV\x08\x01\x13\x80\x00\x01d\x00\x01\r\x00\x01f\x00\x01\x13\x80\x00\x01d\x01\x01\r\x01\x01f\x0f",
+            PARMS,
+        )
         assert handler.changes == [(365, b"\x03\x84"), (366, b"\x84\x0c")]
         assert (
             protocol.sendbytes

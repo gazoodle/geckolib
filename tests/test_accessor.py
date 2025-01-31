@@ -1,6 +1,5 @@
 """Unit tests for the structure accessor class."""  # noqa: INP001
 
-import struct
 from typing import Any
 
 import pytest
@@ -11,6 +10,8 @@ from context import (
     GeckoEnumStructAccessor,
     GeckoWordStructAccessor,
 )
+
+from geckolib.driver.accessor import GeckoStructAccessor
 
 
 class MockStructure(GeckoAsyncStructure):
@@ -38,7 +39,7 @@ class MockStructure(GeckoAsyncStructure):
     async def set_value_cb(self, pos: int, len_: int, newvalue: Any) -> None:
         self.last_pos = pos
         self.last_len = len_
-        self.last_data = struct.pack(">B" if len_ == 1 else ">H", newvalue)
+        self.last_data = GeckoStructAccessor.pack_data(len_, newvalue)
         self.replace_status_block_segment(pos, self.last_data)
         self.last_value = newvalue
 
