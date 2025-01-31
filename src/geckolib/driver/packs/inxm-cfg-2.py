@@ -663,6 +663,30 @@ class GeckoConfigStruct:
             "QuickOnOffKeyEnable": GeckoBoolStructAccessor(
                 self.struct, "QuickOnOffKeyEnable", 17, 6, "ALL"
             ),
+            "K600Msg1NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg1NbWeek", 75, "ALL"
+            ),
+            "K600Msg2NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg2NbWeek", 76, "ALL"
+            ),
+            "K600Msg3NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg3NbWeek", 77, "ALL"
+            ),
+            "K600Msg4NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg4NbWeek", 78, "ALL"
+            ),
+            "K600Msg5NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg5NbWeek", 79, "ALL"
+            ),
+            "K600Msg6NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg6NbWeek", 80, "ALL"
+            ),
+            "K600Msg7NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg7NbWeek", 81, "ALL"
+            ),
+            "K600Msg8NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg8NbWeek", 82, "ALL"
+            ),
             "SWMPurgeSpeed": GeckoEnumStructAccessor(
                 self.struct, "SWMPurgeSpeed", 67, 0, ["Low", "High"], None, 2, "ALL"
             ),

@@ -90,26 +90,26 @@ class GeckoLogStruct:
     def error_keys(self) -> list[str]:
         """Get all error keys."""
         return [
+            "AmbiantOHLevel1",
+            "AmbiantOHLevel2",
+            "ContactorCoilFailErr",
+            "FreqDetecErr",
+            "Fuse1Err",
+            "Fuse2Err",
+            "Fuse3Err",
+            "KinPumpOff",
+            "LearnPhaseErr",
+            "NoHeaterCurrentErr",
+            "RegOverHeat",
             "RelayStuck",
-            "rHId",
             "RhCommErr",
             "RhDutyErr",
-            "NoHeaterCurrentErr",
-            "ScanErr",
-            "LearnPhaseErr",
             "RhRegProbeErr",
-            "Fuse3Err",
+            "ScanErr",
             "SupplyErr",
-            "Fuse2Err",
-            "RegOverHeat",
-            "ContactorCoilFailErr",
             "TempNotValid",
-            "FreqDetecErr",
             "ThermistanceErr",
-            "KinPumpOff",
-            "AmbiantOHLevel1",
-            "Fuse1Err",
-            "AmbiantOHLevel2",
+            "rHId",
         ]
 
     @property
@@ -586,5 +586,11 @@ class GeckoLogStruct:
             ),
             "inThermCurFull": GeckoWordStructAccessor(
                 self.struct, "inThermCurFull", 341, None
+            ),
+            "K600ID": GeckoWordStructAccessor(self.struct, "K600ID", 343, None),
+            "K600Rev": GeckoByteStructAccessor(self.struct, "K600Rev", 345, None),
+            "K600Rel": GeckoByteStructAccessor(self.struct, "K600Rel", 346, None),
+            "K600Protocol": GeckoByteStructAccessor(
+                self.struct, "K600Protocol", 347, None
             ),
         }

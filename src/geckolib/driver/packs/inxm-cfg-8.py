@@ -792,6 +792,169 @@ class GeckoConfigStruct:
             "QuickOnOffKeyEnable": GeckoBoolStructAccessor(
                 self.struct, "QuickOnOffKeyEnable", 1, 1, "ALL"
             ),
+            "K600ForMay": GeckoBoolStructAccessor(
+                self.struct, "K600ForMay", 60, 7, "ALL"
+            ),
+            "K600Msg1": GeckoEnumStructAccessor(
+                self.struct,
+                "K600Msg1",
+                67,
+                None,
+                [
+                    "CleanFilter",
+                    "PH",
+                    "CheckGFCI",
+                    "ChangeWater",
+                    "CleanCover",
+                    "ReplaceFilter",
+                ],
+                None,
+                None,
+                "ALL",
+            ),
+            "K600Msg2": GeckoEnumStructAccessor(
+                self.struct,
+                "K600Msg2",
+                68,
+                None,
+                [
+                    "CleanFilter",
+                    "PH",
+                    "CheckGFCI",
+                    "ChangeWater",
+                    "CleanCover",
+                    "ReplaceFilter",
+                ],
+                None,
+                None,
+                "ALL",
+            ),
+            "K600Msg3": GeckoEnumStructAccessor(
+                self.struct,
+                "K600Msg3",
+                69,
+                None,
+                [
+                    "CleanFilter",
+                    "PH",
+                    "CheckGFCI",
+                    "ChangeWater",
+                    "CleanCover",
+                    "ReplaceFilter",
+                ],
+                None,
+                None,
+                "ALL",
+            ),
+            "K600Msg4": GeckoEnumStructAccessor(
+                self.struct,
+                "K600Msg4",
+                70,
+                None,
+                [
+                    "CleanFilter",
+                    "PH",
+                    "CheckGFCI",
+                    "ChangeWater",
+                    "CleanCover",
+                    "ReplaceFilter",
+                ],
+                None,
+                None,
+                "ALL",
+            ),
+            "K600Msg5": GeckoEnumStructAccessor(
+                self.struct,
+                "K600Msg5",
+                71,
+                None,
+                [
+                    "CleanFilter",
+                    "PH",
+                    "CheckGFCI",
+                    "ChangeWater",
+                    "CleanCover",
+                    "ReplaceFilter",
+                ],
+                None,
+                None,
+                "ALL",
+            ),
+            "K600Msg6": GeckoEnumStructAccessor(
+                self.struct,
+                "K600Msg6",
+                72,
+                None,
+                [
+                    "CleanFilter",
+                    "PH",
+                    "CheckGFCI",
+                    "ChangeWater",
+                    "CleanCover",
+                    "ReplaceFilter",
+                ],
+                None,
+                None,
+                "ALL",
+            ),
+            "K600Msg7": GeckoEnumStructAccessor(
+                self.struct,
+                "K600Msg7",
+                73,
+                None,
+                [
+                    "CleanFilter",
+                    "PH",
+                    "CheckGFCI",
+                    "ChangeWater",
+                    "CleanCover",
+                    "ReplaceFilter",
+                ],
+                None,
+                None,
+                "ALL",
+            ),
+            "K600Msg8": GeckoEnumStructAccessor(
+                self.struct,
+                "K600Msg8",
+                74,
+                None,
+                [
+                    "CleanFilter",
+                    "PH",
+                    "CheckGFCI",
+                    "ChangeWater",
+                    "CleanCover",
+                    "ReplaceFilter",
+                ],
+                None,
+                None,
+                "ALL",
+            ),
+            "K600Msg1NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg1NbWeek", 75, "ALL"
+            ),
+            "K600Msg2NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg2NbWeek", 76, "ALL"
+            ),
+            "K600Msg3NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg3NbWeek", 77, "ALL"
+            ),
+            "K600Msg4NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg4NbWeek", 78, "ALL"
+            ),
+            "K600Msg5NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg5NbWeek", 79, "ALL"
+            ),
+            "K600Msg6NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg6NbWeek", 80, "ALL"
+            ),
+            "K600Msg7NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg7NbWeek", 81, "ALL"
+            ),
+            "K600Msg8NbWeek": GeckoByteStructAccessor(
+                self.struct, "K600Msg8NbWeek", 82, "ALL"
+            ),
             "TimeFormat": GeckoEnumStructAccessor(
                 self.struct, "TimeFormat", 83, 0, ["AmPm", "24h"], None, 2, "ALL"
             ),
