@@ -335,6 +335,7 @@ class PackGenerator:
             if element.tag.endswith("Err") or element.tag in known_err_tags
         ]
         errors = list(set(errors))  # Dedupe
+        errors.sort()
         xml.attrib["ErrorMessages"] = self.add_constant(errors)
 
     def write_get_accessors(self, file: TextIOWrapper, xml: ET.Element) -> None:  # noqa: PLR0912, PLR0915
@@ -349,10 +350,10 @@ class PackGenerator:
         for element in xml.findall(".//*[@Pos]"):
             if element.tag.startswith("CFG"):
                 continue
-            if element.tag.startswith("CustomerID"):
-                continue
-            if element.tag.startswith("K600"):
-                continue
+            # if element.tag.startswith("CustomerID"):
+            #    continue
+            # if element.tag.startswith("K600"):
+            #    continue
             tag = f'"{element.tag}"'
             pos = element.attrib["Pos"]
             accessor_type = f'"{element.attrib["Type"]}"'
@@ -475,8 +476,8 @@ class PackGenerator:
     def build_plateform(self, plateform: ET.Element, version: str) -> None:
         """Build Plateform files."""
         segment = plateform.attrib["Segment"]
-        if segment != "aMainControl":
-            return
+        # if segment != "aMainControl":
+        #   return
 
         plateform_name = plateform.attrib["Name"]
 

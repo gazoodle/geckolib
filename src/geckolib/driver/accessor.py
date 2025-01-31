@@ -203,6 +203,9 @@ class GeckoStructAccessor(Observable):
                 (newvalue & self.bitmask) << self.bitpos
             )
 
+        if newvalue == existing:
+            return
+
         _LOGGER.debug(
             "Accessor %s @ %s, %s setting value to %s, existing value was %s. "
             "Length is %d",
