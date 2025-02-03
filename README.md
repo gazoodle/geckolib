@@ -304,6 +304,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Breaking change, removed all sync APIs
  - Require Python 3.13 as minimum version
  - Made unit tests pass after sync API removal
+ - Refactor a bit of the protocol stack to DRY out some code
 
 ## Done/Fixed in 0.4.20
  - Remove deprecated constant, it's only available in Python 3.13 from warnings, we can re-add it

@@ -63,7 +63,6 @@ class GeckoConstants:
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 
-    EXCEPTION_MESSAGE_NO_SPA_PACK = "Cannot find spa pack for {0}"
     EXCEPTION_MESSAGE_NOT_WRITABLE = (
         "Cannot set value for {0}. This status array item doesn't allow writing"
     )

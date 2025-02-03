@@ -20,7 +20,7 @@ class MockStructure(GeckoAsyncStructure):
         """Intialize the mock structure."""
         super().__init__(self.set_value_cb)
 
-        class LogClass:
+        class CfgClass:
             """The log class."""
 
             def __init__(self, struct_: GeckoAsyncStructure) -> None:
@@ -82,7 +82,7 @@ class MockStructure(GeckoAsyncStructure):
                     ),
                 }
 
-        class CfgClass:
+        class LogClass:
             def __init__(self, struct_: GeckoAsyncStructure) -> None:
                 self.struct = struct_
 
@@ -119,7 +119,9 @@ class MockStructure(GeckoAsyncStructure):
                     # <UdL120Time Type="Byte" Pos="361" RW="ALL" />
                 }
 
-        self.build_accessors(LogClass(self), CfgClass(self))
+        self.config_class = CfgClass(self)
+        self.log_class = LogClass(self)
+        self.build_accessors()
 
     async def set_value_cb(self, pos: int, len_: int, newvalue: Any) -> None:
         self.last_pos = pos

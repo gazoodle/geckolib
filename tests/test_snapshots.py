@@ -27,49 +27,20 @@ class GeckoAsyncSpa:
         self.struct.replace_status_block_segment(0, snapshot.bytes)
 
         # Attempt to get config and log classes
-        plateform_key = snapshot.packtype.lower()
-
-        pack_module_name = f"geckolib.driver.packs.{plateform_key}"
-        try:
-            GeckoPack = importlib.import_module(pack_module_name).GeckoPack
-            self.pack_class = GeckoPack(self.struct)
-            self.pack_type = self.pack_class.plateform_type
-        except ModuleNotFoundError:
-            raise Exception(
-                GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
-                    self.snapshot.packtype
-                )
-            )
-
-        config_module_name = (
-            f"geckolib.driver.packs.{plateform_key}-cfg-{snapshot.config_version}"
-        )
-        try:
-            GeckoConfigStruct = importlib.import_module(
-                config_module_name
-            ).GeckoConfigStruct
-            self.config_class = GeckoConfigStruct(self.struct)
-        except ModuleNotFoundError:
-            raise Exception(
-                f"Cannot find GeckoConfigStruct module for {snapshot.packtype} v{snapshot.config_version}"
-            )
-
-        log_module_name = (
-            f"geckolib.driver.packs.{plateform_key}-log-{snapshot.log_version}"
-        )
-        try:
-            GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
-            self.log_class = GeckoLogStruct(self.struct)
-        except ModuleNotFoundError:
-            raise Exception(
-                f"Cannot find GeckoLogStruct module for {snapshot.packtype} v{snapshot.log_version}"
-            )
-
-        self.struct.build_accessors(self.config_class, self.log_class)
+        self.plateform_key = snapshot.packtype.lower()
+        self.config_version = snapshot.config_version
+        self.log_version = snapshot.log_version
 
     @property
     def accessors(self):
         return self.struct.accessors
+
+    async def async_init(self) -> None:
+        """Init async."""
+        await self.struct.load_pack_class(self.plateform_key)
+        await self.struct.load_config_module(self.config_version)
+        await self.struct.load_log_module(self.log_version)
+        self.struct.build_accessors()
 
 
 class TestSnapshots(IsolatedAsyncioTestCase):
@@ -89,6 +60,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
 
     async def build_facade(self, snapshotfile) -> GeckoAsyncFacade:
         spa = GeckoAsyncSpa(snapshotfile)
+        await spa.async_init()
         return GeckoAsyncFacade(spa, self.taskman)
 
     async def test_default(self) -> None:

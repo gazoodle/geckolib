@@ -178,21 +178,25 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     def complete_parse(self, text, line, start_idx, end_idx):
         return self._complete_path(text)
 
-    def do_load(self, args):
-        """Load a snapshot : load <snapshot>"""
+    async def do_load(self, args):
+        """
+        Load a snapshot.
+
+        Usage: load <snapshot>
+        """
         snapshots = GeckoSnapshot.parse_log_file(args)
         if len(snapshots) == 1:
-            self.set_snapshot(snapshots[0])
+            await self.set_snapshot(snapshots[0])
             return
         print(
             f"{args} contains {len(snapshots)} snapshots. Please use the"
             f" `parse` command to break it apart"
         )
 
-    def do_snapshot(self, args):
-        """Set a snapshot state"""
+    async def do_import(self, args) -> None:
+        """Import a JSON snapshot."""
         snapshot = GeckoSnapshot.parse_json(args)
-        self.set_snapshot(snapshot)
+        await self.set_snapshot(snapshot)
 
     def do_name(self, args):
         """Set the name of the spa : name <spaname>."""
@@ -201,49 +205,18 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     def complete_load(self, text, line, start_idx, end_idx):
         return self._complete_path(text)
 
-    def set_snapshot(self, snapshot):
+    async def set_snapshot(self, snapshot):
         self.snapshot = snapshot
         self.structure.replace_status_block_segment(0, self.snapshot.bytes)
 
+        plateform_key = self.snapshot.packtype.lower()
+
         try:
             # Attempt to get config and log classes
-            plateform_key = self.snapshot.packtype.lower()
-
-            pack_module_name = f"geckolib.driver.packs.{plateform_key}"
-            try:
-                GeckoPack = importlib.import_module(pack_module_name).GeckoPack
-                self.pack_class = GeckoPack(self.structure)
-                self.pack_type = self.pack_class.plateform_type
-            except ModuleNotFoundError:
-                raise Exception(
-                    GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
-                        self.snapshot.packtype
-                    )
-                )
-
-            config_module_name = f"geckolib.driver.packs.{plateform_key}-cfg-{self.snapshot.config_version}"
-            try:
-                GeckoConfigStruct = importlib.import_module(
-                    config_module_name
-                ).GeckoConfigStruct
-                self.config_class = GeckoConfigStruct(self.structure)
-            except ModuleNotFoundError:
-                raise Exception(
-                    f"Cannot find GeckoConfigStruct module for {self.snapshot.packtype} v{self.snapshot.config_version}"
-                )
-
-            log_module_name = (
-                f"geckolib.driver.packs.{plateform_key}-log-{self.snapshot.log_version}"
-            )
-            try:
-                GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
-                self.log_class = GeckoLogStruct(self.structure)
-            except ModuleNotFoundError:
-                raise Exception(
-                    f"Cannot find GeckoLogStruct module for {self.snapshot.packtype} v{self.snapshot.log_version}"
-                )
-
-            self.structure.build_accessors(self.config_class, self.log_class)
+            await self.structure.load_pack_class(self.snapshot.packtype.lower())
+            await self.structure.load_config_module(snapshot.config_version)
+            await self.structure.load_log_module(snapshot.log_version)
+            self.structure.build_accessors()
             for accessor in self.structure.accessors.values():
                 accessor.set_read_write("ALL")
                 accessor.watch(self._on_accessor_changed)

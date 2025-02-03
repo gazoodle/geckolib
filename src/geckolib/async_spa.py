@@ -76,10 +76,10 @@ class GeckoAsyncSpa(Observable):
         self.config_version = 0
         self.log_version = 0
 
-        self.pack_class = None
+        # self.pack_class = None
         self.pack_type = ""
-        self.config_class = None
-        self.log_class = None
+        # self.config_class = None
+        # self.log_class = None
 
         self.pack = None
         self.version = ""
@@ -104,9 +104,7 @@ class GeckoAsyncSpa(Observable):
     @property
     def revision(self) -> str:
         """Get the revision of the spa pack structure."""
-        # TODO: Need to add base classes and type hinting to auto-generated
-        # pack code and remove type-hint suppression below
-        return self.pack_class.revision  # type: ignore
+        return self.struct.pack_class.revision
 
     def _get_version_handler_func(self) -> GeckoVersionProtocolHandler:
         assert self._protocol is not None
@@ -286,65 +284,30 @@ class GeckoAsyncSpa(Observable):
             "Async spa connect - after files",
         )
 
-        pack_module_name = f"geckolib.driver.packs.{plateform_key}"
         try:
-            GeckoPack = (
-                await self._async_import_module(loop, pack_module_name)
-            ).GeckoPack
-            self.pack_class = GeckoPack(self.struct)
-            # TODO: Need to add base classes and type hinting to auto-generated
-            # pack code and remove type-hint suppression below
-            self.pack_type = self.pack_class.plateform_type
-        except ModuleNotFoundError:
+            await self.struct.load_pack_class(plateform_key)
+        except ModuleNotFoundError as ex:
             await self._event_handler(
-                GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK,
-                pack_module_name=pack_module_name,
-            )
-            _LOGGER.error(
-                "Cannot find spa pack for %s", config_file_handler.plateform_key
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK, ex.args
             )
             return
 
-        config_module_name = (
-            f"geckolib.driver.packs.{plateform_key}-cfg-{self.config_version}"
-        )
         try:
-            GeckoConfigStruct = (
-                await self._async_import_module(loop, config_module_name)
-            ).GeckoConfigStruct
-            self.config_class = GeckoConfigStruct(self.struct)
-        except ModuleNotFoundError:
+            await self.struct.load_config_module(self.config_version)
+        except ModuleNotFoundError as ex:
             await self._event_handler(
-                GeckoSpaEvent.CONNECTION_CANNOT_FIND_CONFIG_VERSION,
-                config_version=self.config_version,
-            )
-            _LOGGER.error(
-                "Cannot find GeckoConfigStruct module for %s v%s",
-                config_file_handler.plateform_key,
-                self.config_version,
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_CONFIG_VERSION, ex.args
             )
             return
 
-        log_module_name = (
-            f"geckolib.driver.packs.{plateform_key}-log-{self.log_version}"
-        )
         try:
-            GeckoLogStruct = (
-                await self._async_import_module(loop, log_module_name)
-            ).GeckoLogStruct
-            self.log_class = GeckoLogStruct(self.struct)
-        except ModuleNotFoundError:
+            await self.struct.load_log_module(self.log_version)
+        except ModuleNotFoundError as ex:
             await self._event_handler(
-                GeckoSpaEvent.CONNECTION_CANNOT_FIND_LOG_VERSION,
-                log_version=self.log_version,
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_LOG_VERSION, ex.args
             )
-            _LOGGER.error(
-                "Cannot find GeckoLogStruct module for %s v%s",
-                config_file_handler.plateform_key,
-                self.log_version,
-            )
-            return
 
+        self.pack_type = self.struct.pack_class.plateform_type
         _LOGGER.debug(
             "Got spa configuration Type %s - CFG %s/LOG %s, now ask for initial "
             "status block",
@@ -375,7 +338,7 @@ class GeckoAsyncSpa(Observable):
 
         _LOGGER.debug("Status block was completed, so spa can be connected")
 
-        self.struct.build_accessors(self.config_class, self.log_class)
+        self.struct.build_accessors()
 
         self.pack = self.accessors[GeckoConstants.KEY_PACK_TYPE].value
         self.version = f"{self.accessors[GeckoConstants.KEY_PACK_CONFIG_ID].value} v{self.accessors[GeckoConstants.KEY_PACK_CONFIG_REV].value}.{self.accessors[GeckoConstants.KEY_PACK_CONFIG_REL].value}"
@@ -498,11 +461,11 @@ class GeckoAsyncSpa(Observable):
 
     def _get_status_block_handler_func(self) -> GeckoStatusBlockProtocolHandler:
         assert self._protocol is not None
-        assert self.log_class is not None
+        assert self.struct.log_class is not None
         return GeckoStatusBlockProtocolHandler.request(
             self._protocol.get_and_increment_sequence_counter(False),
-            self.log_class.begin,
-            self.log_class.end,
+            self.struct.log_class.begin,
+            self.struct.log_class.end,
             parms=self.sendparms,
         )
 

@@ -421,10 +421,16 @@ class TestGeckoAsyncStatusBlockHandler:
         protocol = MockProtocol()
         handler = GeckoAsyncPartialStatusBlockProtocolHandler(protocol)
         await handler.async_handle(
-            b"STATV\x08\x01\x13\x80\x00\x01d\x00\x01\r\x00\x01f\x00\x01\x13\x80\x00\x01d\x01\x01\r\x01\x01f\x0f",
+            b"STATV\x05\x00\x01\x02\x02\x00\x02\x04\x04\x00\x03\x06\x06\x00\x04\x08\x08\x00\x05\x0a\x0a",
             PARMS,
         )
-        assert handler.changes == [(365, b"\x03\x84"), (366, b"\x84\x0c")]
+        assert handler.changes == [
+            (1, b"\x02\x02"),
+            (2, b"\x04\x04"),
+            (3, b"\x06\x06"),
+            (4, b"\x08\x08"),
+            (5, b"\x0a\x0a"),
+        ]
         assert (
             protocol.sendbytes
             == b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATQ\x01</DATAS></PACKT>"

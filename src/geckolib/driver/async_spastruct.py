@@ -1,7 +1,13 @@
 """Async Spa Structure block."""
 
+import asyncio
+from functools import partial
+import importlib
 import logging
+from types import ModuleType
 from typing import Any
+
+from geckolib.const import GeckoConstants
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,17 +43,17 @@ class GeckoAsyncStructure:
         """Set the status block."""
         self._status_block = block
 
-    def build_accessors(self, config_class, log_class) -> None:
+    def build_accessors(self) -> None:
         """Build the accessors."""
-        self.accessors = dict(config_class.accessors, **log_class.accessors)
+        self.accessors = dict(self.config_class.accessors, **self.log_class.accessors)
         # Get all outputs
-        self.all_outputs = config_class.output_keys
+        self.all_outputs = self.config_class.output_keys
         # Get collection of possible devices
-        self.all_devices = log_class.all_device_keys
+        self.all_devices = self.log_class.all_device_keys
         # User devices are those that have a Ud in the tag name
-        self.user_demands = log_class.user_demand_keys
+        self.user_demands = self.log_class.user_demand_keys
         # Error keys
-        self.error_keys = log_class.error_keys
+        self.error_keys = self.log_class.error_keys
 
     def reset(self) -> None:
         """Reset this status block to initialization state."""
@@ -108,3 +114,40 @@ class GeckoAsyncStructure:
     async def async_set_value(self, pos: int, length: int, newvalue: Any) -> None:
         """Set the value of a block."""
         await self._on_async_set_value(pos, length, newvalue)
+
+    async def _async_import_module(self, module_name: str) -> ModuleType:
+        """Load a module asyncronously."""
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            None, partial(importlib.import_module, module_name)
+        )
+
+    ############################################################################
+    #
+    #   DRY functionality
+
+    async def load_pack_class(self, plateform_key: str) -> None:
+        """Load the pack class for this structure."""
+        self.plateform_key = plateform_key
+        pack_module_name = f"geckolib.driver.packs.{plateform_key}"
+        pack_class = (await self._async_import_module(pack_module_name)).GeckoPack
+        self.pack_class = pack_class(self)
+        self.pack_type = self.pack_class.plateform_type
+
+    async def load_config_module(self, config_version: int) -> None:
+        """Load the config pack class for this structure."""
+        config_module_name = (
+            f"geckolib.driver.packs.{self.plateform_key}-cfg-{config_version}"
+        )
+        config_class = (
+            await self._async_import_module(config_module_name)
+        ).GeckoConfigStruct
+        self.config_class = config_class(self)
+
+    async def load_log_module(self, log_version: int) -> None:
+        """Load the log pack class for this structure."""
+        log_module_name = (
+            f"geckolib.driver.packs.{self.plateform_key}-log-{log_version}"
+        )
+        log_class = (await self._async_import_module(log_module_name)).GeckoLogStruct
+        self.log_class = log_class(self)
