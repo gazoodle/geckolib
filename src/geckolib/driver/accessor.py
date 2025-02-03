@@ -105,7 +105,10 @@ class GeckoStructAccessor(Observable):
             return
 
         _LOGGER.info(
-            "Value for %s changed from %s to %s", self.tag, old_value, new_value
+            "Status block changed value of %s from %s to %s",
+            self.tag,
+            old_value,
+            new_value,
         )
 
         self._on_change(self, old_value, new_value)

@@ -169,6 +169,7 @@ class GeckoAsyncStructure:
             "Library Version": VERSION,
             "SpaPackStruct.xml revision": self.pack_class.revision,
             "Spa pack": f"{self.accessors[GeckoConstants.KEY_PACK_TYPE].value}"
+            f" {self.accessors[GeckoConstants.KEY_PACK_CONFIG_ID].value}"
             f" v{self.accessors[GeckoConstants.KEY_PACK_CONFIG_REV].value}"
             f".{self.accessors[GeckoConstants.KEY_PACK_CONFIG_REL].value}",
             "Low level configuration #": self.accessors[

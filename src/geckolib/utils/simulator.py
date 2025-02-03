@@ -4,11 +4,11 @@
 
 import asyncio
 import glob
-import importlib
 import logging
 import os
 import random
 import socket
+from pathlib import Path
 from typing import Any, Self
 
 from geckolib import VERSION
@@ -68,7 +68,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self.structure: GeckoAsyncStructure = GeckoAsyncStructure(
             self._async_on_set_value
         )
-        self.snapshot = None
+        self.snapshot: GeckoSnapshot = GeckoSnapshot()
         self._reliability = 1.0
         self._do_rferr = False
         self._send_structure_change = False
@@ -193,6 +193,23 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             f" `parse` command to break it apart"
         )
 
+    def complete_load(self, text, line, start_idx, end_idx):
+        return self._complete_path(text)
+
+    def do_save(self, args: str) -> None:
+        """
+        Save a snapshot.
+
+        Usage: save <snapshot file>
+        """
+        path = Path(args)
+        data = self.get_snapshot_data()
+        with path.open("w") as f:
+            f.write(f"{data}")
+
+    def complete_save(self, text, line, start_idx, end_idx):
+        return self._complete_path(text)
+
     async def do_import(self, args) -> None:
         """Import a JSON snapshot."""
         snapshot = GeckoSnapshot.parse_json(args)
@@ -202,27 +219,29 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         """Set the name of the spa : name <spaname>."""
         self._name = args
 
-    def complete_load(self, text, line, start_idx, end_idx):
-        return self._complete_path(text)
-
     async def set_snapshot(self, snapshot):
+        """Assign snapshot to this simulator."""
+        compatible = self.snapshot.is_compatible(snapshot)
+        if not compatible:
+            self.structure.reset()
+
         self.snapshot = snapshot
         self.structure.replace_status_block_segment(0, self.snapshot.bytes)
 
-        plateform_key = self.snapshot.packtype.lower()
+        if not compatible:
+            # Must rebuild stuff
+            try:
+                # Attempt to get config and log classes
+                await self.structure.load_pack_class(self.snapshot.packtype.lower())
+                await self.structure.load_config_module(snapshot.config_version)
+                await self.structure.load_log_module(snapshot.log_version)
+                self.structure.build_accessors()
+                for accessor in self.structure.accessors.values():
+                    accessor.set_read_write("ALL")
+                    accessor.watch(self._on_accessor_changed)
 
-        try:
-            # Attempt to get config and log classes
-            await self.structure.load_pack_class(self.snapshot.packtype.lower())
-            await self.structure.load_config_module(snapshot.config_version)
-            await self.structure.load_log_module(snapshot.log_version)
-            self.structure.build_accessors()
-            for accessor in self.structure.accessors.values():
-                accessor.set_read_write("ALL")
-                accessor.watch(self._on_accessor_changed)
-
-        except:  # noqa
-            _LOGGER.exception("Exception during snapshot load")
+            except:  # noqa
+                _LOGGER.exception("Exception during snapshot load")
 
     def _should_ignore(self, handler, sender, respect_rferr=True) -> bool:
         if respect_rferr and self._do_rferr:
@@ -513,9 +532,9 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         if self._should_ignore(handler, sender):
             return
         if handler.is_key_press:
-            await self._async_handle_key_press(handler.keycode)
+            await self._async_handle_pack_key_press(handler.keycode)
         elif handler.is_set_value:
-            await self.__async_handle_set_value(
+            await self._async_handle_pack_set_value(
                 handler.position, handler.length, handler.new_data
             )
         assert self._protocol is not None  # noqa: S101
@@ -523,7 +542,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             GeckoPackCommandProtocolHandler.response(parms=sender), sender
         )
 
-    async def _async_handle_key_press(self, keycode: int) -> None:
+    async def _async_handle_pack_key_press(self, keycode: int) -> None:
         """Handle a key press command."""
         _LOGGER.debug("Pack command press key %d", keycode)
 
@@ -542,21 +561,18 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
 
         _LOGGER.warning("Simulator didn't handle key pad command for %d", keycode)
 
-    async def __async_handle_set_value(
-        self, pos: int, length: int, data: bytes
+    async def _async_handle_pack_set_value(
+        self, pos: int, _length: int, data: bytes
     ) -> None:
         """Handle set value."""
-        _LOGGER.debug("Pack command set value %d=%s", pos, data)
         self.structure.replace_status_block_segment(pos, data)
-
-    async def _async_on_set_value(self, pos, length, newvalue):
-        _LOGGER.debug(f"Simulator: Async Set value @{pos} len {length} to {newvalue}")
-        change = (pos, GeckoStructAccessor.pack_data(length, newvalue))
-        self.structure.replace_status_block_segment(change[0], change[1])
-        assert self._protocol is not None
-
         if self._send_structure_change:
-            await self._structure_change_queue.put(change[0])
+            await self._structure_change_queue.put(pos)
+
+    async def _async_on_set_value(self, pos, length, newvalue) -> None:
+        """Call when the structure notifies a change."""
+        change = (pos, GeckoStructAccessor.pack_data(length, newvalue))
+        await self._async_handle_pack_set_value(change[0], length, change[1])
 
     async def _notify_structure_changes(self) -> None:
         try:
@@ -598,7 +614,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     def _on_accessor_changed(
         self, accessor: GeckoStructAccessor, old_value: Any, new_value: Any
     ) -> None:
+        print(f"accessor {accessor} changed from {old_value} to {new_value}")
         self._accessor_change_queue.put_nowait((accessor, old_value, new_value))
+        if self._send_structure_change:
+            self._structure_change_queue.put_nowait(accessor.pos)
 
     async def _process_accesor_changes(self) -> None:
         accessor: GeckoStructAccessor
