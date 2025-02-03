@@ -170,8 +170,18 @@ class GeckoSnapshot:
         return tuple(int(i) for i in self._intouch_EN)
 
     @property
+    def intouch_EN_str(self) -> str:
+        """Get the EN version as a string."""
+        return f"{self._intouch_EN[0]} v{self._intouch_EN[1]}.{self._intouch_EN[2]}"
+
+    @property
     def intouch_CO(self):
         return tuple(int(i) for i in self._intouch_CO)
+
+    @property
+    def intouch_CO_str(self) -> str:
+        """Get the CO version as a string."""
+        return f"{self._intouch_CO[0]} v{self._intouch_CO[1]}.{self._intouch_CO[2]}"
 
     @property
     def config_version(self):

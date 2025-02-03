@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 
 from geckolib.async_taskman import GeckoAsyncTaskMan
 from geckolib.const import GeckoConstants
-from geckolib.driver import GeckoStructAccessor
 
 from .async_command import AsyncCmd
 
 if TYPE_CHECKING:
+    from geckolib.driver import GeckoStructAccessor
     from geckolib.driver.async_spastruct import GeckoAsyncStructure
 
 _LOGGER = logging.getLogger(__name__)
@@ -243,3 +243,18 @@ class GeckoCmd(AsyncCmd):
 
         print("Status block")
         print("\n".join(lines))
+
+    def do_snapshot(self, arg: str) -> None:
+        """
+        Take a snapshot of the spa data structure.
+
+        Supply an option description to help identify
+        the state of the spa at this time.
+
+        usage: snapshot <desc>
+        """
+        data = self.get_snapshot_data()
+        if arg:
+            data["Description"] = arg
+        _LOGGER.info(f"SNAPSHOT ========{data}========")  # noqa: G004
+        print(data)

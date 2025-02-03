@@ -284,12 +284,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         else:
             self.facade.eco_mode.turn_on()
 
-    def do_snapshot(self, arg):
-        """
-        Take a snapshot of the spa data structure with a descriptive
-        message : SNAPSHOT <desc>
-        """
-        _LOGGER.info("Snapshot (%s)", arg)
-        for ver_str in self.version_strings:
-            _LOGGER.info(ver_str)
-        _LOGGER.info([hex(b) for b in self.facade.spa.struct.status_block])
+    def get_snapshot_data(self) -> dict:
+        """Proxy for the spa."""
+        assert self._facade is not None
+        return self._facade.spa.get_snapshot_data()

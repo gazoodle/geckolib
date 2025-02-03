@@ -76,10 +76,7 @@ class GeckoAsyncSpa(Observable):
         self.config_version = 0
         self.log_version = 0
 
-        # self.pack_class = None
         self.pack_type = ""
-        # self.config_class = None
-        # self.log_class = None
 
         self.pack = None
         self.version = ""
@@ -679,3 +676,15 @@ class GeckoAsyncSpa(Observable):
             return []
 
         return get_reminders_handler.reminders
+
+    def get_snapshot_data(self) -> dict:
+        """Get the snapshot data for this spa."""
+        data = self.struct.get_snapshot_data()
+        data.update(
+            {
+                "intouch version EN": self.intouch_version_en,
+                "intouch version CO": self.intouch_version_co,
+                "Config version": self.config_version,
+            }
+        )
+        return data

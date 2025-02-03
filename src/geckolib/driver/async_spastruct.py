@@ -1,12 +1,14 @@
 """Async Spa Structure block."""
 
 import asyncio
-from functools import partial
+import datetime
 import importlib
 import logging
+from functools import partial
 from types import ModuleType
 from typing import Any
 
+from geckolib._version import VERSION
 from geckolib.const import GeckoConstants
 
 _LOGGER = logging.getLogger(__name__)
@@ -18,7 +20,6 @@ class GeckoAsyncStructure:
     def __init__(self, on_async_set_value) -> None:
         """Initialize the async version."""
         self._on_async_set_value = on_async_set_value
-        self.accessors = {}
         self.reset()
 
     def replace_status_block_segment(self, offset, segment) -> None:
@@ -62,6 +63,14 @@ class GeckoAsyncStructure:
         self.all_devices = []
         self.user_demands = []
         self._status_block: bytes = b"\x00" * 1024
+
+        self.plateform_key: str = ""
+        self.pack_class = None
+        self.pack_type: int = 0
+        self.config_version: int = 0
+        self.config_class = None
+        self.log_version: int = 0
+        self.log_class = None
 
     async def get(self, protocol, create_func, retry_count=10):
         _LOGGER.debug("Async get for struct")
@@ -142,6 +151,7 @@ class GeckoAsyncStructure:
         config_class = (
             await self._async_import_module(config_module_name)
         ).GeckoConfigStruct
+        self.config_version = config_version
         self.config_class = config_class(self)
 
     async def load_log_module(self, log_version: int) -> None:
@@ -150,4 +160,22 @@ class GeckoAsyncStructure:
             f"geckolib.driver.packs.{self.plateform_key}-log-{log_version}"
         )
         log_class = (await self._async_import_module(log_module_name)).GeckoLogStruct
+        self.log_version = log_version
         self.log_class = log_class(self)
+
+    def get_snapshot_data(self) -> dict:
+        """Get snapshot data that the structure can supply."""
+        return {
+            "Library Version": VERSION,
+            "SpaPackStruct.xml revision": self.pack_class.revision,
+            "Spa pack": f"{self.accessors[GeckoConstants.KEY_PACK_TYPE].value}"
+            f" v{self.accessors[GeckoConstants.KEY_PACK_CONFIG_REV].value}"
+            f".{self.accessors[GeckoConstants.KEY_PACK_CONFIG_REL].value}",
+            "Low level configuration #": self.accessors[
+                GeckoConstants.KEY_CONFIG_NUMBER
+            ].value,
+            "Log version": self.log_version,
+            "Pack type": self.pack_type,
+            "Snapshot UTC Time": f"{datetime.datetime.now(tz=datetime.UTC)}",
+            "Status Block": [hex(b) for b in self.status_block],
+        }

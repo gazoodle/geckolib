@@ -643,3 +643,16 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         for name, val in vars(action).items():
             await self.structure.accessors[name].async_set_value(val)
         self._can_report_structure_changes.set()
+
+    def get_snapshot_data(self) -> dict:
+        """Get snapshot data that the simulator can supply."""
+        data = self.structure.get_snapshot_data()
+        assert self.snapshot is not None
+        data.update(
+            {
+                "intouch version EN": self.snapshot.intouch_EN_str,
+                "intouch version CO": self.snapshot.intouch_CO_str,
+                "Config version": self.snapshot.config_version,
+            }
+        )
+        return data
