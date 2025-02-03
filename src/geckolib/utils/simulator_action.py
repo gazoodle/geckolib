@@ -18,6 +18,7 @@ class GeckoSimulatorAction:
     # User demands
     UdP1: Any
     UdP2: Any
+    UdLi: Any
 
     # Support accessors
     P1: Any
@@ -26,6 +27,8 @@ class GeckoSimulatorAction:
     # Utility accessors
     CheckFlo: Any
     UdPumpTime: Any
+    UdLightTime: Any
+    UdL120Time: Any
 
     ############################################################################
     #
@@ -38,6 +41,10 @@ class GeckoSimulatorAction:
     def on_KEYPAD_PUMP_2(self) -> None:
         """Handle keypad pump 2."""
         self.UdP2 = "HI" if self.UdP2 == "OFF" else "OFF"
+
+    def on_KEYPAD_LIGHT(self) -> None:
+        """Handle keypage for light."""
+        self.UdLi = "HI" if self.UdLi == "OFF" else "OFF"
 
     ############################################################################
     #
@@ -64,6 +71,10 @@ class GeckoSimulatorAction:
 
         else:
             self.P2 = "OFF"
+
+    def on_UdLi(self) -> None:
+        """Handle UdLi changes."""
+        self.UdLightTime = 60 if self.UdLi == "HI" else 0
 
     def on_P1(self) -> None:
         """Handle changes to P1."""

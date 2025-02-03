@@ -2,15 +2,17 @@
 
 import datetime
 import logging
+from os import access
 import sys
 from time import sleep
 import traceback
-from typing import Self
+from typing import Any, Self
 
 from geckolib import VERSION, GeckoConstants, GeckoPump
 from geckolib.async_locator import GeckoAsyncLocator
 from geckolib.async_spa_manager import GeckoAsyncSpaMan
 from geckolib.config import config_sleep
+from geckolib.driver.accessor import GeckoStructAccessor
 from geckolib.spa_events import GeckoSpaEvent
 from geckolib.spa_state import GeckoSpaState
 
@@ -61,6 +63,11 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         await GeckoAsyncSpaMan.__aenter__(self)
         return self
 
+    def _on_accessor_changed(
+        self, accessor: GeckoStructAccessor, old_value: Any, new_value: Any
+    ) -> None:
+        print(f"accessor {accessor} changed from {old_value} to {new_value}")
+
     async def handle_event(self, event: GeckoSpaEvent, **_kwargs: object) -> None:
         """Handle the event."""
         _LOGGER.debug("Handle event %s", event)
@@ -68,6 +75,8 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         if event == GeckoSpaEvent.CLIENT_FACADE_IS_READY:
             if self._spa is not None:
                 self.structure = self._spa.struct
+                for accessor in self.structure.accessors.values():
+                    accessor.watch(self._on_accessor_changed)
 
         elif event == GeckoSpaEvent.CLIENT_FACADE_TEARDOWN:
             self.structure = None
@@ -170,8 +179,20 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
             traceback.print_exc()
 
     async def do_key(self, arg):
-        """Press keypad button 1."""
-        await self.facade.spa.async_press(GeckoConstants.KEYPAD_PUMP_1)
+        """
+        Press keypad button.
+
+        Usage: key <keynum>. If keynum missing, then defaults to 1.
+        """
+        keypad = GeckoConstants.KEYPAD_PUMP_1
+        if arg:
+            try:
+                keypad = int(arg)
+            except ValueError:
+                print("Numbers only please")
+                print(self.prompt, end="", flush=True)
+                return
+        await self.facade.spa.async_press(keypad)
 
     def do_state(self, _arg):
         """Show the state of the managed spa : state"""
