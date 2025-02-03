@@ -29,6 +29,49 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoAsyncFacade(Observable):
     """Async facade."""
 
+    class SpaInUseSensor(GeckoAutomationBase):
+        """Sensor with idle/active state."""
+
+        def __init__(self, facade: GeckoAsyncFacade) -> None:
+            """Initializd the in-use sensor."""
+            super().__init__(facade.unique_id, "Spa In Use", facade.name, "INUSE")
+            self._facade: GeckoAsyncFacade = facade
+            self._in_use: bool = False
+
+        @property
+        def is_on(self) -> bool:
+            """Determine if the sensor is on or not."""
+            state = self.state
+            if isinstance(state, bool):
+                return state
+            if state == "":
+                return False
+            return state != "OFF"
+
+        @property
+        def state(self) -> bool:
+            """The state of the sensor."""
+            return self._in_use
+
+        @property
+        def device_class(self) -> str | None:
+            """The device class."""
+            return None
+
+        @property
+        def unit_of_measurement(self) -> str | None:
+            """The unit of measurement for the sensor, or None."""
+            return None
+
+        def set_in_use(self, in_use: bool) -> None:
+            """Set the internal flag."""
+            self._in_use = in_use
+            self._on_change()
+
+        def __repr__(self) -> str:
+            """Get string representation of the class."""
+            return f"{self.name}: {self.state}"
+
     def __init__(
         self, spa: GeckoAsyncSpa, taskman: GeckoAsyncTaskMan, **_kwargs: str
     ) -> None:
@@ -62,6 +105,8 @@ class GeckoAsyncFacade(Observable):
         self._taskman.add_task(self._facade_update(), "Facade update", "FACADE")
         self._ready = asyncio.Event()
 
+        self._spa_in_use_sensor = GeckoAsyncFacade.SpaInUseSensor(self)
+
     async def disconnect(self) -> None:
         """Disconnect the facade."""
         _LOGGER.debug("Disconnect facade")
@@ -70,11 +115,12 @@ class GeckoAsyncFacade(Observable):
             device.unwatch_all()
 
     def _on_config_device_change(self, *args) -> None:
-        active_mode = False
+        in_use = False
         for device in self.all_config_change_devices:
             if device.is_on:  # type: ignore
-                active_mode = True
-        set_config_mode(active_mode)
+                in_use = True
+        set_config_mode(in_use)
+        self._spa_in_use_sensor.set_in_use(in_use)
 
     async def _facade_update(self) -> None:
         _LOGGER.debug("Facade update task started")
@@ -309,6 +355,11 @@ class GeckoAsyncFacade(Observable):
         return self._ecomode
 
     @property
+    def spa_in_use_sensor(self) -> GeckoAsyncFacade.SpaInUseSensor:
+        """Get the spa in use sensor."""
+        return self._spa_in_use_sensor
+
+    @property
     def all_user_devices(self) -> list[GeckoAutomationBase]:
         """Get all the user controllable devices as a list."""
         return self._pumps + self._blowers + self._lights
@@ -316,7 +367,7 @@ class GeckoAsyncFacade(Observable):
     @property
     def all_config_change_devices(self) -> list[GeckoAutomationBase]:
         """Get all devices that can cause config change."""
-        return self._pumps + self._blowers
+        return self._pumps + self._blowers + self._lights
 
     @property
     def all_automation_devices(self) -> list[GeckoAutomationBase]:

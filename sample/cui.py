@@ -172,6 +172,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 lines.append(f"{self.radio_sensor}")
                 lines.append(f"{self.channel_sensor}")
                 lines.append(f"{self.facade.error_sensor}")
+                lines.append(f"{self.facade.spa_in_use_sensor}")
 
             elif self.spa_state == GeckoSpaState.LOCATED_SPAS:
                 if self.spa_descriptors is not None:
