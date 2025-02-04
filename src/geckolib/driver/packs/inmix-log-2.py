@@ -53,7 +53,7 @@ class GeckoLogStruct:
         return {
             "Synchro1": GeckoEnumStructAccessor(
                 self.struct,
-                "Synchro1",
+                "LogStructure/Status/Synchro1",
                 600,
                 None,
                 ["ZONE1", "ZONE2", "ZONE3", "ZONE4"],
@@ -63,7 +63,7 @@ class GeckoLogStruct:
             ),
             "Mode1": GeckoEnumStructAccessor(
                 self.struct,
-                "Mode1",
+                "LogStructure/Status/Mode1",
                 601,
                 None,
                 [
@@ -82,7 +82,7 @@ class GeckoLogStruct:
             ),
             "Color1": GeckoEnumStructAccessor(
                 self.struct,
-                "Color1",
+                "LogStructure/Status/Color1",
                 602,
                 None,
                 [
@@ -104,7 +104,7 @@ class GeckoLogStruct:
             ),
             "Speed1": GeckoEnumStructAccessor(
                 self.struct,
-                "Speed1",
+                "LogStructure/Status/Speed1",
                 603,
                 None,
                 [
@@ -124,16 +124,18 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "RedLevel1": GeckoByteStructAccessor(self.struct, "RedLevel1", 604, "ALL"),
+            "RedLevel1": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/RedLevel1", 604, "ALL"
+            ),
             "GreenLevel1": GeckoByteStructAccessor(
-                self.struct, "GreenLevel1", 605, "ALL"
+                self.struct, "LogStructure/Status/GreenLevel1", 605, "ALL"
             ),
             "BlueLevel1": GeckoByteStructAccessor(
-                self.struct, "BlueLevel1", 606, "ALL"
+                self.struct, "LogStructure/Status/BlueLevel1", 606, "ALL"
             ),
             "Synchro2": GeckoEnumStructAccessor(
                 self.struct,
-                "Synchro2",
+                "LogStructure/Status/Synchro2",
                 607,
                 None,
                 ["ZONE1", "ZONE2", "ZONE3", "ZONE4"],
@@ -143,7 +145,7 @@ class GeckoLogStruct:
             ),
             "Mode2": GeckoEnumStructAccessor(
                 self.struct,
-                "Mode2",
+                "LogStructure/Status/Mode2",
                 608,
                 None,
                 [
@@ -162,7 +164,7 @@ class GeckoLogStruct:
             ),
             "Color2": GeckoEnumStructAccessor(
                 self.struct,
-                "Color2",
+                "LogStructure/Status/Color2",
                 609,
                 None,
                 [
@@ -184,7 +186,7 @@ class GeckoLogStruct:
             ),
             "Speed2": GeckoEnumStructAccessor(
                 self.struct,
-                "Speed2",
+                "LogStructure/Status/Speed2",
                 610,
                 None,
                 [
@@ -204,16 +206,18 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "RedLevel2": GeckoByteStructAccessor(self.struct, "RedLevel2", 611, "ALL"),
+            "RedLevel2": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/RedLevel2", 611, "ALL"
+            ),
             "GreenLevel2": GeckoByteStructAccessor(
-                self.struct, "GreenLevel2", 612, "ALL"
+                self.struct, "LogStructure/Status/GreenLevel2", 612, "ALL"
             ),
             "BlueLevel2": GeckoByteStructAccessor(
-                self.struct, "BlueLevel2", 613, "ALL"
+                self.struct, "LogStructure/Status/BlueLevel2", 613, "ALL"
             ),
             "Synchro3": GeckoEnumStructAccessor(
                 self.struct,
-                "Synchro3",
+                "LogStructure/Status/Synchro3",
                 614,
                 None,
                 ["ZONE1", "ZONE2", "ZONE3", "ZONE4"],
@@ -223,7 +227,7 @@ class GeckoLogStruct:
             ),
             "Mode3": GeckoEnumStructAccessor(
                 self.struct,
-                "Mode3",
+                "LogStructure/Status/Mode3",
                 615,
                 None,
                 [
@@ -242,7 +246,7 @@ class GeckoLogStruct:
             ),
             "Color3": GeckoEnumStructAccessor(
                 self.struct,
-                "Color3",
+                "LogStructure/Status/Color3",
                 616,
                 None,
                 [
@@ -264,7 +268,7 @@ class GeckoLogStruct:
             ),
             "Speed3": GeckoEnumStructAccessor(
                 self.struct,
-                "Speed3",
+                "LogStructure/Status/Speed3",
                 617,
                 None,
                 [
@@ -284,16 +288,18 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "RedLevel3": GeckoByteStructAccessor(self.struct, "RedLevel3", 618, "ALL"),
+            "RedLevel3": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/RedLevel3", 618, "ALL"
+            ),
             "GreenLevel3": GeckoByteStructAccessor(
-                self.struct, "GreenLevel3", 619, "ALL"
+                self.struct, "LogStructure/Status/GreenLevel3", 619, "ALL"
             ),
             "BlueLevel3": GeckoByteStructAccessor(
-                self.struct, "BlueLevel3", 620, "ALL"
+                self.struct, "LogStructure/Status/BlueLevel3", 620, "ALL"
             ),
             "Synchro4": GeckoEnumStructAccessor(
                 self.struct,
-                "Synchro4",
+                "LogStructure/Status/Synchro4",
                 621,
                 None,
                 ["ZONE1", "ZONE2", "ZONE3", "ZONE4"],
@@ -303,7 +309,7 @@ class GeckoLogStruct:
             ),
             "Mode4": GeckoEnumStructAccessor(
                 self.struct,
-                "Mode4",
+                "LogStructure/Status/Mode4",
                 622,
                 None,
                 [
@@ -322,7 +328,7 @@ class GeckoLogStruct:
             ),
             "Color4": GeckoEnumStructAccessor(
                 self.struct,
-                "Color4",
+                "LogStructure/Status/Color4",
                 623,
                 None,
                 [
@@ -344,7 +350,7 @@ class GeckoLogStruct:
             ),
             "Speed4": GeckoEnumStructAccessor(
                 self.struct,
-                "Speed4",
+                "LogStructure/Status/Speed4",
                 624,
                 None,
                 [
@@ -364,16 +370,18 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "RedLevel4": GeckoByteStructAccessor(self.struct, "RedLevel4", 625, "ALL"),
+            "RedLevel4": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/RedLevel4", 625, "ALL"
+            ),
             "GreenLevel4": GeckoByteStructAccessor(
-                self.struct, "GreenLevel4", 626, "ALL"
+                self.struct, "LogStructure/Status/GreenLevel4", 626, "ALL"
             ),
             "BlueLevel4": GeckoByteStructAccessor(
-                self.struct, "BlueLevel4", 627, "ALL"
+                self.struct, "LogStructure/Status/BlueLevel4", 627, "ALL"
             ),
             "FadeIntensityZone1": GeckoEnumStructAccessor(
                 self.struct,
-                "FadeIntensityZone1",
+                "LogStructure/Status/FadeIntensityZone1",
                 638,
                 0,
                 [
@@ -400,7 +408,7 @@ class GeckoLogStruct:
             ),
             "FadeIntensityZone2": GeckoEnumStructAccessor(
                 self.struct,
-                "FadeIntensityZone2",
+                "LogStructure/Status/FadeIntensityZone2",
                 638,
                 4,
                 [
@@ -427,7 +435,7 @@ class GeckoLogStruct:
             ),
             "FadeIntensityZone3": GeckoEnumStructAccessor(
                 self.struct,
-                "FadeIntensityZone3",
+                "LogStructure/Status/FadeIntensityZone3",
                 639,
                 0,
                 [
@@ -454,7 +462,7 @@ class GeckoLogStruct:
             ),
             "FadeIntensityZone4": GeckoEnumStructAccessor(
                 self.struct,
-                "FadeIntensityZone4",
+                "LogStructure/Status/FadeIntensityZone4",
                 639,
                 4,
                 [
@@ -481,7 +489,7 @@ class GeckoLogStruct:
             ),
             "PackType": GeckoEnumStructAccessor(
                 self.struct,
-                "PackType",
+                "LogStructure/PackInfo/PackType",
                 628,
                 None,
                 [
@@ -507,7 +515,7 @@ class GeckoLogStruct:
             ),
             "MemRange": GeckoEnumStructAccessor(
                 self.struct,
-                "MemRange",
+                "LogStructure/PackInfo/MemRange",
                 629,
                 0,
                 ["8K", "16K", "32K", "64K"],
@@ -515,19 +523,25 @@ class GeckoLogStruct:
                 4,
                 None,
             ),
-            "FirmwareID": GeckoWordStructAccessor(self.struct, "FirmwareID", 630, None),
+            "FirmwareID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/PackInfo/FirmwareID", 630, None
+            ),
             "FirmwareRev": GeckoByteStructAccessor(
-                self.struct, "FirmwareRev", 632, None
+                self.struct, "LogStructure/PackInfo/FirmwareRev", 632, None
             ),
             "FirmwareRel": GeckoByteStructAccessor(
-                self.struct, "FirmwareRel", 633, None
+                self.struct, "LogStructure/PackInfo/FirmwareRel", 633, None
             ),
-            "ConfigLib": GeckoByteStructAccessor(self.struct, "ConfigLib", 634, None),
-            "StatusLib": GeckoByteStructAccessor(self.struct, "StatusLib", 635, None),
+            "ConfigLib": GeckoByteStructAccessor(
+                self.struct, "LogStructure/PackInfo/ConfigLib", 634, None
+            ),
+            "StatusLib": GeckoByteStructAccessor(
+                self.struct, "LogStructure/PackInfo/StatusLib", 635, None
+            ),
             "ErrorFlag": GeckoBoolStructAccessor(
-                self.struct, "ErrorFlag", 636, None, None
+                self.struct, "LogStructure/Messages/ErrorFlag", 636, None, None
             ),
             "ReminderFlag": GeckoBoolStructAccessor(
-                self.struct, "ReminderFlag", 637, None, None
+                self.struct, "LogStructure/Messages/ReminderFlag", 637, None, None
             ),
         }

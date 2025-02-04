@@ -31,48 +31,55 @@ class GeckoConfigStruct:
         """The structure accessors."""
         return {
             "Mode": GeckoEnumStructAccessor(
-                self.struct, "Mode", 512, None, ["OFF", "ON"], None, None, "ALL"
+                self.struct,
+                "ConfigStructure/All/Mode",
+                512,
+                None,
+                ["OFF", "ON"],
+                None,
+                None,
+                "ALL",
             ),
             "MaintenanceLevel": GeckoByteStructAccessor(
-                self.struct, "MaintenanceLevel", 513, "ALL"
+                self.struct, "ConfigStructure/All/MaintenanceLevel", 513, "ALL"
             ),
             "BoostLevel": GeckoByteStructAccessor(
-                self.struct, "BoostLevel", 514, "ALL"
+                self.struct, "ConfigStructure/All/BoostLevel", 514, "ALL"
             ),
             "MaxCellCurrent": GeckoWordStructAccessor(
-                self.struct, "MaxCellCurrent", 515, "ALL"
+                self.struct, "ConfigStructure/All/MaxCellCurrent", 515, "ALL"
             ),
             "MaxMaintenanceLevel": GeckoWordStructAccessor(
-                self.struct, "MaxMaintenanceLevel", 517, "ALL"
+                self.struct, "ConfigStructure/All/MaxMaintenanceLevel", 517, "ALL"
             ),
             "ErrDelayAfterReset": GeckoWordStructAccessor(
-                self.struct, "ErrDelayAfterReset", 519, "ALL"
+                self.struct, "ConfigStructure/All/ErrDelayAfterReset", 519, "ALL"
             ),
             "Boost1Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "Boost1Durx6Minutes", 521, "ALL"
+                self.struct, "ConfigStructure/All/Boost1Durx6Minutes", 521, "ALL"
             ),
             "Boost2Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "Boost2Durx6Minutes", 523, "ALL"
+                self.struct, "ConfigStructure/All/Boost2Durx6Minutes", 523, "ALL"
             ),
             "Boost3Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "Boost3Durx6Minutes", 525, "ALL"
+                self.struct, "ConfigStructure/All/Boost3Durx6Minutes", 525, "ALL"
             ),
             "Boost4Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "Boost4Durx6Minutes", 527, "ALL"
+                self.struct, "ConfigStructure/All/Boost4Durx6Minutes", 527, "ALL"
             ),
             "Boost5Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "Boost5Durx6Minutes", 529, "ALL"
+                self.struct, "ConfigStructure/All/Boost5Durx6Minutes", 529, "ALL"
             ),
             "Boost6Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "Boost6Durx6Minutes", 531, "ALL"
+                self.struct, "ConfigStructure/All/Boost6Durx6Minutes", 531, "ALL"
             ),
             "Boost7Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "Boost7Durx6Minutes", 533, "ALL"
+                self.struct, "ConfigStructure/All/Boost7Durx6Minutes", 533, "ALL"
             ),
             "Boost8Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "Boost8Durx6Minutes", 535, "ALL"
+                self.struct, "ConfigStructure/All/Boost8Durx6Minutes", 535, "ALL"
             ),
             "ValidRemoteFlow": GeckoWordStructAccessor(
-                self.struct, "ValidRemoteFlow", 537, "ALL"
+                self.struct, "ConfigStructure/All/ValidRemoteFlow", 537, "ALL"
             ),
         }

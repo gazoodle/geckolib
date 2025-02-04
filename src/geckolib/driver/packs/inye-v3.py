@@ -21,6 +21,11 @@ class GeckoPack:
         return 10
 
     @property
+    def plateform_segment(self) -> str:
+        """Get the plateform segment."""
+        return "aMainControl"
+
+    @property
     def revision(self) -> str:
         """Get the SpaPackStruct revision."""
         return "39.0"

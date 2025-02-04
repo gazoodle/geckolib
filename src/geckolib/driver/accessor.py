@@ -30,7 +30,7 @@ class GeckoStructAccessor(Observable):
     def __init__(
         self,
         struct_: GeckoAsyncStructure,
-        tag: str,
+        path: str,
         pos: int,
         accessor_type: str,
         bitpos: int,
@@ -42,7 +42,8 @@ class GeckoStructAccessor(Observable):
         """Initialize the accessor class."""
         super().__init__()
 
-        self.tag: str = tag
+        self.path: str = path
+        self.tag: str = path.split("/")[-1]
         self.struct: GeckoAsyncStructure = struct_
         self.pos: int = pos
         self.accessor_type: str = accessor_type
@@ -227,28 +228,30 @@ class GeckoStructAccessor(Observable):
         """Get diagnostic data for this accessor."""
         info = f"{self.tag} = {self.value}\n"
         info += "-------------------------------\n"
+        info += f"Path: {self.path}\n"
         info += f"Pos: {self.pos}\n"
         info += f"Len: {self.length}\n"
         info += f"Type: {self.accessor_type}"
         if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             info += f" one of {self.items}"
         info += "\n"
-        info += f"Raw Value: {self.raw_value} ({self.struct.status_block[self.pos : self.pos + self.length]})"
+        info += f"Raw Value: {self.raw_value} ({self.struct.status_block[self.pos : self.pos + self.length]})\n"
+        info += f"R/W: {self.read_write}"
         return info
 
     def __repr__(self) -> str:
         """Get string representation."""
-        return f"{self.tag!r}: {self.value!r}"
+        return f"{self.path!r}: {self.value!r}"
 
 
 class GeckoByteStructAccessor(GeckoStructAccessor):
     """Structure accessor for bytes."""
 
-    def __init__(self, struct_, tag, pos, rw):
+    def __init__(self, struct_, path, pos, rw):
         """Initialize the byte accessor."""
         super().__init__(
             struct_,
-            tag,
+            path,
             pos,
             GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE,
             None,
@@ -262,11 +265,11 @@ class GeckoByteStructAccessor(GeckoStructAccessor):
 class GeckoWordStructAccessor(GeckoStructAccessor):
     """Structure accessor for words."""
 
-    def __init__(self, struct_, tag, pos, rw):
+    def __init__(self, struct_, path, pos, rw):
         """Initialize the word accessor."""
         super().__init__(
             struct_,
-            tag,
+            path,
             pos,
             GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE,
             None,
@@ -280,11 +283,11 @@ class GeckoWordStructAccessor(GeckoStructAccessor):
 class GeckoTimeStructAccessor(GeckoStructAccessor):
     """Structure accessor for times."""
 
-    def __init__(self, struct_, tag, pos, rw):
+    def __init__(self, struct_, path, pos, rw):
         """Initialize the time accessor."""
         super().__init__(
             struct_,
-            tag,
+            path,
             pos,
             GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE,
             None,
@@ -298,11 +301,11 @@ class GeckoTimeStructAccessor(GeckoStructAccessor):
 class GeckoBoolStructAccessor(GeckoStructAccessor):
     """Structure accessor to bools."""
 
-    def __init__(self, struct_, tag, pos, bitpos, rw):
+    def __init__(self, struct_, path, pos, bitpos, rw):
         """Initialie the bool accessor."""
         super().__init__(
             struct_,
-            tag,
+            path,
             pos,
             GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE,
             bitpos,
@@ -316,11 +319,11 @@ class GeckoBoolStructAccessor(GeckoStructAccessor):
 class GeckoEnumStructAccessor(GeckoStructAccessor):
     """Structure accessopr for enumerations."""
 
-    def __init__(self, struct_, tag, pos, bitpos, items, size, maxitems, rw):
+    def __init__(self, struct_, path, pos, bitpos, items, size, maxitems, rw):
         """Initialize the enum accessor."""
         super().__init__(
             struct_,
-            tag,
+            path,
             pos,
             GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE,
             bitpos,

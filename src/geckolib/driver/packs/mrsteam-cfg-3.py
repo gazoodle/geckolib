@@ -31,35 +31,56 @@ class GeckoConfigStruct:
         """The structure accessors."""
         return {
             "Prog1SetpointG": GeckoTempStructAccessor(
-                self.struct, "Prog1SetpointG", 0, "ALL"
+                self.struct, "ConfigStructure/All/Prog1SetpointG", 0, "ALL"
             ),
             "Prog1Runtime": GeckoWordStructAccessor(
-                self.struct, "Prog1Runtime", 2, "ALL"
+                self.struct, "ConfigStructure/All/Prog1Runtime", 2, "ALL"
             ),
             "Prog1Aroma": GeckoEnumStructAccessor(
-                self.struct, "Prog1Aroma", 4, None, ["OFF", "ON"], None, None, "ALL"
+                self.struct,
+                "ConfigStructure/All/Prog1Aroma",
+                4,
+                None,
+                ["OFF", "ON"],
+                None,
+                None,
+                "ALL",
             ),
             "Prog2SetpointG": GeckoTempStructAccessor(
-                self.struct, "Prog2SetpointG", 5, "ALL"
+                self.struct, "ConfigStructure/All/Prog2SetpointG", 5, "ALL"
             ),
             "Prog2Runtime": GeckoWordStructAccessor(
-                self.struct, "Prog2Runtime", 7, "ALL"
+                self.struct, "ConfigStructure/All/Prog2Runtime", 7, "ALL"
             ),
             "Prog2Aroma": GeckoEnumStructAccessor(
-                self.struct, "Prog2Aroma", 9, None, ["OFF", "ON"], None, None, "ALL"
+                self.struct,
+                "ConfigStructure/All/Prog2Aroma",
+                9,
+                None,
+                ["OFF", "ON"],
+                None,
+                None,
+                "ALL",
             ),
             "TempUnits": GeckoEnumStructAccessor(
-                self.struct, "TempUnits", 10, None, ["F", "C"], None, None, "ALL"
+                self.struct,
+                "ConfigStructure/All/TempUnits",
+                10,
+                None,
+                ["F", "C"],
+                None,
+                None,
+                "ALL",
             ),
             "MinSetpointG": GeckoTempStructAccessor(
-                self.struct, "MinSetpointG", 11, "ALL"
+                self.struct, "ConfigStructure/All/MinSetpointG", 11, "ALL"
             ),
             "MaxSetpointG": GeckoTempStructAccessor(
-                self.struct, "MaxSetpointG", 13, "ALL"
+                self.struct, "ConfigStructure/All/MaxSetpointG", 13, "ALL"
             ),
             "ValveOut1Type": GeckoEnumStructAccessor(
                 self.struct,
-                "ValveOut1Type",
+                "ConfigStructure/All/ValveOut1Type",
                 15,
                 None,
                 ["NONE", "HEAD", "BODY", "WAND"],
@@ -69,7 +90,7 @@ class GeckoConfigStruct:
             ),
             "ValveOut2Type": GeckoEnumStructAccessor(
                 self.struct,
-                "ValveOut2Type",
+                "ConfigStructure/All/ValveOut2Type",
                 16,
                 None,
                 ["NONE", "HEAD", "BODY", "WAND"],
@@ -79,7 +100,7 @@ class GeckoConfigStruct:
             ),
             "ValveOut3Type": GeckoEnumStructAccessor(
                 self.struct,
-                "ValveOut3Type",
+                "ConfigStructure/All/ValveOut3Type",
                 17,
                 None,
                 ["NONE", "HEAD", "BODY", "WAND"],

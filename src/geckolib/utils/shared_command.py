@@ -161,7 +161,7 @@ class GeckoCmd(AsyncCmd):
         print("=========")
         print()
         for key in self._accessor_list(pattern):
-            print(f"   {key}: {self.structure.accessors[key].value}")
+            print(f"   {self.structure.accessors[key]!r}")
         print()
 
     def complete_accessors(

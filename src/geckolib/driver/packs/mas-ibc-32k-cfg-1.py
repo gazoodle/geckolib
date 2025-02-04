@@ -30,7 +30,7 @@ class GeckoConfigStruct:
         return {
             "LL_Backrest": GeckoEnumStructAccessor(
                 self.struct,
-                "LL_Backrest",
+                "ConfigStructure/All/LL_Backrest",
                 0,
                 None,
                 ["SINGLE", "DUAL", "DUAL_THERMOPLACE", "DUAL_LITESTREME"],
@@ -40,7 +40,7 @@ class GeckoConfigStruct:
             ),
             "LL_Heater_1": GeckoEnumStructAccessor(
                 self.struct,
-                "LL_Heater_1",
+                "ConfigStructure/All/LL_Heater_1",
                 1,
                 None,
                 ["Intensity1", "Intensity2", "Intensity3", "Intensity4"],
@@ -50,7 +50,7 @@ class GeckoConfigStruct:
             ),
             "LL_Heater_2": GeckoEnumStructAccessor(
                 self.struct,
-                "LL_Heater_2",
+                "ConfigStructure/All/LL_Heater_2",
                 2,
                 None,
                 ["Intensity1", "Intensity2", "Intensity3", "Intensity4"],
@@ -60,7 +60,7 @@ class GeckoConfigStruct:
             ),
             "LL_Blower": GeckoEnumStructAccessor(
                 self.struct,
-                "LL_Blower",
+                "ConfigStructure/All/LL_Blower",
                 3,
                 None,
                 ["STANDARD", "HIGH", "LOW"],
@@ -70,7 +70,7 @@ class GeckoConfigStruct:
             ),
             "LL_Chromo": GeckoEnumStructAccessor(
                 self.struct,
-                "LL_Chromo",
+                "ConfigStructure/All/LL_Chromo",
                 4,
                 None,
                 ["NONE", "BASIC", "DELUXE"],
@@ -79,14 +79,28 @@ class GeckoConfigStruct:
                 None,
             ),
             "LL_Audio": GeckoEnumStructAccessor(
-                self.struct, "LL_Audio", 5, None, ["NONE", "MP3"], None, None, None
+                self.struct,
+                "ConfigStructure/All/LL_Audio",
+                5,
+                None,
+                ["NONE", "MP3"],
+                None,
+                None,
+                None,
             ),
             "LL_Menu": GeckoEnumStructAccessor(
-                self.struct, "LL_Menu", 6, None, ["STANDARD", "HOTEL"], None, None, None
+                self.struct,
+                "ConfigStructure/All/LL_Menu",
+                6,
+                None,
+                ["STANDARD", "HOTEL"],
+                None,
+                None,
+                None,
             ),
             "LL_ComfortJet": GeckoEnumStructAccessor(
                 self.struct,
-                "LL_ComfortJet",
+                "ConfigStructure/All/LL_ComfortJet",
                 7,
                 None,
                 ["DEACTIVATE", "ACTIVATE"],
@@ -96,7 +110,7 @@ class GeckoConfigStruct:
             ),
             "LL_Aromacloud": GeckoEnumStructAccessor(
                 self.struct,
-                "LL_Aromacloud",
+                "ConfigStructure/All/LL_Aromacloud",
                 8,
                 None,
                 ["DEACTIVATE", "ACTIVATE"],

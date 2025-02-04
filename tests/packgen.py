@@ -98,6 +98,7 @@ class PackGenerator:
         file: TextIOWrapper,
         plateform_name: str,
         plateform_type: str,
+        plateform_segment: str,
         version: str,
     ) -> None:
         """Write the preamble for this class."""
@@ -123,6 +124,11 @@ class PackGenerator:
         file.write("    def plateform_type(self) -> int:\n")
         file.write('        """Get the plateform type."""\n')
         file.write(f"        return {plateform_type}\n")
+        file.write("\n")
+        file.write("    @property\n")
+        file.write("    def plateform_segment(self) -> str:\n")
+        file.write('        """Get the plateform segment."""\n')
+        file.write(f"        return '{plateform_segment}'\n")
         file.write("\n")
         file.write("    @property\n")
         file.write("    def revision(self) -> str:\n")
@@ -338,6 +344,68 @@ class PackGenerator:
         errors.sort()
         xml.attrib["ErrorMessages"] = self.add_constant(errors)
 
+    def _write_one_accessor(
+        self, file: TextIOWrapper, path: str, element: ET.Element
+    ) -> None:
+        tag = f'"{element.tag}"'
+        pos = element.attrib["Pos"]
+        accessor_type = f'"{element.attrib["Type"]}"'
+        bitpos = None
+        if "BitPos" in element.attrib:
+            bitpos = element.attrib["BitPos"]
+        items = None
+        if "Items" in element.attrib:
+            items = f"{element.attrib['Items']}"
+        # "PowerState" in mas-ibc-32k-log-1.py looks like a bug
+        if "Item" in element.attrib:
+            items = f"{element.attrib['Item']}"
+        size = None
+        if "Size" in element.attrib:
+            size = element.attrib["Size"]
+        maxitems = None
+        if "MaxItems" in element.attrib:
+            maxitems = element.attrib["MaxItems"]
+        rw = None
+        if "RW" in element.attrib:
+            rw = element.attrib["RW"]
+
+        file.write(f"            {self.add_constant(tag)}: ")
+        if accessor_type == '"Byte"':
+            file.write(
+                f"GeckoByteStructAccessor(self.struct, {self.add_constant(path)}, {pos}, {rw}),\n"  # noqa: E501
+            )
+        elif accessor_type == '"Bool"':
+            # In inxm-log-4 & in-xml-log-5 it is 2, but this is wrong
+            if OBFUSCATE_CONSTANTS:
+                assert size is None or self.module_constants[size] == 2  # noqa: PLR2004, S101
+            else:
+                assert size in (None, 2)  # noqa: S101
+            file.write(
+                f"GeckoBoolStructAccessor(self.struct, {self.add_constant(path)}, {pos}, {bitpos}, {rw}),\n"  # noqa: E501
+            )
+        # MrStream log v3 has lowercase "word"
+        elif accessor_type in ('"Word"', '"word"'):
+            if "temp" in element.tag.lower() or "setpoint" in element.tag.lower():
+                file.write(
+                    f"GeckoTempStructAccessor(self.struct, {self.add_constant(path)}, {pos}, {rw}),\n"  # noqa: E501
+                )
+            else:
+                file.write(
+                    f"GeckoWordStructAccessor(self.struct, {self.add_constant(path)}, {pos}, {rw}),\n"  # noqa: E501
+                )
+        elif accessor_type == '"Enum"':
+            file.write(
+                f"GeckoEnumStructAccessor(self.struct, {self.add_constant(path)}, {pos}, {bitpos}, {items}, {size}, {maxitems}, {rw}),\n"  # noqa: E501
+            )
+        elif accessor_type == '"Time"':
+            file.write(
+                f"GeckoTimeStructAccessor(self.struct, {self.add_constant(path)}, {pos}, {rw}),\n"  # noqa: E501
+            )
+        else:
+            file.write(
+                f"GeckoStructAccessor(self.struct, {self.add_constant(tag)}, {pos}, {type}, {bitpos}, {items}, {size}, {maxitems}, {rw}),\n"  # noqa: E501
+            )
+
     def write_get_accessors(self, file: TextIOWrapper, xml: ET.Element) -> None:  # noqa: PLR0912, PLR0915
         """Write the accessors for the spa pack structure."""
         file.write("\n")
@@ -347,71 +415,17 @@ class PackGenerator:
         if USE_LOGGING:
             file.write("        _LOGGER.info('Getting expensive accessors')\n")
         file.write("        return {\n")
-        for element in xml.findall(".//*[@Pos]"):
-            if element.tag.startswith("CFG"):
-                continue
-            # if element.tag.startswith("CustomerID"):
-            #    continue
-            # if element.tag.startswith("K600"):
-            #    continue
-            tag = f'"{element.tag}"'
-            pos = element.attrib["Pos"]
-            accessor_type = f'"{element.attrib["Type"]}"'
-            bitpos = None
-            if "BitPos" in element.attrib:
-                bitpos = element.attrib["BitPos"]
-            items = None
-            if "Items" in element.attrib:
-                items = f"{element.attrib['Items']}"
-            # "PowerState" in mas-ibc-32k-log-1.py looks like a bug
-            if "Item" in element.attrib:
-                items = f"{element.attrib['Item']}"
-            size = None
-            if "Size" in element.attrib:
-                size = element.attrib["Size"]
-            maxitems = None
-            if "MaxItems" in element.attrib:
-                maxitems = element.attrib["MaxItems"]
-            rw = None
-            if "RW" in element.attrib:
-                rw = element.attrib["RW"]
+        for parent in xml.findall("./*"):
+            if "Pos" in parent.attrib:
+                path = f'"{xml.tag}/{parent.tag}"'
+                self._write_one_accessor(file, path, parent)
 
-            file.write(f"            {self.add_constant(tag)}: ")
-            if accessor_type == '"Byte"':
-                file.write(
-                    f"GeckoByteStructAccessor(self.struct, {self.add_constant(tag)}, {pos}, {rw}),\n"  # noqa: E501
-                )
-            elif accessor_type == '"Bool"':
-                # In inxm-log-4 & in-xml-log-5 it is 2, but this is wrong
-                if OBFUSCATE_CONSTANTS:
-                    assert size is None or self.module_constants[size] == 2  # noqa: PLR2004, S101
-                else:
-                    assert size in (None, 2)  # noqa: S101
-                file.write(
-                    f"GeckoBoolStructAccessor(self.struct, {self.add_constant(tag)}, {pos}, {bitpos}, {rw}),\n"  # noqa: E501
-                )
-            # MrStream log v3 has lowercase "word"
-            elif accessor_type in ('"Word"', '"word"'):
-                if "temp" in element.tag.lower() or "setpoint" in element.tag.lower():
-                    file.write(
-                        f"GeckoTempStructAccessor(self.struct, {self.add_constant(tag)}, {pos}, {rw}),\n"  # noqa: E501
-                    )
-                else:
-                    file.write(
-                        f"GeckoWordStructAccessor(self.struct, {self.add_constant(tag)}, {pos}, {rw}),\n"  # noqa: E501
-                    )
-            elif accessor_type == '"Enum"':
-                file.write(
-                    f"GeckoEnumStructAccessor(self.struct, {self.add_constant(tag)}, {pos}, {bitpos}, {items}, {size}, {maxitems}, {rw}),\n"  # noqa: E501
-                )
-            elif accessor_type == '"Time"':
-                file.write(
-                    f"GeckoTimeStructAccessor(self.struct, {self.add_constant(tag)}, {pos}, {rw}),\n"  # noqa: E501
-                )
-            else:
-                file.write(
-                    f"GeckoStructAccessor(self.struct, {self.add_constant(tag)}, {pos}, {type}, {bitpos}, {items}, {size}, {maxitems}, {rw}),\n"  # noqa: E501
-                )
+            for element in parent.findall("./*[@Pos]"):
+                if element.tag.startswith("CFG"):
+                    continue
+
+                path = f'"{xml.tag}/{parent.tag}/{element.tag}"'
+                self._write_one_accessor(file, path, element)
 
         file.write("        }\n")
 
@@ -447,7 +461,9 @@ class PackGenerator:
         file.write('        """Get all error keys."""\n')
         file.write(f"        return {xml.attrib['ErrorMessages']}\n")
 
-    def build_log_struct(self, plateform_name: str, logstruct: ET.Element) -> None:
+    def build_log_struct(
+        self, plateform_name: str, _plateform: ET.Element, logstruct: ET.Element
+    ) -> None:
         """Build log structure."""
         self.reset_constants()
         self.generate_accessor_constants(logstruct)
@@ -462,7 +478,7 @@ class PackGenerator:
             self.write_get_accessors(file, logstruct)
 
     def build_config_struct(
-        self, plateform_name: str, configstruct: ET.Element
+        self, plateform_name: str, _plateform: ET.Element, configstruct: ET.Element
     ) -> None:
         """Build configuration structure."""
         self.reset_constants()
@@ -491,13 +507,17 @@ class PackGenerator:
         module = f"{CODE_PATH}/{plateform_name.lower()}.py"
         with Path(module).open("w") as file:
             self.write_pack_preamble(
-                file, plateform_name, plateform.attrib["Type"], version
+                file,
+                plateform_name,
+                plateform.attrib["Type"],
+                plateform.attrib["Segment"],
+                version,
             )
 
             for logstruct in plateform.findall("./LogStructures/LogStructure"):
-                self.build_log_struct(plateform_name, logstruct)
+                self.build_log_struct(plateform_name, plateform, logstruct)
             for configstruct in plateform.findall("./ConfigStructures/ConfigStructure"):
-                self.build_config_struct(plateform_name, configstruct)
+                self.build_config_struct(plateform_name, plateform, configstruct)
 
     def build_pack_code(self) -> None:
         """Build all the code from the SpaPackStruct.xml file."""

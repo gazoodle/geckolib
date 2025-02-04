@@ -569,6 +569,35 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Automation interface added
 - Timeout retry of command to make it more robust on busy networks
 
+# Thoughts and musings
+
+The current facade control mechanism was based on my first experience with a single spa, and not much
+community feedback which has now changed, I now think that I need to update it following a greater
+understanding.
+
+The first thing is that the intouch2 app only ever seems to send KEYPAD commands, and these are
+handled by the spa and seem to be converted into UserDemand changes.
+
+When the UserDemand property changes, the spa also seems to make other changes to the data structures
+such as setting pump run times, light run times and so on, all of which we can see in the client
+apps and the simulator.
+
+I have recently done quite a bit of work in the simulator and client to remove the old sync code
+and in doing so, I have refactored a good chunk of the base and got a better idea on how to improve
+it.
+
+Sometimes the intouch2 app shows the state of devices based on the timers for some reason, at
+least if I change the UserDemand for the time then the app UI updates, but other times it responds
+to when the UdP1/UdLi status changes. This needs more investigation!
+
+In the current code, the possible values for the user demands is a direct copy of the info
+that is in the SpaStruct.xml file, but if that was modified based on the information in the
+Config accessors, then the facade could be more aware of single speed, two speed and variable
+speed pumps that seem to be supported.
+
+I've also recently updated the spa pack generator to include the structures for inMix and other
+Gecko products so that I can look into how to drive those devices too.
+
 # Version
 
 Using Semantic versioning https://semver.org/

@@ -29,39 +29,123 @@ class GeckoConfigStruct:
         """The structure accessors."""
         return {
             "Zone1Led": GeckoEnumStructAccessor(
-                self.struct, "Zone1Led", 592, 0, ["RGB", "WHITE"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone1Led",
+                592,
+                0,
+                ["RGB", "WHITE"],
+                None,
+                2,
+                None,
             ),
             "Zone1Type": GeckoEnumStructAccessor(
-                self.struct, "Zone1Type", 592, 1, ["NORMAL", "STATUS"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone1Type",
+                592,
+                1,
+                ["NORMAL", "STATUS"],
+                None,
+                2,
+                None,
             ),
             "Zone1Supply": GeckoEnumStructAccessor(
-                self.struct, "Zone1Supply", 592, 2, ["12V", "5V"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone1Supply",
+                592,
+                2,
+                ["12V", "5V"],
+                None,
+                2,
+                None,
             ),
             "Zone2Led": GeckoEnumStructAccessor(
-                self.struct, "Zone2Led", 593, 0, ["RGB", "WHITE"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone2Led",
+                593,
+                0,
+                ["RGB", "WHITE"],
+                None,
+                2,
+                None,
             ),
             "Zone2Type": GeckoEnumStructAccessor(
-                self.struct, "Zone2Type", 593, 1, ["NORMAL", "STATUS"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone2Type",
+                593,
+                1,
+                ["NORMAL", "STATUS"],
+                None,
+                2,
+                None,
             ),
             "Zone2Supply": GeckoEnumStructAccessor(
-                self.struct, "Zone2Supply", 593, 2, ["12V", "5V"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone2Supply",
+                593,
+                2,
+                ["12V", "5V"],
+                None,
+                2,
+                None,
             ),
             "Zone3Led": GeckoEnumStructAccessor(
-                self.struct, "Zone3Led", 594, 0, ["RGB", "WHITE"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone3Led",
+                594,
+                0,
+                ["RGB", "WHITE"],
+                None,
+                2,
+                None,
             ),
             "Zone3Type": GeckoEnumStructAccessor(
-                self.struct, "Zone3Type", 594, 1, ["NORMAL", "STATUS"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone3Type",
+                594,
+                1,
+                ["NORMAL", "STATUS"],
+                None,
+                2,
+                None,
             ),
             "Zone3Supply": GeckoEnumStructAccessor(
-                self.struct, "Zone3Supply", 594, 2, ["12V", "5V"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone3Supply",
+                594,
+                2,
+                ["12V", "5V"],
+                None,
+                2,
+                None,
             ),
             "Zone4Led": GeckoEnumStructAccessor(
-                self.struct, "Zone4Led", 595, 0, ["RGB", "WHITE"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone4Led",
+                595,
+                0,
+                ["RGB", "WHITE"],
+                None,
+                2,
+                None,
             ),
             "Zone4Type": GeckoEnumStructAccessor(
-                self.struct, "Zone4Type", 595, 1, ["NORMAL", "STATUS"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone4Type",
+                595,
+                1,
+                ["NORMAL", "STATUS"],
+                None,
+                2,
+                None,
             ),
             "Zone4Supply": GeckoEnumStructAccessor(
-                self.struct, "Zone4Supply", 595, 2, ["12V", "5V"], None, 2, None
+                self.struct,
+                "ConfigStructure/Zone4Supply",
+                595,
+                2,
+                ["12V", "5V"],
+                None,
+                2,
+                None,
             ),
         }
