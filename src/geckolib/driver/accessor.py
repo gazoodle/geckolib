@@ -1,13 +1,13 @@
 """Structure accessor."""
 
+from __future__ import annotations
+
 import logging
 import struct
 from typing import Any
-#from warnings import deprecated
-
-from geckolib.driver.spastruct import GeckoStructureTypeBase
 
 from ..const import GeckoConstants
+from .async_spastruct import GeckoAsyncStructure
 from .observable import Observable
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,10 +20,19 @@ class GeckoStructAccessor(Observable):
     Uses the declaration in the specific modules.
     """
 
+    @staticmethod
+    def pack_data(length: int, data: Any) -> bytes:
+        """Pack the data into bytes."""
+        if length == 1:
+            return struct.pack(">B", data)
+        if length == 2:
+            return struct.pack(">H", data)
+        raise OverflowError(len)
+
     def __init__(
         self,
-        struct_: GeckoStructureTypeBase,
-        tag: str,
+        struct_: GeckoAsyncStructure,
+        path: str,
         pos: int,
         accessor_type: str,
         bitpos: int,
@@ -35,8 +44,9 @@ class GeckoStructAccessor(Observable):
         """Initialize the accessor class."""
         super().__init__()
 
-        self.tag: str = tag
-        self.struct: GeckoStructureTypeBase = struct_
+        self.path: str = path
+        self.tag: str = path.split("/")[-1]
+        self.struct: GeckoAsyncStructure = struct_
         self.pos: int = pos
         self.accessor_type: str = accessor_type
         self.bitpos: int = bitpos
@@ -98,7 +108,10 @@ class GeckoStructAccessor(Observable):
             return
 
         _LOGGER.info(
-            "Value for %s changed from %s to %s", self.tag, old_value, new_value
+            "Status block changed value of %s from %s to %s",
+            self.tag,
+            old_value,
+            new_value,
         )
 
         self._on_change(self, old_value, new_value)
@@ -138,58 +151,6 @@ class GeckoStructAccessor(Observable):
             data = f"{int(data / 256):02}:{data % 256:02}"
         return data
 
-    #@deprecated("Use _async_set_value")
-    def _set_value(self, newvalue) -> None:
-        """Set a value in the pack structure using the initialized declaration."""
-        if self.read_write is None:
-            raise Exception(
-                GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag)
-            )
-
-        if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
-            newvalue = self.items.index(newvalue)
-        elif self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
-            bits = newvalue.split(":")
-            newvalue = (int(bits[0]) * 256) + (int(bits[1]) % 256)
-        elif (
-            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE
-            and isinstance(newvalue, str)
-        ):
-            newvalue = int(newvalue)
-        elif (
-            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE
-            and isinstance(newvalue, str)
-        ):
-            newvalue = int(newvalue)
-        elif (
-            self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE
-            and isinstance(newvalue, str)
-        ):
-            newvalue = newvalue.lower() == "true"
-
-        # If it is a bitpos, then mask it with the existing value
-        existing = struct.unpack(
-            self.format, self.struct.status_block[self.pos : self.pos + self.length]
-        )[0]
-        if self.bitpos is not None:
-            newvalue = (existing & ~(self.bitmask << self.bitpos)) | (
-                (newvalue & self.bitmask) << self.bitpos
-            )
-
-        _LOGGER.debug(
-            "Accessor %s @ %s, %s setting value to %s, existing value was %s. "
-            "Length is %d",
-            self.tag,
-            self.pos,
-            self.accessor_type,
-            newvalue,
-            existing,
-            self.length,
-        )
-
-        # We can't handle this here, we must delegate via the structure
-        self.struct.set_value(self.pos, self.length, newvalue)
-
     @property
     def value(self) -> Any:
         """Get a value from the pack structure using the initialized declaration."""
@@ -204,30 +165,31 @@ class GeckoStructAccessor(Observable):
         """
         return self._get_raw_value()
 
-    @value.setter
-    #@deprecated("Use async")
-    def value(self, newvalue):
+    async def async_set_value(self, newvalue: Any) -> None:
         """Set a value in the pack structure using the initialized declaration."""
-        self._set_value(newvalue)
-
-    async def async_set_value(self, newvalue):
-        """Set a value in the pack structure using the initialized declaration"""
         if self.read_write is None:
-            raise Exception(
+            raise AttributeError(
                 GeckoConstants.EXCEPTION_MESSAGE_NOT_WRITABLE.format(self.tag)
             )
 
         if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
-            newvalue = self.items.index(newvalue)
+            try:
+                newvalue = self.items.index(newvalue)
+            except ValueError:
+                _LOGGER.error(
+                    "Can't set %s to %s, the list(%s) doesn't contain it",
+                    self,
+                    newvalue,
+                    self.items,
+                )
+                raise
         elif self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE:
             bits = newvalue.split(":")
             newvalue = (int(bits[0]) * 256) + (int(bits[1]) % 256)
         elif (
             self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE
             and isinstance(newvalue, str)
-        ):
-            newvalue = int(newvalue)
-        elif (
+        ) or (
             self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE
             and isinstance(newvalue, str)
         ):
@@ -246,6 +208,9 @@ class GeckoStructAccessor(Observable):
             newvalue = (existing & ~(self.bitmask << self.bitpos)) | (
                 (newvalue & self.bitmask) << self.bitpos
             )
+
+        if newvalue == existing:
+            return
 
         _LOGGER.debug(
             "Accessor %s @ %s, %s setting value to %s, existing value was %s. "
@@ -261,56 +226,117 @@ class GeckoStructAccessor(Observable):
         # We can't handle this here, we must delegate via the structure
         await self.struct.async_set_value(self.pos, self.length, newvalue)
 
-    #@deprecated("This function seems unused")
-    def trigger(self) -> None:
-        """Triger a change event."""
-        current_value = self.value
-        _LOGGER.info("Value for %s is %s", self.tag, current_value)
-        self._on_change(self, current_value, current_value)
+    def diag_info(self) -> str:
+        """Get diagnostic data for this accessor."""
+        info = f"{self.tag} = {self.value}\n"
+        info += "-------------------------------\n"
+        info += f"Path: {self.path}\n"
+        info += f"Pos: {self.pos}\n"
+        info += f"Len: {self.length}\n"
+        info += f"Type: {self.accessor_type}"
+        if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
+            info += f" one of {self.items}"
+        info += "\n"
+        info += f"Raw Value: {self.raw_value} ({self.struct.status_block[self.pos : self.pos + self.length]})\n"
+        info += f"R/W: {self.read_write}"
+        return info
 
     def __repr__(self) -> str:
         """Get string representation."""
-        return f"{self.tag!r}: {self.value!r}"
+        return f"{self.path!r}: {self.value!r}"
+
+    def __eq__(self, other: GeckoStructAccessor) -> bool:
+        return self.value == other.value
 
 
 class GeckoByteStructAccessor(GeckoStructAccessor):
     """Structure accessor for bytes."""
 
-    def __init__(self, struct_, tag, pos, rw):
+    def __init__(self, struct_, path, pos, rw):
         """Initialize the byte accessor."""
-        super().__init__(struct_, tag, pos, "Byte", None, None, None, None, rw)
+        super().__init__(
+            struct_,
+            path,
+            pos,
+            GeckoConstants.SPA_PACK_STRUCT_BYTE_TYPE,
+            None,
+            None,
+            None,
+            None,
+            rw,
+        )
 
 
 class GeckoWordStructAccessor(GeckoStructAccessor):
     """Structure accessor for words."""
 
-    def __init__(self, struct_, tag, pos, rw):
+    def __init__(self, struct_, path, pos, rw):
         """Initialize the word accessor."""
-        super().__init__(struct_, tag, pos, "Word", None, None, None, None, rw)
+        super().__init__(
+            struct_,
+            path,
+            pos,
+            GeckoConstants.SPA_PACK_STRUCT_WORD_TYPE,
+            None,
+            None,
+            None,
+            None,
+            rw,
+        )
 
 
 class GeckoTimeStructAccessor(GeckoStructAccessor):
     """Structure accessor for times."""
 
-    def __init__(self, struct_, tag, pos, rw):
+    def __init__(self, struct_, path, pos, rw):
         """Initialize the time accessor."""
-        super().__init__(struct_, tag, pos, "Time", None, None, None, None, rw)
+        super().__init__(
+            struct_,
+            path,
+            pos,
+            GeckoConstants.SPA_PACK_STRUCT_TIME_TYPE,
+            None,
+            None,
+            None,
+            None,
+            rw,
+        )
 
 
 class GeckoBoolStructAccessor(GeckoStructAccessor):
     """Structure accessor to bools."""
 
-    def __init__(self, struct_, tag, pos, bitpos, rw):
+    def __init__(self, struct_, path, pos, bitpos, rw):
         """Initialie the bool accessor."""
-        super().__init__(struct_, tag, pos, "Bool", bitpos, None, None, None, rw)
+        super().__init__(
+            struct_,
+            path,
+            pos,
+            GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE,
+            bitpos,
+            None,
+            None,
+            None,
+            rw,
+        )
 
 
 class GeckoEnumStructAccessor(GeckoStructAccessor):
     """Structure accessopr for enumerations."""
 
-    def __init__(self, struct_, tag, pos, bitpos, items, size, maxitems, rw):
+    def __init__(self, struct_, path, pos, bitpos, items, size, maxitems, rw):
         """Initialize the enum accessor."""
-        super().__init__(struct_, tag, pos, "Enum", bitpos, items, size, maxitems, rw)
+        super().__init__(
+            struct_,
+            path,
+            pos,
+            GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE,
+            bitpos,
+            items,
+            size,
+            maxitems,
+            rw,
+        )
 
 
 class GeckoTempStructAccessor(GeckoWordStructAccessor):

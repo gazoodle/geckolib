@@ -1,4 +1,4 @@
-"""Unit tests for the actual snapshots"""
+"""Unit tests for the actual snapshots."""
 
 import importlib
 import pathlib
@@ -6,18 +6,18 @@ from unittest import IsolatedAsyncioTestCase, main
 
 from context import (
     GeckoAsyncFacade,
+    GeckoAsyncStructure,
     GeckoAsyncTaskMan,
     GeckoConstants,
     GeckoSnapshot,
-    GeckoStructure,
-)  # type: ignore
+)
 
 
 class GeckoAsyncSpa:
-    """Mock spa for testing"""
+    """Mock spa for testing."""
 
     def __init__(self, snapshotfile):
-        self.struct = GeckoStructure(None)
+        self.struct = GeckoAsyncStructure(None)
 
         cwd = pathlib.Path(__file__).parent.resolve()
         snapshots = GeckoSnapshot.parse_log_file(f"{cwd}/{snapshotfile}")
@@ -27,53 +27,24 @@ class GeckoAsyncSpa:
         self.struct.replace_status_block_segment(0, snapshot.bytes)
 
         # Attempt to get config and log classes
-        plateform_key = snapshot.packtype.lower()
-
-        pack_module_name = f"geckolib.driver.packs.{plateform_key}"
-        try:
-            GeckoPack = importlib.import_module(pack_module_name).GeckoPack
-            self.pack_class = GeckoPack(self.struct)
-            self.pack_type = self.pack_class.plateform_type
-        except ModuleNotFoundError:
-            raise Exception(
-                GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
-                    self.snapshot.packtype
-                )
-            )
-
-        config_module_name = (
-            f"geckolib.driver.packs.{plateform_key}-cfg-{snapshot.config_version}"
-        )
-        try:
-            GeckoConfigStruct = importlib.import_module(
-                config_module_name
-            ).GeckoConfigStruct
-            self.config_class = GeckoConfigStruct(self.struct)
-        except ModuleNotFoundError:
-            raise Exception(
-                f"Cannot find GeckoConfigStruct module for {snapshot.packtype} v{snapshot.config_version}"
-            )
-
-        log_module_name = (
-            f"geckolib.driver.packs.{plateform_key}-log-{snapshot.log_version}"
-        )
-        try:
-            GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
-            self.log_class = GeckoLogStruct(self.struct)
-        except ModuleNotFoundError:
-            raise Exception(
-                f"Cannot find GeckoLogStruct module for {snapshot.packtype} v{snapshot.log_version}"
-            )
-
-        self.struct.build_accessors(self.config_class, self.log_class)
+        self.plateform_key = snapshot.packtype.lower()
+        self.config_version = snapshot.config_version
+        self.log_version = snapshot.log_version
 
     @property
     def accessors(self):
         return self.struct.accessors
 
+    async def async_init(self) -> None:
+        """Init async."""
+        await self.struct.load_pack_class(self.plateform_key)
+        await self.struct.load_config_module(self.config_version)
+        await self.struct.load_log_module(self.log_version)
+        self.struct.build_accessors()
+
 
 class TestSnapshots(IsolatedAsyncioTestCase):
-    """Test all the snapshots"""
+    """Test all the snapshots."""
 
     def setUp(self) -> None:
         self.taskman = GeckoAsyncTaskMan()
@@ -87,11 +58,12 @@ class TestSnapshots(IsolatedAsyncioTestCase):
     def tearDown(self) -> None:
         del self.taskman
 
-    async def build_facade(self, snapshotfile):
+    async def build_facade(self, snapshotfile) -> GeckoAsyncFacade:
         spa = GeckoAsyncSpa(snapshotfile)
+        await spa.async_init()
         return GeckoAsyncFacade(spa, self.taskman)
 
-    async def test_default(self):
+    async def test_default(self) -> None:
         facade = await self.build_facade("snapshots/default.snapshot")
         self.assertListEqual(
             ["P1", "P2", "BL", "LI"],
@@ -104,7 +76,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         self.assertEqual(39.0, facade.water_heater.current_temperature)
         self.assertEqual("°C", facade.water_heater.temperature_unit)
 
-    async def test_inYT_Pump1Low(self):
+    async def test_inYT_Pump1Low(self) -> None:  # noqa: N802
         facade = await self.build_facade(
             "snapshots/inYT-Pump1Lo-2020-12-13 11_19_35.snapshot"
         )
@@ -120,7 +92,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         self.assertEqual(70.0, facade.water_heater.current_temperature)
         self.assertEqual("°F", facade.water_heater.temperature_unit)
 
-    async def test_inYT_Pump1High(self):
+    async def test_inYT_Pump1High(self) -> None:  # noqa: N802
         facade = await self.build_facade(
             "snapshots/inYT-Pump1Hi-2020-12-13 11_19_35.snapshot"
         )
@@ -136,7 +108,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         self.assertEqual(70.0, facade.water_heater.current_temperature)
         self.assertEqual("°F", facade.water_heater.temperature_unit)
 
-    async def test_inYT_WaterFall_On(self):
+    async def test_inYT_WaterFall_On(self) -> None:  # noqa: N802
         facade = await self.build_facade(
             "snapshots/inYT-waterfall on-2020-10-23 18_01_30.snapshot"
         )
@@ -153,7 +125,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         self.assertEqual(37.0, facade.water_heater.current_temperature)
         self.assertEqual("°C", facade.water_heater.temperature_unit)
 
-    async def test_inYJ_All_Off(self):
+    async def test_inYJ_All_Off(self) -> None:  # noqa: N802
         facade = await self.build_facade(
             "snapshots/inYJ-All off-2020-12-18 11_24_09.snapshot"
         )

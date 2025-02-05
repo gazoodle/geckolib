@@ -6,10 +6,8 @@ import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING
-#from warnings import deprecated
 
 from geckolib.config import config_sleep
-from geckolib.const import GeckoConstants
 
 if TYPE_CHECKING:
     from .async_udp_protocol import GeckoAsyncUdpProtocol
@@ -241,36 +239,6 @@ class GeckoUdpProtocolHandler(ABC):
 
     def _reset_timeout(self) -> None:
         self._start_time = time.monotonic()
-
-    ##########################################################################
-    #
-    #                      DEPRECATED SYNC SUPPORT
-    #
-    ##########################################################################
-
-    #@deprecated("Retry shouldn't still be here")
-    def retry(self, socket) -> bool:
-        """Retry the protocol."""
-        if self._retry_count == 0:
-            return False
-        self._retry_count -= 1
-        _LOGGER.debug("Handler retry count %d", self._retry_count)
-        self._reset_timeout()
-        if socket is not None:
-            # Queue another send
-            socket.queue_send(self, self.last_destination)
-        return True
-
-    #@deprecated("Loop shouldn't still be here")
-    def loop(self, socket) -> None:
-        """Execute each time around the socket loop."""
-        if not self.has_timedout:
-            return
-        _LOGGER.debug(f"Handler {self.__class__.__name__} has timed out")
-        if self.retry(socket):
-            return
-        if self._on_retry_failed is not None:
-            self._on_retry_failed(self, socket)
 
     @staticmethod
     def _default_retry_failed_handler(handler, socket) -> None:

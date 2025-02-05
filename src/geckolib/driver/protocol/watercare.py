@@ -3,11 +3,9 @@
 import logging
 import struct
 
-from typing import Optional
-
 from ...config import GeckoConfig
-from .packet import GeckoPacketProtocolHandler
 from ...const import GeckoConstants
+from .packet import GeckoPacketProtocolHandler
 
 GETWC_VERB = b"GETWC"
 WCGET_VERB = b"WCGET"
@@ -77,7 +75,7 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.mode: Optional[int] = None
+        self.mode: int | None = None
         self.schedule = False
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:

@@ -1,13 +1,13 @@
-""" Gecko REQRM/RMREQ handlers """
+"""Gecko REQRM/RMREQ handlers"""
+
 from __future__ import annotations
 
 import logging
 import struct
+from enum import IntEnum
 
 from ...config import GeckoConfig
-from enum import IntEnum
 from .packet import GeckoPacketProtocolHandler
-from typing import List, Tuple
 
 REQRM_VERB = b"REQRM"
 RMREQ_VERB = b"RMREQ"
@@ -30,21 +30,20 @@ class GeckoReminderType(IntEnum):
     def to_string(type: GeckoReminderType) -> str:
         if type == GeckoReminderType.INVALID:
             return "Invalid"
-        elif type == GeckoReminderType.RINSE_FILTER:
+        if type == GeckoReminderType.RINSE_FILTER:
             return "RinseFilter"
-        elif type == GeckoReminderType.CLEAN_FILTER:
+        if type == GeckoReminderType.CLEAN_FILTER:
             return "CleanFilter"
-        elif type == GeckoReminderType.CHANGE_WATER:
+        if type == GeckoReminderType.CHANGE_WATER:
             return "ChangeWater"
-        elif type == GeckoReminderType.CHECK_SPA:
+        if type == GeckoReminderType.CHECK_SPA:
             return "CheckSpa"
-        elif type == GeckoReminderType.CHANGE_OZONATOR:
+        if type == GeckoReminderType.CHANGE_OZONATOR:
             return "ChangeOzonator"
-        elif type == GeckoReminderType.CHANGE_VISION_CARTRIDGE:
+        if type == GeckoReminderType.CHANGE_VISION_CARTRIDGE:
             return "ChangeVisionCartridge"
-        else:
-            # Technically unreachable code here
-            return "Unhandled"
+        # Technically unreachable code here
+        return "Unhandled"
 
 
 class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
@@ -59,7 +58,7 @@ class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def response(reminders: List[Tuple[GeckoReminderType, int]], **kwargs):
+    def response(reminders: list[tuple[GeckoReminderType, int]], **kwargs):
         return GeckoRemindersProtocolHandler(
             content=b"".join(
                 [RMREQ_VERB]
@@ -73,7 +72,7 @@ class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.reminders: List[Tuple[GeckoReminderType, ...]] = []
+        self.reminders: list[tuple[GeckoReminderType, ...]] = []
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
         return received_bytes.startswith(REQRM_VERB) or received_bytes.startswith(
@@ -89,9 +88,7 @@ class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
         # Otherwise must be RMREQ
         rest = remainder
         while len(rest) > 0:
-            (t, days, _push, rest) = struct.unpack(
-                "<BhB{}s".format(len(rest) - 4), rest
-            )
+            (t, days, _push, rest) = struct.unpack(f"<BhB{len(rest) - 4}s", rest)
             try:
                 self.reminders.append(tuple((GeckoReminderType(t), days)))
             except ValueError:

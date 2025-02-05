@@ -2,7 +2,6 @@
 
 import configparser
 import logging
-from typing import Optional
 
 # Configuration file constants
 CONFIG_FILE = "sample.ini"
@@ -31,7 +30,7 @@ class Config:
             self._config.write(configfile)
 
     @property
-    def spa_id(self) -> Optional[str]:
+    def spa_id(self) -> str | None:
         return self._config[CK_DEFAULT].get(CK_SPA_ID, None)
 
     def set_spa_id(self, spa_id) -> None:
@@ -41,7 +40,7 @@ class Config:
             self._config[CK_DEFAULT][CK_SPA_ID] = spa_id
 
     @property
-    def spa_address(self) -> Optional[str]:
+    def spa_address(self) -> str | None:
         return self._config[CK_DEFAULT].get(CK_SPA_ADDR, None)
 
     def set_spa_address(self, spa_address) -> None:
@@ -51,7 +50,7 @@ class Config:
             self._config[CK_DEFAULT][CK_SPA_ADDR] = spa_address
 
     @property
-    def spa_name(self) -> Optional[str]:
+    def spa_name(self) -> str | None:
         return self._config[CK_DEFAULT].get(CK_SPA_NAME, None)
 
     def set_spa_name(self, spa_name) -> None:

@@ -1,4 +1,4 @@
-""" Gecko Keypads """
+"""Gecko Keypads"""
 
 from .base import GeckoAutomationFacadeBase
 

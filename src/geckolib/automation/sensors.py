@@ -1,11 +1,13 @@
-""" Gecko automation support for sensors """
+"""Gecko automation support for sensors"""
 
 import logging
 from typing import Any
-from .base import GeckoAutomationFacadeBase
+
 from ..driver import GeckoBoolStructAccessor
+from .base import GeckoAutomationFacadeBase
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class GeckoSensorBase(GeckoAutomationFacadeBase):
     """Base sensor allows non-accessor sensors to be implemented"""
@@ -35,8 +37,10 @@ class GeckoSensorBase(GeckoAutomationFacadeBase):
 
 ########################################################################################
 class GeckoSensor(GeckoSensorBase):
-    """Sensors wrap accessors state with extra units and device
-    class properties"""
+    """
+    Sensors wrap accessors state with extra units and device
+    class properties
+    """
 
     def __init__(self, facade, name, accessor, unit_accessor=None, device_class=None):
         super().__init__(facade, name, device_class)
@@ -83,9 +87,11 @@ class GeckoBinarySensor(GeckoSensor):
             return False
         return state != "OFF"
 
+
 ########################################################################################
 class GeckoErrorSensor(GeckoSensorBase):
     """Error sensor aggregates all the error keys into a comma separated text string"""
+
     def __init__(self, facade, device_class=None):
         super().__init__(facade, "Error Sensor", device_class)
         self._state = "No errors or warnings"
@@ -103,14 +109,18 @@ class GeckoErrorSensor(GeckoSensorBase):
         """The state of the sensor"""
         return self._state
 
-    def update_state(self, sender: Any = None, old_value: Any = None, new_value: Any = None
+    def update_state(
+        self, sender: Any = None, old_value: Any = None, new_value: Any = None
     ) -> None:
         self._state = ""
 
-        active_errors = [accessor for accessor_key, accessor in self.facade.spa.struct.accessors.items()
-                 if accessor_key in self.facade.spa.struct.error_keys
-                 and isinstance(accessor, GeckoBoolStructAccessor)
-                 and accessor.value == True]
+        active_errors = [
+            accessor
+            for accessor_key, accessor in self.facade.spa.struct.accessors.items()
+            if accessor_key in self.facade.spa.struct.error_keys
+            and isinstance(accessor, GeckoBoolStructAccessor)
+            and accessor.value == True
+        ]
 
         if active_errors:
             self._state = ", ".join(err.tag for err in active_errors)

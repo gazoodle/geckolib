@@ -1,11 +1,11 @@
 """GeckoLogStruct - A class to manage the LogStruct for 'InXM v9'."""  # noqa: N999
 
 from . import (
+    GeckoAsyncStructure,
     GeckoBoolStructAccessor,
     GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
     GeckoStructAccessor,
-    GeckoStructureTypeBase,
     GeckoTempStructAccessor,
     GeckoTimeStructAccessor,
     GeckoWordStructAccessor,
@@ -15,7 +15,7 @@ from . import (
 class GeckoLogStruct:
     """Log Struct Class."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the log struct class."""
         self.struct = struct_
 
@@ -91,26 +91,26 @@ class GeckoLogStruct:
     def error_keys(self) -> list[str]:
         """Get all error keys."""
         return [
-            "RhRegProbeErr",
-            "RegOverHeat",
-            "ScanErr",
-            "RelayStuck",
-            "Fuse3Err",
-            "Fuse1Err",
-            "rHId",
-            "ContactorCoilFailErr",
-            "RhDutyErr",
-            "KinPumpOff",
-            "Fuse2Err",
-            "SupplyErr",
-            "AmbiantOHLevel2",
-            "RhCommErr",
-            "FreqDetecErr",
             "AmbiantOHLevel1",
-            "ThermistanceErr",
-            "TempNotValid",
+            "AmbiantOHLevel2",
+            "ContactorCoilFailErr",
+            "FreqDetecErr",
+            "Fuse1Err",
+            "Fuse2Err",
+            "Fuse3Err",
+            "KinPumpOff",
             "LearnPhaseErr",
             "NoHeaterCurrentErr",
+            "RegOverHeat",
+            "RelayStuck",
+            "RhCommErr",
+            "RhDutyErr",
+            "RhRegProbeErr",
+            "ScanErr",
+            "SupplyErr",
+            "TempNotValid",
+            "ThermistanceErr",
+            "rHId",
         ]
 
     @property
@@ -118,15 +118,17 @@ class GeckoLogStruct:
         """The structure accessors."""
         return {
             "RhWaterTemp": GeckoTempStructAccessor(
-                self.struct, "RhWaterTemp", 261, None
+                self.struct, "LogStructure/RealTimeTemp/RhWaterTemp", 261, None
             ),
             "RhTriacTemp": GeckoTempStructAccessor(
-                self.struct, "RhTriacTemp", 263, None
+                self.struct, "LogStructure/RealTimeTemp/RhTriacTemp", 263, None
             ),
-            "Hours": GeckoByteStructAccessor(self.struct, "Hours", 256, None),
+            "Hours": GeckoByteStructAccessor(
+                self.struct, "LogStructure/MiscStatus/Hours", 256, None
+            ),
             "Menu": GeckoEnumStructAccessor(
                 self.struct,
-                "Menu",
+                "LogStructure/MiscStatus/Menu",
                 353,
                 None,
                 [
@@ -152,14 +154,14 @@ class GeckoLogStruct:
                 None,
             ),
             "HeaterPhaseSign": GeckoByteStructAccessor(
-                self.struct, "HeaterPhaseSign", 300, None
+                self.struct, "LogStructure/MiscStatus/HeaterPhaseSign", 300, None
             ),
             "StickDetected": GeckoBoolStructAccessor(
-                self.struct, "StickDetected", 373, 0, None
+                self.struct, "LogStructure/MiscStatus/StickDetected", 373, 0, None
             ),
             "QuietState": GeckoEnumStructAccessor(
                 self.struct,
-                "QuietState",
+                "LogStructure/UserDemands/QuietState",
                 362,
                 None,
                 ["NOT_SET", "QUIET", "DRAIN", "SOAK", "OFF"],
@@ -168,104 +170,298 @@ class GeckoLogStruct:
                 "ALL",
             ),
             "UdP1": GeckoEnumStructAccessor(
-                self.struct, "UdP1", 275, 14, ["OFF", "LO", "HI"], 2, 4, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdP1",
+                275,
+                14,
+                ["OFF", "LO", "HI"],
+                2,
+                4,
+                "ALL",
             ),
             "UdP2": GeckoEnumStructAccessor(
-                self.struct, "UdP2", 275, 12, ["OFF", "LO", "HI"], 2, 4, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdP2",
+                275,
+                12,
+                ["OFF", "LO", "HI"],
+                2,
+                4,
+                "ALL",
             ),
             "UdP3": GeckoEnumStructAccessor(
-                self.struct, "UdP3", 275, 11, ["OFF", "HI"], 2, 2, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdP3",
+                275,
+                11,
+                ["OFF", "HI"],
+                2,
+                2,
+                "ALL",
             ),
             "UdP4": GeckoEnumStructAccessor(
-                self.struct, "UdP4", 275, 10, ["OFF", "HI"], 2, 2, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdP4",
+                275,
+                10,
+                ["OFF", "HI"],
+                2,
+                2,
+                "ALL",
             ),
             "UdP5": GeckoEnumStructAccessor(
-                self.struct, "UdP5", 275, 9, ["OFF", "HI"], 2, 2, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdP5",
+                275,
+                9,
+                ["OFF", "HI"],
+                2,
+                2,
+                "ALL",
             ),
             "UdBL": GeckoEnumStructAccessor(
-                self.struct, "UdBL", 275, 8, ["OFF", "ON"], 2, 2, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdBL",
+                275,
+                8,
+                ["OFF", "ON"],
+                2,
+                2,
+                "ALL",
             ),
             "UdL120": GeckoEnumStructAccessor(
-                self.struct, "UdL120", 275, 1, ["OFF", "ON"], 2, 2, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdL120",
+                275,
+                1,
+                ["OFF", "ON"],
+                2,
+                2,
+                "ALL",
             ),
             "UdLi": GeckoEnumStructAccessor(
-                self.struct, "UdLi", 306, 0, ["OFF", "LO", "MED", "HI"], None, 4, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdLi",
+                306,
+                0,
+                ["OFF", "LO", "MED", "HI"],
+                None,
+                4,
+                "ALL",
             ),
             "UdValve": GeckoEnumStructAccessor(
-                self.struct, "UdValve", 275, 7, ["OFF", "ON"], 2, 2, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdValve",
+                275,
+                7,
+                ["OFF", "ON"],
+                2,
+                2,
+                "ALL",
             ),
             "UdTvLift": GeckoEnumStructAccessor(
-                self.struct, "UdTvLift", 275, 5, ["OFF", "ON"], 2, 2, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdTvLift",
+                275,
+                5,
+                ["OFF", "ON"],
+                2,
+                2,
+                "ALL",
             ),
             "UdSpkrLift": GeckoEnumStructAccessor(
-                self.struct, "UdSpkrLift", 275, 4, ["OFF", "ON"], 2, 2, "ALL"
+                self.struct,
+                "LogStructure/UserDemands/UdSpkrLift",
+                275,
+                4,
+                ["OFF", "ON"],
+                2,
+                2,
+                "ALL",
             ),
-            "UdVSP1": GeckoByteStructAccessor(self.struct, "UdVSP1", 303, "ALL"),
-            "UdVSP3": GeckoByteStructAccessor(self.struct, "UdVSP3", 304, "ALL"),
+            "UdVSP1": GeckoByteStructAccessor(
+                self.struct, "LogStructure/UserDemands/UdVSP1", 303, "ALL"
+            ),
+            "UdVSP3": GeckoByteStructAccessor(
+                self.struct, "LogStructure/UserDemands/UdVSP3", 304, "ALL"
+            ),
             "UdPumpTime": GeckoByteStructAccessor(
-                self.struct, "UdPumpTime", 358, "ALL"
+                self.struct, "LogStructure/UserDemands/UdPumpTime", 358, "ALL"
             ),
             "UdQuietTime": GeckoByteStructAccessor(
-                self.struct, "UdQuietTime", 359, "ALL"
+                self.struct, "LogStructure/UserDemands/UdQuietTime", 359, "ALL"
             ),
             "UdLightTime": GeckoByteStructAccessor(
-                self.struct, "UdLightTime", 360, "ALL"
+                self.struct, "LogStructure/UserDemands/UdLightTime", 360, "ALL"
             ),
             "UdL120Time": GeckoByteStructAccessor(
-                self.struct, "UdL120Time", 361, "ALL"
+                self.struct, "LogStructure/UserDemands/UdL120Time", 361, "ALL"
             ),
             "P1": GeckoEnumStructAccessor(
-                self.struct, "P1", 356, 0, ["OFF", "HIGH", "LOW"], None, 4, None
+                self.struct,
+                "LogStructure/DeviceStatus/P1",
+                356,
+                0,
+                ["OFF", "HIGH", "LOW"],
+                None,
+                4,
+                None,
             ),
             "P2": GeckoEnumStructAccessor(
-                self.struct, "P2", 356, 2, ["OFF", "HIGH", "LOW"], None, 4, None
+                self.struct,
+                "LogStructure/DeviceStatus/P2",
+                356,
+                2,
+                ["OFF", "HIGH", "LOW"],
+                None,
+                4,
+                None,
             ),
             "P3": GeckoEnumStructAccessor(
-                self.struct, "P3", 356, 4, ["OFF", "HIGH", "LOW"], None, 4, None
+                self.struct,
+                "LogStructure/DeviceStatus/P3",
+                356,
+                4,
+                ["OFF", "HIGH", "LOW"],
+                None,
+                4,
+                None,
             ),
             "P4": GeckoEnumStructAccessor(
-                self.struct, "P4", 356, 6, ["OFF", "HIGH", "LOW"], None, 4, None
+                self.struct,
+                "LogStructure/DeviceStatus/P4",
+                356,
+                6,
+                ["OFF", "HIGH", "LOW"],
+                None,
+                4,
+                None,
             ),
             "P5": GeckoEnumStructAccessor(
-                self.struct, "P5", 355, 0, ["OFF", "HIGH"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/P5",
+                355,
+                0,
+                ["OFF", "HIGH"],
+                None,
+                2,
+                None,
             ),
             "BL": GeckoEnumStructAccessor(
-                self.struct, "BL", 355, 1, ["OFF", "ON"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/BL",
+                355,
+                1,
+                ["OFF", "ON"],
+                None,
+                2,
+                None,
             ),
             "CP": GeckoEnumStructAccessor(
-                self.struct, "CP", 355, 2, ["OFF", "ON"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/CP",
+                355,
+                2,
+                ["OFF", "ON"],
+                None,
+                2,
+                None,
             ),
             "O3": GeckoEnumStructAccessor(
-                self.struct, "O3", 355, 3, ["OFF", "ON"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/O3",
+                355,
+                3,
+                ["OFF", "ON"],
+                None,
+                2,
+                None,
             ),
             "L120": GeckoEnumStructAccessor(
-                self.struct, "L120", 355, 4, ["OFF", "ON"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/L120",
+                355,
+                4,
+                ["OFF", "ON"],
+                None,
+                2,
+                None,
             ),
             "AlwayOn": GeckoEnumStructAccessor(
-                self.struct, "AlwayOn", 354, 2, ["OFF", "ON"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/AlwayOn",
+                354,
+                2,
+                ["OFF", "ON"],
+                None,
+                2,
+                None,
             ),
             "TvLift": GeckoEnumStructAccessor(
-                self.struct, "TvLift", 354, 3, ["DOWN", "UP"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/TvLift",
+                354,
+                3,
+                ["DOWN", "UP"],
+                None,
+                2,
+                None,
             ),
             "SpkrLift": GeckoEnumStructAccessor(
-                self.struct, "SpkrLift", 354, 4, ["DOWN", "UP"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/SpkrLift",
+                354,
+                4,
+                ["DOWN", "UP"],
+                None,
+                2,
+                None,
             ),
             "Sani": GeckoEnumStructAccessor(
-                self.struct, "Sani", 354, 5, ["OFF", "ON"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/Sani",
+                354,
+                5,
+                ["OFF", "ON"],
+                None,
+                2,
+                None,
             ),
             "Onzen": GeckoEnumStructAccessor(
-                self.struct, "Onzen", 354, 6, ["OFF", "ON"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/Onzen",
+                354,
+                6,
+                ["OFF", "ON"],
+                None,
+                2,
+                None,
             ),
             "Valve": GeckoEnumStructAccessor(
-                self.struct, "Valve", 354, 7, ["OFF", "ON"], None, 2, None
+                self.struct,
+                "LogStructure/DeviceStatus/Valve",
+                354,
+                7,
+                ["OFF", "ON"],
+                None,
+                2,
+                None,
             ),
-            "RhDuty": GeckoByteStructAccessor(self.struct, "RhDuty", 274, None),
-            "Vsp1Front": GeckoByteStructAccessor(self.struct, "Vsp1Front", 301, None),
-            "Vsp1Min": GeckoByteStructAccessor(self.struct, "Vsp1Min", 305, None),
-            "VSP3Front": GeckoByteStructAccessor(self.struct, "VSP3Front", 302, None),
+            "RhDuty": GeckoByteStructAccessor(
+                self.struct, "LogStructure/DeviceStatus/RhDuty", 274, None
+            ),
+            "Vsp1Front": GeckoByteStructAccessor(
+                self.struct, "LogStructure/DeviceStatus/Vsp1Front", 301, None
+            ),
+            "Vsp1Min": GeckoByteStructAccessor(
+                self.struct, "LogStructure/DeviceStatus/Vsp1Min", 305, None
+            ),
+            "VSP3Front": GeckoByteStructAccessor(
+                self.struct, "LogStructure/DeviceStatus/VSP3Front", 302, None
+            ),
             "LockMode": GeckoEnumStructAccessor(
                 self.struct,
-                "LockMode",
+                "LogStructure/DeviceStatus/LockMode",
                 363,
                 None,
                 ["UNLOCK", "PARTIAL", "FULL"],
@@ -275,7 +471,7 @@ class GeckoLogStruct:
             ),
             "DealerLockStatus": GeckoEnumStructAccessor(
                 self.struct,
-                "DealerLockStatus",
+                "LogStructure/DeviceStatus/DealerLockStatus",
                 368,
                 None,
                 ["UNLOCK", "PARTIAL", "FULL"],
@@ -284,14 +480,14 @@ class GeckoLogStruct:
                 None,
             ),
             "DealerLockSeed": GeckoWordStructAccessor(
-                self.struct, "DealerLockSeed", 369, None
+                self.struct, "LogStructure/DeviceStatus/DealerLockSeed", 369, None
             ),
             "DealerLockKey": GeckoWordStructAccessor(
-                self.struct, "DealerLockKey", 371, "ALL"
+                self.struct, "LogStructure/DeviceStatus/DealerLockKey", 371, "ALL"
             ),
             "FilterAccess": GeckoEnumStructAccessor(
                 self.struct,
-                "FilterAccess",
+                "LogStructure/RemoteCommands/FilterAccess",
                 348,
                 0,
                 ["INTERNAL", "REMOTE"],
@@ -301,7 +497,7 @@ class GeckoLogStruct:
             ),
             "RemoteFiltAction": GeckoEnumStructAccessor(
                 self.struct,
-                "RemoteFiltAction",
+                "LogStructure/RemoteCommands/RemoteFiltAction",
                 307,
                 None,
                 ["IDLE", "STOP", "START", "NEW", "ACTIVE"],
@@ -310,14 +506,17 @@ class GeckoLogStruct:
                 "ALL",
             ),
             "RemoteFiltDur": GeckoTimeStructAccessor(
-                self.struct, "RemoteFiltDur", 308, "ALL"
+                self.struct, "LogStructure/RemoteCommands/RemoteFiltDur", 308, "ALL"
             ),
             "RemoteFiltDurPerDay": GeckoByteStructAccessor(
-                self.struct, "RemoteFiltDurPerDay", 316, "ALL"
+                self.struct,
+                "LogStructure/RemoteCommands/RemoteFiltDurPerDay",
+                316,
+                "ALL",
             ),
             "OnzenAccess": GeckoEnumStructAccessor(
                 self.struct,
-                "OnzenAccess",
+                "LogStructure/RemoteCommands/OnzenAccess",
                 348,
                 1,
                 ["INTERNAL", "REMOTE"],
@@ -327,7 +526,7 @@ class GeckoLogStruct:
             ),
             "RemoteOnzenAction": GeckoEnumStructAccessor(
                 self.struct,
-                "RemoteOnzenAction",
+                "LogStructure/RemoteCommands/RemoteOnzenAction",
                 310,
                 None,
                 ["IDLE", "STOP", "START", "NEW", "ACTIVE"],
@@ -336,11 +535,11 @@ class GeckoLogStruct:
                 "ALL",
             ),
             "RemoteOnzenDur": GeckoTimeStructAccessor(
-                self.struct, "RemoteOnzenDur", 311, "ALL"
+                self.struct, "LogStructure/RemoteCommands/RemoteOnzenDur", 311, "ALL"
             ),
             "EconomyAccess": GeckoEnumStructAccessor(
                 self.struct,
-                "EconomyAccess",
+                "LogStructure/RemoteCommands/EconomyAccess",
                 348,
                 2,
                 ["INTERNAL", "REMOTE"],
@@ -350,7 +549,7 @@ class GeckoLogStruct:
             ),
             "RemoteEconAction": GeckoEnumStructAccessor(
                 self.struct,
-                "RemoteEconAction",
+                "LogStructure/RemoteCommands/RemoteEconAction",
                 313,
                 None,
                 ["IDLE", "STOP", "START", "NEW", "ACTIVE"],
@@ -359,36 +558,47 @@ class GeckoLogStruct:
                 "ALL",
             ),
             "RemoteEconDur": GeckoTimeStructAccessor(
-                self.struct, "RemoteEconDur", 314, "ALL"
+                self.struct, "LogStructure/RemoteCommands/RemoteEconDur", 314, "ALL"
             ),
             "RemoteConfigIndex": GeckoByteStructAccessor(
-                self.struct, "RemoteConfigIndex", 350, "ALL"
+                self.struct, "LogStructure/RemoteCommands/RemoteConfigIndex", 350, "ALL"
             ),
             "RemoteNbOfPhases": GeckoByteStructAccessor(
-                self.struct, "RemoteNbOfPhases", 351, "ALL"
+                self.struct, "LogStructure/RemoteCommands/RemoteNbOfPhases", 351, "ALL"
             ),
             "RemoteBreakerIndex": GeckoByteStructAccessor(
-                self.struct, "RemoteBreakerIndex", 352, "ALL"
+                self.struct,
+                "LogStructure/RemoteCommands/RemoteBreakerIndex",
+                352,
+                "ALL",
             ),
-            "Clean": GeckoBoolStructAccessor(self.struct, "Clean", 269, 5, None),
-            "Purge": GeckoBoolStructAccessor(self.struct, "Purge", 269, 7, None),
+            "Clean": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/FilterStatus/Clean", 269, 5, None
+            ),
+            "Purge": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/FilterStatus/Purge", 269, 7, None
+            ),
             "FiltSuspendByUD": GeckoBoolStructAccessor(
-                self.struct, "FiltSuspendByUD", 279, 3, None
+                self.struct, "LogStructure/FilterStatus/FiltSuspendByUD", 279, 3, None
             ),
             "FiltSuspendedByOT": GeckoBoolStructAccessor(
-                self.struct, "FiltSuspendedByOT", 279, 0, None
+                self.struct, "LogStructure/FilterStatus/FiltSuspendedByOT", 279, 0, None
             ),
-            "CPOT": GeckoBoolStructAccessor(self.struct, "CPOT", 279, 1, None),
+            "CPOT": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/FilterStatus/CPOT", 279, 1, None
+            ),
             "SwmPurgeSusp": GeckoBoolStructAccessor(
-                self.struct, "SwmPurgeSusp", 269, 2, None
+                self.struct, "LogStructure/SWMStatus/SwmPurgeSusp", 269, 2, None
             ),
-            "SwmPurge": GeckoBoolStructAccessor(self.struct, "SwmPurge", 269, 3, None),
+            "SwmPurge": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/SWMStatus/SwmPurge", 269, 3, None
+            ),
             "SwmActive": GeckoBoolStructAccessor(
-                self.struct, "SwmActive", 267, None, None
+                self.struct, "LogStructure/SWMStatus/SwmActive", 267, None, None
             ),
             "SwmRisk": GeckoEnumStructAccessor(
                 self.struct,
-                "SwmRisk",
+                "LogStructure/SWMStatus/SwmRisk",
                 268,
                 None,
                 ["NO", "LO", "MED", "HI", "EXTREME"],
@@ -397,148 +607,200 @@ class GeckoLogStruct:
                 None,
             ),
             "RealSetPointG": GeckoTempStructAccessor(
-                self.struct, "RealSetPointG", 272, None
+                self.struct, "LogStructure/RegulationStatus/RealSetPointG", 272, None
             ),
             "DisplayedTempG": GeckoTempStructAccessor(
-                self.struct, "DisplayedTempG", 265, None
+                self.struct, "LogStructure/RegulationStatus/DisplayedTempG", 265, None
             ),
-            "Heating": GeckoBoolStructAccessor(self.struct, "Heating", 270, 7, None),
+            "Heating": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/RegulationStatus/Heating", 270, 7, None
+            ),
             "TempNotValid": GeckoBoolStructAccessor(
-                self.struct, "TempNotValid", 349, 1, None
+                self.struct, "LogStructure/RegulationStatus/TempNotValid", 349, 1, None
             ),
             "ExtProbeDetected": GeckoBoolStructAccessor(
-                self.struct, "ExtProbeDetected", 364, 0, None
+                self.struct,
+                "LogStructure/RegulationStatus/ExtProbeDetected",
+                364,
+                0,
+                None,
             ),
-            "CheckFlo": GeckoBoolStructAccessor(self.struct, "CheckFlo", 269, 0, None),
+            "CheckFlo": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/RegulationStatus/CheckFlo", 269, 0, None
+            ),
             "ProgEconActive": GeckoBoolStructAccessor(
-                self.struct, "ProgEconActive", 271, 2, None
+                self.struct,
+                "LogStructure/RegulationStatus/ProgEconActive",
+                271,
+                2,
+                None,
             ),
             "EconActive": GeckoBoolStructAccessor(
-                self.struct, "EconActive", 271, 0, "ALL"
+                self.struct, "LogStructure/RegulationStatus/EconActive", 271, 0, "ALL"
             ),
-            "PumpRun": GeckoBoolStructAccessor(self.struct, "PumpRun", 269, 1, None),
+            "PumpRun": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/RegulationStatus/PumpRun", 269, 1, None
+            ),
             "CoolingDown": GeckoBoolStructAccessor(
-                self.struct, "CoolingDown", 270, 6, None
+                self.struct, "LogStructure/RegulationStatus/CoolingDown", 270, 6, None
             ),
             "KinPurgeActive": GeckoBoolStructAccessor(
-                self.struct, "KinPurgeActive", 270, 5, None
+                self.struct,
+                "LogStructure/RegulationStatus/KinPurgeActive",
+                270,
+                5,
+                None,
             ),
             "ThermistanceErr": GeckoBoolStructAccessor(
-                self.struct, "ThermistanceErr", 277, 5, None
+                self.struct, "LogStructure/ErrorMessages/ThermistanceErr", 277, 5, None
             ),
             "AmbiantOHLevel2": GeckoBoolStructAccessor(
-                self.struct, "AmbiantOHLevel2", 278, 3, None
+                self.struct, "LogStructure/ErrorMessages/AmbiantOHLevel2", 278, 3, None
             ),
             "AmbiantOHLevel1": GeckoBoolStructAccessor(
-                self.struct, "AmbiantOHLevel1", 278, 2, None
+                self.struct, "LogStructure/ErrorMessages/AmbiantOHLevel1", 278, 2, None
             ),
             "KinPumpOff": GeckoBoolStructAccessor(
-                self.struct, "KinPumpOff", 279, 4, None
+                self.struct, "LogStructure/ErrorMessages/KinPumpOff", 279, 4, None
             ),
             "RegOverHeat": GeckoBoolStructAccessor(
-                self.struct, "RegOverHeat", 278, 4, None
+                self.struct, "LogStructure/ErrorMessages/RegOverHeat", 278, 4, None
             ),
             "RelayStuck": GeckoBoolStructAccessor(
-                self.struct, "RelayStuck", 278, 1, None
+                self.struct, "LogStructure/ErrorMessages/RelayStuck", 278, 1, None
             ),
             "FreqDetecErr": GeckoBoolStructAccessor(
-                self.struct, "FreqDetecErr", 277, 6, None
+                self.struct, "LogStructure/ErrorMessages/FreqDetecErr", 277, 6, None
             ),
             "ContactorCoilFailErr": GeckoBoolStructAccessor(
-                self.struct, "ContactorCoilFailErr", 277, 4, None
+                self.struct,
+                "LogStructure/ErrorMessages/ContactorCoilFailErr",
+                277,
+                4,
+                None,
             ),
             "NoHeaterCurrentErr": GeckoBoolStructAccessor(
-                self.struct, "NoHeaterCurrentErr", 277, 3, None
+                self.struct,
+                "LogStructure/ErrorMessages/NoHeaterCurrentErr",
+                277,
+                3,
+                None,
             ),
             "LearnPhaseErr": GeckoBoolStructAccessor(
-                self.struct, "LearnPhaseErr", 277, 2, None
+                self.struct, "LogStructure/ErrorMessages/LearnPhaseErr", 277, 2, None
             ),
-            "Fuse3Err": GeckoBoolStructAccessor(self.struct, "Fuse3Err", 277, 1, None),
-            "Fuse2Err": GeckoBoolStructAccessor(self.struct, "Fuse2Err", 277, 0, None),
-            "Fuse1Err": GeckoBoolStructAccessor(self.struct, "Fuse1Err", 278, 7, None),
+            "Fuse3Err": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/ErrorMessages/Fuse3Err", 277, 1, None
+            ),
+            "Fuse2Err": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/ErrorMessages/Fuse2Err", 277, 0, None
+            ),
+            "Fuse1Err": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/ErrorMessages/Fuse1Err", 278, 7, None
+            ),
             "SupplyErr": GeckoBoolStructAccessor(
-                self.struct, "SupplyErr", 278, 6, None
+                self.struct, "LogStructure/ErrorMessages/SupplyErr", 278, 6, None
             ),
-            "ScanErr": GeckoBoolStructAccessor(self.struct, "ScanErr", 278, 5, None),
-            "rHId": GeckoBoolStructAccessor(self.struct, "rHId", 278, 0, None),
+            "ScanErr": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/ErrorMessages/ScanErr", 278, 5, None
+            ),
+            "rHId": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/ErrorMessages/rHId", 278, 0, None
+            ),
             "RhFloDetected": GeckoBoolStructAccessor(
-                self.struct, "RhFloDetected", 260, 3, None
+                self.struct, "LogStructure/InthermStatus/RhFloDetected", 260, 3, None
             ),
-            "RhHwHL": GeckoBoolStructAccessor(self.struct, "RhHwHL", 258, 2, None),
+            "RhHwHL": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/InthermStatus/RhHwHL", 258, 2, None
+            ),
             "RhRegProbeErr": GeckoBoolStructAccessor(
-                self.struct, "RhRegProbeErr", 258, 1, None
+                self.struct, "LogStructure/InthermStatus/RhRegProbeErr", 258, 1, None
             ),
             "RhRegSlope": GeckoBoolStructAccessor(
-                self.struct, "RhRegSlope", 257, 2, None
+                self.struct, "LogStructure/InthermStatus/RhRegSlope", 257, 2, None
             ),
             "RhHrKinNoFlo": GeckoBoolStructAccessor(
-                self.struct, "RhHrKinNoFlo", 259, 2, None
+                self.struct, "LogStructure/InthermStatus/RhHrKinNoFlo", 259, 2, None
             ),
             "RhNoFloXTries": GeckoBoolStructAccessor(
-                self.struct, "RhNoFloXTries", 258, 4, None
+                self.struct, "LogStructure/InthermStatus/RhNoFloXTries", 258, 4, None
             ),
             "inTCipDelay": GeckoWordStructAccessor(
-                self.struct, "inTCipDelay", 365, None
+                self.struct, "LogStructure/InthermStatus/inTCipDelay", 365, None
             ),
             "RhCommErr": GeckoBoolStructAccessor(
-                self.struct, "RhCommErr", 257, 7, None
+                self.struct, "LogStructure/InthermStatus/RhCommErr", 257, 7, None
             ),
             "RhNotEnoughHeat": GeckoBoolStructAccessor(
-                self.struct, "RhNotEnoughHeat", 257, 3, None
+                self.struct, "LogStructure/InthermStatus/RhNotEnoughHeat", 257, 3, None
             ),
-            "RhLowFlo": GeckoBoolStructAccessor(self.struct, "RhLowFlo", 257, 0, None),
+            "RhLowFlo": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/InthermStatus/RhLowFlo", 257, 0, None
+            ),
             "RhDutyErr": GeckoBoolStructAccessor(
-                self.struct, "RhDutyErr", 258, 7, None
+                self.struct, "LogStructure/InthermStatus/RhDutyErr", 258, 7, None
             ),
             "RhNoFloRetry": GeckoBoolStructAccessor(
-                self.struct, "RhNoFloRetry", 258, 6, None
+                self.struct, "LogStructure/InthermStatus/RhNoFloRetry", 258, 6, None
             ),
             "RhNoFloTemp": GeckoBoolStructAccessor(
-                self.struct, "RhNoFloTemp", 258, 5, None
+                self.struct, "LogStructure/InthermStatus/RhNoFloTemp", 258, 5, None
             ),
-            "RhHrHL": GeckoBoolStructAccessor(self.struct, "RhHrHL", 258, 3, None),
+            "RhHrHL": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/InthermStatus/RhHrHL", 258, 3, None
+            ),
             "RhRegOverHeat": GeckoBoolStructAccessor(
-                self.struct, "RhRegOverHeat", 258, 0, None
+                self.struct, "LogStructure/InthermStatus/RhRegOverHeat", 258, 0, None
             ),
             "RhHrTriacPr": GeckoBoolStructAccessor(
-                self.struct, "RhHrTriacPr", 259, 7, None
+                self.struct, "LogStructure/InthermStatus/RhHrTriacPr", 259, 7, None
             ),
             "RhHrTriacOH": GeckoBoolStructAccessor(
-                self.struct, "RhHrTriacOH", 259, 6, None
+                self.struct, "LogStructure/InthermStatus/RhHrTriacOH", 259, 6, None
             ),
             "RhSWTriacOH": GeckoBoolStructAccessor(
-                self.struct, "RhSWTriacOH", 259, 5, None
+                self.struct, "LogStructure/InthermStatus/RhSWTriacOH", 259, 5, None
             ),
             "RhHwTriacOH": GeckoBoolStructAccessor(
-                self.struct, "RhHwTriacOH", 259, 4, None
+                self.struct, "LogStructure/InthermStatus/RhHwTriacOH", 259, 4, None
             ),
-            "RhHrKin": GeckoBoolStructAccessor(self.struct, "RhHrKin", 259, 3, None),
+            "RhHrKin": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/InthermStatus/RhHrKin", 259, 3, None
+            ),
             "RhSwKinTemp": GeckoBoolStructAccessor(
-                self.struct, "RhSwKinTemp", 259, 1, None
+                self.struct, "LogStructure/InthermStatus/RhSwKinTemp", 259, 1, None
             ),
-            "RhHWKin": GeckoBoolStructAccessor(self.struct, "RhHWKin", 259, 0, None),
+            "RhHWKin": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/InthermStatus/RhHWKin", 259, 0, None
+            ),
             "RhHeaterDisabled": GeckoBoolStructAccessor(
-                self.struct, "RhHeaterDisabled", 260, 4, None
+                self.struct, "LogStructure/InthermStatus/RhHeaterDisabled", 260, 4, None
             ),
             "RhFloCheck": GeckoBoolStructAccessor(
-                self.struct, "RhFloCheck", 260, 2, None
+                self.struct, "LogStructure/InthermStatus/RhFloCheck", 260, 2, None
             ),
             "RhHeaterSuspended": GeckoBoolStructAccessor(
-                self.struct, "RhHeaterSuspended", 260, 1, None
+                self.struct,
+                "LogStructure/InthermStatus/RhHeaterSuspended",
+                260,
+                1,
+                None,
             ),
             "RhFloCheckReady": GeckoBoolStructAccessor(
-                self.struct, "RhFloCheckReady", 260, 0, None
+                self.struct, "LogStructure/InthermStatus/RhFloCheckReady", 260, 0, None
             ),
-            "PackBootID": GeckoWordStructAccessor(self.struct, "PackBootID", 317, None),
+            "PackBootID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/PackInfo/PackBootID", 317, None
+            ),
             "PackBootRev": GeckoByteStructAccessor(
-                self.struct, "PackBootRev", 319, None
+                self.struct, "LogStructure/PackInfo/PackBootRev", 319, None
             ),
             "PackBootRel": GeckoByteStructAccessor(
-                self.struct, "PackBootRel", 320, None
+                self.struct, "LogStructure/PackInfo/PackBootRel", 320, None
             ),
             "PackType": GeckoEnumStructAccessor(
                 self.struct,
-                "PackType",
+                "LogStructure/PackInfo/PackType",
                 321,
                 None,
                 [
@@ -560,7 +822,7 @@ class GeckoLogStruct:
             ),
             "PackMemRange": GeckoEnumStructAccessor(
                 self.struct,
-                "PackMemRange",
+                "LogStructure/PackInfo/PackMemRange",
                 322,
                 0,
                 ["16K", "32K", "48K", "64K"],
@@ -569,34 +831,45 @@ class GeckoLogStruct:
                 None,
             ),
             "PackRegion": GeckoEnumStructAccessor(
-                self.struct, "PackRegion", 322, 2, ["UL", "CE"], None, 2, None
+                self.struct,
+                "LogStructure/PackInfo/PackRegion",
+                322,
+                2,
+                ["UL", "CE"],
+                None,
+                2,
+                None,
             ),
-            "PackCoreID": GeckoWordStructAccessor(self.struct, "PackCoreID", 325, None),
+            "PackCoreID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/PackInfo/PackCoreID", 325, None
+            ),
             "PackCoreRev": GeckoByteStructAccessor(
-                self.struct, "PackCoreRev", 327, None
+                self.struct, "LogStructure/PackInfo/PackCoreRev", 327, None
             ),
             "PackCoreRel": GeckoByteStructAccessor(
-                self.struct, "PackCoreRel", 328, None
+                self.struct, "LogStructure/PackInfo/PackCoreRel", 328, None
             ),
             "PackConfigLib": GeckoByteStructAccessor(
-                self.struct, "PackConfigLib", 324, None
+                self.struct, "LogStructure/PackInfo/PackConfigLib", 324, None
             ),
             "PackStatusLib": GeckoByteStructAccessor(
-                self.struct, "PackStatusLib", 323, None
+                self.struct, "LogStructure/PackInfo/PackStatusLib", 323, None
             ),
-            "PackConfID": GeckoWordStructAccessor(self.struct, "PackConfID", 329, None),
+            "PackConfID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/PackInfo/PackConfID", 329, None
+            ),
             "PackConfRev": GeckoByteStructAccessor(
-                self.struct, "PackConfRev", 331, None
+                self.struct, "LogStructure/PackInfo/PackConfRev", 331, None
             ),
             "PackConfRel": GeckoByteStructAccessor(
-                self.struct, "PackConfRel", 332, None
+                self.struct, "LogStructure/PackInfo/PackConfRel", 332, None
             ),
             "PackNumberOfConf": GeckoWordStructAccessor(
-                self.struct, "PackNumberOfConf", 333, None
+                self.struct, "LogStructure/PackInfo/PackNumberOfConf", 333, None
             ),
             "PackLogTrig": GeckoEnumStructAccessor(
                 self.struct,
-                "PackLogTrig",
+                "LogStructure/PackInfo/PackLogTrig",
                 357,
                 None,
                 ["Restricted", "Full"],
@@ -604,18 +877,36 @@ class GeckoLogStruct:
                 2,
                 "ALL",
             ),
-            "inThermID": GeckoWordStructAccessor(self.struct, "inThermID", 335, None),
-            "inThermRev": GeckoByteStructAccessor(self.struct, "inThermRev", 337, None),
-            "inThermRel": GeckoByteStructAccessor(self.struct, "inThermRel", 338, None),
+            "inThermID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/PackInfo/inThermID", 335, None
+            ),
+            "inThermRev": GeckoByteStructAccessor(
+                self.struct, "LogStructure/PackInfo/inThermRev", 337, None
+            ),
+            "inThermRel": GeckoByteStructAccessor(
+                self.struct, "LogStructure/PackInfo/inThermRel", 338, None
+            ),
             "inThermCur1KW": GeckoWordStructAccessor(
-                self.struct, "inThermCur1KW", 339, None
+                self.struct, "LogStructure/PackInfo/inThermCur1KW", 339, None
             ),
             "inThermCurFull": GeckoWordStructAccessor(
-                self.struct, "inThermCurFull", 341, None
+                self.struct, "LogStructure/PackInfo/inThermCurFull", 341, None
+            ),
+            "K600ID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/PackInfo/K600ID", 343, None
+            ),
+            "K600Rev": GeckoByteStructAccessor(
+                self.struct, "LogStructure/PackInfo/K600Rev", 345, None
+            ),
+            "K600Rel": GeckoByteStructAccessor(
+                self.struct, "LogStructure/PackInfo/K600Rel", 346, None
+            ),
+            "K600Protocol": GeckoByteStructAccessor(
+                self.struct, "LogStructure/PackInfo/K600Protocol", 347, None
             ),
             "KeypadType": GeckoEnumStructAccessor(
                 self.struct,
-                "KeypadType",
+                "LogStructure/PackInfo/KeypadType",
                 367,
                 None,
                 [

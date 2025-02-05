@@ -1,4 +1,4 @@
-""" Gecko UPDTS/SUPDT handlers """
+"""Gecko UPDTS/SUPDT handlers"""
 
 import logging
 import struct

@@ -13,7 +13,7 @@ from context import GeckoShell
 
 def install_logging() -> None:
     """Everyone needs logging, you say when, you say where, you say how much."""
-    Path("client.log").unlink(True)
+    Path("client.log").unlink(True)  # noqa: FBT003
     file_logger = logging.FileHandler("client.log")
     file_logger.setLevel(logging.DEBUG)
     file_logger.setFormatter(

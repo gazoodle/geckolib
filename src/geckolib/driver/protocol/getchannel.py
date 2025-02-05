@@ -1,4 +1,4 @@
-""" Gecko CURCH/CHCUR handlers """
+"""Gecko CURCH/CHCUR handlers"""
 
 import logging
 import struct

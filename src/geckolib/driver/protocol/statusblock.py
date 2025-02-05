@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import struct
-#from warnings import deprecated
 
 from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
@@ -54,13 +53,11 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.start = kwargs.get("start", None)
+        self.start = kwargs.get("start")
         self.sequence = self.length = self.next = self.data = None
 
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
-        return received_bytes.startswith(STATU_VERB) or received_bytes.startswith(
-            STATV_VERB
-        )
+        return received_bytes.startswith((STATU_VERB, STATV_VERB))
 
     def handle(self, received_bytes: bytes, sender: tuple):
         remainder = received_bytes[5:]
@@ -90,58 +87,6 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
         )
 
 
-#@deprecated("Use GeckoAsyncPartialStatusBlockProtocolHandler instead")
-class GeckoPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
-    @staticmethod
-    def report_changes(socket, changes, **kwargs):
-        """changes is a list of change tuples, (pos, data)"""
-        change_bin = [(struct.pack(">H", change[0]), change[1]) for change in changes]
-        change_list = [item for change in change_bin for item in change]
-        return GeckoPartialStatusBlockProtocolHandler(
-            socket,
-            content=b"".join(
-                [STATP_VERB, struct.pack(">B", len(changes))] + change_list
-            ),
-            **kwargs,
-        )
-
-    def __init__(self, socket, **kwargs):
-        super().__init__(**kwargs)
-        self._socket = socket
-        self.changes = []
-
-    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
-        return received_bytes.startswith(STATQ_VERB) or received_bytes.startswith(
-            STATP_VERB
-        )
-
-    def handle(self, received_bytes: bytes, sender: tuple) -> None:
-        remainder = received_bytes[5:]
-        if received_bytes.startswith(STATQ_VERB):
-            (self.sequence,) = struct.unpack(">B", remainder)
-            return  # Stay in the handler list
-
-        # Otherwise must be STATP
-        self._socket.queue_send(
-            GeckoPacketProtocolHandler(
-                content=b"".join(
-                    [
-                        STATQ_VERB,
-                        struct.pack(
-                            ">B", self._socket.get_and_increment_sequence_counter(False)
-                        ),
-                    ]
-                ),
-                parms=sender,
-            ),
-            sender,
-        )
-        change_count = struct.unpack(">B", remainder[0:1])[0]
-        for i in range(change_count):
-            pos = struct.unpack(">H", remainder[1 + (i * 4) : 3 + (i * 4)])[0]
-            self.changes.append((pos, remainder[3 + (i * 4) : 5 + (i * 4)]))
-
-
 class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
     """Async partial status block handler."""
 
@@ -158,11 +103,15 @@ class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
         """Report changes as a list of change tuples, (pos, data)."""
         change_bin = [(struct.pack(">H", change[0]), change[1]) for change in changes]
         change_list = [item for change in change_bin for item in change]
+        pack_data = b"".join(
+            [STATP_VERB, struct.pack(">B", len(changes)), *change_list]
+        )
+        if len(pack_data) % 2 != 0:
+            msg = "Pack data must be even length, check if there is a change of other than 2 bytes"
+            raise RuntimeError(msg)
         return GeckoAsyncPartialStatusBlockProtocolHandler(
             socket,
-            content=b"".join(
-                [STATP_VERB, struct.pack(">B", len(changes)), *change_list]
-            ),
+            content=pack_data,
             **kwargs,
         )
 

@@ -1,7 +1,8 @@
 """Observable class."""
 
 import logging
-from typing import List, Callable, Any
+from collections.abc import Callable
+from typing import Any
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ class Observable:
 
     def __init__(self) -> None:
         """Initialize the observable."""
-        self._observers: List[Callable[[Any, Any, Any], None]] = []
+        self._observers: list[Callable[[Any, Any, Any], None]] = []
 
     def watch(self, observer: Callable[[Any, Any, Any], None]) -> None:
         """Add an observer to this observable class."""
@@ -40,10 +41,8 @@ class Observable:
     ) -> None:
         """Trigger the change notification for all observers."""
         _LOGGER.debug(
-            (
-                f"{self.__class__.__name__} {sender} changed "
-                f"from {old_value} to {new_value}"
-            )
+            f"{self.__class__.__name__} {sender} changed "
+            f"from {old_value} to {new_value}"
         )
         for observer in self._observers:
             observer(sender, old_value, new_value)

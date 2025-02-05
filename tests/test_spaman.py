@@ -1,19 +1,19 @@
-""" Unit tests for the SpaMan class """
+"""Unit tests for the SpaMan class."""
 
 from unittest import IsolatedAsyncioTestCase, main
 from unittest.mock import patch
 
-from context import GeckoAsyncSpaMan, GeckoAsyncSpaDescriptor, GeckoSpaEvent
+from context import GeckoAsyncSpaDescriptor, GeckoAsyncSpaMan, GeckoSpaEvent
 
 
 class SpaManImpl(GeckoAsyncSpaMan):
-    """A Spa Manager to test with"""
+    """Spa Manager to test with."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("CLIENT_UUID", spa_identifier="TestID")
         self.events = []
 
-    async def handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
+    async def handle_event(self, event: GeckoSpaEvent, **_kwargs: object) -> None:
         self.events.append(event)
 
 
@@ -34,7 +34,7 @@ async def mock_connect(self) -> None:
 @patch("context.GeckoAsyncLocator.discover", mock_discover)
 @patch("context.GeckoAsyncLocator.spas", mock_spas)
 class TestSpaMan(IsolatedAsyncioTestCase):
-    """Test the SpaMan class"""
+    """Test the SpaMan class."""
 
     def setUp(self) -> None:
         self.spaman = SpaManImpl()
@@ -50,10 +50,10 @@ class TestSpaMan(IsolatedAsyncioTestCase):
 
     #####################################################
 
-    def test_facade_on_start(self):
+    def test_facade_on_start(self) -> None:
         self.assertIsNone(self.spaman.facade)
 
-    async def test_locate_spas(self):
+    async def test_locate_spas(self) -> None:
         spas = await self.spaman.async_locate_spas()
         self.assertEqual(len(spas), 1)
         self.assertEqual(spas[0].identifier_as_string, "TestID")
@@ -69,7 +69,7 @@ class TestSpaMan(IsolatedAsyncioTestCase):
             ],
         )
 
-    async def test_connect_spa(self):
+    async def test_connect_spa(self) -> None:
         facade = await self.spaman.async_connect_to_spa(mock_spa_descriptor)
         self.assertListEqual(
             self.spaman.events,

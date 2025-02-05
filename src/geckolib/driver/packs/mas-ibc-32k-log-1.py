@@ -1,10 +1,10 @@
 """GeckoLogStruct - A class to manage the LogStruct for 'MAS-IBC-32K v1'."""  # noqa: N999
 
 from . import (
+    GeckoAsyncStructure,
     GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
     GeckoStructAccessor,
-    GeckoStructureTypeBase,
     GeckoWordStructAccessor,
 )
 
@@ -12,7 +12,7 @@ from . import (
 class GeckoLogStruct:
     """Log Struct Class."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the log struct class."""
         self.struct = struct_
 
@@ -61,11 +61,11 @@ class GeckoLogStruct:
         """The structure accessors."""
         return {
             "UserBlowerIntensity": GeckoByteStructAccessor(
-                self.struct, "UserBlowerIntensity", 256, "ALL"
+                self.struct, "LogStructure/UserDemands/UserBlowerIntensity", 256, "ALL"
             ),
             "UserChroma": GeckoEnumStructAccessor(
                 self.struct,
-                "UserChroma",
+                "LogStructure/UserDemands/UserChroma",
                 257,
                 None,
                 [
@@ -85,11 +85,11 @@ class GeckoLogStruct:
                 "ALL",
             ),
             "UserBathTime": GeckoByteStructAccessor(
-                self.struct, "UserBathTime", 258, "ALL"
+                self.struct, "LogStructure/UserDemands/UserBathTime", 258, "ALL"
             ),
             "UserHeater1": GeckoEnumStructAccessor(
                 self.struct,
-                "UserHeater1",
+                "LogStructure/UserDemands/UserHeater1",
                 259,
                 None,
                 ["OFF", "LOW", "MED", "HIGH"],
@@ -99,7 +99,7 @@ class GeckoLogStruct:
             ),
             "UserHeater2": GeckoEnumStructAccessor(
                 self.struct,
-                "UserHeater2",
+                "LogStructure/UserDemands/UserHeater2",
                 260,
                 None,
                 ["OFF", "LOW", "MED", "HIGH"],
@@ -108,11 +108,18 @@ class GeckoLogStruct:
                 "ALL",
             ),
             "UserGeysair": GeckoEnumStructAccessor(
-                self.struct, "UserGeysair", 261, None, ["OFF", "ON"], None, None, None
+                self.struct,
+                "LogStructure/UserDemands/UserGeysair",
+                261,
+                None,
+                ["OFF", "ON"],
+                None,
+                None,
+                None,
             ),
             "UserDryingCycle": GeckoEnumStructAccessor(
                 self.struct,
-                "UserDryingCycle",
+                "LogStructure/UserDemands/UserDryingCycle",
                 262,
                 0,
                 ["AfterBath", "Daily"],
@@ -121,17 +128,17 @@ class GeckoLogStruct:
                 "ALL",
             ),
             "UserDryingHour": GeckoByteStructAccessor(
-                self.struct, "UserDryingHour", 263, "ALL"
+                self.struct, "LogStructure/UserDemands/UserDryingHour", 263, "ALL"
             ),
             "UserDryingMinute": GeckoByteStructAccessor(
-                self.struct, "UserDryingMinute", 264, "ALL"
+                self.struct, "LogStructure/UserDemands/UserDryingMinute", 264, "ALL"
             ),
             "UserDryingSecond": GeckoByteStructAccessor(
-                self.struct, "UserDryingSecond", 265, "ALL"
+                self.struct, "LogStructure/UserDemands/UserDryingSecond", 265, "ALL"
             ),
             "UserDryingDelay": GeckoEnumStructAccessor(
                 self.struct,
-                "UserDryingDelay",
+                "LogStructure/UserDemands/UserDryingDelay",
                 266,
                 0,
                 [
@@ -201,11 +208,15 @@ class GeckoLogStruct:
                 63,
                 "ALL",
             ),
-            "KeypadID": GeckoWordStructAccessor(self.struct, "KeypadID", 267, None),
-            "KeypadRev": GeckoWordStructAccessor(self.struct, "KeypadRev", 269, None),
+            "KeypadID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/DeviceStatus/KeypadID", 267, None
+            ),
+            "KeypadRev": GeckoWordStructAccessor(
+                self.struct, "LogStructure/DeviceStatus/KeypadRev", 269, None
+            ),
             "BlowerState": GeckoEnumStructAccessor(
                 self.struct,
-                "BlowerState",
+                "LogStructure/DeviceStatus/BlowerState",
                 271,
                 None,
                 ["PAUSE", "RUN", "STATE10"],
@@ -215,7 +226,7 @@ class GeckoLogStruct:
             ),
             "PurgeStart": GeckoEnumStructAccessor(
                 self.struct,
-                "PurgeStart",
+                "LogStructure/DeviceStatus/PurgeStart",
                 262,
                 1,
                 ["DEACTIVATE", "ACTIVATE"],
@@ -225,7 +236,7 @@ class GeckoLogStruct:
             ),
             "PurgeDelayTimer": GeckoEnumStructAccessor(
                 self.struct,
-                "PurgeDelayTimer",
+                "LogStructure/DeviceStatus/PurgeDelayTimer",
                 262,
                 2,
                 [
@@ -296,26 +307,53 @@ class GeckoLogStruct:
                 None,
             ),
             "PurgeStandby": GeckoEnumStructAccessor(
-                self.struct, "PurgeStandby", 266, 6, ["STOP", "START"], None, None, None
+                self.struct,
+                "LogStructure/DeviceStatus/PurgeStandby",
+                266,
+                6,
+                ["STOP", "START"],
+                None,
+                None,
+                None,
             ),
             "PowerState": GeckoEnumStructAccessor(
-                self.struct, "PowerState", 283, None, ["OFF", "ON"], None, None, None
+                self.struct,
+                "LogStructure/DeviceStatus/PowerState",
+                283,
+                None,
+                ["OFF", "ON"],
+                None,
+                None,
+                None,
             ),
             "KeypadLock": GeckoEnumStructAccessor(
-                self.struct, "KeypadLock", 284, None, ["OFF", "ON"], None, None, None
+                self.struct,
+                "LogStructure/DeviceStatus/KeypadLock",
+                284,
+                None,
+                ["OFF", "ON"],
+                None,
+                None,
+                None,
             ),
-            "BootID": GeckoWordStructAccessor(self.struct, "BootID", 272, None),
-            "BootRev": GeckoWordStructAccessor(self.struct, "BootRev", 274, None),
-            "PackCoreID": GeckoWordStructAccessor(self.struct, "PackCoreID", 276, None),
+            "BootID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/PackInfo/BootID", 272, None
+            ),
+            "BootRev": GeckoWordStructAccessor(
+                self.struct, "LogStructure/PackInfo/BootRev", 274, None
+            ),
+            "PackCoreID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/PackInfo/PackCoreID", 276, None
+            ),
             "PackCoreRev": GeckoWordStructAccessor(
-                self.struct, "PackCoreRev", 278, None
+                self.struct, "LogStructure/PackInfo/PackCoreRev", 278, None
             ),
             "PackCoreRel": GeckoByteStructAccessor(
-                self.struct, "PackCoreRel", 280, None
+                self.struct, "LogStructure/PackInfo/PackCoreRel", 280, None
             ),
             "PackType": GeckoEnumStructAccessor(
                 self.struct,
-                "PackType",
+                "LogStructure/PackInfo/PackType",
                 281,
                 None,
                 [
@@ -337,7 +375,7 @@ class GeckoLogStruct:
             ),
             "PackMemRange": GeckoEnumStructAccessor(
                 self.struct,
-                "PackMemRange",
+                "LogStructure/PackInfo/PackMemRange",
                 282,
                 0,
                 ["16K", "32K", "48K", "64K"],

@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import List, Optional
 
 from geckolib.automation.base import GeckoAutomationBase
+from geckolib.automation.heatpump import GeckoHeatPump
+from geckolib.automation.ingrid import GeckoInGrid
+from geckolib.automation.select import GeckoSelect
 from geckolib.driver.accessor import GeckoBoolStructAccessor
 
 from ..async_spa import GeckoAsyncSpa
@@ -30,6 +32,49 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoAsyncFacade(Observable):
     """Async facade."""
 
+    class SpaInUseSensor(GeckoAutomationBase):
+        """Sensor with idle/active state."""
+
+        def __init__(self, facade: GeckoAsyncFacade) -> None:
+            """Initializd the in-use sensor."""
+            super().__init__(facade.unique_id, "Spa In Use", facade.name, "INUSE")
+            self._facade: GeckoAsyncFacade = facade
+            self._in_use: bool = False
+
+        @property
+        def is_on(self) -> bool:
+            """Determine if the sensor is on or not."""
+            state = self.state
+            if isinstance(state, bool):
+                return state
+            if state == "":
+                return False
+            return state != "OFF"
+
+        @property
+        def state(self) -> bool:
+            """The state of the sensor."""
+            return self._in_use
+
+        @property
+        def device_class(self) -> str | None:
+            """The device class."""
+            return None
+
+        @property
+        def unit_of_measurement(self) -> str | None:
+            """The unit of measurement for the sensor, or None."""
+            return None
+
+        def set_in_use(self, in_use: bool) -> None:
+            """Set the internal flag."""
+            self._in_use = in_use
+            self._on_change()
+
+        def __repr__(self) -> str:
+            """Get string representation of the class."""
+            return f"{self.name}: {self.state}"
+
     def __init__(
         self, spa: GeckoAsyncSpa, taskman: GeckoAsyncTaskMan, **_kwargs: str
     ) -> None:
@@ -46,6 +91,8 @@ class GeckoAsyncFacade(Observable):
         self._blowers: list[GeckoBlower] = []
         self._lights: list[GeckoLight] = []
         self._ecomode: GeckoSwitch | None = None
+        self._heatpump: GeckoHeatPump | None = None
+        self._ingrid: GeckoInGrid | None = None
 
         # Build the automation items
         self._reminders_manager = GeckoReminders(self)
@@ -63,6 +110,8 @@ class GeckoAsyncFacade(Observable):
         self._taskman.add_task(self._facade_update(), "Facade update", "FACADE")
         self._ready = asyncio.Event()
 
+        self._spa_in_use_sensor = GeckoAsyncFacade.SpaInUseSensor(self)
+
     async def disconnect(self) -> None:
         """Disconnect the facade."""
         _LOGGER.debug("Disconnect facade")
@@ -71,11 +120,12 @@ class GeckoAsyncFacade(Observable):
             device.unwatch_all()
 
     def _on_config_device_change(self, *args) -> None:
-        active_mode = False
+        in_use = False
         for device in self.all_config_change_devices:
             if device.is_on:  # type: ignore
-                active_mode = True
-        set_config_mode(active_mode)
+                in_use = True
+        set_config_mode(in_use)
+        self._spa_in_use_sensor.set_in_use(in_use)
 
     async def _facade_update(self) -> None:
         _LOGGER.debug("Facade update task started")
@@ -111,7 +161,6 @@ class GeckoAsyncFacade(Observable):
 
     def _scan_outputs(self) -> None:
         """Scan the spa outputs to decide what user options are available."""
-
         assert self._spa is not None
         _LOGGER.debug("All outputs are %s", self._spa.struct.all_outputs)
 
@@ -164,8 +213,6 @@ class GeckoAsyncFacade(Observable):
         # P1 ...    Pump 1      Out1A->P1H      1           <Doesn't work as expected>
         # Pn ...    Pump n      Out?A/B->PnH/L  n                     ""
 
-        # Fix for issue#1 https://github.com/gazoodle/geckolib/issues/1
-        # self.actual_user_devices.append("Waterfall")
         # Remove unknown device classes
         self.actual_user_devices = [
             handled_device
@@ -230,21 +277,38 @@ class GeckoAsyncFacade(Observable):
                 ),
             )
 
-        # Check if in.Grid is detected
-        if GeckoConstants.KEY_INGRID_DETECTED in self._spa.accessors:
-            in_grid_detected: GeckoBoolStructAccessor = self._spa.accessors[
-                GeckoConstants.KEY_INGRID_DETECTED
-            ]
-            if in_grid_detected.value:
-                _LOGGER.info("in.grid detected")
-                if GeckoConstants.KEY_COOLZONE_MODE in self._spa.accessors:
-                    _LOGGER.info(
-                        "CoolZoneMode is present, so we can offer these options now"
+        # Check if we have CoolZoneMode
+        if GeckoConstants.KEY_COOLZONE_MODE in self._spa.accessors:
+            # Now, do we have an inGrid unit or a modbus heatpump?
+
+            if GeckoConstants.KEY_INGRID_DETECTED in self._spa.accessors:
+                in_grid_detected: GeckoBoolStructAccessor = self._spa.accessors[
+                    GeckoConstants.KEY_INGRID_DETECTED
+                ]
+                if in_grid_detected.value:
+                    _LOGGER.info("inGrid detected")
+                    self._ingrid = GeckoInGrid(
+                        self,
+                        "Heating Management",
+                        self._spa.accessors[GeckoConstants.KEY_COOLZONE_MODE],
+                    )
+
+            if GeckoConstants.KEY_MODBUS_HEATPUMP_DETECTED in self._spa.accessors:
+                modbus_heatpump_detected: GeckoBoolStructAccessor = self._spa.accessors[
+                    GeckoConstants.KEY_MODBUS_HEATPUMP_DETECTED
+                ]
+
+                if modbus_heatpump_detected.value:
+                    _LOGGER.info("Modbus Heatpump detected")
+                    self._heatpump = GeckoHeatPump(
+                        self,
+                        "Heat Pump",
+                        self._spa.accessors[GeckoConstants.KEY_COOLZONE_MODE],
                     )
 
     @property
     def unique_id(self) -> str:
-        """A unique id for the facade"""
+        """A unique id for the facade."""
         return self._taskman.unique_id
 
     @property
@@ -254,94 +318,117 @@ class GeckoAsyncFacade(Observable):
 
     @property
     def spa(self) -> GeckoAsyncSpa:
-        """Get the spa implementation instance"""
+        """Get the spa implementation instance."""
         return self._spa
 
     @property
     def reminders_manager(self) -> GeckoReminders:
-        """Get the reminders handler"""
+        """Get the reminders handler."""
         return self._reminders_manager
 
     @property
     def water_heater(self) -> GeckoWaterHeater:
-        """Get the water heater handler"""
+        """Get the water heater handler."""
         return self._water_heater
 
     @property
     def water_care(self) -> GeckoWaterCare:
-        """Get the water care handler"""
+        """Get the water care handler."""
         return self._water_care
 
     @property
     def keypad(self) -> GeckoKeypad:
-        """Get the keypad handler"""
+        """Get the keypad handler."""
         return self._keypad
 
     @property
-    def pumps(self) -> List[GeckoPump]:
-        """Get the pumps list"""
+    def pumps(self) -> list[GeckoPump]:
+        """Get the pumps list."""
         return self._pumps
 
     @property
-    def blowers(self) -> List[GeckoBlower]:
-        """Get the blowers list"""
+    def blowers(self) -> list[GeckoBlower]:
+        """Get the blowers list."""
         return self._blowers
 
     @property
-    def lights(self) -> List[GeckoLight]:
-        """Get the lights list"""
+    def lights(self) -> list[GeckoLight]:
+        """Get the lights list."""
         return self._lights
 
     @property
-    def sensors(self) -> List[GeckoSensorBase]:
-        """Get the sensor list"""
+    def sensors(self) -> list[GeckoSensorBase]:
+        """Get the sensor list."""
         return self._sensors
 
     @property
-    def binary_sensors(self) -> List[GeckoBinarySensor]:
-        """Get the binary sensor list"""
+    def binary_sensors(self) -> list[GeckoBinarySensor]:
+        """Get the binary sensor list."""
         return self._binary_sensors
 
     @property
     def error_sensor(self) -> GeckoErrorSensor:
-        """Get the error sensor"""
+        """Get the error sensor."""
         return self._error_sensor
 
     @property
-    def eco_mode(self) -> Optional[GeckoSwitch]:
-        """Get the Eco Mode switch if available"""
+    def eco_mode(self) -> GeckoSwitch | None:
+        """Get the Eco Mode switch if available."""
         return self._ecomode
 
     @property
-    def all_user_devices(self) -> List[GeckoAutomationBase]:
-        """Get all the user controllable devices as a list"""
-        return self._pumps + self._blowers + self._lights  # type: ignore
+    def heatpump(self) -> GeckoSelect | None:
+        """Get the heat pump if available."""
+        return self._heatpump
 
     @property
-    def all_config_change_devices(self) -> List[GeckoAutomationBase]:
-        """Get all devices that can cause config change"""
-        return self._pumps + self._blowers  # type: ignore
+    def ingrid(self) -> GeckoSelect | None:
+        """Get the inGrid handler if available."""
+        return self._ingrid
 
     @property
-    def all_automation_devices(self) -> List[GeckoAutomationBase]:
-        """Get all the automation devices as a list"""
+    def spa_in_use_sensor(self) -> GeckoAsyncFacade.SpaInUseSensor:
+        """Get the spa in use sensor."""
+        return self._spa_in_use_sensor
+
+    @property
+    def all_user_devices(self) -> list[GeckoAutomationBase]:
+        """Get all the user controllable devices as a list."""
+        return self._pumps + self._blowers + self._lights
+
+    @property
+    def all_config_change_devices(self) -> list[GeckoAutomationBase]:
+        """Get all devices that can cause config change."""
+        return self._pumps + self._blowers + self._lights
+
+    @property
+    def all_automation_devices(self) -> list[GeckoAutomationBase]:
+        """Get all the automation devices as a list."""
+        extras = []
+        if self.heatpump is not None:
+            extras.append(self.heatpump)
+        if self.ingrid is not None:
+            extras.append(self.ingrid)
         return (
             self.all_user_devices
-            + self.sensors  # type: ignore
-            + self.binary_sensors  # type: ignore
-            + [self.water_heater, self.water_care, self.reminders_manager]  # type: ignore
-            + [self.keypad, self.eco_mode]  # type: ignore
+            + self.sensors
+            + self.binary_sensors
+            + [self.water_heater, self.water_care, self.reminders_manager]
+            + [self.keypad, self.eco_mode]
+            + extras
         )
 
-    def get_device(self, key) -> Optional[GeckoAutomationBase]:
-        """Get an automation device from the key, or None if not found"""
+    def get_device(self, key) -> GeckoAutomationBase | None:
+        """Get an automation device from the key, or None if not found."""
         for device in self.all_automation_devices:
             if device.key == key:
                 return device
         return None
 
     @property
-    def devices(self) -> List[str]:
-        """Get a list of automation device keys. Keys can be passed to get_device
-        to find the specific device"""
+    def devices(self) -> list[str]:
+        """
+        Get a list of automation device keys. Keys can be passed to get_device
+        to find the specific device.
+        """
         return [device.key for device in self.all_automation_devices]

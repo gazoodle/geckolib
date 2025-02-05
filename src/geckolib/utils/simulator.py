@@ -1,47 +1,45 @@
 """GeckoSimulator class."""
 
+# ruff: noqa: T201
+
 import asyncio
-import glob
-import importlib
 import logging
-import os
 import random
 import socket
-import struct
+from pathlib import Path
+from typing import Any, Self
 
+from geckolib import VERSION
 from geckolib.async_taskman import GeckoAsyncTaskMan
-from geckolib.driver.async_spastruct import GeckoAsyncStructure
-from geckolib.driver.async_udp_protocol import GeckoAsyncUdpProtocol
-from geckolib.driver.protocol.unhandled import GeckoUnhandledProtocolHandler
-
-from .. import VERSION
-from ..const import GeckoConstants
-from ..driver import (
+from geckolib.const import GeckoConstants
+from geckolib.driver import (
     GeckoAsyncPartialStatusBlockProtocolHandler,
     GeckoConfigFileProtocolHandler,
     GeckoGetChannelProtocolHandler,
     GeckoHelloProtocolHandler,
     GeckoPackCommandProtocolHandler,
     GeckoPacketProtocolHandler,
-    GeckoPartialStatusBlockProtocolHandler,
     GeckoPingProtocolHandler,
     GeckoRemindersProtocolHandler,
     GeckoReminderType,
     GeckoRFErrProtocolHandler,
     GeckoStatusBlockProtocolHandler,
-    GeckoStructure,
-    GeckoUdpSocket,
     GeckoUpdateFirmwareProtocolHandler,
     GeckoVersionProtocolHandler,
     GeckoWatercareProtocolHandler,
 )
+from geckolib.driver.accessor import GeckoStructAccessor
+from geckolib.driver.async_spastruct import GeckoAsyncStructure
+from geckolib.driver.async_udp_protocol import GeckoAsyncUdpProtocol
+from geckolib.driver.protocol.unhandled import GeckoUnhandledProtocolHandler
+
 from .shared_command import GeckoCmd
+from .simulator_action import GeckoSimulatorAction
 from .snapshot import GeckoSnapshot
 
 _LOGGER = logging.getLogger(__name__)
 
 
-USE_ASYNC_API = True
 SPA_IDENTIFIER = b"SPA01:02:03:04:05:06"
 
 
@@ -60,27 +58,26 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         GeckoAsyncTaskMan.__init__(self)
         GeckoCmd.__init__(self, self)
 
-        if USE_ASYNC_API:
-            # Async properties
-            self._con_lost = asyncio.Event()
-            self._protocol: GeckoAsyncUdpProtocol | None = None
-            self._transport: asyncio.BaseTransport | None = None
-            self._name: str = "Sim"
-            self.async_structure: GeckoAsyncStructure = GeckoAsyncStructure(
-                self._on_set_value, self._async_on_set_value
-            )
-        else:
-            # Sync properties
-            self._socket: GeckoUdpSocket = GeckoUdpSocket()
-            self._install_standard_handlers()
-            self.structure: GeckoStructure = GeckoStructure(self._on_set_value)
-
-        self.snapshot = None
+        # Async properties
+        self._con_lost = asyncio.Event()
+        self._protocol: GeckoAsyncUdpProtocol | None = None
+        self._transport: asyncio.BaseTransport | None = None
+        self._name: str = "Sim"
+        self.structure: GeckoAsyncStructure = GeckoAsyncStructure(
+            self._async_on_set_value
+        )
+        self.snapshot: GeckoSnapshot = GeckoSnapshot()
         self._reliability = 1.0
         self._do_rferr = False
         self._send_structure_change = False
         self._clients = []
         random.seed()
+
+        self._accessor_change_queue: asyncio.Queue = asyncio.Queue()
+
+        self._structure_change_queue: asyncio.Queue = asyncio.Queue()
+        self._can_report_structure_changes: asyncio.Event = asyncio.Event()
+        self._can_report_structure_changes.set()
 
         self.intro = (
             "Welcome to the Gecko simulator. Type help or ? to list commands.\n"
@@ -93,80 +90,74 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         except ImportError:
             pass
 
-    async def __aexit__(self, *args):
-        """Support 'with' statements."""
-        if USE_ASYNC_API:
-            await self.do_stop(None)
-        else:
-            self._socket.close()
-            self._socket = None
+    async def __aenter__(self) -> Self:
+        """Support async with."""
+        await GeckoAsyncTaskMan.__aenter__(self)
+        GeckoAsyncTaskMan.add_task(
+            self, self._process_accesor_changes(), "Accessor Change Handler", "SIM"
+        )
+        GeckoAsyncTaskMan.add_task(
+            self, self._notify_structure_changes(), "Notify Structure Changes", "SIM"
+        )
+        return self
 
-    def do_about(self, _arg) -> None:
+    async def __aexit__(self, *_args: object) -> None:
+        """Support 'with' statements."""
+        await self.do_stop("")
+
+    def do_about(self, _arg: str) -> None:
         """Display information about this client program and support library : about."""
-        print("")
+        print()
         print(
             "GeckoSimulator: A python program using GeckoLib library to simulate Gecko"
             " enabled devices with in.touch2 communication modules"
         )
-        print("Library version v{0}".format(VERSION))
+        print(f"Library version v{VERSION}")
 
-    async def do_start(self, args):
+    async def do_start(self, _args: str) -> None:
         """Start the configured simulator : start."""
-        if USE_ASYNC_API:
-            loop = asyncio.get_running_loop()
-            self._con_lost.clear()
-            # Create a socket that can handle broadcast
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            sock.bind(("0.0.0.0", 10022))
-            # Start the transport and protocol handler
-            self._transport, self._protocol = await loop.create_datagram_endpoint(
-                lambda: GeckoAsyncUdpProtocol(self, self._con_lost, None),
-                sock=sock,
-            )
-            self._install_standard_handlers()
-        else:
-            if self._socket.isopen:
-                print("Simulator is already started")
-                return
-            self._socket.open()
-            self._socket.enable_broadcast()
-            self._socket.bind()
+        loop = asyncio.get_running_loop()
+        self._con_lost.clear()
+        # Create a socket that can handle broadcast
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.bind(("0.0.0.0", 10022))  # noqa: S104
+        # Start the transport and protocol handler
+        self._transport, self._protocol = await loop.create_datagram_endpoint(
+            lambda: GeckoAsyncUdpProtocol(self, self._con_lost, None),
+            sock=sock,
+        )
+        self._install_standard_handlers()
+        self._send_structure_change = True
 
-    async def do_stop(self, args) -> None:
+    async def do_stop(self, _args: str) -> None:
         """Stop the simulator : stop."""
-        if USE_ASYNC_API:
-            if self._protocol:
-                self._protocol.disconnect()
-                self._protocol = None
-            if self._transport:
-                self._transport.close()
-                self._transport = None
-        else:
-            if not self._socket.isopen:
-                print("Simulator is not started")
-            self._socket.close()
-
-    def _complete_path(self, path):
-        if os.path.isdir(path):
-            return glob.glob(os.path.join(path, "*"))
-        return glob.glob(path + "*")
+        if self._protocol:
+            self._protocol.disconnect()
+            self._protocol = None
+        if self._transport:
+            self._transport.close()
+            self._transport = None
 
     def do_parse(self, args):
-        """Parse logfiles to extract snapshots to the ./snapshot directory. Will
-        overwrite identically named snapshot files if present : parse <logfile>"""
+        """
+        Parse logfiles to extract snapshots to the ./snapshot directory. Will
+        overwrite identically named snapshot files if present : parse <logfile>
+        """
         for snapshot in GeckoSnapshot.parse_log_file(args):
             snapshot.save("snapshots")
             print(f"Saved snapshot snapshots/{snapshot.filename}")
 
     def do_reliability(self, args):
-        """Set simulator reliability factor. Reliability is a measure of how likely
+        """
+        Set simulator reliability factor. Reliability is a measure of how likely
         the simulator will respond to an incoming message. Reliability of 1.0 (default)
         means the simulator will always respond, whereas 0.0 means it will never
         respond. This does not take into account messages that actually don't get
         recieved : reliability <factor> where <factor> is a float between 0.0 and
-        1.0."""
+        1.0.
+        """
         if args == "":
             print(f"Current reliability is {self._reliability}")
             return
@@ -177,143 +168,123 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self._do_rferr = args.lower() == "true"
         print(f"RFERR mode set to {self._do_rferr}")
 
-    def do_get(self, arg):
-        """Get the value of the specified spa pack structure element : get <Element>"""
-        try:
-            if USE_ASYNC_API:
-                pass
-            else:
-                print("{0} = {1}".format(arg, self.structure.accessors[arg].value))
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.exception("Exception getting '%s'", arg)
-
-    def do_set(self, arg):
-        """Set the value of the specified spa pack structure
-        element : set <Element>=<value>"""
-        self._send_structure_change = True
-        try:
-            key, val = arg.split("=")
-            if USE_ASYNC_API:
-                pass
-            else:
-                self.structure.accessors[key].value = val
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.exception("Exception handling 'set %s'", arg)
-        finally:
-            self._send_structure_change = False
-
-    def do_accessors(self, _arg):
-        """Display the data from the accessors : accessors"""
-        print("Accessors")
-        print("=========")
-        print("")
-        if USE_ASYNC_API:
-            pass
-        else:
-            for key in self.structure.accessors:
-                print("   {0}: {1}".format(key, self.structure.accessors[key].value))
-        print("")
-
     def complete_parse(self, text, line, start_idx, end_idx):
         return self._complete_path(text)
 
-    def do_load(self, args):
-        """Load a snapshot : load <snapshot>"""
+    async def do_load(self, args):
+        """
+        Load a snapshot.
+
+        Usage: load <snapshot>
+        """
         snapshots = GeckoSnapshot.parse_log_file(args)
         if len(snapshots) == 1:
-            self.set_snapshot(snapshots[0])
+            await self.set_snapshot(snapshots[0])
             return
         print(
             f"{args} contains {len(snapshots)} snapshots. Please use the"
             f" `parse` command to break it apart"
         )
 
-    def do_snapshot(self, args):
-        """Set a snapshot state"""
-        snapshot = GeckoSnapshot.parse_json(args)
-        self.set_snapshot(snapshot)
-
-    def do_name(self, args):
-        """Set the name of the spa : name <spaname>."""
-        if USE_ASYNC_API:
-            self._name = args
-        else:
-            self._hello_handler = GeckoHelloProtocolHandler.response(
-                SPA_IDENTIFIER, args, on_handled=self._on_hello
-            )
-
     def complete_load(self, text, line, start_idx, end_idx):
         return self._complete_path(text)
 
-    def set_snapshot(self, snapshot):
+    def do_save(self, args: str) -> None:
+        """
+        Save a snapshot.
+
+        Usage: save <snapshot file>
+        """
+        path = Path(args)
+        data = self.get_snapshot_data()
+        with path.open("w") as f:
+            f.write(f"{data}")
+
+    def complete_save(self, text, line, start_idx, end_idx):
+        return self._complete_path(text)
+
+    async def do_import(self, args) -> None:
+        """Import a JSON snapshot."""
+        snapshot = GeckoSnapshot.parse_json(args)
+        await self.set_snapshot(snapshot)
+
+    def do_name(self, args):
+        """Set the name of the spa : name <spaname>."""
+        self._name = args
+
+    async def set_snapshot(self, snapshot):
+        """Assign snapshot to this simulator."""
+        compatible = self.snapshot.is_compatible(snapshot)
+        if not compatible:
+            self.structure.reset()
+
         self.snapshot = snapshot
-        struct = self.async_structure if USE_ASYNC_API else self.structure
 
-        if USE_ASYNC_API:
-            self.async_structure.replace_status_block_segment(0, self.snapshot.bytes)
+        await self._set_structure_from_snapshot(
+            self.structure, self.snapshot, not compatible
+        )
+        if not compatible:
+            for accessor in self.structure.accessors.values():
+                accessor.set_read_write("ALL")
+                accessor.watch(self._on_accessor_changed)
+
+    async def _set_structure_from_snapshot(
+        self, struct: GeckoAsyncStructure, snapshot: GeckoSnapshot, do_rebuild: bool
+    ) -> None:
+        struct.replace_status_block_segment(0, snapshot.bytes)
+
+        if do_rebuild:
+            # Must rebuild stuff
+            try:
+                # Attempt to get config and log classes
+                await struct.load_pack_class(snapshot.packtype.lower())
+                await struct.load_config_module(snapshot.config_version)
+                await struct.load_log_module(snapshot.log_version)
+                struct.build_accessors()
+
+            except:  # noqa
+                _LOGGER.exception("Exception during snapshot load")
+
+    async def do_diff(self, arg: str) -> None:
+        """
+        Perform a diff between spa data structures.
+
+        You can either diff two separate files,
+        or a single file and the current structure.
+
+        usage: diff <file1> <file2>
+        """
+        file1 = arg
+        file2 = ""
+        rest = None
+        if " " in arg:
+            file1, file2, *rest = arg.split(" ")
+        if not file1:
+            print("Need at least one file.")
+
+        struct = GeckoAsyncStructure(None)
+        snapshot = GeckoSnapshot.parse_log_file(file1)[0]
+        await self._set_structure_from_snapshot(struct, snapshot, True)
+
+        differences = self.structure.get_differences(struct)
+        if differences:
+            print("Differences are:")
+            print("\n".join(differences))
         else:
-            self.structure.replace_status_block_segment(0, self.snapshot.bytes)
+            print("Identical snapshot")
+        print(self.prompt, end="", flush=True)
 
-        try:
-            # Attempt to get config and log classes
-            plateform_key = self.snapshot.packtype.lower()
+    def complete_diff(
+        self, text: str, _line: str, _start_idx: int, _end_idx: int
+    ) -> list[str]:
+        """Complete the do_diff command."""
+        return self._complete_path(text)
 
-            pack_module_name = f"geckolib.driver.packs.{plateform_key}"
-            try:
-                GeckoPack = importlib.import_module(pack_module_name).GeckoPack
-                self.pack_class = GeckoPack(struct)
-                self.pack_type = self.pack_class.plateform_type
-            except ModuleNotFoundError:
-                raise Exception(
-                    GeckoConstants.EXCEPTION_MESSAGE_NO_SPA_PACK.format(
-                        self.snapshot.packtype
-                    )
-                )
-
-            config_module_name = f"geckolib.driver.packs.{plateform_key}-cfg-{self.snapshot.config_version}"
-            try:
-                GeckoConfigStruct = importlib.import_module(
-                    config_module_name
-                ).GeckoConfigStruct
-                self.config_class = GeckoConfigStruct(struct)
-            except ModuleNotFoundError:
-                raise Exception(
-                    f"Cannot find GeckoConfigStruct module for {self.snapshot.packtype} v{self.snapshot.config_version}"
-                )
-
-            log_module_name = (
-                f"geckolib.driver.packs.{plateform_key}-log-{self.snapshot.log_version}"
-            )
-            try:
-                GeckoLogStruct = importlib.import_module(log_module_name).GeckoLogStruct
-                self.log_class = GeckoLogStruct(struct)
-            except ModuleNotFoundError:
-                raise Exception(
-                    f"Cannot find GeckoLogStruct module for {self.snapshot.packtype} v{self.snapshot.log_version}"
-                )
-
-            if USE_ASYNC_API:
-                self.async_structure.build_accessors(self.config_class, self.log_class)
-                for accessor in self.async_structure.accessors.values():
-                    accessor.set_read_write("ALL")
-
-            else:
-                self.structure.build_accessors(self.config_class, self.log_class)
-                for accessor in self.structure.accessors.values():
-                    accessor.set_read_write("ALL")
-
-        except:  # noqa
-            _LOGGER.exception("Exception during snapshot load")
-
-    def _should_ignore(self, handler, sender, respect_rferr=True):
+    def _should_ignore(self, handler, sender, respect_rferr=True) -> bool:
         if respect_rferr and self._do_rferr:
-            if USE_ASYNC_API:
-                pass
-            else:
-                self._socket.queue_send(
-                    GeckoRFErrProtocolHandler.response(parms=sender),
-                    sender,
-                )
+            self._protocol.queue_send(
+                GeckoRFErrProtocolHandler.response(parms=sender), sender
+            )
             # Always ignore responses because we've already replied with RFERR
             return True
 
@@ -331,139 +302,103 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         """
         self.do_name("Udp Test Spa")
 
-        if USE_ASYNC_API:
-            assert self._protocol is not None  # noqa: S101
-            # Hello handler
-            self.add_task(
-                GeckoHelloProtocolHandler.response(
-                    SPA_IDENTIFIER,
-                    self._name,
-                    async_on_handled=self._async_on_hello,
-                ).consume(self._protocol),
-                "Hello handler",
-                "SIM",
-            )
-            # Helper to unwrap PACK packets
-            self.add_task(
-                GeckoPacketProtocolHandler(
-                    async_on_handled=self._async_on_packet
-                ).consume(self._protocol),
-                "Packet handler",
-                "SIM",
-            )
-            # Unhandled packets get thrown
-            self.add_task(
-                GeckoUnhandledProtocolHandler().consume(self._protocol),
-                "Unhandled packet",
-                "SIM",
-            )
-            # Ping response handler
-            self.add_task(
-                GeckoPingProtocolHandler(async_on_handled=self._async_on_ping).consume(
-                    self._protocol
-                ),
-                "Ping handler",
-                "SIM",
-            )
-            # Version handler
-            self.add_task(
-                GeckoVersionProtocolHandler(
-                    async_on_handled=self._async_on_version
-                ).consume(self._protocol),
-                "Version handler",
-                "SIM",
-            )
-            # Channel handler
-            self.add_task(
-                GeckoGetChannelProtocolHandler(
-                    async_on_handled=self._async_on_get_channel
-                ).consume(self._protocol),
-                "Get channel",
-                "SIM",
-            )
-            # Config file
-            self.add_task(
-                GeckoConfigFileProtocolHandler(
-                    async_on_handled=self._async_on_config_file
-                ).consume(self._protocol),
-                "Config file",
-                "SIM",
-            )
-            # Status block
-            self.add_task(
-                GeckoStatusBlockProtocolHandler(
-                    async_on_handled=self._async_on_status_block
-                ).consume(self._protocol),
-                "Status block",
-                "SIM",
-            )
-            # Watercase
-            self.add_task(
-                GeckoWatercareProtocolHandler(
-                    async_on_handled=self._async_on_watercare
-                ).consume(self._protocol),
-                "Watercase",
-                "SIM",
-            )
-            # Reminders
-            self.add_task(
-                GeckoRemindersProtocolHandler(
-                    async_on_handled=self._async_on_get_reminders
-                ).consume(self._protocol),
-                "Reminders",
-                "SIM",
-            )
-            # Update firmware fake
-            self.add_task(
-                GeckoUpdateFirmwareProtocolHandler(
-                    async_on_handled=self._async_on_update_firmware
-                ).consume(self._protocol),
-                "Update Firmware",
-                "SIM",
-            )
-            # Pack command
-            self.add_task(
-                GeckoPackCommandProtocolHandler(
-                    async_on_handled=self._async_on_pack_command
-                ).consume(self._protocol),
-                "Pack command",
-                "SIM",
-            )
-
-        else:
-            self._socket.add_receive_handler(self._hello_handler)
-            self._socket.add_receive_handler(
-                GeckoPacketProtocolHandler(socket=self._socket)
-            )
-            (
-                self._socket.add_receive_handler(
-                    GeckoPingProtocolHandler(on_handled=self._on_ping)
-                ),
-            )
-            self._socket.add_receive_handler(
-                GeckoVersionProtocolHandler(on_handled=self._on_version)
-            )
-            self._socket.add_receive_handler(
-                GeckoGetChannelProtocolHandler(on_handled=self._on_get_channel)
-            )
-            self._socket.add_receive_handler(
-                GeckoConfigFileProtocolHandler(on_handled=self._on_config_file)
-            )
-            self._socket.add_receive_handler(
-                GeckoStatusBlockProtocolHandler(on_handled=self._on_status_block)
-            )
-            self._socket.add_receive_handler(
-                GeckoWatercareProtocolHandler(on_handled=self._on_watercare)
-            )
-            self._socket.add_receive_handler(
-                GeckoUpdateFirmwareProtocolHandler(on_handled=self._on_update_firmware)
-            )
-            self._socket.add_receive_handler(
-                GeckoRemindersProtocolHandler(on_handled=self._on_get_reminders)
-            )
-            self._socket.add_receive_handler(
-                GeckoPackCommandProtocolHandler(on_handled=self._on_pack_command)
-            )
+        assert self._protocol is not None  # noqa: S101
+        # Hello handler
+        self.add_task(
+            GeckoHelloProtocolHandler.response(
+                SPA_IDENTIFIER,
+                self._name,
+                async_on_handled=self._async_on_hello,
+            ).consume(self._protocol),
+            "Hello handler",
+            "SIM",
+        )
+        # Helper to unwrap PACK packets
+        self.add_task(
+            GeckoPacketProtocolHandler(async_on_handled=self._async_on_packet).consume(
+                self._protocol
+            ),
+            "Packet handler",
+            "SIM",
+        )
+        # Unhandled packets get thrown
+        self.add_task(
+            GeckoUnhandledProtocolHandler().consume(self._protocol),
+            "Unhandled packet",
+            "SIM",
+        )
+        # Ping response handler
+        self.add_task(
+            GeckoPingProtocolHandler(async_on_handled=self._async_on_ping).consume(
+                self._protocol
+            ),
+            "Ping handler",
+            "SIM",
+        )
+        # Version handler
+        self.add_task(
+            GeckoVersionProtocolHandler(
+                async_on_handled=self._async_on_version
+            ).consume(self._protocol),
+            "Version handler",
+            "SIM",
+        )
+        # Channel handler
+        self.add_task(
+            GeckoGetChannelProtocolHandler(
+                async_on_handled=self._async_on_get_channel
+            ).consume(self._protocol),
+            "Get channel",
+            "SIM",
+        )
+        # Config file
+        self.add_task(
+            GeckoConfigFileProtocolHandler(
+                async_on_handled=self._async_on_config_file
+            ).consume(self._protocol),
+            "Config file",
+            "SIM",
+        )
+        # Status block
+        self.add_task(
+            GeckoStatusBlockProtocolHandler(
+                async_on_handled=self._async_on_status_block
+            ).consume(self._protocol),
+            "Status block",
+            "SIM",
+        )
+        # Watercase
+        self.add_task(
+            GeckoWatercareProtocolHandler(
+                async_on_handled=self._async_on_watercare
+            ).consume(self._protocol),
+            "Watercase",
+            "SIM",
+        )
+        # Reminders
+        self.add_task(
+            GeckoRemindersProtocolHandler(
+                async_on_handled=self._async_on_get_reminders
+            ).consume(self._protocol),
+            "Reminders",
+            "SIM",
+        )
+        # Update firmware fake
+        self.add_task(
+            GeckoUpdateFirmwareProtocolHandler(
+                async_on_handled=self._async_on_update_firmware
+            ).consume(self._protocol),
+            "Update Firmware",
+            "SIM",
+        )
+        # Pack command
+        self.add_task(
+            GeckoPackCommandProtocolHandler(
+                async_on_handled=self._async_on_pack_command
+            ).consume(self._protocol),
+            "Pack command",
+            "SIM",
+        )
 
     async def _async_on_hello(
         self, handler: GeckoHelloProtocolHandler, sender: tuple
@@ -562,7 +497,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         ):
             length = min(
                 self._STATUS_BLOCK_SEGMENT_SIZE,
-                len(self.async_structure.status_block) - start,
+                len(self.structure.status_block) - start,
             )
             next = (idx + 1) % ((handler.length // self._STATUS_BLOCK_SEGMENT_SIZE) + 1)
             if self._should_ignore(handler, sender, False):
@@ -572,7 +507,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 GeckoStatusBlockProtocolHandler.response(
                     idx,
                     next,
-                    self.async_structure.status_block[start : start + length],
+                    self.structure.status_block[start : start + length],
                     parms=sender,
                 ),
                 sender,
@@ -633,261 +568,147 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     ) -> None:
         if self._should_ignore(handler, sender):
             return
+        if handler.is_key_press:
+            await self._async_handle_pack_key_press(handler.keycode)
+        elif handler.is_set_value:
+            await self._async_handle_pack_set_value(
+                handler.position, handler.length, handler.new_data
+            )
+        assert self._protocol is not None  # noqa: S101
         self._protocol.queue_send(
             GeckoPackCommandProtocolHandler.response(parms=sender), sender
         )
-        if handler.is_key_press:
-            self._handle_key_press(handler.keycode)
-        elif handler.is_set_value:
-            _LOGGER.debug(
-                f"Pack command set a value ({handler.position} = {handler.new_data})"
-            )
-            print(f"Set a value ({handler.position} = {handler.new_data})")
 
-    async def _async_handle_key_press(self, keycode) -> None:
+    async def _async_handle_pack_key_press(self, keycode: int) -> None:
         """Handle a key press command."""
-        _LOGGER.debug(f"Pack command press key {keycode}")
-        print(f"Key press {keycode}")
-        if keycode == GeckoConstants.KEYPAD_PUMP_1:
-            p1 = self.async_structure.accessors["P1"]
-            udp1 = self.async_structure.accessors["UdP1"]
+        _LOGGER.debug("Pack command press key %d", keycode)
 
-            if p1.value == "OFF":
-                udp1.value = "HI"
-                p1.value = "HIGH"
-            else:
-                udp1.value = "OFF"
-                p1.value = "OFF"
+        action = self._get_action()
 
-    async def _async_on_set_value(self, pos, length, newvalue):
-        _LOGGER.debug(f"Simulator: Async Set value @{pos} len {length} to {newvalue}")
-        print(f"Simulator: Set value @{pos} len {length} to {newvalue}")
-        change = None
-        if length == 1:
-            change = (pos, struct.pack(">B", newvalue))
-        elif length == 2:
-            change = (pos, struct.pack(">H", newvalue))
-        else:
-            print("**** UNHANDLED SET SIZE ****")
-            return
+        # Iterate through all attributes in GeckoConstants
+        for name, val in vars(GeckoConstants).items():
+            # Check if the attribute is an integer, matches the given value, and starts with 'KEYPAD_'
+            if isinstance(val, int) and val == keycode and name.startswith("KEYPAD_"):
+                # Now find a function in the action class
+                func = getattr(action, f"on_{name}", None)
+                if func is not None:
+                    func()
+                    await self._put_action(action)
+                    return
 
-        self.async_structure.replace_status_block_segment(change[0], change[1])
-        assert self._protocol is not None
+        _LOGGER.warning("Simulator didn't handle key pad command for %d", keycode)
 
+    async def _async_handle_pack_set_value(
+        self, pos: int, _length: int, data: bytes
+    ) -> None:
+        """Handle set value."""
+        self.structure.replace_status_block_segment(pos, data)
         if self._send_structure_change:
-            for client in self._clients:
-                self._protocol.queue_send(
-                    GeckoAsyncPartialStatusBlockProtocolHandler.report_changes(
-                        self._socket, [change], parms=client
-                    ),
-                    client,
-                )
+            await self._structure_change_queue.put(pos)
 
-    async def _process_value_updates(self) -> None:
+    async def _async_on_set_value(self, pos, length, newvalue) -> None:
+        """Call when the structure notifies a change."""
+        change = (pos, GeckoStructAccessor.pack_data(length, newvalue))
+        await self._async_handle_pack_set_value(change[0], length, change[1])
+
+    async def _notify_structure_changes(self) -> None:
         try:
             while True:
-                pass
+                await self._can_report_structure_changes.wait()
+                changes: list = []
+                changes.append(await self._structure_change_queue.get())
+                while self._structure_change_queue.qsize():
+                    changes.append(self._structure_change_queue.get_nowait())
+                # The change report system only handles two byte changes, so
+                # we have to suck those from the actual status block.
+                changes = [
+                    (
+                        change,
+                        self.structure.status_block[change : change + 2],
+                    )
+                    for change in changes
+                ]
+                assert self._protocol is not None
+                for client in self._clients:
+                    self._protocol.queue_send(
+                        GeckoAsyncPartialStatusBlockProtocolHandler.report_changes(
+                            self._protocol, changes, parms=client
+                        ),
+                        client,
+                    )
 
         except asyncio.CancelledError:
-            _LOGGER.debug("AsyncSpaStruct value update loop cancelled")
+            _LOGGER.debug("Simulator notify structure change loop cancelled")
             raise
 
         except:
-            _LOGGER.exception("AsyncSpaStruct value update loop exception")
+            _LOGGER.exception("Simulator notify structure change loop exception")
             raise
 
         finally:
-            _LOGGER.debug("AsyncSpaStruct value update loop finished")
+            _LOGGER.debug("Simulator notify structure change loop finished")
 
-    ################################################################################################################
-    #
-    #
-    #           SYNC API DUE TO GET REMOVED
-    #
-    #
-    ################################################################################################################
+    def _on_accessor_changed(
+        self, accessor: GeckoStructAccessor, old_value: Any, new_value: Any
+    ) -> None:
+        print(f"accessor {accessor} changed from {old_value} to {new_value}")
+        self._accessor_change_queue.put_nowait((accessor, old_value, new_value))
+        if self._send_structure_change:
+            self._structure_change_queue.put_nowait(accessor.pos)
 
-    def _on_hello(self, handler: GeckoHelloProtocolHandler, sender):
-        if handler.was_broadcast_discovery:
-            if self._should_ignore(handler, sender, False):
-                return
-            self._socket.queue_send(self._hello_handler, sender)
-        elif handler.client_identifier is not None:
-            # We're not fussy, we'll chat to anyone!
-            pass
+    async def _process_accesor_changes(self) -> None:
+        accessor: GeckoStructAccessor
+        old_value: Any
+        new_value: Any
+        try:
+            while True:
+                accessor, old_value, new_value = await self._accessor_change_queue.get()
 
-    def _on_ping(self, handler: GeckoPingProtocolHandler, sender):
-        if self._should_ignore(handler, sender):
-            return
-        self._socket.queue_send(
-            GeckoPingProtocolHandler.response(parms=sender),
-            sender,
+                action = self._get_action()
+                func = getattr(action, f"on_{accessor.tag}", None)
+                if func is not None:
+                    func()
+                    await self._put_action(action)
+                else:
+                    _LOGGER.debug(
+                        "%s changed from %s to %s", accessor, old_value, new_value
+                    )
+                self._accessor_change_queue.task_done()
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("Simulator accessort change loop cancelled")
+            raise
+
+        except:
+            _LOGGER.exception("Simulator value update loop exception")
+            raise
+
+        finally:
+            _LOGGER.debug("Simulator value update loop finished")
+
+    def _get_action(self) -> GeckoSimulatorAction:
+        action = GeckoSimulatorAction()
+        for name in GeckoSimulatorAction.__annotations__:
+            setattr(action, name, self.structure.accessors[name].value)
+        return action
+
+    async def _put_action(self, action: GeckoSimulatorAction) -> None:
+        # Write all the properties back, only the changed
+        # ones will be sent.
+        self._can_report_structure_changes.clear()
+        for name, val in vars(action).items():
+            await self.structure.accessors[name].async_set_value(val)
+        self._can_report_structure_changes.set()
+
+    def get_snapshot_data(self) -> dict:
+        """Get snapshot data that the simulator can supply."""
+        data = self.structure.get_snapshot_data()
+        assert self.snapshot is not None
+        data.update(
+            {
+                "intouch version EN": self.snapshot.intouch_EN_str,
+                "intouch version CO": self.snapshot.intouch_CO_str,
+                "Config version": self.snapshot.config_version,
+            }
         )
-        if sender not in self._clients:
-            self._clients.append(sender)
-
-    def _on_version(self, handler: GeckoVersionProtocolHandler, sender):
-        if self._should_ignore(handler, sender):
-            return
-        self._socket.queue_send(
-            GeckoVersionProtocolHandler.response(
-                self.snapshot.intouch_EN,
-                self.snapshot.intouch_CO,
-                parms=sender,
-            ),
-            sender,
-        )
-
-    def _on_get_channel(self, handler: GeckoGetChannelProtocolHandler, sender):
-        if self._should_ignore(handler, sender):
-            return
-        self._socket.queue_send(
-            GeckoGetChannelProtocolHandler.response(10, 33, parms=sender),
-            sender,
-        )
-
-    def _on_config_file(self, handler: GeckoConfigFileProtocolHandler, sender):
-        if self._should_ignore(handler, sender):
-            return
-        self._socket.queue_send(
-            GeckoConfigFileProtocolHandler.response(
-                self.snapshot.packtype,
-                self.snapshot.config_version,
-                self.snapshot.log_version,
-                parms=sender,
-            ),
-            sender,
-        )
-
-    def _on_status_block(self, handler: GeckoStatusBlockProtocolHandler, sender):
-        if self._should_ignore(handler, sender):
-            return
-        for idx, start in enumerate(
-            range(
-                handler.start,
-                handler.start + handler.length,
-                self._STATUS_BLOCK_SEGMENT_SIZE,
-            )
-        ):
-            length = min(
-                self._STATUS_BLOCK_SEGMENT_SIZE,
-                len(self.structure.status_block) - start,
-            )
-            next = (idx + 1) % ((handler.length // self._STATUS_BLOCK_SEGMENT_SIZE) + 1)
-            if self._should_ignore(handler, sender, False):
-                continue
-            self._socket.queue_send(
-                GeckoStatusBlockProtocolHandler.response(
-                    idx,
-                    next,
-                    self.structure.status_block[start : start + length],
-                    parms=sender,
-                ),
-                sender,
-            )
-
-    def _on_watercare(self, handler: GeckoWatercareProtocolHandler, sender):
-        if self._should_ignore(handler, sender):
-            return
-        if handler.schedule:
-            self._socket.queue_send(
-                GeckoWatercareProtocolHandler.giveschedule(parms=sender), sender
-            )
-        else:
-            self._socket.queue_send(
-                GeckoWatercareProtocolHandler.response(1, parms=sender), sender
-            )
-
-    def _on_update_firmware(self, handler: GeckoUpdateFirmwareProtocolHandler, sender):
-        if self._should_ignore(handler, sender):
-            return
-        self._socket.queue_send(
-            GeckoUpdateFirmwareProtocolHandler.response(parms=sender), sender
-        )
-
-    def _on_get_reminders(self, handler: GeckoRemindersProtocolHandler, sender):
-        if self._should_ignore(handler, sender):
-            return
-        self._socket.queue_send(
-            GeckoRemindersProtocolHandler.response(
-                [
-                    (GeckoReminderType.RINSE_FILTER, -13),
-                    (GeckoReminderType.CLEAN_FILTER, 0),
-                    (GeckoReminderType.CHANGE_WATER, 47),
-                    (GeckoReminderType.CHECK_SPA, 687),
-                    (GeckoReminderType.INVALID, -13),
-                    (GeckoReminderType.INVALID, -13),
-                    (GeckoReminderType.INVALID, 0),
-                    (GeckoReminderType.INVALID, 0),
-                    (GeckoReminderType.INVALID, 0),
-                    (GeckoReminderType.INVALID, 0),
-                ],
-                parms=sender,
-            ),
-            sender,
-        )
-
-    def _handle_key_press(self, keycode) -> None:
-        _LOGGER.debug(f"Pack command press key {keycode}")
-        print(f"Key press {keycode}")
-        if keycode == GeckoConstants.KEYPAD_PUMP_1:
-            p1 = self.async_structure.accessors["P1"]
-            udp1 = self.async_structure.accessors["UdP1"]
-
-            if p1.value == "OFF":
-                udp1.value = "HI"
-                p1.value = "HIGH"
-            else:
-                udp1.value = "OFF"
-                p1.value = "OFF"
-
-    def _on_pack_command(self, handler: GeckoPackCommandProtocolHandler, sender):
-        if self._should_ignore(handler, sender):
-            return
-        self._socket.queue_send(
-            GeckoPackCommandProtocolHandler.response(parms=sender), sender
-        )
-
-        # if handler.is_key_press:
-        #    self._handle_key_press(handler.keycode)
-        # elif handler.is_set_value:
-        #    _LOGGER.debug(
-        #        f"Pack command set a value ({handler.position} = {handler.new_data})"
-        #    print(f"Set a value ({handler.position} = {handler.new_data})")
-        ##    )
-
-    def _on_set_value(self, pos, length, newvalue):
-        if USE_ASYNC_API:
-            _LOGGER.debug(
-                "Hmm, we ought to queue a set request rather than another task"
-            )
-            self._taskman.add_task(
-                self._async_on_set_value(pos, length, newvalue),
-                "Async Set Value",
-                "SIM",
-            )
-        else:
-            _LOGGER.debug(f"Simulator: Set value @{pos} len {length} to {newvalue}")
-            print(f"Simulator: Set value @{pos} len {length} to {newvalue}")
-            change = None
-            if length == 1:
-                change = (pos, struct.pack(">B", newvalue))
-            elif length == 2:
-                change = (pos, struct.pack(">H", newvalue))
-            else:
-                print("**** UNHANDLED SET SIZE ****")
-                return
-
-            self.structure.replace_status_block_segment(change[0], change[1])
-
-            if self._send_structure_change:
-                for client in self._clients:
-                    if USE_ASYNC_API:
-                        pass
-                    else:
-                        self._socket.queue_send(
-                            GeckoPartialStatusBlockProtocolHandler.report_changes(
-                                self._socket, [change], parms=client
-                            ),
-                            client,
-                        )
+        return data

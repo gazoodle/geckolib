@@ -1,17 +1,23 @@
-"""Snapshot helper"""
+"""Snapshot helper."""
+
+from __future__ import annotations
 
 import ast
 import logging
-import re
 import os
+import re
 from datetime import datetime
-from ..driver import GeckoStatusBlockProtocolHandler
+
+from geckolib.driver import GeckoStatusBlockProtocolHandler
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoSnapshot:
+    """Snapshot helper class."""
+
     def __init__(self):
+        """Initialize the snapshot."""
         self._lines = []
         self._name = None
         self._timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -169,8 +175,18 @@ class GeckoSnapshot:
         return tuple(int(i) for i in self._intouch_EN)
 
     @property
+    def intouch_EN_str(self) -> str:
+        """Get the EN version as a string."""
+        return f"{self._intouch_EN[0]} v{self._intouch_EN[1]}.{self._intouch_EN[2]}"
+
+    @property
     def intouch_CO(self):
         return tuple(int(i) for i in self._intouch_CO)
+
+    @property
+    def intouch_CO_str(self) -> str:
+        """Get the CO version as a string."""
+        return f"{self._intouch_CO[0]} v{self._intouch_CO[1]}.{self._intouch_CO[2]}"
 
     @property
     def config_version(self):
@@ -185,7 +201,7 @@ class GeckoSnapshot:
         return self._bytes
 
     def save(self, path):
-        """Save this snapshot into the path specified"""
+        """Save this snapshot into the path specified."""
         with open(os.path.join(path, self.filename), "w") as f:
             f.writelines(self._lines)
 
@@ -201,8 +217,11 @@ class GeckoSnapshot:
 
         with open(file) as f:
             for line in f:
-                if "Snapshot" in line:
+                if line.startswith("{"):
+                    snapshot = GeckoSnapshot.parse_json(line)
+                elif "Snapshot" in line:
                     snapshot = GeckoSnapshot()
+
                 if snapshot:
                     if "INFO" in line:
                         snapshot.parse(line)
@@ -239,9 +258,20 @@ class GeckoSnapshot:
         snapshot.parse(f"intouch version CO {snap['intouch version CO']}")
         snapshot._config_version = snap["Config version"]
         snapshot._log_version = snap["Log version"]
-        print(snap["Status Block"])
         snapshot._bytes = bytes(
             bytearray([int(b.strip()[2:], 16) for b in snap["Status Block"]])
         )
-
         return snapshot
+
+    def is_compatible(self, other: GeckoSnapshot) -> bool:
+        """Determine if this snapshot is compatible with the other."""
+        if self.spapack != other.spapack:
+            return False
+        if self.packtype != other.packtype:
+            return False
+        if self.config_version != other.config_version:
+            return False
+        if self.log_version != other.log_version:
+            return False
+
+        return True

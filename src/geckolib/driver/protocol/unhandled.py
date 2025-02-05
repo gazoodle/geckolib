@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from geckolib.driver.async_udp_protocol import GeckoAsyncUdpProtocol
-from geckolib.driver.udp_socket import GeckoUdpProtocolHandler
+from geckolib.driver.udp_protocol_handler import GeckoUdpProtocolHandler
 
 _LOGGER = logging.getLogger(__name__)
 

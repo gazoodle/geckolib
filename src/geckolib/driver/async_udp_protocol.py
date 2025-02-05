@@ -2,9 +2,8 @@
 
 import asyncio
 import logging
-from operator import contains
-from typing import Callable, Optional, TypeVar
-#from warnings import deprecated
+from collections.abc import Callable
+from typing import TypeVar
 
 from ..async_taskman import GeckoAsyncTaskMan
 from ..config import GeckoConfig, config_sleep
@@ -28,7 +27,6 @@ class DbgLock(asyncio.Lock):
         _LOGGER.debug(self)
         await super().__aenter__()
         _LOGGER.debug("LOCK: acquired for task `%s`", t.get_name())
-        return None
 
     async def __aexit__(
         self,
@@ -67,14 +65,14 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self._taskman = taskman
         # self._lock = DbgLock()  # asyncio.Lock()
         self._lock = asyncio.Lock()
-        _LOGGER.debug("AsyncUdpProtocol started")
+        _LOGGER.debug("AsyncUdpProtocol started.")
 
     @property
     def Lock(self):
         return self._lock
 
     def connection_made(self, transport) -> None:
-        _LOGGER.debug("GeckoAsyncUdpProtocol: connection made to %s", transport)
+        _LOGGER.debug("GeckoAsyncUdpProtocol: connection made to %s.", transport)
         self.transport = transport
         self._on_connection_lost.clear()
 
@@ -138,11 +136,10 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
                 self._sequence_counter_command = 191
             self._sequence_counter_command += 1
             return self._sequence_counter_command
-        else:
-            if self._sequence_counter_protocol == 191:
-                self._sequence_counter_protocol = 0
-            self._sequence_counter_protocol += 1
-            return self._sequence_counter_protocol
+        if self._sequence_counter_protocol == 191:
+            self._sequence_counter_protocol = 0
+        self._sequence_counter_protocol += 1
+        return self._sequence_counter_protocol
 
     def datagram_received(self, data, addr) -> None:
         _LOGGER.debug("Datagram received: %s from %s", data, addr)

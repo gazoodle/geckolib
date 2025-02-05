@@ -1,11 +1,11 @@
 """GeckoConfigStruct - A class to manage the ConfigStruct for 'InXM v1'."""  # noqa: N999
 
 from . import (
+    GeckoAsyncStructure,
     GeckoBoolStructAccessor,
     GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
     GeckoStructAccessor,
-    GeckoStructureTypeBase,
     GeckoTempStructAccessor,
     GeckoTimeStructAccessor,
 )
@@ -14,7 +14,7 @@ from . import (
 class GeckoConfigStruct:
     """Config Struct Class."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the config struct class."""
         self.struct = struct_
 
@@ -47,11 +47,11 @@ class GeckoConfigStruct:
         """The structure accessors."""
         return {
             "ConfigNumber": GeckoByteStructAccessor(
-                self.struct, "ConfigNumber", 1, "ALL"
+                self.struct, "ConfigStructure/ConfigNumber", 1, "ALL"
             ),
             "Out1A": GeckoEnumStructAccessor(
                 self.struct,
-                "Out1A",
+                "ConfigStructure/HCOutputConfig/Out1A",
                 200,
                 None,
                 [
@@ -87,7 +87,7 @@ class GeckoConfigStruct:
             ),
             "Out1B": GeckoEnumStructAccessor(
                 self.struct,
-                "Out1B",
+                "ConfigStructure/HCOutputConfig/Out1B",
                 201,
                 None,
                 [
@@ -123,7 +123,7 @@ class GeckoConfigStruct:
             ),
             "Out2A": GeckoEnumStructAccessor(
                 self.struct,
-                "Out2A",
+                "ConfigStructure/HCOutputConfig/Out2A",
                 202,
                 None,
                 [
@@ -159,7 +159,7 @@ class GeckoConfigStruct:
             ),
             "Out2B": GeckoEnumStructAccessor(
                 self.struct,
-                "Out2B",
+                "ConfigStructure/HCOutputConfig/Out2B",
                 203,
                 None,
                 [
@@ -195,7 +195,7 @@ class GeckoConfigStruct:
             ),
             "Out3A": GeckoEnumStructAccessor(
                 self.struct,
-                "Out3A",
+                "ConfigStructure/HCOutputConfig/Out3A",
                 204,
                 None,
                 [
@@ -231,7 +231,7 @@ class GeckoConfigStruct:
             ),
             "OutHeater": GeckoEnumStructAccessor(
                 self.struct,
-                "OutHeater",
+                "ConfigStructure/HCOutputConfig/OutHeater",
                 209,
                 None,
                 ["NA", "", "", "", "", "", "", "", "", "", "", "", "", "", "HTR"],
@@ -241,7 +241,7 @@ class GeckoConfigStruct:
             ),
             "PumpActivationOrder": GeckoEnumStructAccessor(
                 self.struct,
-                "PumpActivationOrder",
+                "ConfigStructure/HCOutputConfig/PumpActivationOrder",
                 18,
                 2,
                 ["Ascendant", "Descendant"],
@@ -251,7 +251,7 @@ class GeckoConfigStruct:
             ),
             "Out4A": GeckoEnumStructAccessor(
                 self.struct,
-                "Out4A",
+                "ConfigStructure/LCOutputConfig/Out4A",
                 205,
                 None,
                 [
@@ -287,7 +287,7 @@ class GeckoConfigStruct:
             ),
             "Out5A": GeckoEnumStructAccessor(
                 self.struct,
-                "Out5A",
+                "ConfigStructure/LCOutputConfig/Out5A",
                 206,
                 None,
                 [
@@ -323,7 +323,7 @@ class GeckoConfigStruct:
             ),
             "Out6A": GeckoEnumStructAccessor(
                 self.struct,
-                "Out6A",
+                "ConfigStructure/LCOutputConfig/Out6A",
                 207,
                 None,
                 [
@@ -359,7 +359,7 @@ class GeckoConfigStruct:
             ),
             "Out7A": GeckoEnumStructAccessor(
                 self.struct,
-                "Out7A",
+                "ConfigStructure/LCOutputConfig/Out7A",
                 208,
                 None,
                 [
@@ -395,7 +395,7 @@ class GeckoConfigStruct:
             ),
             "OutLi": GeckoEnumStructAccessor(
                 self.struct,
-                "OutLi",
+                "ConfigStructure/LVOutputConfig/OutLi",
                 210,
                 None,
                 ["NA", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "LI"],
@@ -403,10 +403,12 @@ class GeckoConfigStruct:
                 None,
                 "ALL",
             ),
-            "LightInts": GeckoByteStructAccessor(self.struct, "LightInts", 87, "ALL"),
+            "LightInts": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/LVOutputConfig/LightInts", 87, "ALL"
+            ),
             "LightActivationOrder": GeckoEnumStructAccessor(
                 self.struct,
-                "LightActivationOrder",
+                "ConfigStructure/LVOutputConfig/LightActivationOrder",
                 18,
                 0,
                 ["Ascendant", "Descendant"],
@@ -415,17 +417,17 @@ class GeckoConfigStruct:
                 "ALL",
             ),
             "LightTimeOut": GeckoByteStructAccessor(
-                self.struct, "LightTimeOut", 19, "ALL"
+                self.struct, "ConfigStructure/TimeOut/LightTimeOut", 19, "ALL"
             ),
             "FiberTimeOut": GeckoByteStructAccessor(
-                self.struct, "FiberTimeOut", 20, "ALL"
+                self.struct, "ConfigStructure/TimeOut/FiberTimeOut", 20, "ALL"
             ),
             "PumpTimeOut": GeckoByteStructAccessor(
-                self.struct, "PumpTimeOut", 21, "ALL"
+                self.struct, "ConfigStructure/TimeOut/PumpTimeOut", 21, "ALL"
             ),
             "LightResetTimeOut": GeckoEnumStructAccessor(
                 self.struct,
-                "LightResetTimeOut",
+                "ConfigStructure/TimeOut/LightResetTimeOut",
                 18,
                 1,
                 ["OnStart", "OnChange"],
@@ -435,7 +437,7 @@ class GeckoConfigStruct:
             ),
             "PumpResetTimeOut": GeckoEnumStructAccessor(
                 self.struct,
-                "PumpResetTimeOut",
+                "ConfigStructure/TimeOut/PumpResetTimeOut",
                 18,
                 3,
                 ["OnStart", "OnChange"],
@@ -444,14 +446,14 @@ class GeckoConfigStruct:
                 "ALL",
             ),
             "PumpTimeOutShare": GeckoBoolStructAccessor(
-                self.struct, "PumpTimeOutShare", 18, 4, "ALL"
+                self.struct, "ConfigStructure/TimeOut/PumpTimeOutShare", 18, 4, "ALL"
             ),
             "QuietTimeOut": GeckoByteStructAccessor(
-                self.struct, "QuietTimeOut", 72, "ALL"
+                self.struct, "ConfigStructure/TimeOut/QuietTimeOut", 72, "ALL"
             ),
             "FiltInterface": GeckoEnumStructAccessor(
                 self.struct,
-                "FiltInterface",
+                "ConfigStructure/FilterConfig/FiltInterface",
                 38,
                 None,
                 ["StartDurFre", "NotUsed1", "NotUsed2", "PurgeOnly"],
@@ -459,23 +461,34 @@ class GeckoConfigStruct:
                 None,
                 "ALL",
             ),
-            "CleanP1": GeckoBoolStructAccessor(self.struct, "CleanP1", 36, 1, "ALL"),
-            "CleanCP": GeckoBoolStructAccessor(self.struct, "CleanCP", 36, 2, "ALL"),
+            "CleanP1": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/FilterConfig/CleanP1", 36, 1, "ALL"
+            ),
+            "CleanCP": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/FilterConfig/CleanCP", 36, 2, "ALL"
+            ),
             "CPAlwaysON": GeckoBoolStructAccessor(
-                self.struct, "CPAlwaysON", 36, 3, "ALL"
+                self.struct, "ConfigStructure/FilterConfig/CPAlwaysON", 36, 3, "ALL"
             ),
             "FiltOTOption": GeckoBoolStructAccessor(
-                self.struct, "FiltOTOption", 37, 0, "ALL"
+                self.struct, "ConfigStructure/FilterConfig/FiltOTOption", 37, 0, "ALL"
             ),
             "FiltCPOTOption": GeckoBoolStructAccessor(
-                self.struct, "FiltCPOTOption", 37, 1, "ALL"
+                self.struct, "ConfigStructure/FilterConfig/FiltCPOTOption", 37, 1, "ALL"
             ),
             "FiltSuspendBy": GeckoEnumStructAccessor(
-                self.struct, "FiltSuspendBy", 37, 2, ["AnyUD", "PumpUD"], None, 2, "ALL"
+                self.struct,
+                "ConfigStructure/FilterConfig/FiltSuspendBy",
+                37,
+                2,
+                ["AnyUD", "PumpUD"],
+                None,
+                2,
+                "ALL",
             ),
             "FiltCPOTLimitOption": GeckoEnumStructAccessor(
                 self.struct,
-                "FiltCPOTLimitOption",
+                "ConfigStructure/FilterConfig/FiltCPOTLimitOption",
                 37,
                 3,
                 ["AlwaysEnabled", "LimitedIfSPBelow95F"],
@@ -484,54 +497,97 @@ class GeckoConfigStruct:
                 "ALL",
             ),
             "PurgeSpeed": GeckoEnumStructAccessor(
-                self.struct, "PurgeSpeed", 36, 0, ["Lo", "Hi"], None, 2, "ALL"
+                self.struct,
+                "ConfigStructure/AdvanceFilterConfig/PurgeSpeed",
+                36,
+                0,
+                ["Lo", "Hi"],
+                None,
+                2,
+                "ALL",
             ),
             "FiltDefPurgeTime": GeckoByteStructAccessor(
-                self.struct, "FiltDefPurgeTime", 56, "ALL"
+                self.struct,
+                "ConfigStructure/AdvanceFilterConfig/FiltDefPurgeTime",
+                56,
+                "ALL",
             ),
             "FiltDefP1PurgeTime": GeckoByteStructAccessor(
-                self.struct, "FiltDefP1PurgeTime", 57, "ALL"
+                self.struct,
+                "ConfigStructure/AdvanceFilterConfig/FiltDefP1PurgeTime",
+                57,
+                "ALL",
             ),
-            "FiltMinDur": GeckoByteStructAccessor(self.struct, "FiltMinDur", 60, "ALL"),
+            "FiltMinDur": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/AdvanceFilterConfig/FiltMinDur", 60, "ALL"
+            ),
             "FiltOTActTemp": GeckoByteStructAccessor(
-                self.struct, "FiltOTActTemp", 58, "ALL"
+                self.struct,
+                "ConfigStructure/AdvanceFilterConfig/FiltOTActTemp",
+                58,
+                "ALL",
             ),
             "FiltOTDeadband": GeckoByteStructAccessor(
-                self.struct, "FiltOTDeadband", 59, "ALL"
+                self.struct,
+                "ConfigStructure/AdvanceFilterConfig/FiltOTDeadband",
+                59,
+                "ALL",
             ),
             "FiltSuspendTime": GeckoByteStructAccessor(
-                self.struct, "FiltSuspendTime", 65, "ALL"
+                self.struct,
+                "ConfigStructure/AdvanceFilterConfig/FiltSuspendTime",
+                65,
+                "ALL",
             ),
             "FiltCPOTActTemp": GeckoByteStructAccessor(
-                self.struct, "FiltCPOTActTemp", 61, "ALL"
+                self.struct,
+                "ConfigStructure/AdvanceFilterConfig/FiltCPOTActTemp",
+                61,
+                "ALL",
             ),
             "FiltCPOTDeadband": GeckoByteStructAccessor(
-                self.struct, "FiltCPOTDeadband", 62, "ALL"
+                self.struct,
+                "ConfigStructure/AdvanceFilterConfig/FiltCPOTDeadband",
+                62,
+                "ALL",
             ),
             "FiltCPMinOnTime": GeckoByteStructAccessor(
-                self.struct, "FiltCPMinOnTime", 63, "ALL"
+                self.struct,
+                "ConfigStructure/AdvanceFilterConfig/FiltCPMinOnTime",
+                63,
+                "ALL",
             ),
             "FiltCPOTMaxDur": GeckoByteStructAccessor(
-                self.struct, "FiltCPOTMaxDur", 64, "ALL"
+                self.struct,
+                "ConfigStructure/AdvanceFilterConfig/FiltCPOTMaxDur",
+                64,
+                "ALL",
             ),
             "O3Pump": GeckoEnumStructAccessor(
-                self.struct, "O3Pump", 66, 0, ["NONE", "P1", "CP", ""], None, 4, "ALL"
+                self.struct,
+                "ConfigStructure/O3/O3Pump",
+                66,
+                0,
+                ["NONE", "P1", "CP", ""],
+                None,
+                4,
+                "ALL",
             ),
             "O3AlwaysON": GeckoBoolStructAccessor(
-                self.struct, "O3AlwaysON", 66, 2, "ALL"
+                self.struct, "ConfigStructure/O3/O3AlwaysON", 66, 2, "ALL"
             ),
             "O3DuringFilt": GeckoBoolStructAccessor(
-                self.struct, "O3DuringFilt", 66, 3, "ALL"
+                self.struct, "ConfigStructure/O3/O3DuringFilt", 66, 3, "ALL"
             ),
             "O3Toggling": GeckoBoolStructAccessor(
-                self.struct, "O3Toggling", 66, 4, "ALL"
+                self.struct, "ConfigStructure/O3/O3Toggling", 66, 4, "ALL"
             ),
             "O3UserDemand": GeckoBoolStructAccessor(
-                self.struct, "O3UserDemand", 66, 5, "ALL"
+                self.struct, "ConfigStructure/O3/O3UserDemand", 66, 5, "ALL"
             ),
             "O3SuspendBy": GeckoEnumStructAccessor(
                 self.struct,
-                "O3SuspendBy",
+                "ConfigStructure/O3/O3SuspendBy",
                 66,
                 6,
                 ["AnyUD", "PumpUD"],
@@ -540,34 +596,72 @@ class GeckoConfigStruct:
                 "ALL",
             ),
             "O3FilterDelay": GeckoByteStructAccessor(
-                self.struct, "O3FilterDelay", 67, "ALL"
+                self.struct, "ConfigStructure/O3/O3FilterDelay", 67, "ALL"
             ),
             "O3SuspendTime": GeckoByteStructAccessor(
-                self.struct, "O3SuspendTime", 68, "ALL"
+                self.struct, "ConfigStructure/O3/O3SuspendTime", 68, "ALL"
             ),
             "O3TogglePeriod": GeckoByteStructAccessor(
-                self.struct, "O3TogglePeriod", 69, "ALL"
+                self.struct, "ConfigStructure/O3/O3TogglePeriod", 69, "ALL"
             ),
-            "FiltFreq": GeckoByteStructAccessor(self.struct, "FiltFreq", 39, "ALL"),
-            "FiltStart": GeckoTimeStructAccessor(self.struct, "FiltStart", 40, "ALL"),
-            "FiltDur": GeckoTimeStructAccessor(self.struct, "FiltDur", 42, "ALL"),
-            "EconStart": GeckoTimeStructAccessor(self.struct, "EconStart", 74, "ALL"),
-            "EconStop": GeckoTimeStructAccessor(self.struct, "EconStop", 76, "ALL"),
+            "FiltFreq": GeckoByteStructAccessor(
+                self.struct,
+                "ConfigStructure/SpaPackInternalOptions/FiltFreq",
+                39,
+                "ALL",
+            ),
+            "FiltStart": GeckoTimeStructAccessor(
+                self.struct,
+                "ConfigStructure/SpaPackInternalOptions/FiltStart",
+                40,
+                "ALL",
+            ),
+            "FiltDur": GeckoTimeStructAccessor(
+                self.struct, "ConfigStructure/SpaPackInternalOptions/FiltDur", 42, "ALL"
+            ),
+            "EconStart": GeckoTimeStructAccessor(
+                self.struct,
+                "ConfigStructure/SpaPackInternalOptions/EconStart",
+                74,
+                "ALL",
+            ),
+            "EconStop": GeckoTimeStructAccessor(
+                self.struct,
+                "ConfigStructure/SpaPackInternalOptions/EconStop",
+                76,
+                "ALL",
+            ),
             "EconControlableManually": GeckoBoolStructAccessor(
-                self.struct, "EconControlableManually", 71, 3, "ALL"
+                self.struct,
+                "ConfigStructure/SpaPackInternalOptions/EconControlableManually",
+                71,
+                3,
+                "ALL",
             ),
             "EconProgEnable": GeckoBoolStructAccessor(
-                self.struct, "EconProgEnable", 71, 4, "ALL"
+                self.struct,
+                "ConfigStructure/SpaPackInternalOptions/EconProgEnable",
+                71,
+                4,
+                "ALL",
             ),
             "EconUserDemand": GeckoBoolStructAccessor(
-                self.struct, "EconUserDemand", 71, 5, "ALL"
+                self.struct,
+                "ConfigStructure/SpaPackInternalOptions/EconUserDemand",
+                71,
+                5,
+                "ALL",
             ),
             "EconProgMode": GeckoBoolStructAccessor(
-                self.struct, "EconProgMode", 71, 6, "ALL"
+                self.struct,
+                "ConfigStructure/SpaPackInternalOptions/EconProgMode",
+                71,
+                6,
+                "ALL",
             ),
             "BlowerKeyOption": GeckoEnumStructAccessor(
                 self.struct,
-                "BlowerKeyOption",
+                "ConfigStructure/SpaPackInternalOptions/BlowerKeyOption",
                 18,
                 5,
                 ["LastPumpKey", "NextFreePumpKey", "AnyFreePump"],
@@ -576,23 +670,72 @@ class GeckoConfigStruct:
                 "ALL",
             ),
             "QuickOnOffKeyEnable": GeckoBoolStructAccessor(
-                self.struct, "QuickOnOffKeyEnable", 18, 7, "ALL"
+                self.struct,
+                "ConfigStructure/SpaPackInternalOptions/QuickOnOffKeyEnable",
+                18,
+                7,
+                "ALL",
+            ),
+            "K600Msg1NbWeek": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/K600Reminders/K600Msg1NbWeek", 78, "ALL"
+            ),
+            "K600Msg2NbWeek": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/K600Reminders/K600Msg2NbWeek", 79, "ALL"
+            ),
+            "K600Msg3NbWeek": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/K600Reminders/K600Msg3NbWeek", 80, "ALL"
+            ),
+            "K600Msg4NbWeek": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/K600Reminders/K600Msg4NbWeek", 81, "ALL"
+            ),
+            "K600Msg5NbWeek": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/K600Reminders/K600Msg5NbWeek", 82, "ALL"
+            ),
+            "K600Msg6NbWeek": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/K600Reminders/K600Msg6NbWeek", 83, "ALL"
+            ),
+            "K600Msg7NbWeek": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/K600Reminders/K600Msg7NbWeek", 84, "ALL"
+            ),
+            "K600Msg8NbWeek": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/K600Reminders/K600Msg8NbWeek", 85, "ALL"
             ),
             "SWMPurgeSpeed": GeckoEnumStructAccessor(
-                self.struct, "SWMPurgeSpeed", 70, 0, ["Low", "High"], None, 2, "ALL"
+                self.struct,
+                "ConfigStructure/SWM/SWMPurgeSpeed",
+                70,
+                0,
+                ["Low", "High"],
+                None,
+                2,
+                "ALL",
             ),
             "SWMPurgeBlower": GeckoBoolStructAccessor(
-                self.struct, "SWMPurgeBlower", 70, 1, "ALL"
+                self.struct, "ConfigStructure/SWM/SWMPurgeBlower", 70, 1, "ALL"
             ),
             "LineFrequency": GeckoEnumStructAccessor(
-                self.struct, "LineFrequency", 86, 4, ["60HZ", "50HZ"], None, 2, "ALL"
+                self.struct,
+                "ConfigStructure/InputSupply/LineFrequency",
+                86,
+                4,
+                ["60HZ", "50HZ"],
+                None,
+                2,
+                "ALL",
             ),
             "LineVoltage": GeckoEnumStructAccessor(
-                self.struct, "LineVoltage", 86, 5, ["240Vac", "230VAC"], None, 2, "ALL"
+                self.struct,
+                "ConfigStructure/InputSupply/LineVoltage",
+                86,
+                5,
+                ["240Vac", "230VAC"],
+                None,
+                2,
+                "ALL",
             ),
             "FuseMapping": GeckoEnumStructAccessor(
                 self.struct,
-                "FuseMapping",
+                "ConfigStructure/InputSupply/FuseMapping",
                 86,
                 1,
                 [
@@ -610,27 +753,29 @@ class GeckoConfigStruct:
                 "ALL",
             ),
             "BrNbSettings": GeckoByteStructAccessor(
-                self.struct, "BrNbSettings", 88, None
+                self.struct, "ConfigStructure/InputSupply/BrNbSettings", 88, None
             ),
-            "BrSetIndex": GeckoByteStructAccessor(self.struct, "BrSetIndex", 89, None),
+            "BrSetIndex": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/InputSupply/BrSetIndex", 89, None
+            ),
             "BreakerSet1": GeckoByteStructAccessor(
-                self.struct, "BreakerSet1", 90, "ALL"
+                self.struct, "ConfigStructure/InputSupply/BreakerSet1", 90, "ALL"
             ),
             "BreakerSet2": GeckoByteStructAccessor(
-                self.struct, "BreakerSet2", 91, "ALL"
+                self.struct, "ConfigStructure/InputSupply/BreakerSet2", 91, "ALL"
             ),
             "BreakerSet3": GeckoByteStructAccessor(
-                self.struct, "BreakerSet3", 92, "ALL"
+                self.struct, "ConfigStructure/InputSupply/BreakerSet3", 92, "ALL"
             ),
             "BreakerSet4": GeckoByteStructAccessor(
-                self.struct, "BreakerSet4", 93, "ALL"
+                self.struct, "ConfigStructure/InputSupply/BreakerSet4", 93, "ALL"
             ),
             "BreakerSet5": GeckoByteStructAccessor(
-                self.struct, "BreakerSet5", 94, "ALL"
+                self.struct, "ConfigStructure/InputSupply/BreakerSet5", 94, "ALL"
             ),
             "QuietActionOnHeater": GeckoEnumStructAccessor(
                 self.struct,
-                "QuietActionOnHeater",
+                "ConfigStructure/Quiet/QuietActionOnHeater",
                 22,
                 4,
                 ["NoAction", "ForceMaxPower", "KeepOff", ""],
@@ -640,7 +785,7 @@ class GeckoConfigStruct:
             ),
             "UDActionOnQuiet": GeckoEnumStructAccessor(
                 self.struct,
-                "UDActionOnQuiet",
+                "ConfigStructure/Quiet/UDActionOnQuiet",
                 71,
                 1,
                 [
@@ -655,7 +800,7 @@ class GeckoConfigStruct:
             ),
             "QuietActionOnUD": GeckoEnumStructAccessor(
                 self.struct,
-                "QuietActionOnUD",
+                "ConfigStructure/Quiet/QuietActionOnUD",
                 71,
                 0,
                 ["Cancel", "Pause"],
@@ -664,41 +809,55 @@ class GeckoConfigStruct:
                 "ALL",
             ),
             "FanPump": GeckoEnumStructAccessor(
-                self.struct, "FanPump", 23, 3, ["None", "P1", "CP"], None, 4, "ALL"
+                self.struct,
+                "ConfigStructure/Fan/FanPump",
+                23,
+                3,
+                ["None", "P1", "CP"],
+                None,
+                4,
+                "ALL",
             ),
             "FanTempOption": GeckoBoolStructAccessor(
-                self.struct, "FanTempOption", 22, 6, "ALL"
+                self.struct, "ConfigStructure/Fan/FanTempOption", 22, 6, "ALL"
             ),
             "FanActiveOnPumpRun": GeckoBoolStructAccessor(
-                self.struct, "FanActiveOnPumpRun", 22, 7, "ALL"
+                self.struct, "ConfigStructure/Fan/FanActiveOnPumpRun", 22, 7, "ALL"
             ),
             "FanForceOFFOption": GeckoBoolStructAccessor(
-                self.struct, "FanForceOFFOption", 23, 0, "ALL"
+                self.struct, "ConfigStructure/Fan/FanForceOFFOption", 23, 0, "ALL"
             ),
             "FanSetAOTTempAdc16": GeckoByteStructAccessor(
-                self.struct, "FanSetAOTTempAdc16", 26, "ALL"
+                self.struct, "ConfigStructure/Fan/FanSetAOTTempAdc16", 26, "ALL"
             ),
             "FanClrAOTTempAdc16": GeckoByteStructAccessor(
-                self.struct, "FanClrAOTTempAdc16", 28, "ALL"
+                self.struct, "ConfigStructure/Fan/FanClrAOTTempAdc16", 28, "ALL"
             ),
             "FanActiveDelayAfterPumpRun": GeckoByteStructAccessor(
-                self.struct, "FanActiveDelayAfterPumpRun", 30, "ALL"
+                self.struct, "ConfigStructure/Fan/FanActiveDelayAfterPumpRun", 30, "ALL"
             ),
             "FanSetForceOffTempAdc16": GeckoByteStructAccessor(
-                self.struct, "FanSetForceOffTempAdc16", 31, "ALL"
+                self.struct, "ConfigStructure/Fan/FanSetForceOffTempAdc16", 31, "ALL"
             ),
             "FanClrForceOffTempAdc16": GeckoByteStructAccessor(
-                self.struct, "FanClrForceOffTempAdc16", 33, "ALL"
+                self.struct, "ConfigStructure/Fan/FanClrForceOffTempAdc16", 33, "ALL"
             ),
             "FanForceOffInhibitDelay": GeckoByteStructAccessor(
-                self.struct, "FanForceOffInhibitDelay", 35, "ALL"
+                self.struct, "ConfigStructure/Fan/FanForceOffInhibitDelay", 35, "ALL"
             ),
             "HeaterPump": GeckoEnumStructAccessor(
-                self.struct, "HeaterPump", 22, None, ["", "CP", "P1"], None, 4, "ALL"
+                self.struct,
+                "ConfigStructure/WaterTemperatureControl/HeaterPump",
+                22,
+                None,
+                ["", "CP", "P1"],
+                None,
+                4,
+                "ALL",
             ),
             "HeatRestriction": GeckoEnumStructAccessor(
                 self.struct,
-                "HeatRestriction",
+                "ConfigStructure/WaterTemperatureControl/HeatRestriction",
                 86,
                 6,
                 ["No", "FullPowerOnly"],
@@ -707,22 +866,44 @@ class GeckoConfigStruct:
                 "ALL",
             ),
             "TempUnits": GeckoEnumStructAccessor(
-                self.struct, "TempUnits", 22, 2, ["C", "F"], None, 2, "ALL"
+                self.struct,
+                "ConfigStructure/WaterTemperatureControl/TempUnits",
+                22,
+                2,
+                ["C", "F"],
+                None,
+                2,
+                "ALL",
             ),
-            "SetpointG": GeckoTempStructAccessor(self.struct, "SetpointG", 24, "ALL"),
+            "SetpointG": GeckoTempStructAccessor(
+                self.struct,
+                "ConfigStructure/WaterTemperatureControl/SetpointG",
+                24,
+                "ALL",
+            ),
             "EconBelowSetpoint": GeckoByteStructAccessor(
-                self.struct, "EconBelowSetpoint", 73, "ALL"
+                self.struct,
+                "ConfigStructure/WaterTemperatureControl/EconBelowSetpoint",
+                73,
+                "ALL",
             ),
             "AmbiantOTEnable": GeckoBoolStructAccessor(
-                self.struct, "AmbiantOTEnable", 23, 1, "ALL"
+                self.struct, "ConfigStructure/MiscCfg/AmbiantOTEnable", 23, 1, "ALL"
             ),
             "TimeFormat": GeckoEnumStructAccessor(
-                self.struct, "TimeFormat", 86, 0, ["AmPm", "24h"], None, 2, "ALL"
+                self.struct,
+                "ConfigStructure/MiscCfg/TimeFormat",
+                86,
+                0,
+                ["AmPm", "24h"],
+                None,
+                2,
+                "ALL",
             ),
             "InStateUserDemand": GeckoBoolStructAccessor(
-                self.struct, "InStateUserDemand", 22, 3, "ALL"
+                self.struct, "ConfigStructure/MiscCfg/InStateUserDemand", 22, 3, "ALL"
             ),
             "KineticProtection": GeckoBoolStructAccessor(
-                self.struct, "KineticProtection", 23, 2, "ALL"
+                self.struct, "ConfigStructure/MiscCfg/KineticProtection", 23, 2, "ALL"
             ),
         }

@@ -1,10 +1,10 @@
-""" Gecko FILES/SFILE handlers """
+"""Gecko FILES/SFILE handlers"""
 
 import logging
 import struct
 
-from ...const import GeckoConstants
 from ...config import GeckoConfig
+from ...const import GeckoConstants
 from .packet import GeckoPacketProtocolHandler
 
 SFILE_VERB = b"SFILE"

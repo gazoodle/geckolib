@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import struct
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler

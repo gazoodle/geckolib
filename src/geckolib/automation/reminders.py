@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from .base import GeckoAutomationFacadeBase
 from ..driver import GeckoRemindersProtocolHandler, GeckoReminderType
-from typing import List, Tuple, Optional
+from .base import GeckoAutomationFacadeBase
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +17,7 @@ class GeckoReminders(GeckoAutomationFacadeBase):
     class Reminder:
         """A single reminder instance"""
 
-        def __init__(self, rem: Tuple[GeckoReminderType, int]) -> None:
+        def __init__(self, rem: tuple[GeckoReminderType, int]) -> None:
             self._reminder_type: GeckoReminderType = rem[0]
             self._days: int = rem[1]
 
@@ -50,18 +49,18 @@ class GeckoReminders(GeckoAutomationFacadeBase):
     def __init__(self, facade):
         super().__init__(facade, "Reminders", "REMINDERS")
 
-        self._active_reminders: List[GeckoReminders.Reminder] = []
+        self._active_reminders: list[GeckoReminders.Reminder] = []
         self._reminders_handler = None
         self._last_update = None
 
     @property
     def reminders(self):
-        """return all reminders"""
+        """Return all reminders"""
         return self._active_reminders
 
     def get_reminder(
         self, reminder_type: GeckoReminderType
-    ) -> Optional[GeckoReminders.Reminder]:
+    ) -> GeckoReminders.Reminder | None:
         """Get the reminder of the specified type, or None if not found"""
         for reminder in self.reminders:
             if reminder.reminder_type == reminder_type:
@@ -69,11 +68,11 @@ class GeckoReminders(GeckoAutomationFacadeBase):
         return None
 
     @property
-    def last_update(self) -> Optional[datetime]:
+    def last_update(self) -> datetime | None:
         """Time of last reminder update"""
         return self._last_update
 
-    def change_reminders(self, reminders: List[Tuple]):
+    def change_reminders(self, reminders: list[tuple]):
         """Called from async facade to update active reminders"""
         self._last_update = datetime.utcnow()
         self._active_reminders = []
@@ -83,7 +82,7 @@ class GeckoReminders(GeckoAutomationFacadeBase):
         self._on_change(self)
 
     def _on_reminders(self, handler: GeckoRemindersProtocolHandler, sender):
-        """call to from protocal handler. Will filter out only the active reminders"""
+        """Call to from protocal handler. Will filter out only the active reminders"""
         self._active_reminders = []
         if handler.reminders is not None:
             # get actual time

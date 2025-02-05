@@ -1,12 +1,12 @@
 """GeckoPack - A class to manage the pack for 'MAS-IBC-16K'."""  # noqa: N999
 
-from . import GeckoStructureTypeBase
+from . import GeckoAsyncStructure
 
 
 class GeckoPack:
     """A GeckoPack class for a specific spa."""
 
-    def __init__(self, struct_: GeckoStructureTypeBase) -> None:
+    def __init__(self, struct_: GeckoAsyncStructure) -> None:
         """Initialize the GeckoPack class."""
         self.struct = struct_
 
@@ -19,6 +19,11 @@ class GeckoPack:
     def plateform_type(self) -> int:
         """Get the plateform type."""
         return 2
+
+    @property
+    def plateform_segment(self) -> str:
+        """Get the plateform segment."""
+        return "aMainControl"
 
     @property
     def revision(self) -> str:

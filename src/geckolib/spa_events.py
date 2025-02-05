@@ -1,8 +1,10 @@
 """Connection events issued during spa discovery/connection"""
+
 from __future__ import annotations
 
+from collections.abc import Callable, Coroutine
 from enum import Enum
-from typing import Callable, Any, Coroutine
+from typing import Any
 
 
 class GeckoSpaEvent(Enum):

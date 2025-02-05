@@ -1,5 +1,6 @@
 """Constants Class."""
 
+
 class GeckoConstants:
     """
     All the constants in one place.
@@ -57,12 +58,12 @@ class GeckoConstants:
     KEY_FILTER_CLEAN = "Clean"
     KEY_ECON_ACTIVE = "EconActive"
     KEY_INGRID_DETECTED = "InGridDetected"
+    KEY_MODBUS_HEATPUMP_DETECTED = "ModbusHeatPumpDetected"
     KEY_COOLZONE_DETECTED = "CoolZoneDetected"
     KEY_COOLZONE_MODE = "CoolZoneMode"
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 
-    EXCEPTION_MESSAGE_NO_SPA_PACK = "Cannot find spa pack for {0}"
     EXCEPTION_MESSAGE_NOT_WRITABLE = (
         "Cannot set value for {0}. This status array item doesn't allow writing"
     )
@@ -80,6 +81,7 @@ class GeckoConstants:
     KEYPAD_PUMP_5 = 5
     KEYPAD_BLOWER = 6
     KEYPAD_LIGHT = 16
+    KEYPAD_LIGHT_2 = 17
     KEYPAD_UP = 21
     KEYPAD_DOWN = 22
     KEYPAD_WATERFALL = 23

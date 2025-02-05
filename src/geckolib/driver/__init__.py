@@ -1,72 +1,63 @@
-""" Gecko driver """
-
-from .protocol import (
-    GeckoHelloProtocolHandler,
-    GeckoPacketProtocolHandler,
-    GeckoPingProtocolHandler,
-    GeckoVersionProtocolHandler,
-    GeckoGetChannelProtocolHandler,
-    GeckoConfigFileProtocolHandler,
-    GeckoStatusBlockProtocolHandler,
-    GeckoPartialStatusBlockProtocolHandler,
-    GeckoAsyncPartialStatusBlockProtocolHandler,
-    GeckoWatercareProtocolHandler,
-    GeckoWatercareErrorHandler,
-    GeckoUpdateFirmwareProtocolHandler,
-    GeckoRemindersProtocolHandler,
-    GeckoReminderType,
-    GeckoPackCommandProtocolHandler,
-    GeckoRFErrProtocolHandler,
-    GeckoUnhandledProtocolHandler,
-)
-from .observable import Observable
+"""Gecko driver."""
 
 from .accessor import (
-    GeckoStructAccessor,
-    GeckoByteStructAccessor,
-    GeckoWordStructAccessor,
-    GeckoTimeStructAccessor,
     GeckoBoolStructAccessor,
+    GeckoByteStructAccessor,
     GeckoEnumStructAccessor,
+    GeckoStructAccessor,
     GeckoTempStructAccessor,
+    GeckoTimeStructAccessor,
+    GeckoWordStructAccessor,
 )
-from .spastruct import GeckoStructure
 from .async_spastruct import GeckoAsyncStructure
-from .udp_protocol_handler import GeckoUdpProtocolHandler
-from .udp_socket import GeckoUdpSocket
 from .async_udp_protocol import GeckoAsyncUdpProtocol
+from .observable import Observable
+from .protocol import (
+    GeckoAsyncPartialStatusBlockProtocolHandler,
+    GeckoConfigFileProtocolHandler,
+    GeckoGetChannelProtocolHandler,
+    GeckoHelloProtocolHandler,
+    GeckoPackCommandProtocolHandler,
+    GeckoPacketProtocolHandler,
+    GeckoPingProtocolHandler,
+    GeckoRemindersProtocolHandler,
+    GeckoReminderType,
+    GeckoRFErrProtocolHandler,
+    GeckoStatusBlockProtocolHandler,
+    GeckoUnhandledProtocolHandler,
+    GeckoUpdateFirmwareProtocolHandler,
+    GeckoVersionProtocolHandler,
+    GeckoWatercareErrorHandler,
+    GeckoWatercareProtocolHandler,
+)
+from .udp_protocol_handler import GeckoUdpProtocolHandler
 
 __all__ = [
+    "GeckoAsyncPartialStatusBlockProtocolHandler",
+    "GeckoAsyncStructure",
+    "GeckoAsyncUdpProtocol",
+    "GeckoBoolStructAccessor",
+    "GeckoByteStructAccessor",
+    "GeckoConfigFileProtocolHandler",
+    "GeckoEnumStructAccessor",
+    "GeckoGetChannelProtocolHandler",
     "GeckoHelloProtocolHandler",
+    "GeckoPackCommandProtocolHandler",
     "GeckoPacketProtocolHandler",
     "GeckoPingProtocolHandler",
-    "GeckoVersionProtocolHandler",
-    "GeckoGetChannelProtocolHandler",
-    "GeckoConfigFileProtocolHandler",
-    "GeckoStatusBlockProtocolHandler",
-    "GeckoPartialStatusBlockProtocolHandler",
-    "GeckoAsyncPartialStatusBlockProtocolHandler",
-    "GeckoWatercareProtocolHandler",
-    "GeckoWatercareErrorHandler",
-    "GeckoUpdateFirmwareProtocolHandler",
-    "GeckoRemindersProtocolHandler",
-    "GeckoReminderType",
     "GeckoRFErrProtocolHandler",
-    "GeckoPackCommandProtocolHandler",
-    "GeckoUnhandledProtocolHandler",
-    "Observable",
-    #
-    # "GeckoSpaPack",
-    "GeckoStructure",
-    "GeckoAsyncStructure",
+    "GeckoReminderType",
+    "GeckoRemindersProtocolHandler",
+    "GeckoStatusBlockProtocolHandler",
     "GeckoStructAccessor",
-    "GeckoByteStructAccessor",
-    "GeckoWordStructAccessor",
-    "GeckoTimeStructAccessor",
-    "GeckoBoolStructAccessor",
-    "GeckoEnumStructAccessor",
     "GeckoTempStructAccessor",
+    "GeckoTimeStructAccessor",
     "GeckoUdpProtocolHandler",
-    "GeckoUdpSocket",
-    "GeckoAsyncUdpProtocol",
+    "GeckoUnhandledProtocolHandler",
+    "GeckoUpdateFirmwareProtocolHandler",
+    "GeckoVersionProtocolHandler",
+    "GeckoWatercareErrorHandler",
+    "GeckoWatercareProtocolHandler",
+    "GeckoWordStructAccessor",
+    "Observable",
 ]
