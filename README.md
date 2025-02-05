@@ -299,6 +299,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Build some documentation
 - Add coverage to GitHub package workflow
 - API set_config_mode needs to be per device rather than global
+- Need to develop a way to force reconnection if certain accessors change, the intouch2 application
+  will do this if certain values are changed, and using the simulator snapshots, I've noticed that
+  the HA integration can get confused leading to possible values beiing posted to the wrong locations.
+- Move localizable strings so that HA can handle itself
 
 ## Done/Fixed in 1.0.0
  - Breaking change, removed all sync APIs
@@ -307,6 +311,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Refactor a bit of the protocol stack to DRY out some code
  - Added "Spa In Use" sensor
  - Added useful diagnostic functionality to shell and simulator
+ - Added support for external heat sources
 
 ## Done/Fixed in 0.4.20
  - Remove deprecated constant, it's only available in Python 3.13 from warnings, we can re-add it

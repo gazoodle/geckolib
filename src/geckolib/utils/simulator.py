@@ -623,7 +623,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 # we have to suck those from the actual status block.
                 changes = [
                     (
-                        change - change % 2,
+                        change,
                         self.structure.status_block[change : change + 2],
                     )
                     for change in changes

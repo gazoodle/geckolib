@@ -160,6 +160,10 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 for reminder in self.facade.reminders_manager.reminders:
                     lines.append(f"{reminder}")
                 lines.append(f"{self.facade.water_care}")
+                if self.facade.heatpump is not None:
+                    lines.append(f"{self.facade.heatpump}")
+                if self.facade.ingrid is not None:
+                    lines.append(f"{self.facade.ingrid}")
                 for sensor in [
                     *self.facade.sensors,
                     *self.facade.binary_sensors,

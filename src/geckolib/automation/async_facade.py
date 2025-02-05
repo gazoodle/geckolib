@@ -6,6 +6,9 @@ import asyncio
 import logging
 
 from geckolib.automation.base import GeckoAutomationBase
+from geckolib.automation.heatpump import GeckoHeatPump
+from geckolib.automation.ingrid import GeckoInGrid
+from geckolib.automation.select import GeckoSelect
 from geckolib.driver.accessor import GeckoBoolStructAccessor
 
 from ..async_spa import GeckoAsyncSpa
@@ -88,6 +91,8 @@ class GeckoAsyncFacade(Observable):
         self._blowers: list[GeckoBlower] = []
         self._lights: list[GeckoLight] = []
         self._ecomode: GeckoSwitch | None = None
+        self._heatpump: GeckoHeatPump | None = None
+        self._ingrid: GeckoInGrid | None = None
 
         # Build the automation items
         self._reminders_manager = GeckoReminders(self)
@@ -272,16 +277,33 @@ class GeckoAsyncFacade(Observable):
                 ),
             )
 
-        # Check if in.Grid is detected
-        if GeckoConstants.KEY_INGRID_DETECTED in self._spa.accessors:
-            in_grid_detected: GeckoBoolStructAccessor = self._spa.accessors[
-                GeckoConstants.KEY_INGRID_DETECTED
-            ]
-            if in_grid_detected.value:
-                _LOGGER.info("in.grid detected")
-                if GeckoConstants.KEY_COOLZONE_MODE in self._spa.accessors:
-                    _LOGGER.info(
-                        "CoolZoneMode is present, so we can offer these options now"
+        # Check if we have CoolZoneMode
+        if GeckoConstants.KEY_COOLZONE_MODE in self._spa.accessors:
+            # Now, do we have an inGrid unit or a modbus heatpump?
+
+            if GeckoConstants.KEY_INGRID_DETECTED in self._spa.accessors:
+                in_grid_detected: GeckoBoolStructAccessor = self._spa.accessors[
+                    GeckoConstants.KEY_INGRID_DETECTED
+                ]
+                if in_grid_detected.value:
+                    _LOGGER.info("inGrid detected")
+                    self._ingrid = GeckoInGrid(
+                        self,
+                        "Heating Management",
+                        self._spa.accessors[GeckoConstants.KEY_COOLZONE_MODE],
+                    )
+
+            if GeckoConstants.KEY_MODBUS_HEATPUMP_DETECTED in self._spa.accessors:
+                modbus_heatpump_detected: GeckoBoolStructAccessor = self._spa.accessors[
+                    GeckoConstants.KEY_MODBUS_HEATPUMP_DETECTED
+                ]
+
+                if modbus_heatpump_detected.value:
+                    _LOGGER.info("Modbus Heatpump detected")
+                    self._heatpump = GeckoHeatPump(
+                        self,
+                        "Heat Pump",
+                        self._spa.accessors[GeckoConstants.KEY_COOLZONE_MODE],
                     )
 
     @property
@@ -355,6 +377,16 @@ class GeckoAsyncFacade(Observable):
         return self._ecomode
 
     @property
+    def heatpump(self) -> GeckoSelect | None:
+        """Get the heat pump if available."""
+        return self._heatpump
+
+    @property
+    def ingrid(self) -> GeckoSelect | None:
+        """Get the inGrid handler if available."""
+        return self._ingrid
+
+    @property
     def spa_in_use_sensor(self) -> GeckoAsyncFacade.SpaInUseSensor:
         """Get the spa in use sensor."""
         return self._spa_in_use_sensor
@@ -372,12 +404,18 @@ class GeckoAsyncFacade(Observable):
     @property
     def all_automation_devices(self) -> list[GeckoAutomationBase]:
         """Get all the automation devices as a list."""
+        extras = []
+        if self.heatpump is not None:
+            extras.append(self.heatpump)
+        if self.ingrid is not None:
+            extras.append(self.ingrid)
         return (
             self.all_user_devices
             + self.sensors
             + self.binary_sensors
             + [self.water_heater, self.water_care, self.reminders_manager]
             + [self.keypad, self.eco_mode]
+            + extras
         )
 
     def get_device(self, key) -> GeckoAutomationBase | None:

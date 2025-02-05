@@ -58,6 +58,7 @@ class GeckoConstants:
     KEY_FILTER_CLEAN = "Clean"
     KEY_ECON_ACTIVE = "EconActive"
     KEY_INGRID_DETECTED = "InGridDetected"
+    KEY_MODBUS_HEATPUMP_DETECTED = "ModbusHeatPumpDetected"
     KEY_COOLZONE_DETECTED = "CoolZoneDetected"
     KEY_COOLZONE_MODE = "CoolZoneMode"
 
