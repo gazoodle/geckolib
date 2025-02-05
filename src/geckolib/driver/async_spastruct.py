@@ -1,5 +1,7 @@
 """Async Spa Structure block."""
 
+from __future__ import annotations
+
 import asyncio
 import datetime
 import importlib
@@ -130,6 +132,42 @@ class GeckoAsyncStructure:
         return await loop.run_in_executor(
             None, partial(importlib.import_module, module_name)
         )
+
+    def get_differences(self, other: GeckoAsyncStructure) -> list[str]:
+        """Get the differences between this structure and the other."""
+        results = []
+        if len(self.accessors) != len(other.accessors):
+            results.append(
+                f"Accessor length difference. I have {len(self.accessors)},"
+                f" the other has {len(other.accessors)}"
+            )
+
+        # List my unique accessors
+        unique_to_me = [
+            self.accessors[key] for key in self.accessors if key not in other.accessors
+        ]
+        results.extend([f"Only me: {acc}" for acc in unique_to_me])
+
+        # List other unique accessors
+        unique_to_other = [
+            other.accessors[key] for key in other.accessors if key not in self.accessors
+        ]
+        results.extend([f"Only other: {acc}" for acc in unique_to_other])
+
+        # List shared accessor differences
+        key_differences = [
+            key
+            for key in self.accessors
+            if key in other.accessors and self.accessors[key] != other.accessors[key]
+        ]
+        results.extend(
+            [
+                f"Diff: {self.accessors[key]} != {other.accessors[key]}"
+                for key in key_differences
+            ]
+        )
+
+        return results
 
     ############################################################################
     #

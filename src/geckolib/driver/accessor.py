@@ -1,5 +1,7 @@
 """Structure accessor."""
 
+from __future__ import annotations
+
 import logging
 import struct
 from typing import Any
@@ -242,6 +244,9 @@ class GeckoStructAccessor(Observable):
     def __repr__(self) -> str:
         """Get string representation."""
         return f"{self.path!r}: {self.value!r}"
+
+    def __eq__(self, other: GeckoStructAccessor) -> bool:
+        return self.value == other.value
 
 
 class GeckoByteStructAccessor(GeckoStructAccessor):

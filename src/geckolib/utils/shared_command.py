@@ -3,7 +3,9 @@
 # ruff: noqa: T201
 
 import fnmatch
+import glob
 import logging
+import os
 from typing import TYPE_CHECKING
 
 from geckolib.async_taskman import GeckoAsyncTaskMan
@@ -258,3 +260,8 @@ class GeckoCmd(AsyncCmd):
             data["Description"] = arg
         _LOGGER.info(f"SNAPSHOT ========{data}========")  # noqa: G004
         print(data)
+
+    def _complete_path(self, path) -> list[str]:
+        if os.path.isdir(path):
+            return glob.glob(os.path.join(path, "*"))
+        return glob.glob(path + "*")

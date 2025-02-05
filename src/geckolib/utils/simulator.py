@@ -3,9 +3,7 @@
 # ruff: noqa: T201
 
 import asyncio
-import glob
 import logging
-import os
 import random
 import socket
 from pathlib import Path
@@ -142,11 +140,6 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             self._transport.close()
             self._transport = None
 
-    def _complete_path(self, path):
-        if os.path.isdir(path):
-            return glob.glob(os.path.join(path, "*"))
-        return glob.glob(path + "*")
-
     def do_parse(self, args):
         """
         Parse logfiles to extract snapshots to the ./snapshot directory. Will
@@ -226,22 +219,66 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             self.structure.reset()
 
         self.snapshot = snapshot
-        self.structure.replace_status_block_segment(0, self.snapshot.bytes)
 
+        await self._set_structure_from_snapshot(
+            self.structure, self.snapshot, not compatible
+        )
         if not compatible:
+            for accessor in self.structure.accessors.values():
+                accessor.set_read_write("ALL")
+                accessor.watch(self._on_accessor_changed)
+
+    async def _set_structure_from_snapshot(
+        self, struct: GeckoAsyncStructure, snapshot: GeckoSnapshot, do_rebuild: bool
+    ) -> None:
+        struct.replace_status_block_segment(0, snapshot.bytes)
+
+        if do_rebuild:
             # Must rebuild stuff
             try:
                 # Attempt to get config and log classes
-                await self.structure.load_pack_class(self.snapshot.packtype.lower())
-                await self.structure.load_config_module(snapshot.config_version)
-                await self.structure.load_log_module(snapshot.log_version)
-                self.structure.build_accessors()
-                for accessor in self.structure.accessors.values():
-                    accessor.set_read_write("ALL")
-                    accessor.watch(self._on_accessor_changed)
+                await struct.load_pack_class(snapshot.packtype.lower())
+                await struct.load_config_module(snapshot.config_version)
+                await struct.load_log_module(snapshot.log_version)
+                struct.build_accessors()
 
             except:  # noqa
                 _LOGGER.exception("Exception during snapshot load")
+
+    async def do_diff(self, arg: str) -> None:
+        """
+        Perform a diff between spa data structures.
+
+        You can either diff two separate files,
+        or a single file and the current structure.
+
+        usage: diff <file1> <file2>
+        """
+        file1 = arg
+        file2 = ""
+        rest = None
+        if " " in arg:
+            file1, file2, *rest = arg.split(" ")
+        if not file1:
+            print("Need at least one file.")
+
+        struct = GeckoAsyncStructure(None)
+        snapshot = GeckoSnapshot.parse_log_file(file1)[0]
+        await self._set_structure_from_snapshot(struct, snapshot, True)
+
+        differences = self.structure.get_differences(struct)
+        if differences:
+            print("Differences are:")
+            print("\n".join(differences))
+        else:
+            print("Identical snapshot")
+        print(self.prompt, end="", flush=True)
+
+    def complete_diff(
+        self, text: str, _line: str, _start_idx: int, _end_idx: int
+    ) -> list[str]:
+        """Complete the do_diff command."""
+        return self._complete_path(text)
 
     def _should_ignore(self, handler, sender, respect_rferr=True) -> bool:
         if respect_rferr and self._do_rferr:
