@@ -2,7 +2,8 @@
 
 import asyncio
 import logging
-from typing import Coroutine, Self
+from collections.abc import Coroutine
+from typing import Self
 
 from .config import GeckoConfig, config_sleep
 

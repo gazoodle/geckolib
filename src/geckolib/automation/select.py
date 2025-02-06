@@ -2,7 +2,6 @@
 
 import logging
 
-from geckolib.const import GeckoConstants
 from geckolib.driver.accessor import GeckoEnumStructAccessor
 
 from .base import GeckoAutomationFacadeBase

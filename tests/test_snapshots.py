@@ -1,6 +1,5 @@
 """Unit tests for the actual snapshots."""
 
-import importlib
 import pathlib
 from unittest import IsolatedAsyncioTestCase, main
 
@@ -8,7 +7,6 @@ from context import (
     GeckoAsyncFacade,
     GeckoAsyncStructure,
     GeckoAsyncTaskMan,
-    GeckoConstants,
     GeckoSnapshot,
 )
 

@@ -406,7 +406,7 @@ class PackGenerator:
                 f"GeckoStructAccessor(self.struct, {self.add_constant(tag)}, {pos}, {type}, {bitpos}, {items}, {size}, {maxitems}, {rw}),\n"  # noqa: E501
             )
 
-    def write_get_accessors(self, file: TextIOWrapper, xml: ET.Element) -> None:  # noqa: PLR0912, PLR0915
+    def write_get_accessors(self, file: TextIOWrapper, xml: ET.Element) -> None:
         """Write the accessors for the spa pack structure."""
         file.write("\n")
         file.write("    @property\n")

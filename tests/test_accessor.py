@@ -1,6 +1,5 @@
 """Unit tests for the structure accessor class."""  # noqa: INP001
 
-from os import access
 from typing import Any
 
 import pytest
