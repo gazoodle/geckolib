@@ -2,7 +2,6 @@
 
 import logging
 import struct
-from typing import Any
 
 from geckolib.driver.accessor import GeckoStructAccessor
 

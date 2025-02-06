@@ -1,4 +1,4 @@
-"""Automation heatpump class."""
+"""Automation lockmode class."""
 
 import logging
 
@@ -9,7 +9,7 @@ from .select import GeckoSelect
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoHeatPump(GeckoSelect):
+class GeckoLockMode(GeckoSelect):
     """A select object can select between options and can report the current state."""
 
     def __init__(self, facade, name, accessor: GeckoEnumStructAccessor):
@@ -17,12 +17,9 @@ class GeckoHeatPump(GeckoSelect):
         super().__init__(facade, name, accessor)
         # Set of mappings of constants to UI options
         self.mapping = {
-            "CHILL": "Cool",
-            "INTERNAL_HEAT": "Electric",
-            "HEAT_SAVER": "Eco Heat",
-            "HEAT_W_BOOST": "Smart Heat",
-            "AUTO_SAVER": "Eco Auto",
-            "AUTO_W_BOOST": "Smart Auto",
+            "UNLOCK": "Unlocked",
+            "PARTIAL": "Partial Lock",
+            "FULL": "Full Lock",
         }
         self.reverse = {v: k for k, v in self.mapping.items()}
 

@@ -1,21 +1,19 @@
-"""Async Facade to hide implementation details"""
+"""Async Facade to hide implementation details."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
+from typing import TYPE_CHECKING, Any
 
 from geckolib.automation.base import GeckoAutomationBase
 from geckolib.automation.heatpump import GeckoHeatPump
 from geckolib.automation.ingrid import GeckoInGrid
-from geckolib.automation.select import GeckoSelect
-from geckolib.driver.accessor import GeckoBoolStructAccessor
+from geckolib.automation.lockmode import GeckoLockMode
+from geckolib.config import GeckoConfig, config_sleep, set_config_mode
+from geckolib.const import GeckoConstants
+from geckolib.driver import Observable
 
-from ..async_spa import GeckoAsyncSpa
-from ..async_taskman import GeckoAsyncTaskMan
-from ..config import GeckoConfig, config_sleep, set_config_mode
-from ..const import GeckoConstants
-from ..driver import Observable
 from .blower import GeckoBlower
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
@@ -23,8 +21,13 @@ from .light import GeckoLight
 from .pump import GeckoPump
 from .reminders import GeckoReminders
 from .sensors import GeckoBinarySensor, GeckoErrorSensor, GeckoSensor, GeckoSensorBase
-from .switch import GeckoSwitch
+from .switch import GeckoStandby, GeckoSwitch
 from .watercare import GeckoWaterCare
+
+if TYPE_CHECKING:
+    from geckolib.async_spa import GeckoAsyncSpa
+    from geckolib.async_taskman import GeckoAsyncTaskMan
+    from geckolib.driver.accessor import GeckoBoolStructAccessor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,7 +81,11 @@ class GeckoAsyncFacade(Observable):
     def __init__(
         self, spa: GeckoAsyncSpa, taskman: GeckoAsyncTaskMan, **_kwargs: str
     ) -> None:
-        """Initialize the facade, a thin automation-friendly client on the spa implementation."""
+        """
+        Initialize the facade.
+
+        This is a thin automation-friendly client on the spa implementation.
+        """
         Observable.__init__(self)
 
         self._spa: GeckoAsyncSpa = spa
@@ -93,6 +100,8 @@ class GeckoAsyncFacade(Observable):
         self._ecomode: GeckoSwitch | None = None
         self._heatpump: GeckoHeatPump | None = None
         self._ingrid: GeckoInGrid | None = None
+        self._lockmode: GeckoLockMode | None = None
+        self._standby: GeckoStandby | None = None
 
         # Build the automation items
         self._reminders_manager = GeckoReminders(self)
@@ -119,10 +128,10 @@ class GeckoAsyncFacade(Observable):
         for device in self.all_automation_devices:
             device.unwatch_all()
 
-    def _on_config_device_change(self, *args) -> None:
+    def _on_config_device_change(self, *_args: Any) -> None:
         in_use = False
         for device in self.all_config_change_devices:
-            if device.is_on:  # type: ignore
+            if device.is_on:
                 in_use = True
         set_config_mode(in_use)
         self._spa_in_use_sensor.set_in_use(in_use)
@@ -306,6 +315,14 @@ class GeckoAsyncFacade(Observable):
                         self._spa.accessors[GeckoConstants.KEY_COOLZONE_MODE],
                     )
 
+        if GeckoConstants.KEY_LOCKMODE in self._spa.accessors:
+            self._lockmode = GeckoLockMode(
+                self, "Lock Mode", self._spa.accessors[GeckoConstants.KEY_LOCKMODE]
+            )
+
+        if GeckoConstants.KEY_STANDBY in self._spa.accessors:
+            self._standby = GeckoStandby(self)
+
     @property
     def unique_id(self) -> str:
         """A unique id for the facade."""
@@ -377,14 +394,24 @@ class GeckoAsyncFacade(Observable):
         return self._ecomode
 
     @property
-    def heatpump(self) -> GeckoSelect | None:
+    def heatpump(self) -> GeckoHeatPump | None:
         """Get the heat pump if available."""
         return self._heatpump
 
     @property
-    def ingrid(self) -> GeckoSelect | None:
+    def ingrid(self) -> GeckoInGrid | None:
         """Get the inGrid handler if available."""
         return self._ingrid
+
+    @property
+    def lockmode(self) -> GeckoLockMode | None:
+        """Get the lockmode handler if available."""
+        return self._lockmode
+
+    @property
+    def standby(self) -> GeckoStandby | None:
+        """Get the standby switch if available."""
+        return self._standby
 
     @property
     def spa_in_use_sensor(self) -> GeckoAsyncFacade.SpaInUseSensor:
@@ -428,7 +455,8 @@ class GeckoAsyncFacade(Observable):
     @property
     def devices(self) -> list[str]:
         """
-        Get a list of automation device keys. Keys can be passed to get_device
-        to find the specific device.
+        Get a list of automation device keys.
+
+        Keys can be passed to get_device to find the specific device.
         """
         return [device.key for device in self.all_automation_devices]

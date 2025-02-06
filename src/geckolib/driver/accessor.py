@@ -232,6 +232,8 @@ class GeckoStructAccessor(Observable):
         info += "-------------------------------\n"
         info += f"Path: {self.path}\n"
         info += f"Pos: {self.pos}\n"
+        if self.bitpos:
+            info += f"Bitpos: {self.bitpos}\n"
         info += f"Len: {self.length}\n"
         info += f"Type: {self.accessor_type}"
         if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:

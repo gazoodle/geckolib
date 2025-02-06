@@ -2,6 +2,7 @@
 
 from typing import Any
 
+import pytest
 from context import (
     GeckoAsyncStructure,
     GeckoByteStructAccessor,
@@ -139,6 +140,7 @@ class TestStruct:
         assert len(self.struct.accessors) == 10
         assert self.struct.accessors["UdL120"].value == "OFF"
 
+    @pytest.mark.asyncio
     async def test_set_value_callback(self) -> None:
         await self.struct.accessors["UdP1"].async_set_value("HI")
         assert self.struct.last_pos == 275

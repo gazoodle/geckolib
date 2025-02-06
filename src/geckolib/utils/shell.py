@@ -2,19 +2,15 @@
 
 import datetime
 import logging
-from os import access
 import sys
-from time import sleep
 import traceback
+from time import sleep
 from typing import Any, Self
 
 from geckolib import VERSION, GeckoConstants, GeckoPump
-from geckolib.async_locator import GeckoAsyncLocator
 from geckolib.async_spa_manager import GeckoAsyncSpaMan
-from geckolib.config import config_sleep
 from geckolib.driver.accessor import GeckoStructAccessor
 from geckolib.spa_events import GeckoSpaEvent
-from geckolib.spa_state import GeckoSpaState
 
 from .shared_command import GeckoCmd
 

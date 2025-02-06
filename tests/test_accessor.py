@@ -54,12 +54,14 @@ class TestStructAccessor:
         accessor = GeckoByteStructAccessor(self.struct, "PackBootRev", 5, None)
         assert accessor.value == 5
 
+    @pytest.mark.asyncio
     async def test_write_byte_fails(self) -> None:
         """Can we write a byte to the structure without the RW tag."""
         accessor = GeckoByteStructAccessor(self.struct, "PackBootRev", 5, None)
         with pytest.raises(AttributeError):
             await accessor.async_set_value(6)
 
+    @pytest.mark.asyncio
     async def test_write_byte(self) -> None:
         """Can we write a byte to the structure."""
         accessor = GeckoByteStructAccessor(self.struct, "PackBootRev", 5, "ALL")
@@ -67,6 +69,7 @@ class TestStructAccessor:
         assert self.struct.last_pos == 5
         assert self.struct.last_data == b"\x06"
 
+    @pytest.mark.asyncio
     async def test_write_byte_from_string(self) -> None:
         """Can we write a byte (as a string) to the structure."""
         accessor = GeckoByteStructAccessor(self.struct, "PackBootRev", 5, "ALL")
@@ -79,6 +82,7 @@ class TestStructAccessor:
         accessor = GeckoWordStructAccessor(self.struct, "RealSetPointG", 17, None)
         assert accessor.value == 702
 
+    @pytest.mark.asyncio
     async def test_write_word(self) -> None:
         """Can we write a word to the structure."""
         accessor = GeckoWordStructAccessor(self.struct, "RealSetPointG", 17, "All")
@@ -86,6 +90,7 @@ class TestStructAccessor:
         assert self.struct.last_pos == 17
         assert self.struct.last_data == b"\x02\xd6"
 
+    @pytest.mark.asyncio
     async def test_write_word_as_string(self) -> None:
         """Can we write a word (as a string) to the structure."""
         accessor = GeckoWordStructAccessor(self.struct, "RealSetPointG", 17, "All")
@@ -121,6 +126,7 @@ class TestStructAccessor:
         )
         assert accessor.value == "inXM"
 
+    @pytest.mark.asyncio
     async def test_write_enum(self) -> None:
         """Can we write an enum to the structure."""
         accessor = GeckoEnumStructAccessor(
@@ -140,6 +146,7 @@ class TestStructAccessor:
         assert self.struct.last_pos == 6
         assert self.struct.last_data == b"\x0c"
 
+    @pytest.mark.asyncio
     async def test_write_enum_not_member(self) -> None:
         """Can we write an enum to the structure."""
         accessor = GeckoEnumStructAccessor(
@@ -163,6 +170,7 @@ class TestStructAccessor:
         accessor = GeckoBoolStructAccessor(self.struct, "RelayStuck", 2, 6, None)
         assert not accessor.value
 
+    @pytest.mark.asyncio
     async def test_write_bool(self) -> None:
         """Can we write a bool to the structure."""
         accessor = GeckoBoolStructAccessor(self.struct, "RelayStuck", 2, 6, "All")
@@ -170,6 +178,7 @@ class TestStructAccessor:
         assert self.struct.last_pos == 2
         assert self.struct.last_data == b"B"
 
+    @pytest.mark.asyncio
     async def test_write_bool_as_string(self) -> None:
         """Can we write a bool (as a string) to the structure."""
         accessor = GeckoBoolStructAccessor(self.struct, "RelayStuck", 2, 6, "All")
@@ -183,7 +192,9 @@ class TestStructAccessor:
             self.struct, "UdP3", 3, 4, "OFF|LO|HI", None, 4, None
         )
         assert accessor.value == "OFF"
+        assert accessor.raw_value == 0
 
+    @pytest.mark.asyncio
     async def test_write_bitpos_enum(self) -> None:
         """Can we write an enum to the structure."""
         accessor = GeckoEnumStructAccessor(
@@ -192,10 +203,14 @@ class TestStructAccessor:
         await accessor.async_set_value("HI")
         assert self.struct.last_pos == 3
         assert self.struct.last_data == b"#"
+        assert accessor.value == "HI"
+        assert accessor.raw_value == 2
         await accessor.async_set_value("LO")
         assert self.struct.last_data == b"\x13"
+        assert accessor.raw_value == 1
         await accessor.async_set_value("OFF")
         assert self.struct.last_data == b"\x03"
+        assert accessor.raw_value == 0
 
     def test_read_sized_bitpos_enum(self) -> None:
         """Can we read a sized bitpos enum from the structure."""
@@ -204,6 +219,7 @@ class TestStructAccessor:
         )
         assert accessor.value == "LO"
 
+    @pytest.mark.asyncio
     async def test_write_sized_bitpos_enum(self) -> None:
         """Can we write a sized bitpos enum to the structure."""
         accessor = GeckoEnumStructAccessor(
@@ -224,6 +240,7 @@ class TestStructAccessor:
             "latin-1"
         )
 
+    @pytest.mark.asyncio
     async def test_multiple_write_bitpos_enum(self) -> None:
         """Can we write multiple bitpos enums to the structure."""
         accessor_p1 = GeckoEnumStructAccessor(
