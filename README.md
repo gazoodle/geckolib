@@ -305,7 +305,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Move localizable strings so that HA can handle itself
 
 ## Done/Fixed in 1.0.1
-
+ - Add support for lock mode if it exists on the spa
 
 ## Done/Fixed in 1.0.0
  - Breaking change, removed all sync APIs
