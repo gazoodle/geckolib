@@ -304,6 +304,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
   the HA integration can get confused leading to possible values beiing posted to the wrong locations.
 - Move localizable strings so that HA can handle itself
 
+## Done/Fixed in 1.0.1
+
+
 ## Done/Fixed in 1.0.0
  - Breaking change, removed all sync APIs
  - Require Python 3.13 as minimum version
