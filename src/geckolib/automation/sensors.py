@@ -75,17 +75,20 @@ class GeckoSensor(GeckoSensorBase):
 
 ########################################################################################
 class GeckoBinarySensor(GeckoSensor):
-    """Binary sensors only have two states"""
+    """Binary sensors only have two states."""
 
     @property
-    def is_on(self):
-        """Determine if the sensor is on or not"""
+    def is_on(self) -> bool:
+        """Determine if the sensor is on or not."""
         state = self.state
         if isinstance(state, bool):
             return state
         if state == "":
             return False
         return state != "OFF"
+
+    def __repr__(self):
+        return f"{self.name}: {self.is_on}"
 
 
 ########################################################################################

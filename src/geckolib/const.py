@@ -122,6 +122,7 @@ class GeckoConstants:
         ("Smart Winter Mode:Active", KEY_SMW_ACTIVE, DEVICE_CLASS_OTHER),
         ("Filter Status:Clean", KEY_FILTER_CLEAN, DEVICE_CLASS_OTHER),
         ("Filter Status:Purge", KEY_FILTER_PURGE, DEVICE_CLASS_OTHER),
+        ("Heating", KEY_HEATING, DEVICE_CLASS_OTHER),
     ]
 
     SENSORS = [("Smart Winter Mode:Risk", KEY_SWM_RISK)]

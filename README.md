@@ -303,10 +303,14 @@ https://www.gnu.org/licenses/gpl-3.0.html
   will do this if certain values are changed, and using the simulator snapshots, I've noticed that
   the HA integration can get confused leading to possible values beiing posted to the wrong locations.
 - Move localizable strings so that HA can handle itself
+- Add command to simulator to start a blank configuration instead of loading a snapshot
+- Use MinSetpointG and MaxSetpointG if available
+- One of the accessors is AuxAsBubbleGen. Investigate how this is used
 
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa
  - Add support for standby mode
+ - Add "Heating" binary sensor
 
 ## Done/Fixed in 1.0.0
  - Breaking change, removed all sync APIs
