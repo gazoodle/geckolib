@@ -292,8 +292,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Full sweep for typing hints - Ongoing
 - Add switch for winterizing
 - Add ability to set hours so we can implement a crude clock sync mechanism
-- Look into getting shell & simulator using async API so that there are no
-  internal dependencies on the sync code any longer
 - Move to pytest unit test framework (replace all unittest fixtures and custom asserts)
 - Use snapshots to generate some specific tests
 - Build some documentation
@@ -306,6 +304,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Add command to simulator to start a blank configuration instead of loading a snapshot
 - Use MinSetpointG and MaxSetpointG if available
 - One of the accessors is AuxAsBubbleGen. Investigate how this is used
+- Add a watt setting to pumps, heaters and so on so that the library can produce an instantaneous
+  power consumption figure which ought to be able to integrate into HA's energy dashboard.
+- Add ability to change the RF channel. The app sends a CHACH\xb4\x0c command, play in the simulator!
 
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa

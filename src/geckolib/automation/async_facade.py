@@ -1,10 +1,10 @@
-"""Async Facade to hide implementation details"""
+"""Async Facade to hide implementation details."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from geckolib.automation.base import GeckoAutomationBase
 from geckolib.automation.heatpump import GeckoHeatPump
@@ -81,7 +81,11 @@ class GeckoAsyncFacade(Observable):
     def __init__(
         self, spa: GeckoAsyncSpa, taskman: GeckoAsyncTaskMan, **_kwargs: str
     ) -> None:
-        """Initialize the facade, a thin automation-friendly client on the spa implementation."""
+        """
+        Initialize the facade.
+
+        This is a thin automation-friendly client on the spa implementation.
+        """
         Observable.__init__(self)
 
         self._spa: GeckoAsyncSpa = spa
@@ -124,10 +128,10 @@ class GeckoAsyncFacade(Observable):
         for device in self.all_automation_devices:
             device.unwatch_all()
 
-    def _on_config_device_change(self, *args) -> None:
+    def _on_config_device_change(self, *_args: Any) -> None:
         in_use = False
         for device in self.all_config_change_devices:
-            if device.is_on:  # type: ignore
+            if device.is_on:
                 in_use = True
         set_config_mode(in_use)
         self._spa_in_use_sensor.set_in_use(in_use)
@@ -451,7 +455,8 @@ class GeckoAsyncFacade(Observable):
     @property
     def devices(self) -> list[str]:
         """
-        Get a list of automation device keys. Keys can be passed to get_device
-        to find the specific device.
+        Get a list of automation device keys.
+
+        Keys can be passed to get_device to find the specific device.
         """
         return [device.key for device in self.all_automation_devices]
