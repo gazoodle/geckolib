@@ -216,6 +216,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         """Assign snapshot to this simulator."""
         compatible = self.snapshot.is_compatible(snapshot)
         if not compatible:
+            print("The new snapshot structure is not compatible, so doing a full reset")
+            print(self.prompt, end="", flush=True)
             self.structure.reset()
 
         self.snapshot = snapshot

@@ -4,18 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 
 from geckolib.automation.base import GeckoAutomationBase
 from geckolib.automation.heatpump import GeckoHeatPump
 from geckolib.automation.ingrid import GeckoInGrid
-from geckolib.automation.select import GeckoSelect
-from geckolib.driver.accessor import GeckoBoolStructAccessor
+from geckolib.automation.lockmode import GeckoLockMode
+from geckolib.config import GeckoConfig, config_sleep, set_config_mode
+from geckolib.const import GeckoConstants
+from geckolib.driver import Observable
 
-from ..async_spa import GeckoAsyncSpa
-from ..async_taskman import GeckoAsyncTaskMan
-from ..config import GeckoConfig, config_sleep, set_config_mode
-from ..const import GeckoConstants
-from ..driver import Observable
 from .blower import GeckoBlower
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
@@ -25,6 +23,11 @@ from .reminders import GeckoReminders
 from .sensors import GeckoBinarySensor, GeckoErrorSensor, GeckoSensor, GeckoSensorBase
 from .switch import GeckoSwitch
 from .watercare import GeckoWaterCare
+
+if TYPE_CHECKING:
+    from geckolib.async_spa import GeckoAsyncSpa
+    from geckolib.async_taskman import GeckoAsyncTaskMan
+    from geckolib.driver.accessor import GeckoBoolStructAccessor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -93,6 +96,7 @@ class GeckoAsyncFacade(Observable):
         self._ecomode: GeckoSwitch | None = None
         self._heatpump: GeckoHeatPump | None = None
         self._ingrid: GeckoInGrid | None = None
+        self._lockmode: GeckoLockMode | None = None
 
         # Build the automation items
         self._reminders_manager = GeckoReminders(self)
@@ -306,6 +310,11 @@ class GeckoAsyncFacade(Observable):
                         self._spa.accessors[GeckoConstants.KEY_COOLZONE_MODE],
                     )
 
+        if GeckoConstants.KEY_LOCKMODE in self._spa.accessors:
+            self._lockmode = GeckoLockMode(
+                self, "Lock Mode", self._spa.accessors[GeckoConstants.KEY_LOCKMODE]
+            )
+
     @property
     def unique_id(self) -> str:
         """A unique id for the facade."""
@@ -377,14 +386,19 @@ class GeckoAsyncFacade(Observable):
         return self._ecomode
 
     @property
-    def heatpump(self) -> GeckoSelect | None:
+    def heatpump(self) -> GeckoHeatPump | None:
         """Get the heat pump if available."""
         return self._heatpump
 
     @property
-    def ingrid(self) -> GeckoSelect | None:
+    def ingrid(self) -> GeckoInGrid | None:
         """Get the inGrid handler if available."""
         return self._ingrid
+
+    @property
+    def lockmode(self) -> GeckoLockMode | None:
+        """Get the lockmode handler if available."""
+        return self._lockmode
 
     @property
     def spa_in_use_sensor(self) -> GeckoAsyncFacade.SpaInUseSensor:

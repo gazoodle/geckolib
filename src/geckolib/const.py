@@ -61,6 +61,7 @@ class GeckoConstants:
     KEY_MODBUS_HEATPUMP_DETECTED = "ModbusHeatPumpDetected"
     KEY_COOLZONE_DETECTED = "CoolZoneDetected"
     KEY_COOLZONE_MODE = "CoolZoneMode"
+    KEY_LOCKMODE = "LockMode"
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 

@@ -164,6 +164,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                     lines.append(f"{self.facade.heatpump}")
                 if self.facade.ingrid is not None:
                     lines.append(f"{self.facade.ingrid}")
+                if self.facade.lockmode is not None:
+                    lines.append(f"{self.facade.lockmode}")
                 for sensor in [
                     *self.facade.sensors,
                     *self.facade.binary_sensors,
