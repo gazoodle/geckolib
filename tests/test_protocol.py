@@ -3,6 +3,7 @@
 import unittest
 import unittest.mock
 
+import pytest
 from context import (
     GeckoAsyncPartialStatusBlockProtocolHandler,
     GeckoConfigFileProtocolHandler,
@@ -406,6 +407,7 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
 class TestGeckoAsyncStatusBlockHandler:
     """Status block tests."""
 
+    @pytest.mark.asyncio
     async def test_recv_handle_partial(self) -> None:
         protocol = MockProtocol()
         handler = GeckoAsyncPartialStatusBlockProtocolHandler(protocol)
@@ -417,6 +419,7 @@ class TestGeckoAsyncStatusBlockHandler:
             == b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATQ\x01</DATAS></PACKT>"
         )
 
+    @pytest.mark.asyncio
     async def test_change_unpack_more(self) -> None:
         protocol = MockProtocol()
         handler = GeckoAsyncPartialStatusBlockProtocolHandler(protocol)
