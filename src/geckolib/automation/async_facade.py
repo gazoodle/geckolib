@@ -21,7 +21,7 @@ from .light import GeckoLight
 from .pump import GeckoPump
 from .reminders import GeckoReminders
 from .sensors import GeckoBinarySensor, GeckoErrorSensor, GeckoSensor, GeckoSensorBase
-from .switch import GeckoSwitch
+from .switch import GeckoStandby, GeckoSwitch
 from .watercare import GeckoWaterCare
 
 if TYPE_CHECKING:
@@ -97,6 +97,7 @@ class GeckoAsyncFacade(Observable):
         self._heatpump: GeckoHeatPump | None = None
         self._ingrid: GeckoInGrid | None = None
         self._lockmode: GeckoLockMode | None = None
+        self._standby: GeckoStandby | None = None
 
         # Build the automation items
         self._reminders_manager = GeckoReminders(self)
@@ -315,6 +316,9 @@ class GeckoAsyncFacade(Observable):
                 self, "Lock Mode", self._spa.accessors[GeckoConstants.KEY_LOCKMODE]
             )
 
+        if GeckoConstants.KEY_STANDBY in self._spa.accessors:
+            self._standby = GeckoStandby(self)
+
     @property
     def unique_id(self) -> str:
         """A unique id for the facade."""
@@ -399,6 +403,11 @@ class GeckoAsyncFacade(Observable):
     def lockmode(self) -> GeckoLockMode | None:
         """Get the lockmode handler if available."""
         return self._lockmode
+
+    @property
+    def standby(self) -> GeckoStandby | None:
+        """Get the standby switch if available."""
+        return self._standby
 
     @property
     def spa_in_use_sensor(self) -> GeckoAsyncFacade.SpaInUseSensor:

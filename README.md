@@ -306,6 +306,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa
+ - Add support for standby mode
 
 ## Done/Fixed in 1.0.0
  - Breaking change, removed all sync APIs

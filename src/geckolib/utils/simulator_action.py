@@ -19,6 +19,8 @@ class GeckoSimulatorAction:
     UdP1: Any
     UdP2: Any
     UdLi: Any
+    QuietState: Any
+    UdQuietTime: Any
 
     # Support accessors
     P1: Any
@@ -83,6 +85,15 @@ class GeckoSimulatorAction:
     def on_P2(self) -> None:
         """Handle changes to P1."""
         self._pump_helper()
+
+    def on_QuietState(self) -> None:
+        """Handle quiet state."""
+        if self.QuietState == "OFF":
+            self.UdQuietTime = 29
+            self.UdP1 = "OFF"
+            self.UdP2 = "OFF"
+        else:
+            self.UdQuietTime = 0
 
     ############################################################################
     #

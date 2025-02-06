@@ -62,6 +62,7 @@ class GeckoConstants:
     KEY_COOLZONE_DETECTED = "CoolZoneDetected"
     KEY_COOLZONE_MODE = "CoolZoneMode"
     KEY_LOCKMODE = "LockMode"
+    KEY_STANDBY = "QuietState"
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 
