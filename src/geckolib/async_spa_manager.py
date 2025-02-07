@@ -300,7 +300,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         return self._spa_descriptors
 
     async def async_connect_to_spa(
-        self, spa_descriptor: GeckoAsyncSpaDescriptor
+        self, spa_descriptor: GeckoAsyncSpaDescriptor | None
     ) -> GeckoAsyncFacade | None:
         """
         Connect to spa.
@@ -308,6 +308,9 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         This API will connect to the specified spa using the supplied descriptor.
         """
         assert self._facade is None
+        if spa_descriptor is None:
+            await self._handle_event(GeckoSpaEvent.SPA_NOT_FOUND)
+            return None
 
         try:
             self._spa_name = spa_descriptor.name
@@ -584,9 +587,12 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
                     if self._spa_descriptors is not None:
                         await self.async_connect_to_spa(
                             next(
-                                d
-                                for d in self._spa_descriptors
-                                if d.identifier_as_string == self._spa_identifier
+                                (
+                                    d
+                                    for d in self._spa_descriptors
+                                    if d.identifier_as_string == self._spa_identifier
+                                ),
+                                None,
                             )
                         )
                     else:
