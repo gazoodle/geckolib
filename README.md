@@ -308,6 +308,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
   power consumption figure which ought to be able to integrate into HA's energy dashboard.
 - Add ability to change the RF channel. The app sends a CHACH\xb4\x0c command, play in the simulator!
 
+## Done/Fixed in 1.0.2
+
+
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa
  - Add support for standby mode
