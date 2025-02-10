@@ -7,7 +7,6 @@ import logging
 import os
 import re
 from datetime import datetime
-from struct import pack
 
 from geckolib.driver import GeckoStatusBlockProtocolHandler
 

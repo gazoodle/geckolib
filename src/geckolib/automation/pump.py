@@ -5,7 +5,6 @@ import logging
 from geckolib.automation.power import GeckoPower
 
 from ..const import GeckoConstants
-from .base import GeckoAutomationFacadeBase
 from .sensors import GeckoSensor
 
 _LOGGER = logging.getLogger(__name__)

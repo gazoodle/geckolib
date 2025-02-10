@@ -4,7 +4,7 @@ Complete sample client CUI - Console User Interface.
 All the code to drive the CUI is in this file, it should only
 talk to the facade as it is the example of how to integrate
 geckolib into an automation system.
-"""
+"""  # noqa: INP001
 
 import _curses
 import asyncio

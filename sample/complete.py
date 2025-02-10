@@ -12,7 +12,7 @@ I would have loved to have one library that could do both, but
 this was increasingly difficult to acheive and I was spending
 quite a bit of time in thread faff which is something that I'm
 sure is not needed in the async world ... time will tell.
-"""
+"""  # noqa: EXE002, INP001
 
 import asyncio
 import curses
@@ -24,7 +24,7 @@ from cui import CUI
 
 def install_logging() -> None:
     """Everyone needs logging, you say when, you say where, you say how much."""
-    Path("cui.log").unlink(True)
+    Path("cui.log").unlink(missing_ok=True)
     file_logger = logging.FileHandler("cui.log")
     file_logger.setLevel(logging.DEBUG)
     file_logger.setFormatter(
@@ -37,9 +37,10 @@ def install_logging() -> None:
 async def async_main(stdscr: curses.window) -> None:
     """Async main manages the console UI."""
     task = asyncio.current_task()
-    task.set_name("CUI main")
-    async with CUI(stdscr):
-        pass
+    if task is not None:
+        task.set_name("CUI main")
+        async with CUI(stdscr):
+            pass
 
 
 def main(stdscr: curses.window) -> None:

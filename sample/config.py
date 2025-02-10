@@ -1,7 +1,8 @@
-"""Configuration class for complete async example"""
+"""Configuration class for complete async example."""  # noqa: INP001
 
 import configparser
 import logging
+from pathlib import Path
 
 # Configuration file constants
 CONFIG_FILE = "sample.ini"
@@ -14,26 +15,26 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Config:
-    """Hold the configuration for the complete async example app"""
+    """Hold the configuration for the complete async example app."""
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize the config class."""
         _LOGGER.debug("Read config from %s", CONFIG_FILE)
         self._config = configparser.ConfigParser()
         self._config.read(CONFIG_FILE)
 
-        # self._config[CK_DEFAULT][CK_SPA_ID] = "SPA80:1f:12:5c:d3:c0"
-        # self._config[CK_DEFAULT][CK_SPA_ADDR] = "10.0.208.216"
-        # self.save()
-
     def save(self) -> None:
-        with open(CONFIG_FILE, "w") as configfile:
+        """Save the config file."""
+        with Path(CONFIG_FILE).open("w") as configfile:
             self._config.write(configfile)
 
     @property
     def spa_id(self) -> str | None:
+        """Get the spa id."""
         return self._config[CK_DEFAULT].get(CK_SPA_ID, None)
 
-    def set_spa_id(self, spa_id) -> None:
+    def set_spa_id(self, spa_id: str | None) -> None:
+        """Set the spa id."""
         if spa_id is None:
             self._config.remove_option(CK_DEFAULT, CK_SPA_ID)
         else:
@@ -41,9 +42,11 @@ class Config:
 
     @property
     def spa_address(self) -> str | None:
+        """Get the spa address."""
         return self._config[CK_DEFAULT].get(CK_SPA_ADDR, None)
 
-    def set_spa_address(self, spa_address) -> None:
+    def set_spa_address(self, spa_address: str | None) -> None:
+        """Set the spa address."""
         if spa_address is None:
             self._config.remove_option(CK_DEFAULT, CK_SPA_ADDR)
         else:
@@ -51,9 +54,11 @@ class Config:
 
     @property
     def spa_name(self) -> str | None:
+        """Get the spa name."""
         return self._config[CK_DEFAULT].get(CK_SPA_NAME, None)
 
-    def set_spa_name(self, spa_name) -> None:
+    def set_spa_name(self, spa_name: str | None) -> None:
+        """Set the spa name."""
         if spa_name is None:
             self._config.remove_option(CK_DEFAULT, CK_SPA_NAME)
         else:
