@@ -7,6 +7,7 @@ import logging
 import os
 import re
 from datetime import datetime
+from struct import pack
 
 from geckolib.driver import GeckoStatusBlockProtocolHandler
 
@@ -189,11 +190,11 @@ class GeckoSnapshot:
         return f"{self._intouch_CO[0]} v{self._intouch_CO[1]}.{self._intouch_CO[2]}"
 
     @property
-    def config_version(self):
+    def config_version(self) -> int:
         return int(self._config_version)
 
     @property
-    def log_version(self):
+    def log_version(self) -> int:
         return int(self._log_version)
 
     @property
@@ -261,6 +262,20 @@ class GeckoSnapshot:
         snapshot._bytes = bytes(
             bytearray([int(b.strip()[2:], 16) for b in snap["Status Block"]])
         )
+        return snapshot
+
+    @staticmethod
+    def create(pack_type: str, config_version: str, log_version: str) -> GeckoSnapshot:
+        snapshot = GeckoSnapshot()
+
+        snapshot.parse(f"Spa pack {pack_type} 186 v3.0")
+        snapshot.parse("intouch version EN 88 v15.0")
+        snapshot.parse("intouch version CO 89 v11.0")
+
+        snapshot._config_version = config_version
+        snapshot._log_version = log_version
+        snapshot._bytes = bytearray(1024)
+
         return snapshot
 
     def is_compatible(self, other: GeckoSnapshot) -> bool:

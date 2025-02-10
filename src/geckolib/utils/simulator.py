@@ -282,6 +282,18 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         """Complete the do_diff command."""
         return self._complete_path(text)
 
+    async def do_reset_to(self, arg: str) -> None:
+        """
+        Reset simulator to specific platform and version.
+
+        usage: reset_to <platform> <config_version> <log_version>.
+        """
+        try:
+            plateform, config, log = arg.split(" ")
+            await self.set_snapshot(GeckoSnapshot.create(plateform, config, log))
+        except IndexError:
+            pass
+
     def _should_ignore(self, handler, sender, respect_rferr=True) -> bool:
         if respect_rferr and self._do_rferr:
             self._protocol.queue_send(
