@@ -1,7 +1,8 @@
-"""Automation switches"""
+"""Automation switches."""
 
 import logging
 
+from geckolib.automation.power import GeckoPower
 from geckolib.driver.accessor import GeckoEnumStructAccessor
 
 from ..const import GeckoConstants
@@ -11,7 +12,7 @@ from .sensors import GeckoSensor
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoSwitch(GeckoAutomationFacadeBase):
+class GeckoSwitch(GeckoPower):
     """A switch can turn something on or off, and can report the current state."""
 
     def __init__(self, facade, key, props):
@@ -26,7 +27,7 @@ class GeckoSwitch(GeckoAutomationFacadeBase):
 
     @property
     def is_on(self) -> bool:
-        """True if the device is ON, False otherwise"""
+        """True if the device is ON, False otherwise."""
         if self._accessor.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
             return self._state_sensor.state
         return self._state_sensor.state != "OFF"

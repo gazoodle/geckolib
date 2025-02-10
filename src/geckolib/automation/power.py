@@ -1,0 +1,24 @@
+"""Energy base class."""
+
+from abc import abstractmethod
+
+from geckolib.automation.base import GeckoAutomationFacadeBase
+
+
+class GeckoPower(GeckoAutomationFacadeBase):
+    """Base class for energy counting objects."""
+
+    def __init__(self, facade, name, key) -> None:
+        """Initialize the energy base class."""
+        super().__init__(facade, name, key)
+        self.power: float = 0.0
+
+    @property
+    @abstractmethod
+    def is_on(self) -> bool:
+        """Determine if this device is on or not."""
+
+    @property
+    def current_power(self) -> float:
+        """Get powewr value for this device if it is on."""
+        return self.power if self.is_on else 0.0

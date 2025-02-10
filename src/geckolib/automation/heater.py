@@ -1,12 +1,13 @@
-"""Gecko Water Heaters"""
+"""Gecko Water Heaters."""
 
-from ..const import GeckoConstants
-from .base import GeckoAutomationFacadeBase
+from geckolib.automation.power import GeckoPower
+from geckolib.const import GeckoConstants
+
 from .sensors import GeckoBinarySensor, GeckoSensor
 
 
-class GeckoWaterHeater(GeckoAutomationFacadeBase):
-    """Water Heater object based on Home Assistant Entity Type Climate"""
+class GeckoWaterHeater(GeckoPower):
+    """Water Heater object based on Home Assistant Entity Type Climate."""
 
     TEMP_CELCIUS = "°C"
     TEMP_FARENHEIGHT = "°F"
@@ -73,36 +74,36 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
 
     @property
     def is_present(self):
-        """Determine if the heater is present from the config"""
+        """Determine if the heater is present from the config."""
         return self._is_present
 
     @property
     def target_temperature_sensor(self):
-        """Get the target temperature sensor object"""
+        """Get the target temperature sensor object."""
         return self._target_temperature_sensor
 
     @property
     def target_temperature(self):
-        """Get the target temperature of the water"""
+        """Get the target temperature of the water."""
         return self._target_temperature_sensor.state
 
     async def async_set_target_temperature(self, new_temperature):
-        """Set the target temperature of the water"""
+        """Set the target temperature of the water."""
         await self._target_temperature_sensor.accessor.async_set_value(new_temperature)
 
     @property
     def real_target_temperature(self):
-        """Get the real target temperature (takes economy mode into account)"""
+        """Get the real target temperature (takes economy mode into account)."""
         return self._real_setpoint_sensor.state
 
     @property
     def real_target_temperature_sensor(self):
-        """Get the real target temperature sensor object (takes economy mode into account)"""
+        """Get the real target temperature sensor object (takes economy mode into account)."""
         return self._real_setpoint_sensor
 
     @property
     def min_temp(self):
-        """Get the minimum temperature of the water heater"""
+        """Get the minimum temperature of the water heater."""
         return (
             self.MIN_TEMP_C
             if self._temperature_unit_accessor.value == "C"
@@ -111,7 +112,7 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
 
     @property
     def max_temp(self):
-        """Get the maximum temperature of the water heater"""
+        """Get the maximum temperature of the water heater."""
         return (
             self.MAX_TEMP_C
             if self._temperature_unit_accessor.value == "C"
@@ -120,23 +121,23 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
 
     @property
     def current_temperature(self):
-        """Get the current temperature of the water"""
+        """Get the current temperature of the water."""
         return self._current_temperature_sensor.state
 
     @property
     def temperature_unit(self):
-        """Get the temperature units for the water heater"""
+        """Get the temperature units for the water heater."""
         if self._temperature_unit_accessor.value == "C":
             return self.TEMP_CELCIUS
         return self.TEMP_FARENHEIGHT
 
     @property
     def current_temperature_sensor(self):
-        """Get the current temperature sensor object"""
+        """Get the current temperature sensor object."""
         return self._current_temperature_sensor
 
     async def async_set_temperature_unit(self, new_unit):
-        """Set the temperature units for the water heater"""
+        """Set the temperature units for the water heater."""
         if new_unit in (self.TEMP_FARENHEIGHT, "f", "F"):
             await self._temperature_unit_accessor.async_set_value("F")
         else:
@@ -144,7 +145,7 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
 
     @property
     def current_operation(self):
-        """Return the current operation of the water heater"""
+        """Return the current operation of the water heater."""
         # If we have both sensors, then these are the arbiters
         if (
             self._heating_action_sensor is not None
@@ -172,7 +173,7 @@ class GeckoWaterHeater(GeckoAutomationFacadeBase):
         return GeckoConstants.WATER_HEATER_IDLE
 
     def format_temperature(self, temperature):
-        """Format a temperature value to a printable string"""
+        """Format a temperature value to a printable string."""
         return f"{temperature:.1f}{self.temperature_unit}"
 
     def __str__(self):
