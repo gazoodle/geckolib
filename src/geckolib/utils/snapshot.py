@@ -22,7 +22,7 @@ class GeckoSnapshot:
         self._lines = []
         self._name = None
         self._timestamp = datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M:%S")
-        self._pack_type = None
+        self._pack_type: str = ""
         self._pack_conf_id = None
         self._pack_conf_rev = None
         self._pack_conf_rel = None
@@ -159,7 +159,7 @@ class GeckoSnapshot:
         return self._timestamp
 
     @property
-    def packtype(self) -> str | None:
+    def packtype(self) -> str:
         """Get the snapshot packtype."""
         return self._pack_type
 
