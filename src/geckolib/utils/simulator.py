@@ -237,6 +237,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             self.structure.reset()
 
         self.snapshot = snapshot
+        _LOGGER.debug(snapshot)
 
         await self._set_structure_from_snapshot(
             self.structure, self.snapshot, do_rebuild=not compatible

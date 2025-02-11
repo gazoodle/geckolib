@@ -223,7 +223,7 @@ class GeckoSnapshot:
         with open(os.path.join(path, self.filename), "w") as f:
             f.writelines(self._lines)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Get string representagtion."""
         return f"{self.name} ({self.timestamp}) for {self.packtype}"
 
