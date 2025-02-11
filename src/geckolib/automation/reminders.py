@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from geckolib.driver import GeckoRemindersProtocolHandler, GeckoReminderType
@@ -45,7 +45,7 @@ class GeckoReminders(GeckoAutomationFacadeBase):
         @property
         def monitor(self) -> str:
             """Get the monitor string."""
-            return f"{datetime.now()}"  # noqa: DTZ005
+            return f"{datetime.now(tz=UTC)}"
 
         def __str__(self) -> str:
             """Stringize the reminder."""
@@ -86,7 +86,7 @@ class GeckoReminders(GeckoAutomationFacadeBase):
 
     def change_reminders(self, reminders: list[tuple]) -> None:
         """Call from async facade to update active reminders."""
-        self._last_update = datetime.utcnow()
+        self._last_update = datetime.now(tz=UTC)
         self._active_reminders = []
         for reminder in reminders:
             if reminder[0] != GeckoReminderType.INVALID:
@@ -98,7 +98,7 @@ class GeckoReminders(GeckoAutomationFacadeBase):
         self._active_reminders = []
         if handler.reminders is not None:
             # get actual time
-            now = datetime.now()  # current date and time
+            now = datetime.now(tz=UTC)  # current date and time
             time = now.strftime("%d.%m.%Y, %H:%M:%S")
             self._active_reminders.append(tuple(("Time", time)))
             for reminder in handler.reminders:

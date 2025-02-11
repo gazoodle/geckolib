@@ -344,9 +344,10 @@ class PackGenerator:
         errors.sort()
         xml.attrib["ErrorMessages"] = self.add_constant(errors)
 
-    def _write_one_accessor(
+    def _write_one_accessor(  # noqa: PLR0912
         self, file: TextIOWrapper, path: str, element: ET.Element
     ) -> None:
+        """Write a single accessor."""
         tag = f'"{element.tag}"'
         pos = element.attrib["Pos"]
         accessor_type = f'"{element.attrib["Type"]}"'
@@ -491,10 +492,6 @@ class PackGenerator:
 
     def build_plateform(self, plateform: ET.Element, version: str) -> None:
         """Build Plateform files."""
-        segment = plateform.attrib["Segment"]
-        # if segment != "aMainControl":
-        #   return
-
         plateform_name = plateform.attrib["Name"]
 
         # Create path for pack code modules

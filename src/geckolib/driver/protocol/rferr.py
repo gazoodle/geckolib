@@ -1,7 +1,7 @@
 """Gecko RFERR handlers"""
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 from .packet import GeckoPacketProtocolHandler
 
@@ -23,9 +23,9 @@ class GeckoRFErrProtocolHandler(GeckoPacketProtocolHandler):
     def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
         return received_bytes.startswith(RFERR_VERB)
 
-    def handle(self, received_bytes: bytes, sender: tuple):
+    def handle(self, _received_bytes: bytes, _sender: tuple):
         self._error_count += 1
-        self._last_error_at = datetime.now()
+        self._last_error_at = datetime.now(tz=UTC)
         _LOGGER.debug(
             "RF error #%d, intouch2 EN module cannot communicate with spa (CO) module",
             self.total_error_count,

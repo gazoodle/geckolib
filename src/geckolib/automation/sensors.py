@@ -1,13 +1,17 @@
 """Gecko automation support for sensors."""
 
-import logging
-from typing import Any
+from __future__ import annotations
 
-from geckolib.automation.async_facade import GeckoAsyncFacade
+import logging
+from typing import TYPE_CHECKING, Any
+
 from geckolib.driver import GeckoBoolStructAccessor
-from geckolib.driver.accessor import GeckoStructAccessor
 
 from .base import GeckoAutomationFacadeBase
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
+    from geckolib.driver.accessor import GeckoStructAccessor
 
 _LOGGER = logging.getLogger(__name__)
 

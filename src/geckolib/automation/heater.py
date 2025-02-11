@@ -1,10 +1,16 @@
 """Gecko Water Heaters."""
 
-from geckolib.automation.async_facade import GeckoAsyncFacade
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from geckolib.automation.power import GeckoPower
 from geckolib.const import GeckoConstants
 
 from .sensors import GeckoBinarySensor, GeckoSensor
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
 
 
 class GeckoWaterHeater(GeckoPower):
@@ -55,11 +61,13 @@ class GeckoWaterHeater(GeckoPower):
         self._heating_action_sensor = self._cooling_action_sensor = None
         if GeckoConstants.KEY_HEATING in self._spa.accessors:
             self._heating_action_sensor = GeckoBinarySensor(
-                self, "Heating", self._spa.accessors[GeckoConstants.KEY_HEATING]
+                self.facade, "Heating", self._spa.accessors[GeckoConstants.KEY_HEATING]
             )
         if GeckoConstants.KEY_COOLINGDOWN in self._spa.accessors:
             self._cooling_action_sensor = GeckoBinarySensor(
-                self, "Cooling", self._spa.accessors[GeckoConstants.KEY_COOLINGDOWN]
+                self.facade,
+                "Cooling",
+                self._spa.accessors[GeckoConstants.KEY_COOLINGDOWN],
             )
 
         # Setup change observers

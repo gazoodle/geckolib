@@ -233,7 +233,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         return local_state != states
 
     def monitor_print_states(self, states):
-        print(f"{datetime.datetime.now()} : {' '.join(states)}")
+        print(f"{datetime.datetime.now(tz=datetime.UTC)} : {' '.join(states)}")
 
     def do_monitor(self, _arg):
         """Monitor the state of the managed spa outputting a new line for each change : monitor"""

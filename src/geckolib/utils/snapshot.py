@@ -6,7 +6,7 @@ import ast
 import logging
 import os
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 
 from geckolib.driver import GeckoStatusBlockProtocolHandler
 
@@ -16,11 +16,11 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoSnapshot:
     """Snapshot helper class."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the snapshot."""
         self._lines = []
         self._name = None
-        self._timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self._timestamp = datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M:%S")
         self._pack_type = None
         self._pack_conf_id = None
         self._pack_conf_rev = None

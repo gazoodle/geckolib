@@ -1,9 +1,14 @@
 """Energy base class."""
 
-from abc import abstractmethod
+from __future__ import annotations
 
-from geckolib.automation.async_facade import GeckoAsyncFacade
+from abc import abstractmethod
+from typing import TYPE_CHECKING
+
 from geckolib.automation.base import GeckoAutomationFacadeBase
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
 
 
 class GeckoPower(GeckoAutomationFacadeBase):

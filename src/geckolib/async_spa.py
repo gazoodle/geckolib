@@ -389,7 +389,7 @@ class GeckoAsyncSpa(Observable):
         self, handler: GeckoPacketProtocolHandler, sender: tuple
     ) -> None:
         if handler.parms == self.sendparms:
-            assert self._protocol is not None
+            assert self._protocol is not None  # noqa: S101
             self._protocol.datagram_received(handler.packet_content, handler.parms)
         else:
             _LOGGER.warning(
@@ -419,7 +419,7 @@ class GeckoAsyncSpa(Observable):
 
                 if ping_handler is not None:
                     self._last_ping = time.monotonic()
-                    self._last_ping_at = datetime.utcnow().replace(tzinfo=UTC)
+                    self._last_ping_at = datetime.now(tz=UTC)
                     self._on_change()
                     await self._event_handler(
                         GeckoSpaEvent.RUNNING_PING_RECEIVED,

@@ -1,8 +1,13 @@
 """Gecko Keypads."""
 
-from geckolib.automation.async_facade import GeckoAsyncFacade
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from .base import GeckoAutomationFacadeBase
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
 
 
 class GeckoKeypad(GeckoAutomationFacadeBase):

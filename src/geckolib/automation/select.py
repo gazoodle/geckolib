@@ -1,11 +1,15 @@
 """Automation selection class."""  # noqa: A005
 
-import logging
+from __future__ import annotations
 
-from geckolib.automation.async_facade import GeckoAsyncFacade
-from geckolib.driver.accessor import GeckoEnumStructAccessor
+import logging
+from typing import TYPE_CHECKING
 
 from .base import GeckoAutomationFacadeBase
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
+    from geckolib.driver.accessor import GeckoEnumStructAccessor
 
 _LOGGER = logging.getLogger(__name__)
 

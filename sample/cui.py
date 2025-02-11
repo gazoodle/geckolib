@@ -12,7 +12,7 @@ import curses
 import inspect
 import logging
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Self
 
 from abstract_display import AbstractDisplay
@@ -270,7 +270,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             self.stdscr.addstr(
                 maxy - 2,
                 1,
-                f"{datetime.now():%x %X} - {self}",
+                f"{datetime.now(tz=UTC):%x %X} - {self}",
             )
 
         except _curses.error:
