@@ -2,13 +2,14 @@
 
 from abc import abstractmethod
 
+from geckolib.automation.async_facade import GeckoAsyncFacade
 from geckolib.automation.base import GeckoAutomationFacadeBase
 
 
 class GeckoPower(GeckoAutomationFacadeBase):
     """Base class for energy counting objects."""
 
-    def __init__(self, facade, name, key) -> None:
+    def __init__(self, facade: GeckoAsyncFacade, name: str, key: str) -> None:
         """Initialize the energy base class."""
         super().__init__(facade, name, key)
         self.power: float = 0.0

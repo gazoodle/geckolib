@@ -1,4 +1,4 @@
-"""Gecko Async Locator class"""
+"""Gecko Async Locator class."""
 
 import asyncio
 import logging
@@ -55,12 +55,13 @@ class GeckoAsyncLocator(Observable):
             return
 
         _LOGGER.debug("Discovered spa %s", handler.spa_identifier)
-        if self._spa_identifier is not None:
-            if self._spa_identifier != handler.spa_identifier.decode(
-                GeckoConstants.MESSAGE_ENCODING
-            ):
-                _LOGGER.debug("But we're not interested in that, so ignore it")
-                return
+        if (
+            self._spa_identifier is not None
+            and self._spa_identifier
+            != handler.spa_identifier.decode(GeckoConstants.MESSAGE_ENCODING)
+        ):
+            _LOGGER.debug("But we're not interested in that, so ignore it")
+            return
 
         self._on_change(self)
         self._spa_identifiers.append(handler.spa_identifier)
@@ -70,7 +71,7 @@ class GeckoAsyncLocator(Observable):
             sender,
         )
 
-        assert self._spas is not None
+        assert self._spas is not None  # noqa: S101
         self._spas.append(descriptor)
         await self._event_handler(
             GeckoSpaEvent.LOCATING_DISCOVERED_SPA, spa_descriptor=descriptor
@@ -84,12 +85,14 @@ class GeckoAsyncLocator(Observable):
 
     @property
     def age(self) -> float:
+        """Get the ago of this locator."""
         if self._started is None:
             return 0
         return time.monotonic() - self._started
 
     @property
     def spas(self) -> list[GeckoAsyncSpaDescriptor] | None:
+        """Get the list of spas."""
         return self._spas
 
     @property
@@ -104,7 +107,7 @@ class GeckoAsyncLocator(Observable):
             return False
         return self._protocol is not None
 
-    async def _broadcast_loop(self, hello_handler) -> None:
+    async def _broadcast_loop(self, hello_handler: GeckoHelloProtocolHandler) -> None:
         """Send a discovery message every second."""
         try:
             while True:
@@ -136,9 +139,9 @@ class GeckoAsyncLocator(Observable):
             allow_broadcast=True,
         )
         try:
-            assert isinstance(_protocol, GeckoAsyncUdpProtocol)
+            assert isinstance(_protocol, GeckoAsyncUdpProtocol)  # noqa: S101
             self._protocol = _protocol
-            assert self._transport is not None
+            assert self._transport is not None  # noqa: S101
             self._spas = []
 
             hello_handler = GeckoHelloProtocolHandler.broadcast(

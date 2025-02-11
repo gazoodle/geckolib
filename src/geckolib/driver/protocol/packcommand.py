@@ -1,7 +1,10 @@
 """Gecko SPACK/PACKS handlers."""
 
+from __future__ import annotations
+
 import logging
 import struct
+from typing import Any
 
 from geckolib.driver.accessor import GeckoStructAccessor
 
@@ -21,8 +24,15 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
 
     @staticmethod
     def set_value(
-        seq, pack_type, config_version, log_version, pos, len, data, **kwargs
-    ):
+        seq: int,
+        pack_type: int,
+        config_version: int,
+        log_version: int,
+        pos: int,
+        length: int,
+        data: Any,
+        **kwargs: Any,
+    ) -> GeckoPackCommandProtocolHandler:
         return GeckoPackCommandProtocolHandler(
             content=b"".join(
                 [
@@ -31,13 +41,13 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                         ">BBBBBBH",
                         seq,
                         pack_type,
-                        5 + len,
+                        5 + length,
                         PACK_COMMAND_SET_VALUE,
                         config_version,
                         log_version,
                         pos,
                     ),
-                    GeckoStructAccessor.pack_data(len, data),
+                    GeckoStructAccessor.pack_data(length, data),
                 ]
             ),
             timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,

@@ -1,48 +1,65 @@
-"""Gecko automation support for sensors"""
+"""Gecko automation support for sensors."""
 
 import logging
 from typing import Any
 
-from ..driver import GeckoBoolStructAccessor
+from geckolib.automation.async_facade import GeckoAsyncFacade
+from geckolib.driver import GeckoBoolStructAccessor
+from geckolib.driver.accessor import GeckoStructAccessor
+
 from .base import GeckoAutomationFacadeBase
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoSensorBase(GeckoAutomationFacadeBase):
-    """Base sensor allows non-accessor sensors to be implemented"""
+    """Base sensor allows non-accessor sensors to be implemented."""
 
-    def __init__(self, facade, name, device_class=None):
+    def __init__(
+        self, facade: GeckoAsyncFacade, name: str, device_class: str | None = None
+    ) -> None:
+        """Initialize the sensor base."""
         super().__init__(facade, name, name.upper())
         self._device_class = device_class
 
     @property
-    def state(self):
-        """The state of the sensor"""
+    def state(self) -> Any | None:
+        """The state of the sensor."""
         return None
 
     @property
-    def unit_of_measurement(self):
-        """The unit of measurement for the sensor, or None"""
+    def unit_of_measurement(self) -> str | None:
+        """The unit of measurement for the sensor, or None."""
         return None
 
     @property
-    def device_class(self):
-        """The device class"""
+    def device_class(self) -> str | None:
+        """The device class."""
         return self._device_class
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Get a string representation."""
         return f"{self.name}: {self.state}"
 
 
 ########################################################################################
 class GeckoSensor(GeckoSensorBase):
     """
-    Sensors wrap accessors state with extra units and device
+    Sensors wrapper.
+
+    Take accessors state with extra units and device
     class properties
     """
 
-    def __init__(self, facade, name, accessor, unit_accessor=None, device_class=None):
+    def __init__(
+        self,
+        facade: GeckoAsyncFacade,
+        name: str,
+        accessor: GeckoStructAccessor,
+        unit_accessor: GeckoStructAccessor | None = None,
+        device_class: str | None = None,
+    ) -> None:
+        """Initialize the sensor class."""
         super().__init__(facade, name, device_class)
         self._accessor = accessor
         # Bubble up change notification
@@ -52,24 +69,25 @@ class GeckoSensor(GeckoSensorBase):
             unit_accessor.watch(self._on_change)
 
     @property
-    def state(self):
-        """The state of the sensor"""
+    def state(self) -> Any:
+        """The state of the sensor."""
         return self._accessor.value
 
     @property
-    def unit_of_measurement(self):
-        """The unit of measurement for the sensor, or None"""
+    def unit_of_measurement(self) -> str | None:
+        """The unit of measurement for the sensor, or None."""
         if self._unit_of_measurement_accessor is None:
             return None
         return self._unit_of_measurement_accessor.value
 
     @property
-    def accessor(self):
-        """Access the accessor member"""
+    def accessor(self) -> GeckoStructAccessor:
+        """Access the accessor member."""
         return self._accessor
 
     @property
-    def monitor(self):
+    def monitor(self) -> str:
+        """Get monitor string."""
         return f"{self.accessor.tag}: {self.state}"
 
 

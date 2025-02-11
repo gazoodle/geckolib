@@ -2,9 +2,11 @@
 
 import logging
 
+from geckolib.automation.async_facade import GeckoAsyncFacade
 from geckolib.automation.power import GeckoPower
+from geckolib.const import GeckoConstants
+from geckolib.driver.accessor import GeckoEnumStructAccessor, GeckoStructAccessor
 
-from ..const import GeckoConstants
 from .sensors import GeckoSensor
 
 _LOGGER = logging.getLogger(__name__)
@@ -13,7 +15,9 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoPump(GeckoPower):
     """Pumps are similar to switches, but might have variable speeds too."""
 
-    def __init__(self, facade, key, props, user_demand):
+    def __init__(
+        self, facade: GeckoAsyncFacade, key: str, props: list, user_demand
+    ) -> None:
         """Props is a tuple of (name, keypad_button, state_key, device_class)."""
         super().__init__(facade, props[0], key)
         self.ui_key = key
@@ -26,7 +30,7 @@ class GeckoPump(GeckoPower):
         self._user_demand = user_demand
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         """Return True if the device is running, False otherwise."""
         if (
             self._state_sensor.accessor.accessor_type

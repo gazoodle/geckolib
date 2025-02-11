@@ -1,4 +1,4 @@
-"""Connection events issued during spa discovery/connection"""
+"""Connection events issued during spa discovery/connection."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 
 
 class GeckoSpaEvent(Enum):
-    """Events triggered during locating and connection status of spas"""
+    """Events triggered during locating and connection status of spas."""
 
     # Spa manager -------------------------------------------------------
     SPA_MAN_ENTER = 1

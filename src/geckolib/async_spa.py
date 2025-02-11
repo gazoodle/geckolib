@@ -87,6 +87,7 @@ class GeckoAsyncSpa(Observable):
 
     @property
     def sendparms(self) -> tuple:
+        """Get send parms suitable for the send() API."""
         return (
             self.descriptor.destination[0],
             self.descriptor.destination[1],
@@ -96,6 +97,7 @@ class GeckoAsyncSpa(Observable):
 
     @property
     def is_connected(self) -> bool:
+        """Is this spa connected."""
         return self._is_connected
 
     @property
@@ -398,7 +400,7 @@ class GeckoAsyncSpa(Observable):
 
     @property
     def last_ping_at(self) -> datetime | None:
-        """The datetime of the last successful ping response or None"""
+        """The datetime of the last successful ping response or None."""
         return self._last_ping_at
 
     async def _ping_loop(self) -> None:
@@ -515,14 +517,12 @@ class GeckoAsyncSpa(Observable):
         handler: GeckoAsyncPartialStatusBlockProtocolHandler,
         sender: tuple,
     ) -> None:
-        _LOGGER.debug(f"Change count {len(handler.changes)}")
         for change in handler.changes:
-            _LOGGER.debug(f"  Change {change}")
             self.struct.replace_status_block_segment(change[0], change[1])
 
-    async def _async_on_set_value(self, pos, length, newvalue) -> None:
+    async def _async_on_set_value(self, pos: int, length: int, newvalue) -> None:
         try:
-            assert self._protocol is not None
+            assert self._protocol is not None  # noqa: S101
             if not self.is_connected:
                 _LOGGER.warning("Cannot set value when spa not connected")
                 return
@@ -562,12 +562,13 @@ class GeckoAsyncSpa(Observable):
 
     @property
     def accessors(self) -> dict:
+        """Get the accessors dictionary for this spa."""
         return self.struct.accessors
 
     async def async_press(self, keypad) -> None:
         """Simulate a button press async."""
         try:
-            assert self._protocol is not None
+            assert self._protocol is not None  # noqa: S101
             if not self.is_connected:
                 _LOGGER.warning("Cannot press keypad when spa not connected")
                 return

@@ -2,6 +2,7 @@
 
 import logging
 
+from geckolib.automation.async_facade import GeckoAsyncFacade
 from geckolib.driver.accessor import GeckoEnumStructAccessor
 
 from .select import GeckoSelect
@@ -12,7 +13,9 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoLockMode(GeckoSelect):
     """A select object can select between options and can report the current state."""
 
-    def __init__(self, facade, name, accessor: GeckoEnumStructAccessor):
+    def __init__(
+        self, facade: GeckoAsyncFacade, name: str, accessor: GeckoEnumStructAccessor
+    ) -> None:
         """Initialize the heatpump class."""
         super().__init__(facade, name, accessor)
         # Set of mappings of constants to UI options

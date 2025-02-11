@@ -1,5 +1,6 @@
 """Gecko Water Heaters."""
 
+from geckolib.automation.async_facade import GeckoAsyncFacade
 from geckolib.automation.power import GeckoPower
 from geckolib.const import GeckoConstants
 
@@ -17,7 +18,8 @@ class GeckoWaterHeater(GeckoPower):
     MIN_TEMP_F = 46
     MAX_TEMP_F = 104
 
-    def __init__(self, facade):
+    def __init__(self, facade: GeckoAsyncFacade) -> None:
+        """Initialize the water heater class."""
         super().__init__(facade, "Heater", "HEAT")
         self._is_present = False
 
@@ -73,36 +75,36 @@ class GeckoWaterHeater(GeckoPower):
                 sensor.watch(self._on_change)
 
     @property
-    def is_present(self):
+    def is_present(self) -> bool:
         """Determine if the heater is present from the config."""
         return self._is_present
 
     @property
-    def target_temperature_sensor(self):
+    def target_temperature_sensor(self) -> GeckoSensor:
         """Get the target temperature sensor object."""
         return self._target_temperature_sensor
 
     @property
-    def target_temperature(self):
+    def target_temperature(self) -> float:
         """Get the target temperature of the water."""
         return self._target_temperature_sensor.state
 
-    async def async_set_target_temperature(self, new_temperature):
+    async def async_set_target_temperature(self, new_temperature: float) -> None:
         """Set the target temperature of the water."""
         await self._target_temperature_sensor.accessor.async_set_value(new_temperature)
 
     @property
-    def real_target_temperature(self):
-        """Get the real target temperature (takes economy mode into account)."""
+    def real_target_temperature(self) -> float:
+        """Get the real target temperature (takes eco mode into account)."""
         return self._real_setpoint_sensor.state
 
     @property
-    def real_target_temperature_sensor(self):
-        """Get the real target temperature sensor object (takes economy mode into account)."""
+    def real_target_temperature_sensor(self) -> GeckoSensor:
+        """Get the real target temperature sensor (takes eco mode into account)."""
         return self._real_setpoint_sensor
 
     @property
-    def min_temp(self):
+    def min_temp(self) -> float:
         """Get the minimum temperature of the water heater."""
         return (
             self.MIN_TEMP_C
@@ -111,7 +113,7 @@ class GeckoWaterHeater(GeckoPower):
         )
 
     @property
-    def max_temp(self):
+    def max_temp(self) -> float:
         """Get the maximum temperature of the water heater."""
         return (
             self.MAX_TEMP_C
@@ -120,23 +122,23 @@ class GeckoWaterHeater(GeckoPower):
         )
 
     @property
-    def current_temperature(self):
+    def current_temperature(self) -> float:
         """Get the current temperature of the water."""
         return self._current_temperature_sensor.state
 
     @property
-    def temperature_unit(self):
+    def temperature_unit(self) -> str:
         """Get the temperature units for the water heater."""
         if self._temperature_unit_accessor.value == "C":
             return self.TEMP_CELCIUS
         return self.TEMP_FARENHEIGHT
 
     @property
-    def current_temperature_sensor(self):
+    def current_temperature_sensor(self) -> GeckoSensor:
         """Get the current temperature sensor object."""
         return self._current_temperature_sensor
 
-    async def async_set_temperature_unit(self, new_unit):
+    async def async_set_temperature_unit(self, new_unit: str) -> None:
         """Set the temperature units for the water heater."""
         if new_unit in (self.TEMP_FARENHEIGHT, "f", "F"):
             await self._temperature_unit_accessor.async_set_value("F")
@@ -144,7 +146,7 @@ class GeckoWaterHeater(GeckoPower):
             await self._temperature_unit_accessor.async_set_value("C")
 
     @property
-    def current_operation(self):
+    def current_operation(self) -> str:  # noqa: PLR0911
         """Return the current operation of the water heater."""
         # If we have both sensors, then these are the arbiters
         if (
@@ -158,12 +160,16 @@ class GeckoWaterHeater(GeckoPower):
             return GeckoConstants.WATER_HEATER_IDLE
 
         # Otherwise, we take what we can get
-        if self._heating_action_sensor is not None:
-            if self._heating_action_sensor.is_on:
-                return GeckoConstants.WATER_HEATER_HEATING
-        if self._cooling_action_sensor is not None:
-            if self._cooling_action_sensor.is_on:
-                return GeckoConstants.WATER_HEATER_COOLING
+        if (
+            self._heating_action_sensor is not None
+            and self._heating_action_sensor.is_on
+        ):
+            return GeckoConstants.WATER_HEATER_HEATING
+        if (
+            self._cooling_action_sensor is not None
+            and self._cooling_action_sensor.is_on
+        ):
+            return GeckoConstants.WATER_HEATER_COOLING
 
         # Finally, it's down to the actual temperatures
         if self.current_temperature < self.real_target_temperature:
@@ -172,11 +178,12 @@ class GeckoWaterHeater(GeckoPower):
             return GeckoConstants.WATER_HEATER_COOLING
         return GeckoConstants.WATER_HEATER_IDLE
 
-    def format_temperature(self, temperature):
+    def format_temperature(self, temperature: float) -> str:
         """Format a temperature value to a printable string."""
         return f"{temperature:.1f}{self.temperature_unit}"
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Stringize the class."""
         if self._is_present:
             return (
                 f"{self.name}: Temperature "
@@ -188,5 +195,9 @@ class GeckoWaterHeater(GeckoPower):
         return f"{self.name}: Not present"
 
     @property
-    def monitor(self):
-        return f"HTR: {self.format_temperature(self.current_temperature)} SET: {self.format_temperature(self.real_target_temperature)}"
+    def monitor(self) -> str:
+        """Get monitor string."""
+        return (
+            f"HTR: {self.format_temperature(self.current_temperature)}"
+            f" SET: {self.format_temperature(self.real_target_temperature)}"
+        )
