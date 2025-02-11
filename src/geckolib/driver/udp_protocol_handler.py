@@ -241,7 +241,7 @@ class GeckoUdpProtocolHandler(ABC):
         self._start_time = time.monotonic()
 
     @staticmethod
-    def _default_retry_failed_handler(handler, socket) -> None:
+    def default_retry_failed_handler(handler, socket) -> None:
         _LOGGER.debug("Default retry failed handler for %r being used", handler)
         handler._should_remove_handler = True
 

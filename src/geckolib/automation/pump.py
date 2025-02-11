@@ -20,7 +20,7 @@ class GeckoPump(GeckoPower):
     """Pumps are similar to switches, but might have variable speeds too."""
 
     def __init__(
-        self, facade: GeckoAsyncFacade, key: str, props: list, user_demand
+        self, facade: GeckoAsyncFacade, key: str, props: list, user_demand: dict
     ) -> None:
         """Props is a tuple of (name, keypad_button, state_key, device_class)."""
         super().__init__(facade, props[0], key)
@@ -44,16 +44,16 @@ class GeckoPump(GeckoPower):
         return self._state_sensor.state != "OFF"
 
     @property
-    def modes(self):
+    def modes(self) -> list[str]:
         """Get the pump modes."""
         return self._user_demand["options"]
 
     @property
-    def mode(self):
+    def mode(self) -> str:
         """Get the pump mode."""
         return self._state_sensor.state
 
-    async def async_set_mode(self, mode) -> None:
+    async def async_set_mode(self, mode: str) -> None:
         """Set the mode."""
         try:
             _LOGGER.debug("%s async set mode %s", self.name, mode)
@@ -65,9 +65,11 @@ class GeckoPump(GeckoPower):
                 "Exception handling setting %s=%s", self._user_demand["demand"], mode
             )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Stringize class."""
         return f"{self.name}: {self._state_sensor.state}"
 
     @property
-    def monitor(self):
+    def monitor(self) -> str:
+        """Get monitor string."""
         return f"{self.ui_key}: {self._state_sensor.state}"

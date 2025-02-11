@@ -93,7 +93,9 @@ class GeckoReminders(GeckoAutomationFacadeBase):
                 self._active_reminders.append(GeckoReminders.Reminder(reminder))
         self._on_change(self)
 
-    def _on_reminders(self, handler: GeckoRemindersProtocolHandler, sender) -> None:
+    def _on_reminders(
+        self, handler: GeckoRemindersProtocolHandler, _sender: tuple
+    ) -> None:
         """Call to from protocal handler. Will filter out only the active reminders."""
         self._active_reminders = []
         if handler.reminders is not None:
@@ -109,7 +111,7 @@ class GeckoReminders(GeckoAutomationFacadeBase):
 
         self._reminders_handler = None
 
-    def update(self) -> None:
+    def obsolete_update(self) -> None:
         """Update the reminders."""
         self._reminders_handler = GeckoRemindersProtocolHandler.request(
             self._spa.get_and_increment_sequence_counter(False),

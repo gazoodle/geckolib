@@ -109,15 +109,19 @@ class GeckoBinarySensor(GeckoSensor):
             return False
         return state != "OFF"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Get string representation."""
         return f"{self.name}: {self.is_on}"
 
 
 ########################################################################################
 class GeckoErrorSensor(GeckoSensorBase):
-    """Error sensor aggregates all the error keys into a comma separated text string"""
+    """Error sensor aggregates all the error keys into a comma separated text string."""
 
-    def __init__(self, facade, device_class=None):
+    def __init__(
+        self, facade: GeckoAsyncFacade, device_class: str | None = None
+    ) -> None:
+        """Initialise the error sensor class."""
         super().__init__(facade, "Error Sensor", device_class)
         self._state = "No errors or warnings"
 
@@ -130,13 +134,14 @@ class GeckoErrorSensor(GeckoSensorBase):
         self.update_state()
 
     @property
-    def state(self):
-        """The state of the sensor"""
+    def state(self) -> str:
+        """The state of the sensor."""
         return self._state
 
     def update_state(
-        self, sender: Any = None, old_value: Any = None, new_value: Any = None
+        self, _sender: Any = None, _old_value: Any = None, _new_value: Any = None
     ) -> None:
+        """Update the state."""
         self._state = ""
 
         active_errors = [
@@ -144,7 +149,7 @@ class GeckoErrorSensor(GeckoSensorBase):
             for accessor_key, accessor in self.facade.spa.struct.accessors.items()
             if accessor_key in self.facade.spa.struct.error_keys
             and isinstance(accessor, GeckoBoolStructAccessor)
-            and accessor.value == True
+            and accessor.value is True
         ]
 
         if active_errors:
