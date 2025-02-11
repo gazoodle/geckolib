@@ -7,6 +7,7 @@ import logging
 import os
 import re
 from datetime import UTC, datetime
+from typing import Any
 
 from geckolib.driver import GeckoStatusBlockProtocolHandler
 
@@ -37,7 +38,7 @@ class GeckoSnapshot:
             #
             #   Snapshot set
             #
-            # Match "2020-12-08 19:53:28,310 geckolib.utils.shell INFO Snapshot (Heating)", # noqa : E501
+            # Match "2020-12-08 19:53:28,310 geckolib.utils.shell INFO Snapshot (Heating)", # noqa: E501
             (r"(\d+-\d+-\d+\s+\d+:\d+:\d+).*Snapshot \((.*)\)", self._re_snapshot),
             # Match "INFO:geckolib.utils.shell:Snapshot (EconomyModeActive)",
             (r"Snapshot \((.*)\)", self._re_snapshot_alt),
@@ -78,13 +79,13 @@ class GeckoSnapshot:
             (r"(STATV.*)</DATAS>", self._re_data_segment),
         ]
 
-    def _re_snapshot(self, groups):
+    def _re_snapshot(self, groups: tuple[str | Any, ...]) -> None:
         (self._timestamp, self._name) = groups
 
-    def _re_snapshot_alt(self, groups):
+    def _re_snapshot_alt(self, groups: tuple[str | Any, ...]) -> None:
         (self._name,) = groups
 
-    def _re_spa_pack(self, groups):
+    def _re_spa_pack(self, groups: tuple[str | Any, ...]) -> None:
         (
             self._pack_type,
             self._pack_conf_id,
@@ -92,44 +93,44 @@ class GeckoSnapshot:
             self._pack_conf_rel,
         ) = groups
 
-    def _re_spa_pack_type(self, groups):
+    def _re_spa_pack_type(self, groups: tuple[str | Any, ...]) -> None:
         (self._pack_type,) = groups
 
-    def _re_spa_pack_id(self, groups):
+    def _re_spa_pack_id(self, groups: tuple[str | Any, ...]) -> None:
         (hex_id,) = groups
         self._pack_conf_id = f"{int(hex_id, 16)}"
 
-    def _re_spa_pack_rev(self, groups):
+    def _re_spa_pack_rev(self, groups: tuple[str | Any, ...]) -> None:
         (self._pack_conf_rev,) = groups
 
-    def _re_spa_pack_rel(self, groups):
+    def _re_spa_pack_rel(self, groups: tuple[str | Any, ...]) -> None:
         (self._pack_conf_rel,) = groups
 
-    def _re_intouch_en(self, groups):
+    def _re_intouch_en(self, groups: tuple[str | Any, ...]) -> None:
         self._intouch_EN = groups
 
-    def _re_intouch_co(self, groups):
+    def _re_intouch_co(self, groups: tuple[str | Any, ...]) -> None:
         self._intouch_CO = groups
 
-    def _re_software_version(self, groups):
+    def _re_software_version(self, groups: tuple[str | Any, ...]) -> None:
         self._intouch_EN = (groups[0], groups[1], groups[2])
         self._intouch_CO = (groups[3], groups[4], groups[5])
 
-    def _re_config_version(self, groups):
+    def _re_config_version(self, groups: tuple[str | Any, ...]) -> None:
         (self._config_version,) = groups
 
-    def _re_log_version(self, groups):
+    def _re_log_version(self, groups: tuple[str | Any, ...]) -> None:
         (self._log_version,) = groups
 
-    def _re_config_and_log(self, groups):
+    def _re_config_and_log(self, groups: tuple[str | Any, ...]) -> None:
         (type_, self._config_version, self._log_version) = groups
 
-    def _re_data(self, groups):
+    def _re_data(self, groups: tuple[str | Any, ...]) -> None:
         self._bytes = bytes(
             bytearray([int(b.strip()[1:-1], 16) for b in groups[0].split(",")])
         )
 
-    def _re_data_segment(self, groups):
+    def _re_data_segment(self, groups: tuple[str | Any, ...]) -> None:
         data = groups[0].replace("'", "\\x27")
         bytes_ = ast.literal_eval(f"b'{data}'")
         self._status_block_handler.handle(bytes_, None)
@@ -137,7 +138,8 @@ class GeckoSnapshot:
         if self._status_block_handler.next == 0:
             self._bytes = b"".join(self._status_block_segments)
 
-    def parse(self, line: str):
+    def parse(self, line: str) -> None:
+        """Parse a snapshot line."""
         # Always bag the lines
         self._lines.append(line)
 
@@ -147,69 +149,87 @@ class GeckoSnapshot:
                 fn[1](match.groups())
 
     @property
-    def name(self):
+    def name(self) -> str | None:
+        """Get the snapshot name."""
         return self._name
 
     @property
-    def timestamp(self):
+    def timestamp(self) -> str | None:
+        """Get the snapshot timestamp."""
         return self._timestamp
 
     @property
-    def packtype(self):
+    def packtype(self) -> str | None:
+        """Get the snapshot packtype."""
         return self._pack_type
 
     @property
-    def spapack(self):
+    def spapack(self) -> str:
+        """Get the spapack."""
         return (
             f"{self._pack_type} {self._pack_conf_id}"
             f" v{self._pack_conf_rev}.{self._pack_conf_rel}"
         )
 
     @property
-    def filename(self):
+    def filename(self) -> str:
+        """Generate snapshot filename."""
         fixed_timestamp = f"{self.timestamp}".replace(":", "_")
         return f"{self._pack_type}-{self.name}-{fixed_timestamp}.snapshot"
 
     @property
-    def intouch_EN(self):
+    def intouch_EN(self) -> tuple[int, ...]:  # noqa: N802
+        """Get the intouch_EN versions."""
         return tuple(int(i) for i in self._intouch_EN)
 
     @property
-    def intouch_EN_str(self) -> str:
+    def intouch_EN_str(self) -> str:  # noqa: N802
         """Get the EN version as a string."""
-        return f"{self._intouch_EN[0]} v{self._intouch_EN[1]}.{self._intouch_EN[2]}"
+        tup = self._intouch_EN
+        if len(tup) == 3:
+            return f"{tup[0]} v{tup[1]}.{tup[2]}"
+        return ""
 
     @property
-    def intouch_CO(self):
+    def intouch_CO(self) -> tuple[int, ...]:  # noqa: N802
+        """Get the intouch_CO versions."""
         return tuple(int(i) for i in self._intouch_CO)
 
     @property
-    def intouch_CO_str(self) -> str:
+    def intouch_CO_str(self) -> str:  # noqa: N802
         """Get the CO version as a string."""
-        return f"{self._intouch_CO[0]} v{self._intouch_CO[1]}.{self._intouch_CO[2]}"
+        tup = self.intouch_CO
+        if len(tup) == 3:
+            return f"{tup[0]} v{tup[1]}.{tup[2]}"
+        return ""
 
     @property
     def config_version(self) -> int:
+        """Get the config version."""
         return int(self._config_version)
 
     @property
     def log_version(self) -> int:
+        """Get the log version."""
         return int(self._log_version)
 
     @property
-    def bytes(self):
+    def bytes(self) -> bytes:
+        """Get the structure bytes."""
         return self._bytes
 
-    def save(self, path):
+    def save(self, path: str) -> None:
         """Save this snapshot into the path specified."""
         with open(os.path.join(path, self.filename), "w") as f:
             f.writelines(self._lines)
 
     def __repr__(self):
+        """Get string representagtion."""
         return f"{self.name} ({self.timestamp}) for {self.packtype}"
 
     @staticmethod
-    def parse_log_file(file: str):
+    def parse_log_file(file: str) -> list[GeckoSnapshot]:
+        """Parse a log file into one or more snapshots."""
         snapshots = []
 
         snapshot = None
@@ -249,7 +269,8 @@ class GeckoSnapshot:
         return snapshots
 
     @staticmethod
-    def parse_json(json: str):
+    def parse_json(json: str) -> GeckoSnapshot:
+        """Parse a JSON snapshot."""
         snap = ast.literal_eval(json)
         snapshot = GeckoSnapshot()
 
@@ -265,6 +286,7 @@ class GeckoSnapshot:
 
     @staticmethod
     def create(pack_type: str, config_version: str, log_version: str) -> GeckoSnapshot:
+        """Create a blank snapshot."""
         snapshot = GeckoSnapshot()
 
         snapshot.parse(f"Spa pack {pack_type} 186 v3.0")
@@ -285,7 +307,4 @@ class GeckoSnapshot:
             return False
         if self.config_version != other.config_version:
             return False
-        if self.log_version != other.log_version:
-            return False
-
-        return True
+        return self.log_version == other.log_version
