@@ -1,4 +1,4 @@
-"""Unit tests for the actual snapshots."""
+"""Unit tests for the actual snapshots."""  # noqa: INP001
 
 import pathlib
 from unittest import IsolatedAsyncioTestCase, main
@@ -10,11 +10,14 @@ from context import (
     GeckoSnapshot,
 )
 
+from geckolib.driver.accessor import GeckoStructAccessor
+
 
 class GeckoAsyncSpa:
     """Mock spa for testing."""
 
-    def __init__(self, snapshotfile):
+    def __init__(self, snapshotfile: str) -> None:
+        """Initialize the class."""
         self.struct = GeckoAsyncStructure(None)
 
         cwd = pathlib.Path(__file__).parent.resolve()
@@ -30,7 +33,8 @@ class GeckoAsyncSpa:
         self.log_version = snapshot.log_version
 
     @property
-    def accessors(self):
+    def accessors(self) -> list[GeckoStructAccessor]:
+        """Get the accessors."""
         return self.struct.accessors
 
     async def async_init(self) -> None:
@@ -56,7 +60,7 @@ class TestSnapshots(IsolatedAsyncioTestCase):
     def tearDown(self) -> None:
         del self.taskman
 
-    async def build_facade(self, snapshotfile) -> GeckoAsyncFacade:
+    async def build_facade(self, snapshotfile: str) -> GeckoAsyncFacade:
         spa = GeckoAsyncSpa(snapshotfile)
         await spa.async_init()
         return GeckoAsyncFacade(spa, self.taskman)
@@ -136,7 +140,6 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         self.assertFalse(facade.lights[0].is_on)
         self.assertEqual(37.0, facade.water_heater.current_temperature)
         self.assertEqual("°C", facade.water_heater.temperature_unit)
-        print(facade.all_user_devices)
 
 
 if __name__ == "__main__":

@@ -134,7 +134,7 @@ class GeckoAsyncFacade(Observable):
         for device in self.all_config_change_devices:
             if device.is_on:
                 in_use = True
-        set_config_mode(in_use)
+        set_config_mode(active=in_use)
         self._spa_in_use_sensor.set_in_use(in_use=in_use)
 
     async def _facade_update(self) -> None:

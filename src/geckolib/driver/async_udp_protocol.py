@@ -3,10 +3,12 @@
 import asyncio
 import logging
 from collections.abc import Callable
-from typing import TypeVar
+from types import TracebackType
+from typing import Any, TypeVar
 
-from ..async_taskman import GeckoAsyncTaskMan
-from ..config import GeckoConfig, config_sleep
+from geckolib.async_taskman import GeckoAsyncTaskMan
+from geckolib.config import GeckoConfig, config_sleep
+
 from .async_peekablequeue import AsyncPeekableQueue
 from .udp_protocol_handler import GeckoUdpProtocolHandler
 
@@ -16,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 class DbgLock(asyncio.Lock):
     """Class to debug locking semantics."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the class."""
         super().__init__()
 
@@ -30,9 +32,9 @@ class DbgLock(asyncio.Lock):
 
     async def __aexit__(
         self,
-        exc_type,
-        exc,
-        tb,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
     ) -> None:
         """Async with."""
         t = asyncio.current_task()
@@ -52,7 +54,10 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     """
 
     def __init__(
-        self, taskman: GeckoAsyncTaskMan, on_connection_lost: asyncio.Event, destination
+        self,
+        taskman: GeckoAsyncTaskMan,
+        on_connection_lost: asyncio.Event,
+        destination: tuple[str, str],
     ) -> None:
         """Initialize the protocol class."""
         self.transport = None
@@ -63,20 +68,22 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self._sequence_counter_command = 191
         self._queue = AsyncPeekableQueue()
         self._taskman = taskman
-        # self._lock = DbgLock()  # asyncio.Lock()
         self._lock = asyncio.Lock()
         _LOGGER.debug("AsyncUdpProtocol started.")
 
     @property
-    def Lock(self):
+    def lock(self) -> asyncio.Lock:
+        """Get the lock object."""
         return self._lock
 
-    def connection_made(self, transport) -> None:
+    def connection_made(self, transport: asyncio.BaseTransport) -> None:
+        """Made connection."""
         _LOGGER.debug("GeckoAsyncUdpProtocol: connection made to %s.", transport)
-        self.transport = transport
+        self.transport: asyncio.BaseTransport | None = transport
         self._on_connection_lost.clear()
 
-    def connection_lost(self, exc) -> None:
+    def connection_lost(self, exc: BaseException | None) -> None:
+        """Lost connection."""
         _LOGGER.debug(
             "GeckoAsyncUdpProtocol: connection lost from %s (%s)", self.transport, exc
         )
@@ -85,9 +92,9 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
             self.transport = None
         self._on_connection_lost.set()
 
-    def error_received(self, exc) -> None:
+    def error_received(self, exc: BaseException) -> None:
+        """Error received."""
         _LOGGER.exception("GeckoAsyncUdpProtocol: Exception received %s", exc)
-        # TODO: What do we want to do with this?
 
     @property
     def isopen(self) -> bool:
@@ -119,7 +126,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         if not self.isopen:
             _LOGGER.warning("Cannot queue message as transport is closed")
             return
-        assert self.transport is not None
+        assert self.transport is not None  # noqa: S101
         if destination is None:
             destination = self._destination
         protocol_handler.last_destination = destination
@@ -131,17 +138,19 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self.transport.sendto(send_bytes, destination)
 
     def get_and_increment_sequence_counter(self, *, command: bool = False) -> int:
+        """Get (and increment) the sequence counter."""
         if command:
-            if self._sequence_counter_command == 255:
+            if self._sequence_counter_command == 255:  # noqa: PLR2004
                 self._sequence_counter_command = 191
             self._sequence_counter_command += 1
             return self._sequence_counter_command
-        if self._sequence_counter_protocol == 191:
+        if self._sequence_counter_protocol == 191:  # noqa: PLR2004
             self._sequence_counter_protocol = 0
         self._sequence_counter_protocol += 1
         return self._sequence_counter_protocol
 
-    def datagram_received(self, data, addr) -> None:
+    def datagram_received(self, data: Any, addr: tuple) -> None:
+        """Handle datagrame."""
         _LOGGER.debug("Datagram received: %s from %s", data, addr)
         self.queue.push((data, addr))
 
@@ -154,9 +163,8 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         retry_count: int = GeckoConfig.PROTOCOL_RETRY_COUNT,
     ) -> T | None:
         """Get the response to the request."""
-        # _LOGGER.debug("Async get started")
         try:
-            async with self.Lock:
+            async with self.lock:
                 while retry_count > 0:
                     # Create the request
                     request = create_func()
@@ -182,6 +190,3 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
             return None
         finally:
             pass
-            # _LOGGER.debug(
-            #    "Async get for `%s` finished.", asyncio.current_task().get_name()
-            # )

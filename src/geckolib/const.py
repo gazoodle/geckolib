@@ -35,6 +35,9 @@ class GeckoConstants:
     KEY_PACK_CONFIG_ID = "PackConfID"
     KEY_PACK_CONFIG_REV = "PackConfRev"
     KEY_PACK_CONFIG_REL = "PackConfRel"
+    KEY_PACK_CORE_ID = "PackCoreID"
+    KEY_PACK_CORE_REV = "PackCoreRev"
+    KEY_PACK_CORE_REL = "PackCoreRel"
     KEY_CONFIG_NUMBER = "ConfigNumber"
     KEY_TEMP_UNITS = "TempUnits"
     KEY_RH_WATER_TEMP = "RhWaterTemp"
@@ -100,7 +103,7 @@ class GeckoConstants:
 
     # Spa devices and accessories, dictionary of tuples
     #   ID: Description, keypad, structure key, class
-    DEVICES = {
+    DEVICES = {  # noqa: RUF012
         "P1": ("Pump 1", KEYPAD_PUMP_1, KEY_PUMP_1, DEVICE_CLASS_PUMP),
         "P2": ("Pump 2", KEYPAD_PUMP_2, KEY_PUMP_2, DEVICE_CLASS_PUMP),
         "P3": ("Pump 3", KEYPAD_PUMP_3, KEY_PUMP_3, DEVICE_CLASS_PUMP),
@@ -111,7 +114,7 @@ class GeckoConstants:
         "LI": ("Lights", KEYPAD_LIGHT, KEY_USER_DEMAND_LIGHT, DEVICE_CLASS_LIGHT),
     }
 
-    BINARY_SENSORS = [
+    BINARY_SENSORS = [  # noqa: RUF012
         (
             "Circulating Pump",
             KEY_CIRCULATING_PUMP,
@@ -125,11 +128,11 @@ class GeckoConstants:
         ("Heating", KEY_HEATING, DEVICE_CLASS_OTHER),
     ]
 
-    SENSORS = [("Smart Winter Mode:Risk", KEY_SWM_RISK)]
+    SENSORS = [("Smart Winter Mode:Risk", KEY_SWM_RISK)]  # noqa: RUF012
 
     # Buttons, list of tuples
     #   ID, Description, KeyPad ID
-    BUTTONS = [
+    BUTTONS = [  # noqa: RUF012
         ("P1", "Pump 1 Button", KEYPAD_PUMP_1),
         ("P2", "Pump 2 Button", KEYPAD_PUMP_2),
         ("P3", "Pump 3 Button", KEYPAD_PUMP_3),
@@ -149,7 +152,7 @@ class GeckoConstants:
         Weekender,
     ) = range(5)
 
-    WATERCARE_MODE_STRING = [
+    WATERCARE_MODE_STRING = [  # noqa: RUF012
         "Away From Home",
         "Standard",
         "Energy Saving",

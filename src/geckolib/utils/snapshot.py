@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import ast
 import logging
-import os
 import re
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 from geckolib.driver import GeckoStatusBlockProtocolHandler
@@ -153,6 +153,10 @@ class GeckoSnapshot:
         """Get the snapshot name."""
         return self._name
 
+    def set_name(self, name: str) -> None:
+        """Set the snapshot name."""
+        self._name = name
+
     @property
     def timestamp(self) -> str | None:
         """Get the snapshot timestamp."""
@@ -186,7 +190,7 @@ class GeckoSnapshot:
     def intouch_EN_str(self) -> str:  # noqa: N802
         """Get the EN version as a string."""
         tup = self._intouch_EN
-        if len(tup) == 3:
+        if len(tup) == 3:  # noqa: PLR2004
             return f"{tup[0]} v{tup[1]}.{tup[2]}"
         return ""
 
@@ -199,7 +203,7 @@ class GeckoSnapshot:
     def intouch_CO_str(self) -> str:  # noqa: N802
         """Get the CO version as a string."""
         tup = self.intouch_CO
-        if len(tup) == 3:
+        if len(tup) == 3:  # noqa: PLR2004
             return f"{tup[0]} v{tup[1]}.{tup[2]}"
         return ""
 
@@ -220,7 +224,7 @@ class GeckoSnapshot:
 
     def save(self, path: str) -> None:
         """Save this snapshot into the path specified."""
-        with open(os.path.join(path, self.filename), "w") as f:
+        with (Path(path) / Path(self.filename)).open("w") as f:
             f.writelines(self._lines)
 
     def __repr__(self) -> str:
@@ -235,7 +239,7 @@ class GeckoSnapshot:
         snapshot = None
         connection = None
 
-        with open(file) as f:
+        with Path(file).open() as f:
             for line in f:
                 if line.startswith("{"):
                     snapshot = GeckoSnapshot.parse_json(line)
@@ -251,7 +255,7 @@ class GeckoSnapshot:
 
                 if "Starting spa connection handshake..." in line:
                     connection = GeckoSnapshot()
-                    connection._name = "Connection found"
+                    connection.set_name("Connection found")
                 if connection:
                     if "Spa is connected" in line:
                         connection.parse(line)
@@ -277,9 +281,9 @@ class GeckoSnapshot:
         snapshot.parse(f"Spa pack {snap['Spa pack']}")
         snapshot.parse(f"intouch version EN {snap['intouch version EN']}")
         snapshot.parse(f"intouch version CO {snap['intouch version CO']}")
-        snapshot._config_version = snap["Config version"]
-        snapshot._log_version = snap["Log version"]
-        snapshot._bytes = bytes(
+        snapshot._config_version = snap["Config version"]  # noqa: SLF001
+        snapshot._log_version = snap["Log version"]  # noqa: SLF001
+        snapshot._bytes = bytes(  # noqa: SLF001
             bytearray([int(b.strip()[2:], 16) for b in snap["Status Block"]])
         )
         return snapshot
@@ -293,9 +297,9 @@ class GeckoSnapshot:
         snapshot.parse("intouch version EN 88 v15.0")
         snapshot.parse("intouch version CO 89 v11.0")
 
-        snapshot._config_version = config_version
-        snapshot._log_version = log_version
-        snapshot._bytes = bytearray(1024)
+        snapshot._config_version = config_version  # noqa: SLF001
+        snapshot._log_version = log_version  # noqa: SLF001
+        snapshot._bytes = bytearray(1024)  # noqa: SLF001
 
         return snapshot
 

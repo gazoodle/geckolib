@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from geckolib.config import config_sleep
 
@@ -45,7 +45,7 @@ class GeckoUdpProtocolHandler(ABC):
     or instance decisions, either by overridden methods, or by instance handlers.
     """
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize the protocol handler class."""
         # Send functionality
         self._send_bytes = kwargs.get("send_bytes")
@@ -148,7 +148,7 @@ class GeckoUdpProtocolHandler(ABC):
         This function doesn't respect the _on_handled functionality since its
         use is for inline async stuff.
         """
-        assert self.timeout_in_seconds > 0
+        assert self.timeout_in_seconds > 0  # noqa: S101
         try:
             while True:
                 try:
@@ -241,9 +241,12 @@ class GeckoUdpProtocolHandler(ABC):
         self._start_time = time.monotonic()
 
     @staticmethod
-    def default_retry_failed_handler(handler, socket) -> None:
+    def default_retry_failed_handler(
+        handler: GeckoUdpProtocolHandler, _protocol: GeckoAsyncUdpProtocol
+    ) -> None:
+        """Handle retry failure."""
         _LOGGER.debug("Default retry failed handler for %r being used", handler)
-        handler._should_remove_handler = True
+        handler._should_remove_handler = True  # noqa: SLF001
 
     # Pythonic methods
     def __repr__(self) -> str:

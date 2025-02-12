@@ -58,9 +58,9 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             """Initialize the ping sensor."""
             super().__init__(spaman.unique_id, "Last Ping", spaman.spa_name, "PING")
             self._spaman: GeckoAsyncSpaMan = spaman
-            assert self._spaman._spa is not None
-            self._spaman._spa.watch(self._on_spa_change)
-            self._last_ping_at: datetime | None = self._spaman._spa.last_ping_at
+            assert self._spaman.spa is not None  # noqa: S101
+            self._spaman.spa.watch(self._on_spa_change)
+            self._last_ping_at: datetime | None = self._spaman.spa.last_ping_at
 
         @property
         def state(self) -> datetime | None:
@@ -78,9 +78,10 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             return "timestamp"
 
         def _on_spa_change(self, *_args: Any) -> None:
-            if self._last_ping_at == self._spaman._spa.last_ping_at:
+            assert self._spaman.spa is not None  # noqa: S101
+            if self._last_ping_at == self._spaman.spa.last_ping_at:
                 return
-            self._last_ping_at = self._spaman._spa.last_ping_at
+            self._last_ping_at = self._spaman.spa.last_ping_at
             self._on_change()
 
         def __repr__(self) -> str:
@@ -141,7 +142,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             """Initialise the radio sensor class."""
             super().__init__(spaman.unique_id, "RF Signal", spaman.spa_name, "RADIO")
             self.signal: int = 0
-            self.set_signal(spaman._spa.signal)
+            self.set_signal(spaman.spa.signal)
 
         def set_signal(self, signal: int) -> None:
             """Set signal nstrength."""
@@ -174,7 +175,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             """Initialize the radio channel sensor."""
             super().__init__(spaman.unique_id, "RF Channel", spaman.spa_name, "CHANNEL")
             self.channel: int = 0
-            self.set_channel(spaman._spa.channel)
+            self.set_channel(spaman.spa.channel)
 
         def set_channel(self, channel: int) -> None:
             """Set the radio channel."""
@@ -432,6 +433,11 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
     def facade(self) -> GeckoAsyncFacade | None:
         """Get the connected facade, or None."""
         return self._facade
+
+    @property
+    def spa(self) -> GeckoAsyncSpa | None:
+        """Get the spa, or None."""
+        return self._spa
 
     @property
     def spa_state(self) -> GeckoSpaState:

@@ -109,7 +109,9 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                 if isinstance(device, GeckoPump):
                     func_name = f"do_{device.ui_key}"
 
-                    async def async_pump_command(self, arg, device=device) -> None:
+                    async def async_pump_command(
+                        self: Self, arg: str, device: GeckoPump = device
+                    ) -> None:
                         await self.pump_command(arg, device)
 
                     setattr(
@@ -249,7 +251,13 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         print(f"{datetime.datetime.now(tz=datetime.UTC)} : {' '.join(states)}")
 
     def do_monitor(self, _arg: str) -> None:
-        """Monitor the state of the managed spa outputting a new line for each change : monitor."""
+        """
+        Monitor the state of the managed spa.
+
+        Output a new line for each change
+
+        usage: monitor.
+        """
         if self.facade is None:
             print("Must be connected to a spa")
             return

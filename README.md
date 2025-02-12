@@ -309,7 +309,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Add ability to change the RF channel. The app sends a CHACH\xb4\x0c command, play in the simulator!
 
 ## Done/Fixed in 1.0.2
-
+ - Some progress toward support for MrSteam units
+ - Refactoring to allow accessory modules such as inMix to be handled.
 
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa

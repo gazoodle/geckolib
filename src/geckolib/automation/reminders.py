@@ -102,11 +102,11 @@ class GeckoReminders(GeckoAutomationFacadeBase):
             # get actual time
             now = datetime.now(tz=UTC)  # current date and time
             time = now.strftime("%d.%m.%Y, %H:%M:%S")
-            self._active_reminders.append(tuple(("Time", time)))
+            self._active_reminders.append(("Time", time))
             for reminder in handler.reminders:
                 if reminder[0] != GeckoReminderType.INVALID:
                     self._active_reminders.append(
-                        tuple((GeckoReminderType.to_string(reminder[0]), reminder[1]))
+                        (GeckoReminderType.to_string(reminder[0]), reminder[1])
                     )
 
         self._reminders_handler = None

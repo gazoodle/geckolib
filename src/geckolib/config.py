@@ -86,7 +86,7 @@ GeckoConfig: _GeckoConfig = _GeckoIdleConfig()
 ConfigChangeEvent: asyncio.Event = asyncio.Event()
 
 
-def set_config_mode(active: bool) -> None:
+def set_config_mode(*, active: bool) -> None:
     """Set config mode to active (true) or idle (false)."""
     _LOGGER.debug("set_config_mode: %s", active)
     new_config = _GeckoActiveConfig() if active else _GeckoIdleConfig()
@@ -96,7 +96,7 @@ def set_config_mode(active: bool) -> None:
     ConfigChangeEvent.clear()
 
 
-async def config_sleep(delay: float | None, reason: str) -> None:
+async def config_sleep(delay: float | None, _reason: str) -> None:
     """Sleep wrapper that also handles config changes."""
     if delay is None:
         await asyncio.sleep(0)
