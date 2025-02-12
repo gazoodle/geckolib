@@ -12,6 +12,7 @@ from typing import Any, Self
 from geckolib import VERSION, GeckoConstants, GeckoPump
 from geckolib.async_spa_manager import GeckoAsyncSpaMan
 from geckolib.automation.base import GeckoAutomationFacadeBase
+from geckolib.config import release_config_change_waiters
 from geckolib.driver.accessor import GeckoStructAccessor
 from geckolib.spa_events import GeckoSpaEvent
 
@@ -328,3 +329,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         """Proxy for the spa."""
         assert self._facade is not None  # noqa: S101
         return self._facade.spa.get_snapshot_data()
+
+    def do_refresh(self, _args: str) -> None:
+        """Refresh the spa pack data."""
+        release_config_change_waiters()

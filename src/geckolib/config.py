@@ -86,14 +86,19 @@ GeckoConfig: _GeckoConfig = _GeckoIdleConfig()
 ConfigChangeEvent: asyncio.Event = asyncio.Event()
 
 
+def release_config_change_waiters() -> None:
+    """Release config change waiters."""
+    ConfigChangeEvent.set()
+    ConfigChangeEvent.clear()
+
+
 def set_config_mode(*, active: bool) -> None:
     """Set config mode to active (true) or idle (false)."""
     _LOGGER.debug("set_config_mode: %s", active)
     new_config = _GeckoActiveConfig() if active else _GeckoIdleConfig()
     for member in CONFIG_MEMBERS:
         setattr(GeckoConfig, member, getattr(new_config, member))
-    ConfigChangeEvent.set()
-    ConfigChangeEvent.clear()
+    release_config_change_waiters()
 
 
 async def config_sleep(delay: float | None, _reason: str) -> None:
