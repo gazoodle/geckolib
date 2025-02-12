@@ -130,7 +130,7 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         # transport.sendto is a non-blocking call.
         self.transport.sendto(send_bytes, destination)
 
-    def get_and_increment_sequence_counter(self, command: bool) -> int:
+    def get_and_increment_sequence_counter(self, *, command: bool = False) -> int:
         if command:
             if self._sequence_counter_command == 255:
                 self._sequence_counter_command = 191

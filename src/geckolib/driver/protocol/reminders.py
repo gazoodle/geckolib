@@ -1,12 +1,14 @@
-"""Gecko REQRM/RMREQ handlers"""
+"""Gecko REQRM/RMREQ handlers."""
 
 from __future__ import annotations
 
 import logging
 import struct
 from enum import IntEnum
+from typing import Any
 
-from ...config import GeckoConfig
+from geckolib.config import GeckoConfig
+
 from .packet import GeckoPacketProtocolHandler
 
 REQRM_VERB = b"REQRM"
@@ -18,6 +20,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoReminderType(IntEnum):
+    """Reminder type class."""
+
     INVALID = 0
     RINSE_FILTER = 1
     CLEAN_FILTER = 2
@@ -27,28 +31,32 @@ class GeckoReminderType(IntEnum):
     CHANGE_VISION_CARTRIDGE = 6
 
     @staticmethod
-    def to_string(type: GeckoReminderType) -> str:
-        if type == GeckoReminderType.INVALID:
+    def to_string(the_type: GeckoReminderType) -> str:  # noqa: PLR0911
+        """Converet enum to string."""
+        if the_type == GeckoReminderType.INVALID:
             return "Invalid"
-        if type == GeckoReminderType.RINSE_FILTER:
+        if the_type == GeckoReminderType.RINSE_FILTER:
             return "RinseFilter"
-        if type == GeckoReminderType.CLEAN_FILTER:
+        if the_type == GeckoReminderType.CLEAN_FILTER:
             return "CleanFilter"
-        if type == GeckoReminderType.CHANGE_WATER:
+        if the_type == GeckoReminderType.CHANGE_WATER:
             return "ChangeWater"
-        if type == GeckoReminderType.CHECK_SPA:
+        if the_type == GeckoReminderType.CHECK_SPA:
             return "CheckSpa"
-        if type == GeckoReminderType.CHANGE_OZONATOR:
+        if the_type == GeckoReminderType.CHANGE_OZONATOR:
             return "ChangeOzonator"
-        if type == GeckoReminderType.CHANGE_VISION_CARTRIDGE:
+        if the_type == GeckoReminderType.CHANGE_VISION_CARTRIDGE:
             return "ChangeVisionCartridge"
         # Technically unreachable code here
         return "Unhandled"
 
 
 class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
+    """Reminders protocol handler."""
+
     @staticmethod
-    def request(seq, **kwargs):
+    def request(seq: int, **kwargs: Any) -> GeckoRemindersProtocolHandler:
+        """Generate request."""
         return GeckoRemindersProtocolHandler(
             content=b"".join([REQRM_VERB, struct.pack(">B", seq)]),
             timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
@@ -58,7 +66,10 @@ class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def response(reminders: list[tuple[GeckoReminderType, int]], **kwargs):
+    def response(
+        reminders: list[tuple[GeckoReminderType, int]], **kwargs: Any
+    ) -> GeckoRemindersProtocolHandler:
+        """Generate response handler."""
         return GeckoRemindersProtocolHandler(
             content=b"".join(
                 [RMREQ_VERB]
@@ -70,16 +81,17 @@ class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
             **kwargs,
         )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the reminders protocol handler class."""
         super().__init__(**kwargs)
         self.reminders: list[tuple[GeckoReminderType, ...]] = []
 
-    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
-        return received_bytes.startswith(REQRM_VERB) or received_bytes.startswith(
-            RMREQ_VERB
-        )
+    def can_handle(self, received_bytes: bytes, _sender: tuple) -> bool:
+        """Can we handle this verb."""
+        return received_bytes.startswith((REQRM_VERB, RMREQ_VERB))
 
-    def handle(self, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, _sender: tuple) -> None:
+        """Handle the verb."""
         remainder = received_bytes[5:]
         if received_bytes.startswith(REQRM_VERB):
             self._sequence = struct.unpack(">B", remainder[0:1])[0]
@@ -90,7 +102,7 @@ class GeckoRemindersProtocolHandler(GeckoPacketProtocolHandler):
         while len(rest) > 0:
             (t, days, _push, rest) = struct.unpack(f"<BhB{len(rest) - 4}s", rest)
             try:
-                self.reminders.append(tuple((GeckoReminderType(t), days)))
+                self.reminders.append((GeckoReminderType(t), days))
             except ValueError:
                 _LOGGER.warning("Cannot use %d as reminder type, ignored", t)
 

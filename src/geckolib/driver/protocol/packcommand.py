@@ -6,9 +6,9 @@ import logging
 import struct
 from typing import Any
 
+from geckolib.config import GeckoConfig
 from geckolib.driver.accessor import GeckoStructAccessor
 
-from ...config import GeckoConfig
 from .packet import GeckoPacketProtocolHandler
 
 SPACK_VERB = b"SPACK"
@@ -23,7 +23,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
     """Pack Command handler."""
 
     @staticmethod
-    def set_value(
+    def set_value(  # noqa: PLR0913
         seq: int,
         pack_type: int,
         config_version: int,
@@ -33,6 +33,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
         data: Any,
         **kwargs: Any,
     ) -> GeckoPackCommandProtocolHandler:
+        """Generate a SetValue command."""
         return GeckoPackCommandProtocolHandler(
             content=b"".join(
                 [
@@ -57,7 +58,10 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def keypress(seq, pack_type, key: int, **kwargs):
+    def keypress(
+        seq: int, pack_type: int, key: int, **kwargs: Any
+    ) -> GeckoPackCommandProtocolHandler:
+        """Generate a KeyPress command."""
         return GeckoPackCommandProtocolHandler(
             content=b"".join(
                 [
@@ -74,10 +78,12 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def response(**kwargs):
+    def response(**kwargs: Any) -> GeckoPackCommandProtocolHandler:
+        """Generate a response."""
         return GeckoPackCommandProtocolHandler(content=PACKS_VERB, **kwargs)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the class."""
         super().__init__(**kwargs)
         self.pack_type = None
         self.is_key_press = False
@@ -87,12 +93,12 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
         self.length = None
         self.new_data = None
 
-    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
-        return received_bytes.startswith(SPACK_VERB) or received_bytes.startswith(
-            PACKS_VERB
-        )
+    def can_handle(self, received_bytes: bytes, _sender: tuple) -> bool:
+        """Can we handle this verb."""
+        return received_bytes.startswith((SPACK_VERB, PACKS_VERB))
 
-    def handle(self, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, _sender: tuple) -> None:
+        """Handle the verb."""
         remainder = received_bytes[5:]
         if received_bytes.startswith(PACKS_VERB):
             self._should_remove_handler = True
@@ -102,7 +108,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
             ">BBBB", remainder[0:4]
         )
         if command == PACK_COMMAND_KEY_PRESS:
-            if self.length == 2:
+            if self.length == 2:  # noqa: PLR2004
                 self.is_key_press = True
                 self.is_set_value = False
                 self.keycode = struct.unpack(">B", remainder[4:])[0]

@@ -296,7 +296,7 @@ class MockProtocol:
     ) -> None:
         self.sendbytes = protocol_handler.send_bytes
 
-    def get_and_increment_sequence_counter(self, command: bool) -> int:
+    def get_and_increment_sequence_counter(self, *, command: bool = False) -> int:
         if command:
             return 192
         return 1

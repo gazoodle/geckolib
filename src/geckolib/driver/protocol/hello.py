@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
-from ...const import GeckoConstants
-from ..udp_protocol_handler import GeckoUdpProtocolHandler
+from geckolib.const import GeckoConstants
+from geckolib.driver.udp_protocol_handler import GeckoUdpProtocolHandler
 
 HELLO_OPEN = b"<HELLO>"
 HELLO_CLOSE = b"</HELLO>"
@@ -16,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
     """Gecko <HELLO> handler."""
 
-    def __init__(self, content: bytes, **kwargs) -> None:
+    def __init__(self, content: bytes, **kwargs: Any) -> None:
         """Initialize the class."""
         super().__init__(**kwargs)
         self._send_bytes = b"".join([HELLO_OPEN, content, HELLO_CLOSE])
@@ -57,19 +58,19 @@ class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
     @property
     def client_identifier(self) -> bytes:
         """Get the client identifier or raise exception if not set."""
-        assert self._client_identifier is not None
+        assert self._client_identifier is not None  # noqa: S101
         return self._client_identifier
 
     @property
     def spa_identifier(self) -> bytes:
         """Get the spa identifier or raise exception if not set."""
-        assert self._spa_identifier is not None
+        assert self._spa_identifier is not None  # noqa: S101
         return self._spa_identifier
 
     @property
     def spa_name(self) -> str:
         """Get the spa name or raise exception if not set."""
-        assert self._spa_name is not None
+        assert self._spa_name is not None  # noqa: S101
         return self._spa_name
 
     def can_handle(self, received_bytes: bytes, _sender: tuple) -> bool:

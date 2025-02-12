@@ -261,7 +261,7 @@ class GeckoCmd(AsyncCmd):
         _LOGGER.info(f"SNAPSHOT ========{data}========")  # noqa: G004
         print(data)
 
-    def _complete_path(self, path) -> list[str]:
+    def _complete_path(self, path: str) -> list[str]:
         if os.path.isdir(path):
             return glob.glob(os.path.join(path, "*"))
         return glob.glob(path + "*")

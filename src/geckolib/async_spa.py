@@ -108,21 +108,21 @@ class GeckoAsyncSpa(Observable):
     def _get_version_handler_func(self) -> GeckoVersionProtocolHandler:
         assert self._protocol is not None
         return GeckoVersionProtocolHandler.request(
-            self._protocol.get_and_increment_sequence_counter(False),
+            self._protocol.get_and_increment_sequence_counter(),
             parms=self.sendparms,
         )
 
     def _get_channel_handler_func(self) -> GeckoGetChannelProtocolHandler:
         assert self._protocol is not None
         return GeckoGetChannelProtocolHandler.request(
-            self._protocol.get_and_increment_sequence_counter(False),
+            self._protocol.get_and_increment_sequence_counter(),
             parms=self.sendparms,
         )
 
     def _get_config_file_handler_func(self) -> GeckoConfigFileProtocolHandler:
         assert self._protocol is not None
         return GeckoConfigFileProtocolHandler.request(
-            self._protocol.get_and_increment_sequence_counter(False),
+            self._protocol.get_and_increment_sequence_counter(),
             parms=self.sendparms,
         )
 
@@ -324,7 +324,7 @@ class GeckoAsyncSpa(Observable):
         if not await self.struct.get(
             self._protocol,
             lambda: GeckoStatusBlockProtocolHandler.full_request(
-                self._protocol.get_and_increment_sequence_counter(False),
+                self._protocol.get_and_increment_sequence_counter(),
                 parms=self.sendparms,
             ),
         ):
@@ -462,7 +462,7 @@ class GeckoAsyncSpa(Observable):
         assert self._protocol is not None
         assert self.struct.log_class is not None
         return GeckoStatusBlockProtocolHandler.request(
-            self._protocol.get_and_increment_sequence_counter(False),
+            self._protocol.get_and_increment_sequence_counter(),
             self.struct.log_class.begin,
             self.struct.log_class.end,
             parms=self.sendparms,
@@ -532,7 +532,7 @@ class GeckoAsyncSpa(Observable):
 
             pack_command_handler = await self._protocol.get(
                 lambda: GeckoPackCommandProtocolHandler.set_value(
-                    self._protocol.get_and_increment_sequence_counter(True),
+                    self._protocol.get_and_increment_sequence_counter(command=True),
                     self.pack_type,
                     self.config_version,
                     self.log_version,
@@ -579,7 +579,7 @@ class GeckoAsyncSpa(Observable):
 
             pack_command_handler = await self._protocol.get(
                 lambda: GeckoPackCommandProtocolHandler.keypress(
-                    self._protocol.get_and_increment_sequence_counter(True),  # type: ignore
+                    self._protocol.get_and_increment_sequence_counter(command=True),  # type: ignore
                     self.pack_type,
                     keypad,
                     parms=self.sendparms,
@@ -601,7 +601,7 @@ class GeckoAsyncSpa(Observable):
     def _get_watercare_handler_func(self) -> GeckoWatercareProtocolHandler:
         assert self._protocol is not None
         return GeckoWatercareProtocolHandler.request(
-            self._protocol.get_and_increment_sequence_counter(False),
+            self._protocol.get_and_increment_sequence_counter(),
             parms=self.sendparms,
         )
 
@@ -641,7 +641,7 @@ class GeckoAsyncSpa(Observable):
         assert self._protocol is not None
         set_watercare_handler = await self._protocol.get(
             lambda: GeckoWatercareProtocolHandler.set(
-                self._protocol.get_and_increment_sequence_counter(False),  # type: ignore
+                self._protocol.get_and_increment_sequence_counter(),
                 new_mode,
                 parms=self.sendparms,
             )
@@ -654,7 +654,7 @@ class GeckoAsyncSpa(Observable):
     def _get_reminders_handler_func(self) -> GeckoRemindersProtocolHandler:
         assert self._protocol is not None
         return GeckoRemindersProtocolHandler.request(
-            self._protocol.get_and_increment_sequence_counter(False),
+            self._protocol.get_and_increment_sequence_counter(),
             parms=self.sendparms,
         )
 

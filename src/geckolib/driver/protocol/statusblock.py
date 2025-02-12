@@ -4,9 +4,14 @@ from __future__ import annotations
 
 import logging
 import struct
+from typing import TYPE_CHECKING, Any
 
-from ...config import GeckoConfig
+from geckolib.config import GeckoConfig
+
 from .packet import GeckoPacketProtocolHandler
+
+if TYPE_CHECKING:
+    from geckolib.driver.async_udp_protocol import GeckoAsyncUdpProtocol
 
 STATU_VERB = b"STATU"
 STATV_VERB = b"STATV"
@@ -20,8 +25,13 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
+    """Handle full status block."""
+
     @staticmethod
-    def request(seq, start, length, **kwargs):
+    def request(
+        seq: int, start: int, length: int, **kwargs: Any
+    ) -> GeckoStatusBlockProtocolHandler:
+        """Generate a range request."""
         return GeckoStatusBlockProtocolHandler(
             start=start,
             content=b"".join(
@@ -34,32 +44,39 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def full_request(seq, **kwargs):
+    def full_request(seq: int, **kwargs: Any) -> GeckoStatusBlockProtocolHandler:
+        """Generate a full request."""
         return GeckoStatusBlockProtocolHandler.request(seq, 0, 1024, **kwargs)
 
     @staticmethod
-    def response(index, next, block, **kwargs):
+    def response(
+        index: int, next_index: int, block: bytes, **kwargs: Any
+    ) -> GeckoStatusBlockProtocolHandler:
+        """Generate a response."""
         return GeckoStatusBlockProtocolHandler(
             start=0,
             content=b"".join(
                 [
                     STATV_VERB,
-                    struct.pack(RESPONSE_FORMAT, index, next, len(block)),
+                    struct.pack(RESPONSE_FORMAT, index, next_index, len(block)),
                     block,
                 ]
             ),
             **kwargs,
         )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the class."""
         super().__init__(**kwargs)
         self.start = kwargs.get("start")
         self.sequence = self.length = self.next = self.data = None
 
-    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
+    def can_handle(self, received_bytes: bytes, _sender: tuple) -> bool:
+        """Can we handle this."""
         return received_bytes.startswith((STATU_VERB, STATV_VERB))
 
-    def handle(self, received_bytes: bytes, sender: tuple):
+    def handle(self, received_bytes: bytes, _sender: tuple) -> None:
+        """Handle the verb."""
         remainder = received_bytes[5:]
         if received_bytes.startswith(STATU_VERB):
             self.sequence, self.start, self.length = struct.unpack(
@@ -80,7 +97,8 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
             self.data,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Get a string representation."""
         return (
             f"{super().__repr__()}(seq={self.sequence},start={self.start},"
             f"length={self.length},next={self.next},data={self.data})"
@@ -90,15 +108,15 @@ class GeckoStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
 class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
     """Async partial status block handler."""
 
-    def __init__(self, protocol, **kwargs):
+    def __init__(self, protocol: GeckoAsyncUdpProtocol, **kwargs: Any) -> None:
         """Initialize the class."""
         super().__init__(**kwargs)
-        self._protocol = protocol
+        self._protocol: GeckoAsyncUdpProtocol = protocol
         self.changes = []
 
     @staticmethod
     def report_changes(
-        socket, changes, **kwargs
+        protocol: GeckoAsyncUdpProtocol, changes: list[tuple], **kwargs: Any
     ) -> GeckoAsyncPartialStatusBlockProtocolHandler:
         """Report changes as a list of change tuples, (pos, data)."""
         change_bin = [(struct.pack(">H", change[0]), change[1]) for change in changes]
@@ -107,15 +125,15 @@ class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
             [STATP_VERB, struct.pack(">B", len(changes)), *change_list]
         )
         if len(pack_data) % 2 != 0:
-            msg = "Pack data must be even length, check if there is a change of other than 2 bytes"
+            msg = "Pack data must be even length, check change lengths"
             raise RuntimeError(msg)
         return GeckoAsyncPartialStatusBlockProtocolHandler(
-            socket,
+            protocol,
             content=pack_data,
             **kwargs,
         )
 
-    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
+    def can_handle(self, received_bytes: bytes, _sender: tuple) -> bool:
         """Decide what we can handle."""
         return received_bytes.startswith((STATQ_VERB, STATP_VERB))
 
@@ -137,7 +155,7 @@ class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
                         STATQ_VERB,
                         struct.pack(
                             ">B",
-                            self._protocol.get_and_increment_sequence_counter(False),
+                            self._protocol.get_and_increment_sequence_counter(),
                         ),
                     ]
                 ),

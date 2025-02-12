@@ -1,10 +1,14 @@
-"""Gecko GETWC/WCGET/SETWC/WCSET/REQWC/WCREQ handlers"""
+"""Gecko GETWC/WCGET/SETWC/WCSET/REQWC/WCREQ handlers."""
+
+from __future__ import annotations
 
 import logging
 import struct
+from typing import Any
 
-from ...config import GeckoConfig
-from ...const import GeckoConstants
+from geckolib.config import GeckoConfig
+from geckolib.const import GeckoConstants
+
 from .packet import GeckoPacketProtocolHandler
 
 GETWC_VERB = b"GETWC"
@@ -23,8 +27,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
+    """Watercare protocol handler class."""
+
     @staticmethod
-    def request(seq, **kwargs):
+    def request(seq: int, **kwargs: Any) -> GeckoWatercareProtocolHandler:
+        """Generate a request."""
         return GeckoWatercareProtocolHandler(
             content=b"".join([GETWC_VERB, struct.pack(">B", seq)]),
             timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
@@ -34,7 +41,8 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def set(seq, mode, **kwargs):
+    def set(seq: int, mode: int, **kwargs: Any) -> GeckoWatercareProtocolHandler:
+        """Generatge a watercare set command."""
         return GeckoWatercareProtocolHandler(
             content=b"".join(
                 [SETWC_VERB, struct.pack(SET_WATERCARE_FORMAT, seq, mode)]
@@ -45,7 +53,8 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def response(mode, **kwargs):
+    def response(mode: int, **kwargs: Any) -> GeckoWatercareProtocolHandler:
+        """Generate a watercare mode change response."""
         return GeckoWatercareProtocolHandler(
             content=b"".join(
                 [
@@ -60,7 +69,8 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def giveschedule(**kwargs):
+    def giveschedule(**kwargs: Any) -> GeckoWatercareProtocolHandler:
+        """Generate a give schedule response."""
         return GeckoWatercareProtocolHandler(
             content=b"".join(
                 [
@@ -73,20 +83,20 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
             **kwargs,
         )
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the class."""
         super().__init__(**kwargs)
         self.mode: int | None = None
         self.schedule = False
 
-    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
-        return (
-            received_bytes.startswith(GETWC_VERB)
-            or received_bytes.startswith(WCGET_VERB)
-            or received_bytes.startswith(REQWC_VERB)
-            or received_bytes.startswith(WCSET_VERB)
+    def can_handle(self, received_bytes: bytes, _sender: tuple) -> bool:
+        """Can we handle the verb."""
+        return received_bytes.startswith(
+            (GETWC_VERB, WCGET_VERB, REQWC_VERB, WCSET_VERB)
         )
 
-    def handle(self, received_bytes: bytes, sender: tuple) -> None:
+    def handle(self, received_bytes: bytes, _sender: tuple) -> None:
+        """Handle the verb."""
         remainder = received_bytes[5:]
         if received_bytes.startswith(GETWC_VERB):
             self._sequence = struct.unpack(">B", remainder)[0]
@@ -106,8 +116,11 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
 
 
 class GeckoWatercareErrorHandler(GeckoPacketProtocolHandler):
-    def can_handle(self, received_bytes: bytes, sender: tuple) -> bool:
+    """Watercare error handler."""
+
+    def can_handle(self, received_bytes: bytes, _sender: tuple) -> bool:
+        """Can we handle this verb."""
         return received_bytes.startswith(WCERR_VERB)
 
-    def handle(self, received_bytes: bytes, sender: tuple):
-        pass
+    def handle(self, _received_bytes: bytes, _sender: tuple) -> None:
+        """Handle this."""

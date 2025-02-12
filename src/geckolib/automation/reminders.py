@@ -114,7 +114,7 @@ class GeckoReminders(GeckoAutomationFacadeBase):
     def obsolete_update(self) -> None:
         """Update the reminders."""
         self._reminders_handler = GeckoRemindersProtocolHandler.request(
-            self._spa.get_and_increment_sequence_counter(False),
+            self._spa.get_and_increment_sequence_counter(),
             on_handled=self._on_reminders,
             parms=self._spa.sendparms,
         )

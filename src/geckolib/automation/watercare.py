@@ -1,12 +1,17 @@
 """Gecko Watercare."""
 
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
-from geckolib.automation.async_facade import GeckoAsyncFacade
+from geckolib.const import GeckoConstants
+from geckolib.driver import GeckoWatercareProtocolHandler
 
-from ..const import GeckoConstants
-from ..driver import GeckoWatercareProtocolHandler
 from .base import GeckoAutomationFacadeBase
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,9 +62,9 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
         if self._water_care_handler is not None:
             return
 
-        assert self._spa is not None
+        assert self._spa is not None  # noqa: S101
         self._water_care_handler = GeckoWatercareProtocolHandler.request(
-            self._spa.get_and_increment_sequence_counter(False),
+            self._spa.get_and_increment_sequence_counter(),
             on_handled=self._on_watercare,
             parms=self._spa.sendparms,
         )

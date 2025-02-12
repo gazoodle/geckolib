@@ -1,9 +1,10 @@
 """Automation switches."""
 
+from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING
 
-from geckolib.automation.async_facade import GeckoAsyncFacade
 from geckolib.automation.power import GeckoPower
 from geckolib.const import GeckoConstants
 
@@ -11,6 +12,7 @@ from .base import GeckoAutomationFacadeBase
 from .sensors import GeckoSensor
 
 if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
     from geckolib.driver.accessor import GeckoEnumStructAccessor
 
 _LOGGER = logging.getLogger(__name__)

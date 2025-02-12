@@ -6,7 +6,8 @@ import logging
 import struct
 from typing import Any
 
-from ...config import GeckoConfig
+from geckolib.config import GeckoConfig
+
 from .packet import GeckoPacketProtocolHandler
 
 PING_VERB = b"APING"
