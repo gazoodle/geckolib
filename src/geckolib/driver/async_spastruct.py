@@ -7,11 +7,13 @@ import datetime
 import importlib
 import logging
 from functools import partial
-from types import ModuleType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from geckolib._version import VERSION
 from geckolib.const import GeckoConstants
+
+if TYPE_CHECKING:
+    from types import ModuleType
 
 _LOGGER = logging.getLogger(__name__)
 
