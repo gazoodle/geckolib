@@ -235,7 +235,10 @@ class GeckoAsyncStructure:
         """Scan the spa pack outputs to generate a list of connections."""
         _LOGGER.debug("All outputs are %s", self.all_outputs)
 
-        connections = [self.accessors[output].value for output in self.all_outputs]
-        self.connections = [conn for conn in connections if conn != "NA"]
+        self.connections = [
+            value
+            for output in self.all_outputs
+            if (value := self.accessors[output].value) not in ["NA", "Not_Set"]
+        ]
 
         _LOGGER.debug("Connections are %s", self.connections)

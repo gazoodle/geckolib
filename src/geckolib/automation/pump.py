@@ -13,6 +13,7 @@ from .sensors import GeckoSensor
 
 if TYPE_CHECKING:
     from geckolib.automation.async_facade import GeckoAsyncFacade
+    from geckolib.driver.accessor import GeckoStructAccessor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -87,7 +88,7 @@ class GeckoNewPump(GeckoPower):
 
         NONE = 0
         SINGLE_SPEED = 1
-        TWIN_SPEED = 2
+        TWO_SPEED = 2
         VARIABLE_SPEED = 3
 
     def __init__(self, facade: GeckoAsyncFacade, name: str, key: str) -> None:
@@ -95,31 +96,61 @@ class GeckoNewPump(GeckoPower):
         super().__init__(facade, name, key)
         self.device_class = GeckoConstants.DEVICE_CLASS_PUMP
         self.pump_type = GeckoNewPump.PumpType.NONE
+        self._state_accessor: GeckoStructAccessor
 
-        if key in facade.connections:
-            pass
+        if key in facade.spa.struct.connections:
+            self.pump_type = GeckoNewPump.PumpType.SINGLE_SPEED
+
+        if f"{key}H" in facade.spa.struct.connections:
+            self.pump_type = GeckoNewPump.PumpType.SINGLE_SPEED
+
+        if f"{key}L" in facade.spa.struct.connections:
+            if self.pump_type == GeckoNewPump.PumpType.NONE:
+                self.pump_type = GeckoNewPump.PumpType.SINGLE_SPEED
+            else:
+                self.pump_type = GeckoNewPump.PumpType.TWO_SPEED
+
+        if self.pump_type != GeckoNewPump.PumpType.NONE:
+            udkey = f"Ud{key}"
+            if udkey in facade.spa.accessors:
+                self._state_accessor = facade.spa.accessors[udkey]
+                self._state_accessor.watch(self._on_change)
+                self.set_availability(is_available=True)
+
+        # While testing, don't show these
+        self.set_availability(is_available=False)
 
     @property
     def is_on(self) -> bool:
         """Return True if the device is running, False otherwise."""
-        if not self.is_available:
+        if self._state_accessor is None:
             return False
-        self.a = "ex"
-        return True
+        if (
+            self._state_accessor.accessor_type
+            == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE
+        ):
+            return self._state_accessor.value
+        return self._state_accessor.value != "OFF"
 
     @property
     def modes(self) -> list[str]:
         """Get the pump modes."""
-        return []
+        if self._state_accessor is None or not self._state_accessor.items:
+            return []
+        return self._state_accessor.items
 
     @property
     def mode(self) -> str:
         """Get the pump mode."""
-        return ""
+        if self._state_accessor is None:
+            return "NA"
+        return self._state_accessor.value
 
     async def async_set_mode(self, mode: str) -> None:
         """Set the mode."""
-        _LOGGER.debug("%s async set mode %s", self.name, mode)
+        if self._state_accessor is not None:
+            _LOGGER.debug("%s async set mode %s", self.name, mode)
+            await self._state_accessor.async_set_value(mode)
 
     def __str__(self) -> str:
         """Stringize class."""
