@@ -23,6 +23,7 @@ class GeckoAutomationBase(Observable):
         self._name: str = name
         self._parent_name: str = parent_name
         self._key: str = key
+        self._is_available: bool = False
 
     @property
     def name(self) -> str:
@@ -53,6 +54,15 @@ class GeckoAutomationBase(Observable):
     def monitor(self) -> str:
         """An abbreviated string for the monitor process in the shell."""
         return f"{self}"
+
+    @property
+    def is_available(self) -> bool:
+        """Get the availability of this item."""
+        return self._is_available
+
+    def set_availability(self, *, is_available: bool) -> None:
+        """Set the availability of this item."""
+        self._is_available = is_available
 
     def __repr__(self) -> str:
         """Get string representation."""

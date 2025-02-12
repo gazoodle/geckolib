@@ -312,6 +312,8 @@ class PackGenerator:
             './HCOutputConfig/*[@Type="Enum"]',
             './LCOutputConfig/*[@Type="Enum"]',
             './LVOutputConfig/*[@Type="Enum"]',
+            './SlaveHCOutputConfig/*[@Type="Enum"]',
+            './SlaveLCOutputConfig/*[@Type="Enum"]',
         ]
 
         all_outputs = [
@@ -320,9 +322,9 @@ class PackGenerator:
 
         xml.attrib["AllOutputs"] = self.add_constant(all_outputs)
 
-        all_devices = [element.tag for element in xml.findall("./DeviceStatus/*")] + [
-            "LI"
-        ]
+        all_devices = [element.tag for element in xml.findall("./DeviceStatus/*")]
+        if len(all_devices) > 0:
+            all_devices.append("LI")
         xml.attrib["AllDevices"] = self.add_constant(all_devices)
 
         user_demands = [
@@ -473,6 +475,7 @@ class PackGenerator:
         )
         with Path(module).open("w") as file:
             self.write_log_preamble(file, plateform_name, logstruct)
+            self.write_output_keys(file, logstruct)
             self.write_all_device_keys(file, logstruct)
             self.write_user_demand_keys(file, logstruct)
             self.write_error_keys(file, logstruct)

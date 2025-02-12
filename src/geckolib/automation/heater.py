@@ -29,6 +29,13 @@ class GeckoWaterHeater(GeckoPower):
         super().__init__(facade, "Heater", "HEAT")
         self._is_present = False
 
+        self._current_temperature_sensor = None
+        self._target_temperature_sensor = None
+        self._real_setpoint_sensor = None
+        self._temperature_unit_accessor = None
+        self._heating_action_sensor = None
+        self._cooling_action_sensor = None
+
         # Attempt to locate the various items needed from the spa accessors
         self._temperature_unit_accessor = self._spa.accessors[
             GeckoConstants.KEY_TEMP_UNITS

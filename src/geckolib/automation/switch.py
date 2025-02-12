@@ -24,7 +24,6 @@ class GeckoSwitch(GeckoPower):
     def __init__(self, facade: GeckoAsyncFacade, key: str, props: list) -> None:
         """Props is a tuple of (name, keypad_button, state_key, device_class)."""
         super().__init__(facade, props[0], key)
-        self.ui_key = key
         self._accessor = self._spa.accessors[props[2]]
         self._state_sensor = GeckoSensor(facade, f"{props[0]} State", self._accessor)
         self._state_sensor.watch(self._on_change)
@@ -75,7 +74,7 @@ class GeckoSwitch(GeckoPower):
     @property
     def monitor(self) -> str:
         """Get a monitor string."""
-        return f"{self.ui_key}: {self._state_sensor.state}"
+        return f"{self.key}: {self._state_sensor.state}"
 
 
 class GeckoStandby(GeckoAutomationFacadeBase):
@@ -109,4 +108,4 @@ class GeckoStandby(GeckoAutomationFacadeBase):
     @property
     def monitor(self) -> str:
         """Get the monitor string."""
-        return f"{self.ui_key}: {self.is_on}"
+        return f"{self.key}: {self.is_on}"

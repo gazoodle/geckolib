@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from geckolib.automation.power import GeckoPower
@@ -20,11 +21,14 @@ class GeckoPump(GeckoPower):
     """Pumps are similar to switches, but might have variable speeds too."""
 
     def __init__(
-        self, facade: GeckoAsyncFacade, key: str, props: list, user_demand: dict
+        self,
+        facade: GeckoAsyncFacade,
+        key: str,
+        props: tuple[str, int, str, str],
+        user_demand: dict,
     ) -> None:
         """Props is a tuple of (name, keypad_button, state_key, device_class)."""
         super().__init__(facade, props[0], key)
-        self.ui_key = key
         self._state_sensor = GeckoSensor(
             facade, f"{props[0]} State", self._spa.accessors[props[2]]
         )
@@ -72,4 +76,64 @@ class GeckoPump(GeckoPower):
     @property
     def monitor(self) -> str:
         """Get monitor string."""
-        return f"{self.ui_key}: {self._state_sensor.state}"
+        return f"{self.key}: {self._state_sensor.state}"
+
+
+class GeckoNewPump(GeckoPower):
+    """Pumps are similar to switches, but might have variable speeds too."""
+
+    class PumpType(Enum):
+        """Types of pump."""
+
+        NONE = 0
+        SINGLE_SPEED = 1
+        TWIN_SPEED = 2
+        VARIABLE_SPEED = 3
+
+    def __init__(self, facade: GeckoAsyncFacade, name: str, key: str) -> None:
+        """Initialize the pump class."""
+        super().__init__(facade, name, key)
+        self.device_class = GeckoConstants.DEVICE_CLASS_PUMP
+        self.pump_type = GeckoNewPump.PumpType.NONE
+
+        if key in facade.connections:
+            pass
+
+    @property
+    def is_on(self) -> bool:
+        """Return True if the device is running, False otherwise."""
+        if not self.is_available:
+            return False
+        self.a = "ex"
+        return True
+
+    @property
+    def modes(self) -> list[str]:
+        """Get the pump modes."""
+        return []
+
+    @property
+    def mode(self) -> str:
+        """Get the pump mode."""
+        return ""
+
+    async def async_set_mode(self, mode: str) -> None:
+        """Set the mode."""
+        _LOGGER.debug("%s async set mode %s", self.name, mode)
+
+    def __str__(self) -> str:
+        """Stringize class."""
+        return f"{self.name}: {self.mode}"
+
+    @property
+    def monitor(self) -> str:
+        """Get monitor string."""
+        return f"{self.key}: {self.mode}"
+
+
+class GeckoPump1(GeckoNewPump):
+    """Pump 1."""
+
+    def __init__(self, facade: GeckoAsyncFacade) -> None:
+        """Initialize Pump1 class."""
+        super().__init__(facade, "Pump 1", "P1")

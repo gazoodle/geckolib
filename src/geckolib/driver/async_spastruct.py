@@ -55,7 +55,7 @@ class GeckoAsyncStructure:
         """Build the accessors."""
         self.accessors = dict(self.config_class.accessors, **self.log_class.accessors)
         # Get all outputs
-        self.all_outputs = self.config_class.output_keys
+        self.all_outputs = [*self.config_class.output_keys, *self.log_class.output_keys]
         # Get collection of possible devices
         self.all_devices = self.log_class.all_device_keys
         # User devices are those that have a Ud in the tag name
@@ -69,6 +69,7 @@ class GeckoAsyncStructure:
         self.all_outputs = []
         self.all_devices = []
         self.user_demands = []
+        self.connections = []
         self._status_block: bytes = b"\x00" * 1024
 
         self.plateform_key: str = ""
@@ -229,3 +230,12 @@ class GeckoAsyncStructure:
             "Snapshot UTC Time": f"{datetime.datetime.now(tz=datetime.UTC)}",
             "Status Block": [hex(b) for b in self.status_block],
         }
+
+    def build_connections(self) -> None:
+        """Scan the spa pack outputs to generate a list of connections."""
+        _LOGGER.debug("All outputs are %s", self.all_outputs)
+
+        connections = [self.accessors[output].value for output in self.all_outputs]
+        self.connections = [conn for conn in connections if conn != "NA"]
+
+        _LOGGER.debug("Connections are %s", self.connections)

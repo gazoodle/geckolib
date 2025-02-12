@@ -35,6 +35,11 @@ class GeckoLogStruct:
         return 479
 
     @property
+    def output_keys(self) -> list[str]:
+        """Output keys property."""
+        return ["SOut1", "SOut2", "SOut3", "SOut4", "SOut5", "SOutHtr", "SDirect"]
+
+    @property
     def all_device_keys(self) -> list[str]:
         """Get all device keys."""
         return [

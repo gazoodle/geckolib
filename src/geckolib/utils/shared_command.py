@@ -6,7 +6,6 @@ import fnmatch
 import glob
 import logging
 import os
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from geckolib.async_taskman import GeckoAsyncTaskMan
@@ -263,6 +262,14 @@ class GeckoCmd(AsyncCmd):
         print(data)
 
     def _complete_path(self, path: str) -> list[str]:
-        if Path(path).is_dir:
+        if os.path.isdir(path):  # noqa: PTH112
             return glob.glob(os.path.join(path, "*"))  # noqa: PTH118, PTH207
         return glob.glob(path + "*")  # noqa: PTH207
+
+    def do_pack(self, _args: str) -> None:
+        """List pack info."""
+        print(f"Outputs {self.structure.all_outputs}")
+        print(f"Connections: {self.structure.connections}")
+        print(f"All Devices: {self.structure.all_devices}")
+        print(f"Error Keys: {self.structure.error_keys}")
+        print(f"User Demands: {self.structure.user_demands}")

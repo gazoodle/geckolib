@@ -18,7 +18,7 @@ from .blower import GeckoBlower
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
-from .pump import GeckoPump
+from .pump import GeckoPump, GeckoPump1
 from .reminders import GeckoReminders
 from .sensors import GeckoBinarySensor, GeckoErrorSensor, GeckoSensor, GeckoSensorBase
 from .switch import GeckoStandby, GeckoSwitch
@@ -91,6 +91,13 @@ class GeckoAsyncFacade(Observable):
 
         self._spa: GeckoAsyncSpa = spa
         self._taskman: GeckoAsyncTaskMan = taskman
+        self.connections: list[str] = []
+
+        spa.struct.build_connections()
+
+        # Declare all the items that a spa might have. If they are
+        # available for this configuration, they will be marked as such.
+        self.pump_1 = GeckoPump1(self)
 
         # Declare all the class members
         self._sensors: list[GeckoSensorBase] = []
@@ -441,7 +448,8 @@ class GeckoAsyncFacade(Observable):
         extras.append(self.water_care)
         extras.append(self.reminders_manager)
         extras.append(self.keypad)
-        extras.append(self.eco_mode)
+        if self.eco_mode is not None:
+            extras.append(self.eco_mode)
         if self.heatpump is not None:
             extras.append(self.heatpump)
         if self.ingrid is not None:

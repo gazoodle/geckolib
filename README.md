@@ -289,7 +289,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Handle inMix for lighting control
 - Add API documentation
 - Tidy up support files. One class per file
-- Full sweep for typing hints - Ongoing
 - Add switch for winterizing
 - Add ability to set hours so we can implement a crude clock sync mechanism
 - Move to pytest unit test framework (replace all unittest fixtures and custom asserts)
@@ -307,10 +306,14 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Add a watt setting to pumps, heaters and so on so that the library can produce an instantaneous
   power consumption figure which ought to be able to integrate into HA's energy dashboard.
 - Add ability to change the RF channel. The app sends a CHACH\xb4\x0c command, play in the simulator!
+- When there are two spas loaded, the pinp frequency seems to be too high. Is this related to the
+  shared global config?
 
 ## Done/Fixed in 1.0.2
  - Some progress toward support for MrSteam units
  - Refactoring to allow accessory modules such as inMix to be handled.
+ - Library is now RUFF compliant, all typing hints are done.
+ - Can connect to MrSteam without throwing any errors. This ought to be good to get some snapshots.
 
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa

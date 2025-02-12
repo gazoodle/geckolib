@@ -47,4 +47,4 @@ class GeckoSelect(GeckoAutomationFacadeBase):
     @property
     def monitor(self) -> str:
         """Get monitore string."""
-        return f"{self.ui_key}: {self.state}"
+        return f"{self.key}: {self.state}"

@@ -107,7 +107,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
             # Build list of spa commands
             for device in self.facade.all_user_devices:
                 if isinstance(device, GeckoPump):
-                    func_name = f"do_{device.ui_key}"
+                    func_name = f"do_{device.key}"
 
                     async def async_pump_command(
                         self: Self, arg: str, device: GeckoPump = device
@@ -121,10 +121,10 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                     )
                     func_ptr = getattr(GeckoShell, func_name)
                     func_ptr.__doc__ = (
-                        f"Set pump {device.name} mode: {device.ui_key} <OFF|LO|HI>"
+                        f"Set pump {device.name} mode: {device.key} <OFF|LO|HI>"
                     )
                 else:
-                    func_name = f"do_{device.ui_key}"
+                    func_name = f"do_{device.key}"
                     setattr(
                         GeckoShell,
                         func_name,
@@ -134,7 +134,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                     )
                     func_ptr = getattr(GeckoShell, func_name)
                     func_ptr.__doc__ = (
-                        f"Turn device {device.name} ON or OFF: {device.ui_key} <ON|OFF>"
+                        f"Turn device {device.name} ON or OFF: {device.key} <ON|OFF>"
                     )
 
             self.do_state("")

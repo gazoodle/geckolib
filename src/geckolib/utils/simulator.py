@@ -260,6 +260,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 await struct.load_config_module(snapshot.config_version)
                 await struct.load_log_module(snapshot.log_version)
                 struct.build_accessors()
+                struct.build_connections()
 
             except ModuleNotFoundError:
                 _LOGGER.exception("Module not found during snapshot load")

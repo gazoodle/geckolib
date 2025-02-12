@@ -219,8 +219,8 @@ class GeckoAsyncSpa(Observable):
             return
 
         self.intouch_version_en = (
-            f"{version_handler.en_build}",
-            f" v{version_handler.en_major}.{version_handler.en_minor}",
+            f"{version_handler.en_build}"
+            f" v{version_handler.en_major}.{version_handler.en_minor}"
         )
         self.intouch_version_co = (
             f"{version_handler.co_build}"
