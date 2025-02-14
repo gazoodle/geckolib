@@ -37,9 +37,15 @@ class GeckoPump(GeckoPower):
         if key in facade.spa.struct.connections:
             self.pump_type = GeckoPump.PumpType.SINGLE_SPEED
 
+        # Look for P1H, P2H etc
         if f"{key}H" in facade.spa.struct.connections:
             self.pump_type = GeckoPump.PumpType.SINGLE_SPEED
 
+        # Look for BLO
+        if f"{key}O" in facade.spa.struct.connections:
+            self.pump_type = GeckoPump.PumpType.SINGLE_SPEED
+
+        # Look for P1L, P2L etc
         if f"{key}L" in facade.spa.struct.connections:
             if self.pump_type == GeckoPump.PumpType.NONE:
                 self.pump_type = GeckoPump.PumpType.SINGLE_SPEED
@@ -120,6 +126,12 @@ class GeckoPump(GeckoPower):
         else:
             if preset_mode is None:
                 preset_mode = "HI"
+            # Check that it is in the list of modes, otherwise we use "ON"
+            if (
+                self._state_accessor.items is not None
+                and preset_mode not in self._state_accessor.items
+            ):
+                preset_mode = "ON"
             await self._state_accessor.async_set_value(preset_mode)
 
     async def async_turn_off(self) -> None:

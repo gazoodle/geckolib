@@ -316,6 +316,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Can connect to MrSteam without throwing any errors. This ought to be good to get some snapshots.
  - Rebuilt GeckoPump class to cleanly handle one, two or variable speed pumps
 
+## BREAKING CHANGES 1.0.2
+ - Blower is now a single speed pump, not a switch
+
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa
  - Add support for standby mode

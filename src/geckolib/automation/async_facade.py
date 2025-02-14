@@ -102,6 +102,8 @@ class GeckoAsyncFacade(Observable):
         self.pump_4 = GeckoPump(self, "Pump 4", "P4")
         self.pump_5 = GeckoPump(self, "Pump 5", "P5")
 
+        self.blower = GeckoBlower(self)
+
         # Declare all the class members
         self._sensors: list[GeckoSensorBase] = []
         self._binary_sensors: list[GeckoBinarySensor] = []
@@ -254,14 +256,7 @@ class GeckoAsyncFacade(Observable):
             if pump.is_available
         ]
 
-        self._blowers = [
-            GeckoBlower(
-                self, device["device"], GeckoConstants.DEVICES[device["device"]]
-            )
-            for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device["device"]][3]
-            == GeckoConstants.DEVICE_CLASS_BLOWER
-        ]
+        self._blowers = [blower for blower in [self.blower] if blower.is_available]
 
         self._lights = [
             GeckoLight(self, device["device"], GeckoConstants.DEVICES[device["device"]])
