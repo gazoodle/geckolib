@@ -731,9 +731,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     def _get_action(self) -> GeckoSimulatorAction:
         action = GeckoSimulatorAction()
         for name in GeckoSimulatorAction.__annotations__:
-            if name.startswith("_"):
-                continue
-            setattr(action, name, self.structure.accessors[name].value)
+            if name in self.structure.accessors:
+                setattr(action, name, self.structure.accessors[name].value)
         action.set_connections(self.structure.connections)
         return action
 
@@ -742,9 +741,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         # ones will be sent.
         self._can_report_structure_changes.clear()
         for name, val in vars(action).items():
-            if name.startswith("_"):
-                continue
-            await self.structure.accessors[name].async_set_value(val)
+            if name in self.structure.accessors:
+                await self.structure.accessors[name].async_set_value(val)
         self._can_report_structure_changes.set()
 
     def get_snapshot_data(self) -> dict:

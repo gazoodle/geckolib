@@ -152,6 +152,9 @@ class GeckoSimulatorAction:
             self.UdVSP1 = 0
             self.UdP2 = "OFF"
             self.UdP3 = "OFF"
+            self.UdP4 = "OFF"
+            self.UdP5 = "OFF"
+            self.UdBL = "OFF"
             self.UdVSP3 = 0
         else:
             self.UdQuietTime = 0
