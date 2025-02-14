@@ -27,14 +27,27 @@ class GeckoSimulatorAction:
     UdVSP3: Any
     UdP4: Any
     UdP5: Any
+    UdBL: Any
     UdLi: Any
-    QuietState: Any
     UdQuietTime: Any
+    SetpointG: Any
 
     # Support accessors
     P1: Any
     P2: Any
     P3: Any
+    P4: Any
+    P5: Any
+    BL: Any
+    CP: Any
+    QuietState: Any
+
+    # Water heater
+    DisplayedTempG: Any
+    RealSetPointG: Any
+    MSTR_HEATER: Any
+    Heating: Any
+    HeaterPump: Any
 
     # Utility accessors
     CheckFlo: Any
@@ -76,6 +89,10 @@ class GeckoSimulatorAction:
     def on_KEYPAD_PUMP_5(self) -> None:
         """Handle keypad pump 5."""
         self.UdP5 = self._next_pump_value(self.UdP5, "P5L")
+
+    def on_KEY_BLOWER(self) -> None:
+        """Handle blower keypad button."""
+        self.UdBL = self._next_pump_value(self.UdBL)
 
     def _next_pump_value(
         self, ud: str | int, low_conn: str = "NA", *, vsp: bool = False
@@ -128,6 +145,32 @@ class GeckoSimulatorAction:
         else:
             self.P3 = "OFF"
 
+    def on_UdP4(self) -> None:
+        """Handle UdP4 changes."""
+        if self.UdP4 == "HI":
+            self.P4 = "HIGH"
+
+        elif self.UdP4 == "LO":
+            self.P4 = "LOW"
+
+        else:
+            self.P4 = "OFF"
+
+    def on_UdP5(self) -> None:
+        """Handle UdP5 changes."""
+        if self.UdP5 == "HI":
+            self.P5 = "HIGH"
+
+        elif self.UdP5 == "LO":
+            self.P5 = "LOW"
+
+        else:
+            self.P5 = "OFF"
+
+    def on_UdBL(self) -> None:
+        """Handle UdBL changes."""
+        self.BL = self.UdBL
+
     def on_UdLi(self) -> None:
         """Handle UdLi changes."""
         self.UdLightTime = 60 if self.UdLi == "HI" else 0
@@ -142,6 +185,18 @@ class GeckoSimulatorAction:
 
     def on_P3(self) -> None:
         """Handle changes to P3."""
+        self._pump_helper()
+
+    def on_P4(self) -> None:
+        """Handle changes to P4."""
+        self._pump_helper()
+
+    def on_P5(self) -> None:
+        """Handle changes to P5."""
+        self._pump_helper()
+
+    def on_BL(self) -> None:
+        """Handle changes to BL."""
         self._pump_helper()
 
     def on_QuietState(self) -> None:
@@ -159,15 +214,103 @@ class GeckoSimulatorAction:
         else:
             self.UdQuietTime = 0
 
+    def on_SetpointG(self) -> None:
+        """Handle changes to setpoint."""
+        self._temp_helper()
+
+    ############################################################################
+    #
+    #               Timer routines
+    #
+
+    def every_second(self, _total_seconds: int) -> None:
+        """Perform action every second."""
+        self._pump_helper()
+        self._temp_helper()
+        if _total_seconds % 10 == 0:
+            self._thermodynamics()
+
+    def every_minute(self, _total_minutes: int) -> None:
+        """Perform action every minute."""
+
+    def every_hour(self, _total_hours: int) -> None:
+        """Perform action every minute."""
+
     ############################################################################
     #
     #               Support and help routines
     #
 
     def _pump_helper(self) -> None:
-        if all([self.P1 == "OFF", self.P2 == "OFF", self.P3 == "OFF"]):
+        if all(
+            [
+                self.P1 == "OFF",
+                self.P2 == "OFF",
+                self.P3 == "OFF",
+                self.P4 == "OFF",
+                self.P5 == "OFF",
+                self.BL == "OFF",
+            ]
+        ):
             self.CheckFlo = False
             self.UdPumpTime = 0
         else:
             self.CheckFlo = True
             self.UdPumpTime = 15
+
+    def _temp_helper(self) -> None:
+        if any(
+            [
+                self.RealSetPointG is None,
+                self.SetpointG is None,
+                self.DisplayedTempG is None,
+            ]
+        ):
+            return
+
+        # Set the real setpoint temperature
+        self.RealSetPointG = self.SetpointG
+
+        # Handle heating and cooling
+        if self.DisplayedTempG >= self.RealSetPointG:
+            # We're at temperature, so we turn off heaters etc
+            if self.MSTR_HEATER is not None:
+                self.MSTR_HEATER = "OFF"
+            if self.Heating is not None:
+                if isinstance(self.Heating, bool):
+                    self.Heating = False
+                else:
+                    self.Heating = ""
+
+            self.CP = "OFF"
+
+        elif self.DisplayedTempG < self.RealSetPointG - 0.5:
+            # Below 0.5C of the setpoint, turn stuff on
+            if self.MSTR_HEATER is not None:
+                self.MSTR_HEATER = "ON"
+            if self.Heating is not None:
+                if isinstance(self.Heating, bool):
+                    self.Heating = True
+                else:
+                    self.Heating = "Heating"
+
+            self.CP = "ON"
+
+    @property
+    def is_heating(self) -> bool:
+        """Determine if heating is being done."""
+        if self.MSTR_HEATER is not None:
+            return self.MSTR_HEATER == "ON"
+        if self.Heating is not None:
+            if isinstance(self.Heating, bool):
+                return self.Heating
+            return self.Heating != ""
+        return False
+
+    def _thermodynamics(self) -> None:
+        # If there is no heating, then the water temperature drops
+        if self.DisplayedTempG is not None:
+            if self.is_heating:
+                self.DisplayedTempG += 0.1
+            else:
+                self.DisplayedTempG -= 0.1

@@ -11,6 +11,7 @@ from typing import Any, Self
 
 from geckolib import VERSION
 from geckolib.async_taskman import GeckoAsyncTaskMan
+from geckolib.config import config_sleep
 from geckolib.const import GeckoConstants
 from geckolib.driver import (
     GeckoAsyncPartialStatusBlockProtocolHandler,
@@ -91,6 +92,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         except ImportError:
             pass
 
+        self._action = GeckoSimulatorAction()
+        for name in GeckoSimulatorAction.__annotations__:
+            setattr(self._action, name, None)
+
     async def __aenter__(self) -> Self:
         """Support async with."""
         await GeckoAsyncTaskMan.__aenter__(self)
@@ -100,6 +105,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         GeckoAsyncTaskMan.add_task(
             self, self._notify_structure_changes(), "Notify Structure Changes", "SIM"
         )
+        self.add_task(self._timer_loop(), "Timer", "SIM")
         return self
 
     async def __aexit__(self, *_args: object) -> None:
@@ -234,6 +240,11 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         if not compatible:
             print("The new snapshot structure is not compatible, so doing a full reset")
             print(self.prompt, end="", flush=True)
+            if "PackType" in self.structure.accessors:
+                await self.structure.accessors["PackType"].async_set_value(
+                    self.structure.accessors["PackType"].value, always_send=True
+                )
+
             self.structure.reset()
 
         self.snapshot = snapshot
@@ -624,7 +635,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         """Handle a key press command."""
         _LOGGER.debug("Pack command press key %d", keycode)
 
-        action = self._get_action()
+        self._fill_action_state()
 
         # Iterate through all attributes in GeckoConstants
         for name, val in vars(GeckoConstants).items():
@@ -632,10 +643,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             # and starts with 'KEYPAD_'
             if isinstance(val, int) and val == keycode and name.startswith("KEYPAD_"):
                 # Now find a function in the action class
-                func = getattr(action, f"on_{name}", None)
+                func = getattr(self._action, f"on_{name}", None)
                 if func is not None:
                     func()
-                    await self._put_action(action)
+                    await self._report_action_state()
                     return
 
         _LOGGER.warning("Simulator didn't handle key pad command for %d", keycode)
@@ -706,11 +717,11 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             while True:
                 accessor, old_value, new_value = await self._accessor_change_queue.get()
 
-                action = self._get_action()
-                func = getattr(action, f"on_{accessor.tag}", None)
+                self._fill_action_state()
+                func = getattr(self._action, f"on_{accessor.tag}", None)
                 if func is not None:
                     func()
-                    await self._put_action(action)
+                    await self._report_action_state()
                 else:
                     _LOGGER.debug(
                         "%s changed from %s to %s", accessor, old_value, new_value
@@ -728,20 +739,20 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         finally:
             _LOGGER.debug("Simulator value update loop finished")
 
-    def _get_action(self) -> GeckoSimulatorAction:
-        action = GeckoSimulatorAction()
-        for name in GeckoSimulatorAction.__annotations__:
+    def _fill_action_state(self) -> None:
+        for name in vars(self._action):
             if name in self.structure.accessors:
-                setattr(action, name, self.structure.accessors[name].value)
-        action.set_connections(self.structure.connections)
-        return action
+                setattr(self._action, name, self.structure.accessors[name].value)
+            else:
+                setattr(self._action, name, None)
+        self._action.set_connections(self.structure.connections)
 
-    async def _put_action(self, action: GeckoSimulatorAction) -> None:
+    async def _report_action_state(self) -> None:
         # Write all the properties back, only the changed
         # ones will be sent.
         self._can_report_structure_changes.clear()
-        for name, val in vars(action).items():
-            if name in self.structure.accessors:
+        for name, val in vars(self._action).items():
+            if name in self.structure.accessors and val is not None:
                 await self.structure.accessors[name].async_set_value(val)
         self._can_report_structure_changes.set()
 
@@ -757,3 +768,24 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             }
         )
         return data
+
+    async def _timer_loop(self) -> None:
+        elapsed_time = 0
+        try:
+            while True:
+                await config_sleep(1, "Simulator Timer")
+                elapsed_time += 1
+                self._fill_action_state()
+                self._action.every_second(elapsed_time)
+                if elapsed_time % 60 == 0:
+                    self._action.every_minute(int(elapsed_time / 60))
+                if elapsed_time % 3600 == 0:
+                    self._action.every_hour(int(elapsed_time / 3600))
+                await self._report_action_state()
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("Simulator timer loop cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception("Simulator timer loop caught exception")
+            raise

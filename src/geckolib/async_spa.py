@@ -14,7 +14,7 @@ from geckolib.driver.accessor import GeckoStructAccessor
 
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_taskman import GeckoAsyncTaskMan
-from .config import GeckoConfig, config_sleep
+from .config import GeckoConfig, config_sleep, release_config_change_waiters
 from .const import GeckoConstants
 from .driver import (
     GeckoAsyncPartialStatusBlockProtocolHandler,
@@ -86,6 +86,7 @@ class GeckoAsyncSpa(Observable):
 
         self.struct: GeckoAsyncStructure = GeckoAsyncStructure(self._async_on_set_value)
         self._last_ping_at: datetime | None = None
+        self._needs_reload: bool = False
 
     @property
     def sendparms(self) -> tuple:
@@ -367,7 +368,20 @@ class GeckoAsyncSpa(Observable):
         if GeckoConstants.KEY_CONFIG_NUMBER in self.accessors:
             self.config_number = self.accessors[GeckoConstants.KEY_CONFIG_NUMBER].value
 
+        # Listen to critical data changes for reload
+        if "PackType" in self.accessors:
+            self.accessors["PackType"].watch(self._on_critical_info_changed)
+        if "PackConfID" in self.accessors:
+            self.accessors["PackConfID"].watch(self._on_critical_info_changed)
+        if "PackConfigLib" in self.accessors:
+            self.accessors["PackConfigLib"].watch(self._on_critical_info_changed)
+        if "PackStatusLib" in self.accessors:
+            self.accessors["PackStatusLib"].watch(self._on_critical_info_changed)
+        for output in self.struct.all_outputs:
+            self.accessors[output].watch(self._on_critical_info_changed)
+
         self._is_connected = True
+        self._needs_reload = False
         await self._event_handler(GeckoSpaEvent.CONNECTION_SPA_COMPLETE)
         _LOGGER.debug("Spa connected")
 
@@ -390,6 +404,14 @@ class GeckoAsyncSpa(Observable):
             self._protocol = None
         self._transport = None
         self.unwatch_all()
+        self._needs_reload = False
+
+    def _on_critical_info_changed(
+        self, _sender: Any, _old_value: Any, _new_value: Any
+    ) -> None:
+        print("Critical change")
+        self._needs_reload = True
+        release_config_change_waiters()
 
     @property
     def isopen(self) -> bool:
@@ -509,6 +531,9 @@ class GeckoAsyncSpa(Observable):
                     "Async spa status block refresh handler ",
                 )
                 _LOGGER.debug("Refresh status block")
+                if self._needs_reload:
+                    await self._event_handler(GeckoSpaEvent.RUNNING_SPA_NEEDS_RELOAD)
+                    continue
                 if not self.is_connected:
                     continue
                 if not self.is_responding_to_pings:

@@ -546,6 +546,9 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             ):
                 await self.async_reset()
 
+        elif event == GeckoSpaEvent.RUNNING_SPA_NEEDS_RELOAD:
+            await self.async_reset()
+
         elif event == GeckoSpaEvent.ERROR_RF_ERROR:
             if self.spa_state == GeckoSpaState.CONNECTED:
                 self.set_spa_state(GeckoSpaState.ERROR_RF_FAULT)

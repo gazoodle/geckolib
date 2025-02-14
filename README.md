@@ -296,9 +296,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Build some documentation
 - Add coverage to GitHub package workflow
 - API set_config_mode needs to be per device rather than global
-- Need to develop a way to force reconnection if certain accessors change, the intouch2 application
-  will do this if certain values are changed, and using the simulator snapshots, I've noticed that
-  the HA integration can get confused leading to possible values beiing posted to the wrong locations.
 - Move localizable strings so that HA can handle itself
 - Add command to simulator to start a blank configuration instead of loading a snapshot
 - Use MinSetpointG and MaxSetpointG if available
@@ -315,6 +312,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Library is now RUFF compliant, all typing hints are done.
  - Can connect to MrSteam without throwing any errors. This ought to be good to get some snapshots.
  - Rebuilt GeckoPump class to cleanly handle one, two or variable speed pumps
+ - Spa manager will reload if critical data changed
 
 ## BREAKING CHANGES 1.0.2
  - Blower is now a single speed pump, not a switch

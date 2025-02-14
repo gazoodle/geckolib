@@ -169,7 +169,9 @@ class GeckoStructAccessor(Observable):
         """
         return self._get_raw_value()
 
-    async def async_set_value(self, newvalue: Any) -> None:
+    async def async_set_value(
+        self, newvalue: Any, *, always_send: bool = False
+    ) -> None:
         """Set a value in the pack structure using the initialized declaration."""
         if self.read_write is None:
             raise AttributeError(
@@ -214,7 +216,7 @@ class GeckoStructAccessor(Observable):
                 (newvalue & self.bitmask) << self.bitpos
             )
 
-        if newvalue == existing:
+        if newvalue == existing and not always_send:
             return
 
         _LOGGER.debug(
