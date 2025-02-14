@@ -260,10 +260,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 await struct.load_config_module(snapshot.config_version)
                 await struct.load_log_module(snapshot.log_version)
                 struct.build_accessors()
-                struct.build_connections()
 
             except ModuleNotFoundError:
                 _LOGGER.exception("Module not found during snapshot load")
+        struct.build_connections()
 
     async def do_diff(self, arg: str) -> None:
         """
@@ -731,7 +731,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     def _get_action(self) -> GeckoSimulatorAction:
         action = GeckoSimulatorAction()
         for name in GeckoSimulatorAction.__annotations__:
+            if name.startswith("_"):
+                continue
             setattr(action, name, self.structure.accessors[name].value)
+        action.set_connections(self.structure.connections)
         return action
 
     async def _put_action(self, action: GeckoSimulatorAction) -> None:
@@ -739,6 +742,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         # ones will be sent.
         self._can_report_structure_changes.clear()
         for name, val in vars(action).items():
+            if name.startswith("_"):
+                continue
             await self.structure.accessors[name].async_set_value(val)
         self._can_report_structure_changes.set()
 

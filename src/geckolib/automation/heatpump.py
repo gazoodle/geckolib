@@ -23,15 +23,16 @@ class GeckoHeatPump(GeckoSelect):
         """Initialize the heatpump class."""
         super().__init__(facade, name, accessor)
         # Set of mappings of constants to UI options
-        self.mapping = {
-            "CHILL": "Cool",
-            "INTERNAL_HEAT": "Electric",
-            "HEAT_SAVER": "Eco Heat",
-            "HEAT_W_BOOST": "Smart Heat",
-            "AUTO_SAVER": "Eco Auto",
-            "AUTO_W_BOOST": "Smart Auto",
-        }
-        self.reverse = {v: k for k, v in self.mapping.items()}
+        self.set_mapping(
+            {
+                "CHILL": "Cool",
+                "INTERNAL_HEAT": "Electric",
+                "HEAT_SAVER": "Eco Heat",
+                "HEAT_W_BOOST": "Smart Heat",
+                "AUTO_SAVER": "Eco Auto",
+                "AUTO_W_BOOST": "Smart Auto",
+            }
+        )
 
     @property
     def state(self) -> str:

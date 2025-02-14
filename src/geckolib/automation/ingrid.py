@@ -23,13 +23,14 @@ class GeckoInGrid(GeckoSelect):
         """Initialize the inGrid class."""
         super().__init__(facade, name, accessor)
         # Set of mappings of constants to UI options
-        self.mapping = {
-            "INTERNAL_HEAT": "Electrical heater",
-            "HEAT_SAVER": "External heater",
-            "BOTH_HEAT": "Both",
-            "HEAT_W_BOOST": "Smart",
-        }
-        self.reverse = {v: k for k, v in self.mapping.items()}
+        self.set_mapping(
+            {
+                "INTERNAL_HEAT": "Electrical heater",
+                "HEAT_SAVER": "External heater",
+                "BOTH_HEAT": "Both",
+                "HEAT_W_BOOST": "Smart",
+            }
+        )
 
     @property
     def state(self) -> str:

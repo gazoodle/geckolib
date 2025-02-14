@@ -18,7 +18,7 @@ from .blower import GeckoBlower
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
 from .light import GeckoLight
-from .pump import GeckoNewPump, GeckoPump, GeckoPump1
+from .pump import GeckoPump
 from .reminders import GeckoReminders
 from .sensors import GeckoBinarySensor, GeckoErrorSensor, GeckoSensor, GeckoSensorBase
 from .switch import GeckoStandby, GeckoSwitch
@@ -96,12 +96,16 @@ class GeckoAsyncFacade(Observable):
 
         # Declare all the items that a spa might have. If they are
         # available for this configuration, they will be marked as such.
-        self.pump_1 = GeckoPump1(self)
+        self.pump_1 = GeckoPump(self, "Pump 1", "P1")
+        self.pump_2 = GeckoPump(self, "Pump 2", "P2")
+        self.pump_3 = GeckoPump(self, "Pump 3", "P3")
+        self.pump_4 = GeckoPump(self, "Pump 4", "P4")
+        self.pump_5 = GeckoPump(self, "Pump 5", "P5")
 
         # Declare all the class members
         self._sensors: list[GeckoSensorBase] = []
         self._binary_sensors: list[GeckoBinarySensor] = []
-        self._pumps: list[GeckoPump | GeckoNewPump] = []
+        self._pumps: list[GeckoPump] = []
         self._blowers: list[GeckoBlower] = []
         self._lights: list[GeckoLight] = []
         self._ecomode: GeckoSwitch | None = None
@@ -238,19 +242,17 @@ class GeckoAsyncFacade(Observable):
         ]
         _LOGGER.debug("Handled user devices are %s", self.actual_user_devices)
 
-        self._pumps: list[GeckoPump | GeckoNewPump] = [
-            GeckoPump(
-                self,
-                device["device"],
-                GeckoConstants.DEVICES[device["device"]],
-                device["user_demand"],
-            )
-            for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device["device"]][3]
-            == GeckoConstants.DEVICE_CLASS_PUMP
+        self._pumps: list[GeckoPump] = [
+            pump
+            for pump in [
+                self.pump_1,
+                self.pump_2,
+                self.pump_3,
+                self.pump_4,
+                self.pump_5,
+            ]
+            if pump.is_available
         ]
-        if self.pump_1.is_available:
-            self._pumps.insert(0, self.pump_1)
 
         self._blowers = [
             GeckoBlower(
@@ -369,7 +371,7 @@ class GeckoAsyncFacade(Observable):
         return self._keypad
 
     @property
-    def pumps(self) -> list[GeckoPump | GeckoNewPump]:
+    def pumps(self) -> list[GeckoPump]:
         """Get the pumps list."""
         return self._pumps
 

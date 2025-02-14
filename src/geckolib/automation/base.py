@@ -24,6 +24,13 @@ class GeckoAutomationBase(Observable):
         self._parent_name: str = parent_name
         self._key: str = key
         self._is_available: bool = False
+        self.mapping = {}
+        self.reverse = {}
+
+    def set_mapping(self, mapping: dict) -> None:
+        """Set the mapping and the reverse mapping helpers."""
+        self.mapping = mapping
+        self.reverse = {v: k for k, v in self.mapping.items()}
 
     @property
     def name(self) -> str:
