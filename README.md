@@ -314,6 +314,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Refactoring to allow accessory modules such as inMix to be handled.
  - Library is now RUFF compliant, all typing hints are done.
  - Can connect to MrSteam without throwing any errors. This ought to be good to get some snapshots.
+ - Rebuilt GeckoPump class to cleanly handle one, two or variable speed pumps
 
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa
