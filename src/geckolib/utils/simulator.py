@@ -71,6 +71,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self.snapshot: GeckoSnapshot = GeckoSnapshot()
         self._reliability = 1.0
         self._do_rferr = False
+        self._do_thermodynamics = False
         self._send_structure_change = False
         self._clients = []
         random.seed()
@@ -322,6 +323,17 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             await self.set_snapshot(GeckoSnapshot.create(plateform, config, log))
         except IndexError:
             pass
+
+    def do_thermodynamics(self, arg: str) -> None:
+        """
+        Run thermodynamics simulator.
+
+        Turn the thermodynamics simulation control on or off
+        usage: thermodynamics <ON|OFF>. Defaults to ON
+        """
+        if not arg:
+            arg = "ON"
+        self._do_thermodynamics = arg == "ON"
 
     def _should_ignore(
         self,
@@ -777,6 +789,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 elapsed_time += 1
                 self._fill_action_state()
                 self._action.every_second(elapsed_time)
+                if elapsed_time % 10 == 0 and self._do_thermodynamics:
+                    self._action.check_thermodynamics(elapsed_time)
                 if elapsed_time % 60 == 0:
                     self._action.every_minute(int(elapsed_time / 60))
                 if elapsed_time % 3600 == 0:

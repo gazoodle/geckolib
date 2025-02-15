@@ -228,8 +228,6 @@ class GeckoSimulatorAction:
         """Perform action every second."""
         self._pump_helper()
         self._temp_helper()
-        if _total_seconds % 10 == 0:
-            self._thermodynamics()
 
     def every_minute(self, _total_minutes: int) -> None:
         """Perform action every minute."""
@@ -308,7 +306,8 @@ class GeckoSimulatorAction:
             return self.Heating != ""
         return False
 
-    def _thermodynamics(self) -> None:
+    def check_thermodynamics(self, _elapsed_time: int) -> None:
+        """Check thermodynamics for the spa."""
         # If there is no heating, then the water temperature drops
         delta: float = 0.2 if self.TempUnits == "F" else 0.1
         if self.DisplayedTempG is not None:
