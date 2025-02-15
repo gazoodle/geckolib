@@ -104,12 +104,6 @@ class GeckoConstants:
     # Spa devices and accessories, dictionary of tuples
     #   ID: Description, keypad, structure key, class
     DEVICES = {  # noqa: RUF012
-        # "P1": ("Pump 1", KEYPAD_PUMP_1, KEY_PUMP_1, DEVICE_CLASS_PUMP),
-        # "P2": ("Pump 2", KEYPAD_PUMP_2, KEY_PUMP_2, DEVICE_CLASS_PUMP),
-        # "P3": ("Pump 3", KEYPAD_PUMP_3, KEY_PUMP_3, DEVICE_CLASS_PUMP),
-        # "P4": ("Pump 4", KEYPAD_PUMP_4, KEY_PUMP_4, DEVICE_CLASS_PUMP),
-        # "P5": ("Pump 5", KEYPAD_PUMP_5, KEY_PUMP_5, DEVICE_CLASS_PUMP),
-        # "BL": ("Blower", KEYPAD_BLOWER, KEY_BLOWER, DEVICE_CLASS_BLOWER),
         "Waterfall": ("Waterfall", KEYPAD_WATERFALL, KEY_WATERFALL, DEVICE_CLASS_PUMP),
         "LI": ("Lights", KEYPAD_LIGHT, KEY_USER_DEMAND_LIGHT, DEVICE_CLASS_LIGHT),
     }

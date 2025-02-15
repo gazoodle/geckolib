@@ -152,7 +152,7 @@ class GeckoAsyncSpa(Observable):
             None, partial(importlib.import_module, module)
         )
 
-    async def _connect(self) -> None:  # noqa: PLR0915
+    async def _connect(self) -> None:
         loop = asyncio.get_running_loop()
         self._con_lost.clear()
 
@@ -171,76 +171,10 @@ class GeckoAsyncSpa(Observable):
             "Async spa connect - after protocol creation",
         )
 
-        self._taskman.add_task(
-            GeckoUnhandledProtocolHandler().consume(self._protocol),
-            "Unhandled packet",
-            "SPA",
-        )
-        self._taskman.add_task(
-            GeckoPacketProtocolHandler(async_on_handled=self._async_on_packet).consume(
-                self._protocol
-            ),
-            "Packet handler",
-            "SPA",
-        )
-        self._taskman.add_task(
-            GeckoAsyncPartialStatusBlockProtocolHandler(
-                self._protocol, async_on_handled=self._async_on_partial_status_update
-            ).consume(self._protocol),
-            "Partial status block handler",
-            "SPA",
-        )
-        self._taskman.add_task(
-            GeckoRFErrProtocolHandler(async_on_handled=self._async_on_rferr).consume(
-                self._protocol
-            ),
-            "RFErr handler",
-            "SPA",
-        )
-        self._taskman.add_task(
-            GeckoWatercareErrorHandler(async_on_handled=self._async_on_wcerr).consume(
-                self._protocol
-            ),
-            "WCErr handler",
-            "SPA",
-        )
-        self._taskman.add_task(self._ping_loop(), "Ping loop", "SPA")
-        self._taskman.add_task(self._refresh_loop(), "Refresh loop", "SPA")
-        await config_sleep(
-            GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS,
-            "Async spa connect - before version ",
-        )
+        await self._connect_install_task_handlers()
 
-        version_handler = await self._protocol.get(self._get_version_handler_func)
-        if version_handler is None:
-            _LOGGER.error("Cannot get version, protocol retry count exceeded")
-            await self._event_handler(
-                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
-            )
+        if not await self._connect_get_version():
             return
-
-        self.intouch_version_en = (
-            f"{version_handler.en_build}"
-            f" v{version_handler.en_major}.{version_handler.en_minor}"
-        )
-        self.intouch_version_co = (
-            f"{version_handler.co_build}"
-            f" v{version_handler.co_major}.{version_handler.co_minor}"
-        )
-        _LOGGER.debug(
-            "Got in.touch2 firmware version EN(Home) %s/CO(Spa) %s, now get channel",
-            self.intouch_version_en,
-            self.intouch_version_co,
-        )
-        await self._event_handler(
-            GeckoSpaEvent.CONNECTION_GOT_FIRMWARE_VERSION,
-            intouch_version_en=self.intouch_version_en,
-            intouch_version_co=self.intouch_version_co,
-        )
-        await config_sleep(
-            GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS,
-            "Async spa connect - After version",
-        )
 
         get_channel_handler = await self._protocol.get(self._get_channel_handler_func)
         if get_channel_handler is None:
@@ -295,37 +229,8 @@ class GeckoAsyncSpa(Observable):
             "Async spa connect - after files",
         )
 
-        try:
-            await self.struct.load_pack_class(plateform_key)
-        except ModuleNotFoundError as ex:
-            await self._event_handler(
-                GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK, ex.args
-            )
+        if not await self._connect_load_pack(plateform_key):
             return
-
-        try:
-            await self.struct.load_config_module(self.config_version)
-        except ModuleNotFoundError as ex:
-            await self._event_handler(
-                GeckoSpaEvent.CONNECTION_CANNOT_FIND_CONFIG_VERSION, ex.args
-            )
-            return
-
-        try:
-            await self.struct.load_log_module(self.log_version)
-        except ModuleNotFoundError as ex:
-            await self._event_handler(
-                GeckoSpaEvent.CONNECTION_CANNOT_FIND_LOG_VERSION, ex.args
-            )
-
-        self.pack_type = self.struct.pack_class.plateform_type
-        _LOGGER.debug(
-            "Got spa configuration Type %s - CFG %s/LOG %s, now ask for initial "
-            "status block",
-            self.pack_type,
-            self.config_version,
-            self.log_version,
-        )
 
         await self._event_handler(GeckoSpaEvent.CONNECTION_INITIAL_DATA_BLOCK_REQUEST)
         await config_sleep(
@@ -368,6 +273,126 @@ class GeckoAsyncSpa(Observable):
         if GeckoConstants.KEY_CONFIG_NUMBER in self.accessors:
             self.config_number = self.accessors[GeckoConstants.KEY_CONFIG_NUMBER].value
 
+        self._connect_listen_too_critical_changes()
+
+        self._is_connected = True
+        self._needs_reload = False
+        await self._event_handler(GeckoSpaEvent.CONNECTION_SPA_COMPLETE)
+        _LOGGER.debug("Spa connected")
+
+    async def _connect_install_task_handlers(self) -> None:
+        if self._protocol is None:
+            return
+
+        self._taskman.add_task(
+            GeckoUnhandledProtocolHandler().consume(self._protocol),
+            "Unhandled packet",
+            "SPA",
+        )
+        self._taskman.add_task(
+            GeckoPacketProtocolHandler(async_on_handled=self._async_on_packet).consume(
+                self._protocol
+            ),
+            "Packet handler",
+            "SPA",
+        )
+        self._taskman.add_task(
+            GeckoAsyncPartialStatusBlockProtocolHandler(
+                self._protocol, async_on_handled=self._async_on_partial_status_update
+            ).consume(self._protocol),
+            "Partial status block handler",
+            "SPA",
+        )
+        self._taskman.add_task(
+            GeckoRFErrProtocolHandler(async_on_handled=self._async_on_rferr).consume(
+                self._protocol
+            ),
+            "RFErr handler",
+            "SPA",
+        )
+        self._taskman.add_task(
+            GeckoWatercareErrorHandler(async_on_handled=self._async_on_wcerr).consume(
+                self._protocol
+            ),
+            "WCErr handler",
+            "SPA",
+        )
+        self._taskman.add_task(self._ping_loop(), "Ping loop", "SPA")
+        self._taskman.add_task(self._refresh_loop(), "Refresh loop", "SPA")
+        await config_sleep(
+            GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS,
+            "Async spa connect - before version ",
+        )
+
+    async def _connect_get_version(self) -> bool:
+        version_handler = await self._protocol.get(self._get_version_handler_func)
+        if version_handler is None:
+            _LOGGER.error("Cannot get version, protocol retry count exceeded")
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+            )
+            return False
+
+        self.intouch_version_en = (
+            f"{version_handler.en_build}"
+            f" v{version_handler.en_major}.{version_handler.en_minor}"
+        )
+        self.intouch_version_co = (
+            f"{version_handler.co_build}"
+            f" v{version_handler.co_major}.{version_handler.co_minor}"
+        )
+        _LOGGER.debug(
+            "Got in.touch2 firmware version EN(Home) %s/CO(Spa) %s, now get channel",
+            self.intouch_version_en,
+            self.intouch_version_co,
+        )
+        await self._event_handler(
+            GeckoSpaEvent.CONNECTION_GOT_FIRMWARE_VERSION,
+            intouch_version_en=self.intouch_version_en,
+            intouch_version_co=self.intouch_version_co,
+        )
+        await config_sleep(
+            GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS,
+            "Async spa connect - After version",
+        )
+
+        return True
+
+    async def _connect_load_pack(self, plateform_key: str) -> bool:
+        try:
+            await self.struct.load_pack_class(plateform_key)
+        except ModuleNotFoundError as ex:
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK, ex.args
+            )
+            return False
+
+        try:
+            await self.struct.load_config_module(self.config_version)
+        except ModuleNotFoundError as ex:
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_CONFIG_VERSION, ex.args
+            )
+            return False
+
+        try:
+            await self.struct.load_log_module(self.log_version)
+        except ModuleNotFoundError as ex:
+            await self._event_handler(
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_LOG_VERSION, ex.args
+            )
+
+        self.pack_type = self.struct.pack_class.plateform_type
+        _LOGGER.debug(
+            "Got spa configuration Type %s - CFG %s/LOG %s, now ask for initial "
+            "status block",
+            self.pack_type,
+            self.config_version,
+            self.log_version,
+        )
+        return True
+
+    def _connect_listen_too_critical_changes(self) -> None:
         # Listen to critical data changes for reload
         if "PackType" in self.accessors:
             self.accessors["PackType"].watch(self._on_critical_info_changed)
@@ -379,11 +404,6 @@ class GeckoAsyncSpa(Observable):
             self.accessors["PackStatusLib"].watch(self._on_critical_info_changed)
         for output in self.struct.all_outputs:
             self.accessors[output].watch(self._on_critical_info_changed)
-
-        self._is_connected = True
-        self._needs_reload = False
-        await self._event_handler(GeckoSpaEvent.CONNECTION_SPA_COMPLETE)
-        _LOGGER.debug("Spa connected")
 
     async def connect(self) -> None:
         """Wrap the connection with exception safety."""
@@ -409,7 +429,6 @@ class GeckoAsyncSpa(Observable):
     def _on_critical_info_changed(
         self, _sender: Any, _old_value: Any, _new_value: Any
     ) -> None:
-        print("Critical change")
         self._needs_reload = True
         release_config_change_waiters()
 
