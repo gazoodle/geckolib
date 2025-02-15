@@ -56,12 +56,12 @@ class GeckoLightLi(GeckoLight):
     def __init__(self, facade: GeckoAsyncFacade) -> None:
         """Initialize the Li light."""
         super().__init__(facade, "Light", "LI")
-        if "OutLi" in self.facade.spa.struct.all_outputs:
-            if self.facade.spa.struct.accessors["OutLi"].value == "LI":
-                self.set_availability(is_available=True)
+        if "LI" in self.facade.spa.struct.connections:
+            self.set_availability(is_available=True)
 
-        self._state_accessor = self.facade.spa.accessors["UdLi"]
-        self._state_accessor.watch(self._on_change)
+        if self.is_available:
+            self._state_accessor = self.facade.spa.accessors["UdLi"]
+            self._state_accessor.watch(self._on_change)
 
     @property
     def is_on(self) -> bool:
@@ -92,3 +92,31 @@ class GeckoLightL120(GeckoLight):
     def __init__(self, facade: GeckoAsyncFacade) -> None:
         """Initialize the L120 light."""
         super().__init__(facade, "Light 2", "L120")
+        if "L120" in self.facade.spa.struct.connections:
+            self.set_availability(is_available=True)
+
+        if self.is_available:
+            self._state_accessor = self.facade.spa.accessors["UdL120"]
+            self._state_accessor.watch(self._on_change)
+
+    @property
+    def is_on(self) -> bool:
+        """Determine if the light is on or not."""
+        return self.state != "OFF"
+
+    @property
+    def state(self) -> Any:
+        """Get the state of the light."""
+        return self._state_accessor.value
+
+    async def async_turn_on(self, **_kwargs: Any) -> None:
+        """Turn the light ON, but does nothing if it is already ON."""
+        if self.is_on:
+            return
+        await self._state_accessor.async_set_value("ON")
+
+    async def async_turn_off(self, **_kwargs: Any) -> None:
+        """Turn the light OFF, but does nothing if it is already OFF."""
+        if not self.is_on:
+            return
+        await self._state_accessor.async_set_value("OFF")

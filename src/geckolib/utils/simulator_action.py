@@ -29,6 +29,7 @@ class GeckoSimulatorAction:
     UdP5: Any
     UdBL: Any
     UdLi: Any
+    UdL120: Any
     UdQuietTime: Any
     SetpointG: Any
 
@@ -39,6 +40,7 @@ class GeckoSimulatorAction:
     P4: Any
     P5: Any
     BL: Any
+    L120: Any
     CP: Any
     QuietState: Any
 
@@ -106,8 +108,12 @@ class GeckoSimulatorAction:
         return "HI" if ud == "OFF" else "OFF"
 
     def on_KEYPAD_LIGHT(self) -> None:
-        """Handle keypage for light."""
+        """Handle keypad for light."""
         self.UdLi = "HI" if self.UdLi == "OFF" else "OFF"
+
+    def on_KEYPAD_LIGHT_120(self) -> None:
+        """Handle keypad for light 2."""
+        self.UdL120 = "ON" if self.UdL120 == "OFF" else "OFF"
 
     ############################################################################
     #
@@ -175,6 +181,11 @@ class GeckoSimulatorAction:
     def on_UdLi(self) -> None:
         """Handle UdLi changes."""
         self.UdLightTime = 60 if self.UdLi == "HI" else 0
+
+    def on_UdL120(self) -> None:
+        """Handle UdL120 changes."""
+        self.UdL120Time = 60 if self.UdL120 == "ON" else 0
+        self.L120 = "ON" if self.UdL120 == "ON" else "OFF"
 
     def on_P1(self) -> None:
         """Handle changes to P1."""
