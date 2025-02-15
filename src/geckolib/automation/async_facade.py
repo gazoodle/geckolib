@@ -17,7 +17,7 @@ from geckolib.driver import Observable
 from .blower import GeckoBlower
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
-from .light import GeckoLight
+from .light import GeckoLight, GeckoLightL120, GeckoLightLi
 from .pump import GeckoPump
 from .reminders import GeckoReminders
 from .sensors import GeckoBinarySensor, GeckoErrorSensor, GeckoSensor, GeckoSensorBase
@@ -103,6 +103,9 @@ class GeckoAsyncFacade(Observable):
         self.pump_5 = GeckoPump(self, "Pump 5", "P5")
 
         self.blower = GeckoBlower(self)
+
+        self.light = GeckoLightLi(self)
+        self.light2 = GeckoLightL120(self)
 
         # Declare all the class members
         self._sensors: list[GeckoSensorBase] = []
@@ -259,10 +262,7 @@ class GeckoAsyncFacade(Observable):
         self._blowers = [blower for blower in [self.blower] if blower.is_available]
 
         self._lights = [
-            GeckoLight(self, device["device"], GeckoConstants.DEVICES[device["device"]])
-            for device in self.actual_user_devices
-            if GeckoConstants.DEVICES[device["device"]][3]
-            == GeckoConstants.DEVICE_CLASS_LIGHT
+            light for light in [self.light, self.light2] if light.is_available
         ]
 
         self._sensors = [

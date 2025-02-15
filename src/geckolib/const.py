@@ -86,7 +86,7 @@ class GeckoConstants:
     KEYPAD_PUMP_5 = 5
     KEYPAD_BLOWER = 6
     KEYPAD_LIGHT = 16
-    KEYPAD_LIGHT_2 = 17
+    KEYPAD_LIGHT_120 = 17
     KEYPAD_UP = 21
     KEYPAD_DOWN = 22
     KEYPAD_WATERFALL = 23

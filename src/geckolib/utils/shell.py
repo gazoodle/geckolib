@@ -11,7 +11,8 @@ from typing import Any, Self
 
 from geckolib import VERSION, GeckoConstants, GeckoPump
 from geckolib.async_spa_manager import GeckoAsyncSpaMan
-from geckolib.automation.base import GeckoAutomationFacadeBase
+from geckolib.automation.base import GeckoAutomationBase, GeckoAutomationFacadeBase
+from geckolib.automation.power import GeckoPower
 from geckolib.config import release_config_change_waiters
 from geckolib.driver.accessor import GeckoStructAccessor
 from geckolib.spa_events import GeckoSpaEvent
@@ -126,12 +127,16 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                     )
                 else:
                     func_name = f"do_{device.key}"
+
+                    async def async_device_command(
+                        self: Self, arg: str, device: GeckoAutomationBase = device
+                    ) -> None:
+                        await self.device_command(arg, device)
+
                     setattr(
                         GeckoShell,
                         func_name,
-                        lambda self, arg, device=device: self.device_command(
-                            arg, device
-                        ),
+                        async_device_command,
                     )
                     func_ptr = getattr(GeckoShell, func_name)
                     func_ptr.__doc__ = (
@@ -172,13 +177,13 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         self._spa_identifier = spa_descriptor.identifier_as_string
         self._state_change.set()
 
-    def device_command(self, arg: str, device: GeckoAutomationFacadeBase) -> None:
+    async def device_command(self, arg: str, device: GeckoAutomationFacadeBase) -> None:
         """Turn a device on or off."""
         print(f"Turn device {device.name} {arg}")
         if arg.lower() == "on":
-            device.turn_on()
+            await device.async_turn_on()
         else:
-            device.turn_off()
+            await device.async_turn_off()
 
     async def pump_command(self, arg: str, device: GeckoPump) -> None:
         """Set a pump mode <mode>."""
