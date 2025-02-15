@@ -48,6 +48,7 @@ class GeckoSimulatorAction:
     MSTR_HEATER: Any
     Heating: Any
     HeaterPump: Any
+    TempUnits: Any
 
     # Utility accessors
     CheckFlo: Any
@@ -309,8 +310,9 @@ class GeckoSimulatorAction:
 
     def _thermodynamics(self) -> None:
         # If there is no heating, then the water temperature drops
+        delta: float = 0.2 if self.TempUnits == "F" else 0.1
         if self.DisplayedTempG is not None:
             if self.is_heating:
-                self.DisplayedTempG += 0.1
+                self.DisplayedTempG += delta
             else:
-                self.DisplayedTempG -= 0.1
+                self.DisplayedTempG -= delta
