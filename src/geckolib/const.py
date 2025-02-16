@@ -90,6 +90,7 @@ class GeckoConstants:
     KEYPAD_UP = 21
     KEYPAD_DOWN = 22
     KEYPAD_WATERFALL = 23
+    KEYPAD_AUX = 24
     KEYPAD_ECOMODE = 0
 
     # Pack outputs
@@ -100,13 +101,6 @@ class GeckoConstants:
     DEVICE_CLASS_OTHER = "OTHER"
 
     ECON_ACTIVE_DESCRIPTION = "Economy Mode"
-
-    # Spa devices and accessories, dictionary of tuples
-    #   ID: Description, keypad, structure key, class
-    DEVICES = {  # noqa: RUF012
-        "Waterfall": ("Waterfall", KEYPAD_WATERFALL, KEY_WATERFALL, DEVICE_CLASS_PUMP),
-        "LI": ("Lights", KEYPAD_LIGHT, KEY_USER_DEMAND_LIGHT, DEVICE_CLASS_LIGHT),
-    }
 
     BINARY_SENSORS = [  # noqa: RUF012
         (
@@ -123,20 +117,6 @@ class GeckoConstants:
     ]
 
     SENSORS = [("Smart Winter Mode:Risk", KEY_SWM_RISK)]  # noqa: RUF012
-
-    # Buttons, list of tuples
-    #   ID, Description, KeyPad ID
-    BUTTONS = [  # noqa: RUF012
-        ("P1", "Pump 1 Button", KEYPAD_PUMP_1),
-        ("P2", "Pump 2 Button", KEYPAD_PUMP_2),
-        ("P3", "Pump 3 Button", KEYPAD_PUMP_3),
-        ("P4", "Pump 4 Button", KEYPAD_PUMP_4),
-        ("P5", "Pump 5 Button", KEYPAD_PUMP_5),
-        ("BLOWER", "Blower Button", KEYPAD_BLOWER),
-        ("LIGHT", "Lights Button", KEYPAD_LIGHT),
-        ("UP", "Up Button", KEYPAD_UP),
-        ("DOWN", "Down Button", KEYPAD_DOWN),
-    ]
 
     WATERCARE_MODE = (
         AwayFromHome,

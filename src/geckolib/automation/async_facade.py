@@ -7,9 +7,11 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from geckolib.automation.base import GeckoAutomationBase
+from geckolib.automation.bubblegen import GeckoBubbleGenerator
 from geckolib.automation.heatpump import GeckoHeatPump
 from geckolib.automation.ingrid import GeckoInGrid
 from geckolib.automation.lockmode import GeckoLockMode
+from geckolib.automation.waterfall import GeckoWaterfall
 from geckolib.config import GeckoConfig, config_sleep, set_config_mode
 from geckolib.const import GeckoConstants
 from geckolib.driver import Observable
@@ -103,9 +105,13 @@ class GeckoAsyncFacade(Observable):
         self.pump_5 = GeckoPump(self, "Pump 5", "P5")
 
         self.blower = GeckoBlower(self)
+        self.waterfall = GeckoWaterfall(self)
+        self.bubblegenerator = GeckoBubbleGenerator(self)
 
         self.light = GeckoLightLi(self)
         self.light2 = GeckoLightL120(self)
+
+        #################
 
         # Declare all the class members
         self._sensors: list[GeckoSensorBase] = []
@@ -188,64 +194,6 @@ class GeckoAsyncFacade(Observable):
         """Scan the spa outputs to decide what user options are available."""
         if self._spa is None:
             return
-        _LOGGER.debug("All outputs are %s", self._spa.struct.all_outputs)
-
-        # Workout what (if anything) the outputs are connected to
-        all_output_connections = {
-            output: self._spa.accessors[output].value
-            for output in self._spa.struct.all_outputs
-        }
-        _LOGGER.debug("Output connections are %s", all_output_connections)
-        # Reduce the dictionary to those that are not set to NA (Not Applicable)
-        actual_connections = {
-            tag: val for (tag, val) in all_output_connections.items() if val != "NA"
-        }
-        _LOGGER.debug("Actual connections are %s", actual_connections)
-
-        _LOGGER.debug("All devices are %s", self._spa.struct.all_devices)
-        # If any of the actual connection values starts with any of the devices,
-        # then the device is present
-        actual_devices = list(
-            dict.fromkeys(
-                [
-                    device
-                    for device in self._spa.struct.all_devices
-                    for val in actual_connections.values()
-                    if val.startswith(device)
-                ]
-            )
-        )
-        _LOGGER.debug("Actual devices are %s", actual_devices)
-
-        _LOGGER.debug("Possible user demands are %s", self._spa.struct.user_demands)
-        # Actual user devices are those where the actual device has a corresponding
-        # user demand
-        self.actual_user_devices = [
-            {
-                "device": device,
-                "user_demand": {
-                    "demand": self._spa.accessors[f"{ud}"].tag,
-                    "options": self._spa.accessors[f"{ud}"].items,
-                },
-            }
-            for device in actual_devices
-            for ud in self._spa.struct.user_demands
-            if f"Ud{device}".upper() == ud.upper()
-        ]
-        _LOGGER.debug("Actual user devices are %s", self.actual_user_devices)
-
-        # These keys can be used to determine the actual state ...
-        # Key       Desc        Outputs         Keypad      Direct Drive
-        # P1 ...    Pump 1      Out1A->P1H      1           <Doesn't work as expected>
-        # Pn ...    Pump n      Out?A/B->PnH/L  n                     ""
-
-        # Remove unknown device classes
-        self.actual_user_devices = [
-            handled_device
-            for handled_device in self.actual_user_devices
-            if handled_device["device"] in GeckoConstants.DEVICES
-        ]
-        _LOGGER.debug("Handled user devices are %s", self.actual_user_devices)
 
         self._pumps: list[GeckoPump] = [
             pump
@@ -255,6 +203,8 @@ class GeckoAsyncFacade(Observable):
                 self.pump_3,
                 self.pump_4,
                 self.pump_5,
+                self.waterfall,
+                self.bubblegenerator,
             ]
             if pump.is_available
         ]
@@ -264,6 +214,8 @@ class GeckoAsyncFacade(Observable):
         self._lights = [
             light for light in [self.light, self.light2] if light.is_available
         ]
+
+        #######
 
         self._sensors = [
             GeckoSensor(self, sensor[0], self._spa.accessors[sensor[1]])

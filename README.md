@@ -314,9 +314,12 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Rebuilt GeckoPump class to cleanly handle one, two or variable speed pumps
  - Spa manager will reload if critical data changed
  - Update light management to handle both Li and L120 light systems
+ - Waterfall to new pattern, still might not reflect actual state if CP is on same circuit
+ - Support bubble generator on the pack Aux port
 
 ## BREAKING CHANGES 1.0.2
  - Blower is now a single speed pump, not a switch
+ - Single speed pumps no longer support modes, it's either on or off
 
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa

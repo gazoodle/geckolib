@@ -28,6 +28,8 @@ class GeckoSimulatorAction:
     UdP4: Any
     UdP5: Any
     UdBL: Any
+    UdWaterfall: Any
+    UdAux: Any
     UdLi: Any
     UdL120: Any
     UdQuietTime: Any
@@ -40,6 +42,7 @@ class GeckoSimulatorAction:
     P4: Any
     P5: Any
     BL: Any
+    Waterfall: Any
     L120: Any
     CP: Any
     QuietState: Any
@@ -55,11 +58,14 @@ class GeckoSimulatorAction:
     # Utility accessors
     CheckFlo: Any
     UdPumpTime: Any
+    UdWaterFallTime: Any
+    UdAuxTime: Any
     UdLightTime: Any
     UdL120Time: Any
 
     Pump1AsVSP: Any
     Pump3AsVSP: Any
+    WaterfallAsCP: Any
 
     _connections: list[str]
 
@@ -93,9 +99,17 @@ class GeckoSimulatorAction:
         """Handle keypad pump 5."""
         self.UdP5 = self._next_pump_value(self.UdP5, "P5L")
 
-    def on_KEY_BLOWER(self) -> None:
+    def on_KEYPAD_BLOWER(self) -> None:
         """Handle blower keypad button."""
-        self.UdBL = self._next_pump_value(self.UdBL)
+        self.UdBL = "ON" if self.UdBL == "OFF" else "OFF"
+
+    def on_KEYPAD_WATERFALL(self) -> None:
+        """Handle waterfall button."""
+        self.UdWaterfall = "ON" if self.UdWaterfall == "OFF" else "OFF"
+
+    def on_KEYPAD_AUX(self) -> None:
+        """Handle aux button."""
+        self.UdAux = "ON" if self.UdAux == "OFF" else "OFF"
 
     def _next_pump_value(
         self, ud: str | int, low_conn: str = "NA", *, vsp: bool = False
@@ -178,6 +192,17 @@ class GeckoSimulatorAction:
         """Handle UdBL changes."""
         self.BL = self.UdBL
 
+    def on_UdWaterfall(self) -> None:
+        """Handle UdWaterfall changes."""
+        self.Waterfall = self.UdWaterfall
+
+    def on_UdAux(self) -> None:
+        """Handle UdAux changes."""
+        if self.UdAux == "ON":
+            self.UdAuxTime = 20
+        else:
+            self.UdAuxTime = 0
+
     def on_UdLi(self) -> None:
         """Handle UdLi changes."""
         self.UdLightTime = 60 if self.UdLi == "HI" else 0
@@ -211,6 +236,13 @@ class GeckoSimulatorAction:
         """Handle changes to BL."""
         self._pump_helper()
 
+    def on_Waterfall(self) -> None:
+        """Handle changes to Waterfall."""
+        if self.Waterfall == "ON":
+            self.UdWaterFallTime = 30
+        else:
+            self.UdWaterFallTime = 0
+
     def on_QuietState(self) -> None:
         """Handle quiet state."""
         if self.QuietState == "OFF":
@@ -222,6 +254,8 @@ class GeckoSimulatorAction:
             self.UdP4 = "OFF"
             self.UdP5 = "OFF"
             self.UdBL = "OFF"
+            self.UdWaterfall = "OFF"
+            self.UdAux = "OFF"
             self.UdVSP3 = 0
         else:
             self.UdQuietTime = 0

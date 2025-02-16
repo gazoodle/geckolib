@@ -36,6 +36,8 @@ class GeckoPump(GeckoPower):
 
         if key in facade.spa.struct.connections:
             self.pump_type = GeckoPump.PumpType.SINGLE_SPEED
+        if key.upper() in facade.spa.struct.connections:
+            self.pump_type = GeckoPump.PumpType.SINGLE_SPEED
 
         # Look for P1H, P2H etc
         if f"{key}H" in facade.spa.struct.connections:
