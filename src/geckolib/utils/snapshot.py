@@ -77,6 +77,8 @@ class GeckoSnapshot:
             ),
             # Match "STATV\x15\x16'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00</DATAS>"  # noqa: E501
             (r"(STATV.*)</DATAS>", self._re_data_segment),
+            # Match "INFO SNAPSHOT ========{ ... }========"
+            (r"SNAPSHOT ========({.*})========", self._re_json_liine),
         ]
 
     def _re_snapshot(self, groups: tuple[str | Any, ...]) -> None:
@@ -138,6 +140,9 @@ class GeckoSnapshot:
         if self._status_block_handler.next == 0:
             self._bytes = b"".join(self._status_block_segments)
 
+    def _re_json_liine(self, groups: tuple[str | Any, ...]) -> None:
+        self._parse_json(groups[0])
+
     def parse(self, line: str) -> None:
         """Parse a snapshot line."""
         # Always bag the lines
@@ -178,7 +183,7 @@ class GeckoSnapshot:
     @property
     def filename(self) -> str:
         """Generate snapshot filename."""
-        fixed_timestamp = f"{self.timestamp}".replace(":", "_")
+        fixed_timestamp = f"{self.timestamp}".replace(":", "_").replace(" ", "-")
         return f"{self._pack_type}-{self.name}-{fixed_timestamp}.snapshot"
 
     @property
@@ -272,20 +277,24 @@ class GeckoSnapshot:
 
         return snapshots
 
+    def _parse_json(self, json: str) -> None:
+        snap = ast.literal_eval(json)
+        self.parse(f"Spa pack {snap['Spa pack']}")
+        self.parse(f"intouch version EN {snap['intouch version EN']}")
+        self.parse(f"intouch version CO {snap['intouch version CO']}")
+        self._config_version = snap["Config version"]
+        self._log_version = snap["Log version"]
+        self._bytes = bytes(
+            bytearray([int(b.strip()[2:], 16) for b in snap["Status Block"]])
+        )
+        self._timestamp = datetime.fromisoformat(snap["Snapshot UTC Time"])
+        print(self._timestamp)
+
     @staticmethod
     def parse_json(json: str) -> GeckoSnapshot:
         """Parse a JSON snapshot."""
-        snap = ast.literal_eval(json)
         snapshot = GeckoSnapshot()
-
-        snapshot.parse(f"Spa pack {snap['Spa pack']}")
-        snapshot.parse(f"intouch version EN {snap['intouch version EN']}")
-        snapshot.parse(f"intouch version CO {snap['intouch version CO']}")
-        snapshot._config_version = snap["Config version"]  # noqa: SLF001
-        snapshot._log_version = snap["Log version"]  # noqa: SLF001
-        snapshot._bytes = bytes(  # noqa: SLF001
-            bytearray([int(b.strip()[2:], 16) for b in snap["Status Block"]])
-        )
+        snapshot._parse_json(json)  # noqa: SLF001
         return snapshot
 
     @staticmethod
