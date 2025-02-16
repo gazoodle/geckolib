@@ -12,7 +12,6 @@ from typing import Any, Self
 from geckolib import VERSION, GeckoConstants, GeckoPump
 from geckolib.async_spa_manager import GeckoAsyncSpaMan
 from geckolib.automation.base import GeckoAutomationBase, GeckoAutomationFacadeBase
-from geckolib.automation.power import GeckoPower
 from geckolib.config import release_config_change_waiters
 from geckolib.driver.accessor import GeckoStructAccessor
 from geckolib.spa_events import GeckoSpaEvent

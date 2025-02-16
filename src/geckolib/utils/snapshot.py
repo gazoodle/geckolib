@@ -288,7 +288,6 @@ class GeckoSnapshot:
             bytearray([int(b.strip()[2:], 16) for b in snap["Status Block"]])
         )
         self._timestamp = datetime.fromisoformat(snap["Snapshot UTC Time"])
-        print(self._timestamp)
 
     @staticmethod
     def parse_json(json: str) -> GeckoSnapshot:

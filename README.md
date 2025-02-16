@@ -313,6 +313,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Can connect to MrSteam without throwing any errors. This ought to be good to get some snapshots.
  - Rebuilt GeckoPump class to cleanly handle one, two or variable speed pumps
  - Spa manager will reload if critical data changed
+ - Update light management to handle both Li and L120 light systems
 
 ## BREAKING CHANGES 1.0.2
  - Blower is now a single speed pump, not a switch
