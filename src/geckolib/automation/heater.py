@@ -27,7 +27,6 @@ class GeckoWaterHeater(GeckoPower):
     def __init__(self, facade: GeckoAsyncFacade) -> None:
         """Initialize the water heater class."""
         super().__init__(facade, "Heater", "HEAT")
-        self._is_present = False
 
         self._current_temperature_sensor = None
         self._target_temperature_sensor = None
@@ -47,7 +46,7 @@ class GeckoWaterHeater(GeckoPower):
                 self._spa.accessors[GeckoConstants.KEY_SETPOINT_G],
                 self._temperature_unit_accessor,
             )
-            self._is_present = True
+            self.set_availability(is_available=True)
         if GeckoConstants.KEY_DISPLAYED_TEMP_G in self._spa.accessors:
             self._current_temperature_sensor = GeckoSensor(
                 facade,
@@ -55,7 +54,7 @@ class GeckoWaterHeater(GeckoPower):
                 self._spa.accessors[GeckoConstants.KEY_DISPLAYED_TEMP_G],
                 self._temperature_unit_accessor,
             )
-            self._is_present = True
+            self.set_availability(is_available=True)
         if GeckoConstants.KEY_REAL_SETPOINT_G in self._spa.accessors:
             self._real_setpoint_sensor = GeckoSensor(
                 facade,
@@ -63,7 +62,7 @@ class GeckoWaterHeater(GeckoPower):
                 self._spa.accessors[GeckoConstants.KEY_REAL_SETPOINT_G],
                 self._temperature_unit_accessor,
             )
-            self._is_present = True
+            self.set_availability(is_available=True)
 
         self._heating_action_sensor = self._cooling_action_sensor = None
         if GeckoConstants.KEY_HEATING in self._spa.accessors:
@@ -88,11 +87,6 @@ class GeckoWaterHeater(GeckoPower):
         ]:
             if sensor is not None:
                 sensor.watch(self._on_change)
-
-    @property
-    def is_present(self) -> bool:
-        """Determine if the heater is present from the config."""
-        return self._is_present
 
     @property
     def target_temperature_sensor(self) -> GeckoSensor:
@@ -199,7 +193,7 @@ class GeckoWaterHeater(GeckoPower):
 
     def __str__(self) -> str:
         """Stringize the class."""
-        if self._is_present:
+        if self.is_available:
             return (
                 f"{self.name}: Temperature "
                 f"{self.format_temperature(self.current_temperature)}, SetPoint "

@@ -316,6 +316,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Update light management to handle both Li and L120 light systems
  - Waterfall to new pattern, still might not reflect actual state if CP is on same circuit
  - Support bubble generator on the pack Aux port
+ - Add keypad buttons for all available pumps, blowers, etc.
 
 ## BREAKING CHANGES 1.0.2
  - Blower is now a single speed pump, not a switch

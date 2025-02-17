@@ -13,7 +13,6 @@ from .async_taskman import GeckoAsyncTaskMan
 from .automation import (
     GeckoAsyncFacade,
     GeckoAutomationBase,
-    GeckoButton,
 )
 from .const import GeckoConstants
 from .spa_events import GeckoSpaEvent
@@ -37,7 +36,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
     implementation to manage the essential events that are required during operation
     """
 
-    class ReconnectButton(GeckoButton):
+    class ReconnectButton(GeckoAutomationBase):
         """Perform reconnect of the spa."""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:

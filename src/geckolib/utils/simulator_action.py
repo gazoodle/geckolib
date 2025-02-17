@@ -129,6 +129,14 @@ class GeckoSimulatorAction:
         """Handle keypad for light 2."""
         self.UdL120 = "ON" if self.UdL120 == "OFF" else "OFF"
 
+    def on_KEYPAD_UP(self) -> None:
+        """Handle keypad temp up."""
+        self.SetpointG += 0.5 if self.TempUnits == "C" else 1.0
+
+    def on_KEYPAD_DOWN(self) -> None:
+        """Handle keypad temp down."""
+        self.SetpointG -= 0.5 if self.TempUnits == "C" else 1.0
+
     ############################################################################
     #
     #               The pack properties that we want to watch
