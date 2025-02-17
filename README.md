@@ -320,6 +320,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 ## BREAKING CHANGES 1.0.2
  - Blower is now a single speed pump, not a switch
  - Single speed pumps no longer support modes, it's either on or off
+ - Pump modes are from the user demand list not the device control one, so previously
+   "HIGH" was a pump mode, it is now "HI".
 
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa
