@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from geckolib.automation.button import GeckoButton
+from geckolib.automation.keypad_backlight import GeckoKeypadBacklight
 from geckolib.const import GeckoConstants
 
 from .base import GeckoAutomationFacadeBase
@@ -19,6 +20,9 @@ class GeckoKeypad(GeckoAutomationFacadeBase):
     def __init__(self, facade: GeckoAsyncFacade) -> None:
         """Initialize the keypad class."""
         super().__init__(facade, "Keypad", "KEYPAD")
+
+        self.backlight = GeckoKeypadBacklight(facade)
+
         self._buttons = []
 
         # Should we show eco mode button too?

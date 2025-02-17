@@ -165,11 +165,11 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                     for reminder in self.facade.reminders_manager.reminders
                 )
                 lines.append(f"{self.facade.water_care}")
-                if self.facade.heatpump is not None:
+                if self.facade.heatpump.is_available:
                     lines.append(f"{self.facade.heatpump}")
-                if self.facade.ingrid is not None:
+                if self.facade.ingrid.is_available:
                     lines.append(f"{self.facade.ingrid}")
-                if self.facade.lockmode is not None:
+                if self.facade.lockmode.is_available:
                     lines.append(f"{self.facade.lockmode}")
                 if self.facade.standby is not None:
                     lines.append(f"{self.facade.standby}")

@@ -120,9 +120,9 @@ class GeckoAsyncFacade(Observable):
         self._blowers: list[GeckoBlower] = []
         self._lights: list[GeckoLight] = []
         self._ecomode: GeckoSwitch | None = None
-        self._heatpump: GeckoHeatPump | None = None
-        self._ingrid: GeckoInGrid | None = None
-        self._lockmode: GeckoLockMode | None = None
+        self._heatpump: GeckoHeatPump = GeckoHeatPump(self)
+        self._ingrid: GeckoInGrid = GeckoInGrid(self)
+        self._lockmode: GeckoLockMode = GeckoLockMode(self)
         self._standby: GeckoStandby | None = None
 
         # Build the automation items
@@ -245,40 +245,6 @@ class GeckoAsyncFacade(Observable):
                 ),
             )
 
-        # Check if we have CoolZoneMode
-        if GeckoConstants.KEY_COOLZONE_MODE in self._spa.accessors:
-            # Now, do we have an inGrid unit or a modbus heatpump?
-
-            if GeckoConstants.KEY_INGRID_DETECTED in self._spa.accessors:
-                in_grid_detected: GeckoBoolStructAccessor = self._spa.accessors[
-                    GeckoConstants.KEY_INGRID_DETECTED
-                ]
-                if in_grid_detected.value:
-                    _LOGGER.info("inGrid detected")
-                    self._ingrid = GeckoInGrid(
-                        self,
-                        "Heating Management",
-                        self._spa.accessors[GeckoConstants.KEY_COOLZONE_MODE],
-                    )
-
-            if GeckoConstants.KEY_MODBUS_HEATPUMP_DETECTED in self._spa.accessors:
-                modbus_heatpump_detected: GeckoBoolStructAccessor = self._spa.accessors[
-                    GeckoConstants.KEY_MODBUS_HEATPUMP_DETECTED
-                ]
-
-                if modbus_heatpump_detected.value:
-                    _LOGGER.info("Modbus Heatpump detected")
-                    self._heatpump = GeckoHeatPump(
-                        self,
-                        "Heat Pump",
-                        self._spa.accessors[GeckoConstants.KEY_COOLZONE_MODE],
-                    )
-
-        if GeckoConstants.KEY_LOCKMODE in self._spa.accessors:
-            self._lockmode = GeckoLockMode(
-                self, "Lock Mode", self._spa.accessors[GeckoConstants.KEY_LOCKMODE]
-            )
-
         if GeckoConstants.KEY_STANDBY in self._spa.accessors:
             self._standby = GeckoStandby(self)
 
@@ -353,18 +319,18 @@ class GeckoAsyncFacade(Observable):
         return self._ecomode
 
     @property
-    def heatpump(self) -> GeckoHeatPump | None:
+    def heatpump(self) -> GeckoHeatPump:
         """Get the heat pump if available."""
         return self._heatpump
 
     @property
-    def ingrid(self) -> GeckoInGrid | None:
+    def ingrid(self) -> GeckoInGrid:
         """Get the inGrid handler if available."""
         return self._ingrid
 
     @property
-    def lockmode(self) -> GeckoLockMode | None:
-        """Get the lockmode handler if available."""
+    def lockmode(self) -> GeckoLockMode:
+        """Get the lockmode handler."""
         return self._lockmode
 
     @property

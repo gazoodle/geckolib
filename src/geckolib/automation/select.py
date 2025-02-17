@@ -9,7 +9,6 @@ from .base import GeckoAutomationFacadeBase
 
 if TYPE_CHECKING:
     from geckolib.automation.async_facade import GeckoAsyncFacade
-    from geckolib.driver.accessor import GeckoEnumStructAccessor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,13 +16,13 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoSelect(GeckoAutomationFacadeBase):
     """A select object can select between options and can report the current state."""
 
-    def __init__(
-        self, facade: GeckoAsyncFacade, name: str, accessor: GeckoEnumStructAccessor
-    ) -> None:
+    def __init__(self, facade: GeckoAsyncFacade, name: str, tag: str) -> None:
         """Initialize the select class."""
-        super().__init__(facade, name, accessor.tag)
-        self._accessor = accessor
-        self._accessor.watch(self._on_change)
+        super().__init__(facade, name, tag)
+        if tag in facade.spa.accessors:
+            self._accessor = facade.spa.accessors[tag]
+            self._accessor.watch(self._on_change)
+            self.set_availability(is_available=True)
 
     @property
     def state(self) -> str:

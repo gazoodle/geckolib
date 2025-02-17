@@ -5,23 +5,35 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from geckolib.const import GeckoConstants
+
 from .select import GeckoSelect
 
 if TYPE_CHECKING:
     from geckolib.automation.async_facade import GeckoAsyncFacade
-    from geckolib.driver.accessor import GeckoEnumStructAccessor
+    from geckolib.driver.accessor import (
+        GeckoBoolStructAccessor,
+    )
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoHeatPump(GeckoSelect):
-    """A select object can select between options and can report the current state."""
+    """The heatpump mode."""
 
-    def __init__(
-        self, facade: GeckoAsyncFacade, name: str, accessor: GeckoEnumStructAccessor
-    ) -> None:
+    def __init__(self, facade: GeckoAsyncFacade) -> None:
         """Initialize the heatpump class."""
-        super().__init__(facade, name, accessor)
+        super().__init__(facade, "Heat Pump", GeckoConstants.KEY_COOLZONE_MODE)
+
+        if GeckoConstants.KEY_MODBUS_HEATPUMP_DETECTED not in self._spa.accessors:
+            self.set_availability(is_available=False)
+        else:
+            modbus_heatpump_detected: GeckoBoolStructAccessor = self._spa.accessors[
+                GeckoConstants.KEY_MODBUS_HEATPUMP_DETECTED
+            ]
+            if not modbus_heatpump_detected.value:
+                self.set_availability(is_available=False)
+
         # Set of mappings of constants to UI options
         self.set_mapping(
             {

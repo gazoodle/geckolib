@@ -1,11 +1,9 @@
-"""Automation lockmode class."""
+"""Automation keypad backlight class."""
 
 from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
-
-from geckolib.const import GeckoConstants
 
 from .select import GeckoSelect
 
@@ -15,19 +13,25 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class GeckoLockMode(GeckoSelect):
-    """A select object can select between options and can report the current state."""
+class GeckoKeypadBacklight(GeckoSelect):
+    """The keypad backlight value."""
 
     def __init__(self, facade: GeckoAsyncFacade) -> None:
-        """Initialize the heatpump class."""
-        super().__init__(facade, "Lock Mode", GeckoConstants.KEY_LOCKMODE)
+        """Initialize the backlight class."""
+        super().__init__(facade, "Keypad Backlight", "KeypadBacklightColor")
         # Set of mappings of constants to UI options
-        self.mapping = {
-            "UNLOCK": "Unlocked",
-            "PARTIAL": "Partial Lock",
-            "FULL": "Full Lock",
-        }
-        self.reverse = {v: k for k, v in self.mapping.items()}
+        self.set_mapping(
+            {
+                "OFF": "Off",
+                "RED": "Red",
+                "GREEN": "Greed",
+                "YELLOW": "Yellow",
+                "BLUE": "Blue",
+                "MAGENTA": "Magenta",
+                "CYAN": "Cyna",
+                "WHITE": "White",
+            }
+        )
 
     @property
     def state(self) -> str:

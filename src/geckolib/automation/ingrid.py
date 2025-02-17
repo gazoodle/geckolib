@@ -5,23 +5,31 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from geckolib.const import GeckoConstants
+
 from .select import GeckoSelect
 
 if TYPE_CHECKING:
     from geckolib.automation.async_facade import GeckoAsyncFacade
-    from geckolib.driver.accessor import GeckoEnumStructAccessor
+    from geckolib.driver.accessor import GeckoBoolStructAccessor
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoInGrid(GeckoSelect):
-    """A select object can select between options and can report the current state."""
+    """The inGrid mode."""
 
-    def __init__(
-        self, facade: GeckoAsyncFacade, name: str, accessor: GeckoEnumStructAccessor
-    ) -> None:
+    def __init__(self, facade: GeckoAsyncFacade) -> None:
         """Initialize the inGrid class."""
-        super().__init__(facade, name, accessor)
+        super().__init__(facade, "Heating Management", GeckoConstants.KEY_COOLZONE_MODE)
+        if GeckoConstants.KEY_INGRID_DETECTED not in self._spa.accessors:
+            self.set_availability(is_available=False)
+        else:
+            in_grid_detected: GeckoBoolStructAccessor = self._spa.accessors[
+                GeckoConstants.KEY_INGRID_DETECTED
+            ]
+            if not in_grid_detected.value:
+                self.set_availability(is_available=False)
         # Set of mappings of constants to UI options
         self.set_mapping(
             {
