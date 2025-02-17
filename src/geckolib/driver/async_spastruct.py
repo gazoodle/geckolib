@@ -7,11 +7,16 @@ import datetime
 import importlib
 import logging
 from functools import partial
-from types import ModuleType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from geckolib._version import VERSION
 from geckolib.const import GeckoConstants
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from types import ModuleType
+
+    from geckolib.driver.async_udp_protocol import GeckoAsyncUdpProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,12 +24,12 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoAsyncStructure:
     """Class to host/manage the raw data block for a spa structure."""
 
-    def __init__(self, on_async_set_value) -> None:
+    def __init__(self, on_async_set_value: Callable) -> None:
         """Initialize the async version."""
         self._on_async_set_value = on_async_set_value
         self.reset()
 
-    def replace_status_block_segment(self, offset, segment) -> None:
+    def replace_status_block_segment(self, offset: int, segment: bytes) -> None:
         """Replace a segment of the status block."""
         previous_block = self._status_block
         segment_len = len(segment)
@@ -50,7 +55,7 @@ class GeckoAsyncStructure:
         """Build the accessors."""
         self.accessors = dict(self.config_class.accessors, **self.log_class.accessors)
         # Get all outputs
-        self.all_outputs = self.config_class.output_keys
+        self.all_outputs = [*self.config_class.output_keys, *self.log_class.output_keys]
         # Get collection of possible devices
         self.all_devices = self.log_class.all_device_keys
         # User devices are those that have a Ud in the tag name
@@ -64,6 +69,7 @@ class GeckoAsyncStructure:
         self.all_outputs = []
         self.all_devices = []
         self.user_demands = []
+        self.connections = []
         self._status_block: bytes = b"\x00" * 1024
 
         self.plateform_key: str = ""
@@ -74,9 +80,15 @@ class GeckoAsyncStructure:
         self.log_version: int = 0
         self.log_class = None
 
-    async def get(self, protocol, create_func, retry_count=10):
+    async def get(
+        self,
+        protocol: GeckoAsyncUdpProtocol,
+        create_func: Callable,
+        retry_count: int = 10,
+    ) -> bool:
+        """Get response from a command."""
         _LOGGER.debug("Async get for struct")
-        async with protocol.Lock:
+        async with protocol.lock:
             while retry_count > 0:
                 # Create the request
                 request = create_func()
@@ -218,3 +230,15 @@ class GeckoAsyncStructure:
             "Snapshot UTC Time": f"{datetime.datetime.now(tz=datetime.UTC)}",
             "Status Block": [hex(b) for b in self.status_block],
         }
+
+    def build_connections(self) -> None:
+        """Scan the spa pack outputs to generate a list of connections."""
+        _LOGGER.debug("All outputs are %s", self.all_outputs)
+
+        self.connections = [
+            value
+            for output in self.all_outputs
+            if (value := self.accessors[output].value) not in ["NA", "Not_Set"]
+        ]
+
+        _LOGGER.debug("Connections are %s", self.connections)

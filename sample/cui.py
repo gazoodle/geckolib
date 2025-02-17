@@ -4,7 +4,7 @@ Complete sample client CUI - Console User Interface.
 All the code to drive the CUI is in this file, it should only
 talk to the facade as it is the example of how to integrate
 geckolib into an automation system.
-"""
+"""  # noqa: INP001
 
 import _curses
 import asyncio
@@ -12,7 +12,7 @@ import curses
 import inspect
 import logging
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Self
 
 from abstract_display import AbstractDisplay
@@ -85,7 +85,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
     async def handle_event(self, event: GeckoSpaEvent, **_kwargs: Any) -> None:
         """Rebuild the UI when there is an event."""
-        _LOGGER.debug(f"{event} : {self.spa_state}")
+        _LOGGER.debug(f"{event} : {self.spa_state}")  # noqa: G004
         if event == GeckoSpaEvent.CLIENT_FACADE_IS_READY:
             self._can_use_facade = True
         elif event in (
@@ -96,14 +96,15 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
         self.make_display()
 
-    async def _select_spa(self, spa) -> None:
+    async def _select_spa(self, spa: GeckoAsyncSpaDescriptor) -> None:
         self._config.set_spa_id(spa.identifier_as_string)
         self._config.set_spa_address(spa.ipaddress)
         self._config.set_spa_name(spa.name)
         self._config.save()
         await self.async_set_spa_info(spa.ipaddress, spa.identifier_as_string, spa.name)
 
-    async def _clear_spa(self):
+    async def _clear_spa(self) -> None:
+        """Clear spa data."""
         self._config.set_spa_id(None)
         self._config.set_spa_address(None)
         self._config.set_spa_name(None)
@@ -111,31 +112,36 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         await self.async_set_spa_info(None, None, None)
 
     async def _select_next_watercare_mode(self) -> None:
-        assert self.facade is not None
-        assert self.facade.water_care is not None
+        assert self.facade is not None  # noqa: S101
+        assert self.facade.water_care is not None  # noqa: S101
         new_mode = (self.facade.water_care.active_mode + 1) % len(
             GeckoConstants.WATERCARE_MODE
         )
         await self.facade.water_care.async_set_mode(new_mode)
 
-    def make_title(self, maxy: int, maxx: int) -> None:
+    def make_title(self, _maxy: int, maxx: int) -> None:
+        """Make the title for the app."""
         title = "Gecko Async Sample App"
         self.stdscr.addstr(0, int((maxx - len(title)) / 2), title)
 
-    async def increase_temp(self):
+    async def increase_temp(self) -> None:
+        """Increase the setpoint."""
         await self.facade.water_heater.async_set_target_temperature(
             self.facade.water_heater.target_temperature + 0.5
         )
 
-    async def decrease_temp(self):
+    async def decrease_temp(self) -> None:
+        """Decrease the setpoint."""
         await self.facade.water_heater.async_set_target_temperature(
             self.facade.water_heater.target_temperature - 0.5
         )
 
-    async def key_press(self, keypad):
+    async def key_press(self, keypad: int) -> None:
+        """Simulate keypress."""
         await self.facade.spa.async_press(keypad)
 
-    def make_display(self) -> None:
+    def make_display(self) -> None:  # noqa: PLR0912, PLR0915
+        """Make a display."""
         try:
             maxy, maxx = self.stdscr.getmaxyx()
             self.stdscr.erase()
@@ -147,35 +153,36 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             self._commands = {}
 
             if self._can_use_facade:
-                assert self.facade is not None
+                assert self.facade is not None  # noqa: S101
                 lines.append(f"{self.facade.name} is ready")
                 lines.append("")
                 lines.append(f"{self.facade.water_heater}")
-                for pump in self.facade.pumps:
-                    lines.append(f"{pump}")
-                for blower in self.facade.blowers:
-                    lines.append(f"{blower}")
-                for light in self.facade.lights:
-                    lines.append(f"{light}")
-                for reminder in self.facade.reminders_manager.reminders:
-                    lines.append(f"{reminder}")
+                lines.extend(f"{pump}" for pump in self.facade.pumps)
+                lines.extend(f"{blower}" for blower in self.facade.blowers)
+                lines.extend(f"{light}" for light in self.facade.lights)
+                lines.extend(
+                    f"{reminder}"
+                    for reminder in self.facade.reminders_manager.reminders
+                )
                 lines.append(f"{self.facade.water_care}")
-                if self.facade.heatpump is not None:
+                if self.facade.heatpump.is_available:
                     lines.append(f"{self.facade.heatpump}")
-                if self.facade.ingrid is not None:
+                if self.facade.ingrid.is_available:
                     lines.append(f"{self.facade.ingrid}")
-                if self.facade.lockmode is not None:
+                if self.facade.lockmode.is_available:
                     lines.append(f"{self.facade.lockmode}")
                 if self.facade.standby is not None:
                     lines.append(f"{self.facade.standby}")
-                for sensor in [
-                    *self.facade.sensors,
-                    *self.facade.binary_sensors,
-                ]:
-                    lines.append(f"{sensor}")
+                lines.extend(
+                    f"{sensor}"
+                    for sensor in [
+                        *self.facade.sensors,
+                        *self.facade.binary_sensors,
+                    ]
+                )
                 lines.append(f"{self.facade.eco_mode}")
                 lines.append(
-                    f"{self.ping_sensor} (Responding: {self._spa.is_responding_to_pings})"
+                    f"{self.ping_sensor} (Responding: {self._spa.is_responding_to_pings})"  # noqa: E501
                 )
                 lines.append(f"{self.radio_sensor}")
                 lines.append(f"{self.channel_sensor}")
@@ -223,7 +230,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             lines.append("")
 
             if self._can_use_facade:
-                assert self.facade is not None
+                assert self.facade is not None  # noqa: S101
                 if self.facade.blowers:
                     lines.append("Press 'b' to toggle blower")
                     if self.facade.blowers[0].is_on:
@@ -270,7 +277,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             self.stdscr.addstr(
                 maxy - 2,
                 1,
-                f"{datetime.now():%x %X} - {self}",
+                f"{datetime.now(tz=UTC):%x %X} - {self}",
             )
 
         except _curses.error:

@@ -1,35 +1,58 @@
-"""Gecko Watercare"""
+"""Gecko Watercare."""
+
+from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
-from ..const import GeckoConstants
-from ..driver import GeckoWatercareProtocolHandler
+from geckolib.const import GeckoConstants
+from geckolib.driver import GeckoWatercareProtocolHandler
+
 from .base import GeckoAutomationFacadeBase
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoWaterCare(GeckoAutomationFacadeBase):
-    """Watercare manangement class"""
+    """Watercare manangement class."""
 
-    def __init__(self, facade):
+    def __init__(self, facade: GeckoAsyncFacade) -> None:
+        """Initialize watercare class."""
         super().__init__(facade, "WaterCare", "WATERCARE")
-        self.active_mode = None
-        self._water_care_handler = None
+        self.active_mode: int | None = None
+        self._water_care_handler: GeckoWatercareProtocolHandler | None = None
 
     @property
-    def mode(self):
-        """Return the active water care mode"""
+    def mode(self) -> int | None:
+        """Return the active water care mode."""
         return self.active_mode
 
     @property
-    def modes(self):
-        """Return all the possible water care modes"""
+    def modes(self) -> list[str]:
+        """Return all the possible water care modes."""
         return GeckoConstants.WATERCARE_MODE_STRING
 
-    async def async_set_mode(self, new_mode):
+    @property
+    def state(self) -> str:
+        """Return all the current state."""
+        return GeckoConstants.WATERCARE_MODE_STRING[self.mode]
+
+    @property
+    def states(self) -> list[str]:
+        """Return all the states."""
+        return self.modes
+
+    async def async_set_state(self, new_mode: str | int) -> None:
+        """Set the state. Support select style objects."""
+        await self.async_set_mode(new_mode)
+
+    async def async_set_mode(self, new_mode: str | int) -> None:
         """
         Set the active watercare mode to new_mode.
+
         new_mode can be a string, in which case the value must be a member of
         GeckoConstants.WATERCARE_MODE_STRING, or it can be an integer from
         GeckoConstants.WATERCARE_MODE
@@ -39,32 +62,38 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
         await self._spa.async_set_watercare(new_mode)
         self.change_watercare_mode(new_mode)
 
-    def _on_watercare(self, handler, sender):
+    def _on_watercare(
+        self, handler: GeckoWatercareProtocolHandler, _sender: tuple
+    ) -> None:
         if self.active_mode != handler.mode:
             old_mode = self.active_mode
             self.active_mode = handler.mode
             self._on_change(self, old_mode, self.active_mode)
         self._water_care_handler = None
 
-    def update(self):
+    def obsolete_update(self) -> None:
+        """Update the state."""
         if self._water_care_handler is not None:
             return
 
+        assert self._spa is not None  # noqa: S101
         self._water_care_handler = GeckoWatercareProtocolHandler.request(
-            self._spa.get_and_increment_sequence_counter(False),
+            self._spa.get_and_increment_sequence_counter(),
             on_handled=self._on_watercare,
             parms=self._spa.sendparms,
         )
         self._spa.add_receive_handler(self._water_care_handler)
         self._spa.queue_send(self._water_care_handler, self._spa.sendparms)
 
-    def change_watercare_mode(self, new_mode):
+    def change_watercare_mode(self, new_mode: int) -> None:
+        """Change the watercare mode."""
         if self.active_mode != new_mode:
             old_mode = self.active_mode
             self.active_mode = new_mode
             self._on_change(self, old_mode, self.active_mode)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Stringise the class."""
         if self.active_mode is None:
             return f"{self.name}: Waiting..."
         if self.active_mode < 0 or self.active_mode > len(
@@ -74,7 +103,8 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
         return f"{self.name}: {GeckoConstants.WATERCARE_MODE_STRING[self.active_mode]}"
 
     @property
-    def monitor(self):
+    def monitor(self) -> str:
+        """Get monitor string."""
         if self.active_mode is None:
             return "WC: ?"
         return f"WC: {self.active_mode}"

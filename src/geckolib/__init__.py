@@ -15,6 +15,7 @@ from .automation import (
     GeckoAutomationFacadeBase,
     GeckoBinarySensor,
     GeckoBlower,
+    GeckoBubbleGenerator,
     GeckoButton,
     GeckoErrorSensor,
     GeckoKeypad,
@@ -24,6 +25,7 @@ from .automation import (
     GeckoSensor,
     GeckoSwitch,
     GeckoWaterCare,
+    GeckoWaterfall,
     GeckoWaterHeater,
 )
 from .config import GeckoConfig
@@ -77,6 +79,7 @@ __all__ = [
     "GeckoBinarySensor",
     "GeckoBlower",
     "GeckoBoolStructAccessor",
+    "GeckoBubbleGenerator",
     "GeckoButton",
     "GeckoByteStructAccessor",
     "GeckoConfig",
@@ -110,6 +113,7 @@ __all__ = [
     "GeckoWaterCare",
     "GeckoWaterHeater",
     "GeckoWatercareProtocolHandler",
+    "GeckoWaterfall",
     "GeckoWordStructAccessor",
     "Observable",
 ]

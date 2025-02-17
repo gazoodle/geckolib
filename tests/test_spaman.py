@@ -1,5 +1,6 @@
-"""Unit tests for the SpaMan class."""
+"""Unit tests for the SpaMan class."""  # noqa: INP001
 
+from typing import Any
 from unittest import IsolatedAsyncioTestCase, main
 from unittest.mock import patch
 
@@ -10,6 +11,7 @@ class SpaManImpl(GeckoAsyncSpaMan):
     """Spa Manager to test with."""
 
     def __init__(self) -> None:
+        """Initialize the spaman class."""
         super().__init__("CLIENT_UUID", spa_identifier="TestID")
         self.events = []
 
@@ -21,13 +23,14 @@ mock_spa_descriptor = GeckoAsyncSpaDescriptor(b"TestID", "Test Name", (1, 2))
 mock_spas = [mock_spa_descriptor]
 
 
-async def mock_discover(self) -> None:
+async def mock_discover(self: Any) -> None:
+    """Mock discovery."""
     await self._event_handler(GeckoSpaEvent.LOCATING_DISCOVERED_SPA)
 
 
-async def mock_connect(self) -> None:
-    # await self._event_handler(GeckoSpaEvent.CONNECTION_SPA_COMPLETE)
-    pass
+async def mock_connect(self: Any) -> None:
+    """Mock connection."""
+    # await self._event_handler(GeckoSpaEvent.CONNECTION_SPA_COMPLETE)  # noqa: ERA001
 
 
 @patch("context.GeckoAsyncSpa._connect", mock_connect)

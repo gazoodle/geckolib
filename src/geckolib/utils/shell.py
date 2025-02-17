@@ -1,5 +1,7 @@
 """GeckoShell class."""
 
+# ruff: noqa: T201
+
 import datetime
 import logging
 import sys
@@ -9,6 +11,8 @@ from typing import Any, Self
 
 from geckolib import VERSION, GeckoConstants, GeckoPump
 from geckolib.async_spa_manager import GeckoAsyncSpaMan
+from geckolib.automation.base import GeckoAutomationBase, GeckoAutomationFacadeBase
+from geckolib.config import release_config_change_waiters
 from geckolib.driver.accessor import GeckoStructAccessor
 from geckolib.spa_events import GeckoSpaEvent
 
@@ -47,6 +51,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         GeckoCmd.__init__(self, self)
 
         # Fill the watercare mode strings in.
+        assert self.do_watercare.__doc__ is not None  # noqa: S101
         self.do_watercare.__func__.__doc__ = self.do_watercare.__doc__.format(
             GeckoConstants.WATERCARE_MODE_STRING
         )
@@ -55,6 +60,7 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         self.prompt = "(Gecko) "
 
     async def __aenter__(self) -> Self:
+        """Support 'with'."""
         _LOGGER.info("Async enter called on %s", self.__class__.__name__)
         await GeckoAsyncSpaMan.__aenter__(self)
         return self
@@ -64,10 +70,9 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
     ) -> None:
         print(f"accessor {accessor} changed from {old_value} to {new_value}")
 
-    async def handle_event(self, event: GeckoSpaEvent, **_kwargs: object) -> None:
+    async def handle_event(self, event: GeckoSpaEvent, **_kwargs: object) -> None:  # noqa: PLR0912
         """Handle the event."""
         _LOGGER.debug("Handle event %s", event)
-        # print(event)
         if event == GeckoSpaEvent.CLIENT_FACADE_IS_READY:
             if self._spa is not None:
                 self.structure = self._spa.struct
@@ -96,17 +101,19 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                 print(self.prompt, end="", flush=True)
 
         elif event == GeckoSpaEvent.CONNECTION_FINISHED:
-            assert self.facade is not None
+            assert self.facade is not None  # noqa: S101
             print(f"connected to {self.facade.name}!", flush=True)
             self.prompt = f"{self.facade.name}$ "
 
             # Build list of spa commands
             for device in self.facade.all_user_devices:
                 if isinstance(device, GeckoPump):
-                    func_name = f"do_{device.ui_key}"
+                    func_name = f"do_{device.key}"
 
-                    async def async_pump_command(self, arg, device=device):
-                        return await self.pump_command(arg, device)
+                    async def async_pump_command(
+                        self: Self, arg: str, device: GeckoPump = device
+                    ) -> None:
+                        await self.pump_command(arg, device)
 
                     setattr(
                         GeckoShell,
@@ -115,42 +122,53 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                     )
                     func_ptr = getattr(GeckoShell, func_name)
                     func_ptr.__doc__ = (
-                        f"Set pump {device.name} mode: {device.ui_key} <OFF|LO|HI>"
+                        f"Set pump {device.name} mode: {device.key} <OFF|LO|HI>"
                     )
                 else:
-                    func_name = f"do_{device.ui_key}"
+                    func_name = f"do_{device.key}"
+
+                    async def async_device_command(
+                        self: Self, arg: str, device: GeckoAutomationBase = device
+                    ) -> None:
+                        await self.device_command(arg, device)
+
                     setattr(
                         GeckoShell,
                         func_name,
-                        lambda self, arg, device=device: self.device_command(
-                            arg, device
-                        ),
+                        async_device_command,
                     )
                     func_ptr = getattr(GeckoShell, func_name)
                     func_ptr.__doc__ = (
-                        f"Turn device {device.name} ON or OFF: {device.ui_key} <ON|OFF>"
+                        f"Turn device {device.name} ON or OFF: {device.key} <ON|OFF>"
                     )
 
             self.do_state("")
             print(self.prompt, end="", flush=True)
 
     def do_discover(self, arg: str) -> None:
-        """Discover all the in.touch2 devices on your network : discover [<ip address>]."""
+        """
+        Discover all the in.touch2 devices on your network.
+
+        usage: discover [<ip address>].
+        """
         if self.spas is not None:
             return
         self._spa_address = arg
 
-    def do_list(self, _arg) -> None:
+    def do_list(self, _arg: str) -> None:
         """List the spas that are available to manage : list."""
         for idx, spa in enumerate(self.spas):
             print(f"{idx + 1}. {spa.name} ({spa.ipaddress})")
 
-    def do_manage(self, arg) -> None:
+    def do_manage(self, arg: str) -> None:
         """Manage a named or numbered spa : manage 1."""
         spa_to_manage = int(arg)
         spa_descriptor = self.spas[spa_to_manage - 1]
         print(
-            f"Connecting to spa `{spa_descriptor.name}` at {spa_descriptor.ipaddress} ... ",
+            (
+                f"Connecting to spa `{spa_descriptor.name}`"
+                f" at {spa_descriptor.ipaddress} ... "
+            ),
             end="",
             flush=True,
         )
@@ -158,23 +176,23 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         self._spa_identifier = spa_descriptor.identifier_as_string
         self._state_change.set()
 
-    def device_command(self, arg, device):
+    async def device_command(self, arg: str, device: GeckoAutomationFacadeBase) -> None:
         """Turn a device on or off."""
         print(f"Turn device {device.name} {arg}")
         if arg.lower() == "on":
-            device.turn_on()
+            await device.async_turn_on()
         else:
-            device.turn_off()
+            await device.async_turn_off()
 
-    async def pump_command(self, arg, device):
-        """Set a pump mode <mode>"""
+    async def pump_command(self, arg: str, device: GeckoPump) -> None:
+        """Set a pump mode <mode>."""
         print(f"Set pump {device.name} {arg}")
         try:
             await device.async_set_mode(arg)
-        except Exception:
+        except Exception:  # noqa: BLE001
             traceback.print_exc()
 
-    async def do_key(self, arg):
+    async def do_key(self, arg: str) -> None:
         """
         Press keypad button.
 
@@ -190,8 +208,8 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                 return
         await self.facade.spa.async_press(keypad)
 
-    def do_state(self, _arg):
-        """Show the state of the managed spa : state"""
+    def do_state(self, _arg: str) -> None:
+        """Show the state of the managed spa : state."""
         if self.facade is None:
             print("Must be connected to a spa")
             return
@@ -213,7 +231,8 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         print(self.facade.eco_mode)
         print(self.facade.error_sensor)
 
-    def monitor_get_states(self):
+    def monitor_get_states(self) -> list[str]:
+        """Get the monitor states as a string list."""
         states = [
             self.facade.water_heater,
             *self.facade.pumps,
@@ -225,18 +244,25 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
             *self.facade.binary_sensors,
             self.facade.eco_mode,
         ]
-
         return [f"{state.monitor}" for state in states]
 
-    def monitor_compare_states(self, states):
+    def monitor_compare_states(self, states: list[str]) -> bool:
+        """Compare the current monitor states."""
         local_state = self.monitor_get_states()
         return local_state != states
 
-    def monitor_print_states(self, states):
-        print(f"{datetime.datetime.now()} : {' '.join(states)}")
+    def monitor_print_states(self, states: list[str]) -> None:
+        """Print the monitor states out."""
+        print(f"{datetime.datetime.now(tz=datetime.UTC)} : {' '.join(states)}")
 
-    def do_monitor(self, _arg):
-        """Monitor the state of the managed spa outputting a new line for each change : monitor"""
+    def do_monitor(self, _arg: str) -> None:
+        """
+        Monitor the state of the managed spa.
+
+        Output a new line for each change
+
+        usage: monitor.
+        """
         if self.facade is None:
             print("Must be connected to a spa")
             return
@@ -255,8 +281,8 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
                 break
 
     @property
-    def version_strings(self):
-        """Get the version strings for the spa"""
+    def version_strings(self) -> list[str]:
+        """Get the version strings for the spa."""
         return [
             f"geckolib version {VERSION}",
             f"SpaPackStruct.xml revision {self.facade.spa.revision}",
@@ -269,13 +295,13 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
             f"Pack type {self.facade.spa.pack_type}",
         ]
 
-    def do_version(self, _arg):
-        """Show the version information : version"""
+    def do_version(self, _arg: str) -> None:
+        """Show the version information : version."""
         for version_str in self.version_strings:
             print(version_str)
 
-    def do_about(self, _arg):
-        """Display information about this client program and support library : about"""
+    def do_about(self, _arg: str) -> None:
+        """Display information about this client program and support library : about."""
         print()
         print(
             "GeckoShell: A python program using GeckoLib library to drive Gecko enabled"
@@ -283,19 +309,21 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
         )
         print(f"Library version v{VERSION}")
 
-    async def do_watercare(self, arg):
-        """Set the active watercare mode to one of {0} : WATERCARE <mode>"""
+    async def do_watercare(self, arg: str) -> None:
+        """Set the active watercare mode to one of {0} : WATERCARE <mode>."""
         try:
             await self.facade.water_care.async_set_mode(arg)
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Exception setting watercare to '%s'", arg)
 
-    async def do_setpoint(self, arg):
-        """Set the spa setpoint temperature : setpoint <temp>"""
+    async def do_setpoint(self, arg: str) -> None:
+        """Set the spa setpoint temperature : setpoint <temp>."""
         await self.facade.water_heater.async_set_target_temperature(float(arg))
 
-    def do_eco(self, arg):
-        """Set the spa eco mode : eco on|off"""
+    def do_eco(self, arg: str) -> None:
+        """Set the spa eco mode : eco on|off."""
+        assert self.facade is not None  # noqa: S101
+        assert self.facade.eco_mode is not None  # noqa: S101
         if arg.lower() == "off":
             self.facade.eco_mode.turn_off()
         else:
@@ -303,5 +331,9 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
 
     def get_snapshot_data(self) -> dict:
         """Proxy for the spa."""
-        assert self._facade is not None
+        assert self._facade is not None  # noqa: S101
         return self._facade.spa.get_snapshot_data()
+
+    def do_refresh(self, _args: str) -> None:
+        """Refresh the spa pack data."""
+        release_config_change_waiters()

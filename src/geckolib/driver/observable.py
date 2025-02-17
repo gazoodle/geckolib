@@ -41,7 +41,7 @@ class Observable:
     ) -> None:
         """Trigger the change notification for all observers."""
         _LOGGER.debug(
-            f"{self.__class__.__name__} {sender} changed "
+            f"{self.__class__.__name__} {sender} changed "  # noqa: G004
             f"from {old_value} to {new_value}"
         )
         for observer in self._observers:

@@ -3,15 +3,18 @@
 from .async_facade import GeckoAsyncFacade
 from .base import GeckoAutomationBase, GeckoAutomationFacadeBase
 from .blower import GeckoBlower
+from .bubblegen import GeckoBubbleGenerator
 from .button import GeckoButton
 from .heater import GeckoWaterHeater
 from .keypad import GeckoKeypad
+from .keypad_backlight import GeckoKeypadBacklight
 from .light import GeckoLight
 from .pump import GeckoPump
 from .reminders import GeckoReminders
 from .sensors import GeckoBinarySensor, GeckoErrorSensor, GeckoSensor
 from .switch import GeckoSwitch
 from .watercare import GeckoWaterCare
+from .waterfall import GeckoWaterfall
 
 __all__ = [
     "GeckoAsyncFacade",
@@ -19,9 +22,11 @@ __all__ = [
     "GeckoAutomationFacadeBase",
     "GeckoBinarySensor",
     "GeckoBlower",
+    "GeckoBubbleGenerator",
     "GeckoButton",
     "GeckoErrorSensor",
     "GeckoKeypad",
+    "GeckoKeypadBacklight",
     "GeckoLight",
     "GeckoPump",
     "GeckoReminders",
@@ -29,4 +34,5 @@ __all__ = [
     "GeckoSwitch",
     "GeckoWaterCare",
     "GeckoWaterHeater",
+    "GeckoWaterfall",
 ]

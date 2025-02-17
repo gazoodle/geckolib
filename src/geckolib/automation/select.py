@@ -1,10 +1,14 @@
-"""Automation selection class."""
+"""Automation selection class."""  # noqa: A005
+
+from __future__ import annotations
 
 import logging
-
-from geckolib.driver.accessor import GeckoEnumStructAccessor
+from typing import TYPE_CHECKING
 
 from .base import GeckoAutomationFacadeBase
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -12,11 +16,13 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoSelect(GeckoAutomationFacadeBase):
     """A select object can select between options and can report the current state."""
 
-    def __init__(self, facade, name, accessor: GeckoEnumStructAccessor):
+    def __init__(self, facade: GeckoAsyncFacade, name: str, tag: str) -> None:
         """Initialize the select class."""
-        super().__init__(facade, name, accessor.tag)
-        self._accessor = accessor
-        self._accessor.watch(self._on_change)
+        super().__init__(facade, name, tag)
+        if tag in facade.spa.accessors:
+            self._accessor = facade.spa.accessors[tag]
+            self._accessor.watch(self._on_change)
+            self.set_availability(is_available=True)
 
     @property
     def state(self) -> str:
@@ -33,9 +39,11 @@ class GeckoSelect(GeckoAutomationFacadeBase):
         """Get the possible states."""
         return self._accessor.items
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Stringize the class."""
         return f"{self.name}: {self.state}"
 
     @property
-    def monitor(self):
-        return f"{self.ui_key}: {self.state}"
+    def monitor(self) -> str:
+        """Get monitore string."""
+        return f"{self.key}: {self.state}"

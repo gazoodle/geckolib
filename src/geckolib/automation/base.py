@@ -1,8 +1,14 @@
 """Automation interface support classes."""
 
-import logging
+from __future__ import annotations
 
-from ..driver import Observable
+import logging
+from typing import TYPE_CHECKING
+
+from geckolib.driver import Observable
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -10,13 +16,21 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoAutomationBase(Observable):
     """Base of all the automation helper classes."""
 
-    def __init__(self, unique_id, name, parent_name, key) -> None:
+    def __init__(self, unique_id: str, name: str, parent_name: str, key: str) -> None:
         """Initialize the base class."""
         super().__init__()
-        self._unique_id = unique_id
-        self._name = name
-        self._parent_name = parent_name
-        self._key = key
+        self._unique_id: str = unique_id
+        self._name: str = name
+        self._parent_name: str = parent_name
+        self._key: str = key
+        self._is_available: bool = False
+        self.mapping = {}
+        self.reverse = {}
+
+    def set_mapping(self, mapping: dict) -> None:
+        """Set the mapping and the reverse mapping helpers."""
+        self.mapping = mapping
+        self.reverse = {v: k for k, v in self.mapping.items()}
 
     @property
     def name(self) -> str:
@@ -48,20 +62,33 @@ class GeckoAutomationBase(Observable):
         """An abbreviated string for the monitor process in the shell."""
         return f"{self}"
 
+    @property
+    def is_available(self) -> bool:
+        """Get the availability of this item."""
+        return self._is_available
+
+    def set_availability(self, *, is_available: bool) -> None:
+        """Set the availability of this item."""
+        self._is_available = is_available
+
     def __repr__(self) -> str:
-        return f"{super().__repr__()}(name={self.name}, parent={self.parent_name} key={self.key})"
+        """Get string representation."""
+        return (
+            f"{super().__repr__()}(name={self.name},"
+            f" parent={self.parent_name} key={self.key})"
+        )
 
 
 class GeckoAutomationFacadeBase(GeckoAutomationBase):
     """Base of all the automation helper classes from the Facade."""
 
-    def __init__(self, facade, name, key):
+    def __init__(self, facade: GeckoAsyncFacade, name: str, key: str) -> None:
         """Initialize the facade base class."""
         super().__init__(facade.unique_id, name, facade.name, key)
         self._facade = facade
-        self._spa = facade._spa
+        self._spa = facade.spa
 
     @property
-    def facade(self):
-        """Return the facade that is associated with this automation object"""
+    def facade(self) -> GeckoAsyncFacade:
+        """Return the facade that is associated with this automation object."""
         return self._facade

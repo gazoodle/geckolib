@@ -1,4 +1,4 @@
-"""Unit tests for the snapshot handlers."""
+"""Unit tests for the snapshot handlers."""  # noqa: INP001
 
 import unittest
 import unittest.mock

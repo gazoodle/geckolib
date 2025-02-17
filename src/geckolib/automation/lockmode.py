@@ -1,10 +1,16 @@
 """Automation lockmode class."""
 
-import logging
+from __future__ import annotations
 
-from geckolib.driver.accessor import GeckoEnumStructAccessor
+import logging
+from typing import TYPE_CHECKING
+
+from geckolib.const import GeckoConstants
 
 from .select import GeckoSelect
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -12,9 +18,9 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoLockMode(GeckoSelect):
     """A select object can select between options and can report the current state."""
 
-    def __init__(self, facade, name, accessor: GeckoEnumStructAccessor):
+    def __init__(self, facade: GeckoAsyncFacade) -> None:
         """Initialize the heatpump class."""
-        super().__init__(facade, name, accessor)
+        super().__init__(facade, "Lock Mode", GeckoConstants.KEY_LOCKMODE)
         # Set of mappings of constants to UI options
         self.mapping = {
             "UNLOCK": "Unlocked",

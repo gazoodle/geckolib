@@ -2,7 +2,7 @@
 Abstract curses display class for use in asyncio app.
 
 Thanks to https://gist.github.com/davesteele/8838f03e0594ef11c89f77a7bca91206
-"""
+"""  # noqa: INP001
 
 import _curses
 import asyncio

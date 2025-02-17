@@ -1,30 +1,50 @@
 """Automation heatpump class."""
 
-import logging
+from __future__ import annotations
 
-from geckolib.driver.accessor import GeckoEnumStructAccessor
+import logging
+from typing import TYPE_CHECKING
+
+from geckolib.const import GeckoConstants
 
 from .select import GeckoSelect
+
+if TYPE_CHECKING:
+    from geckolib.automation.async_facade import GeckoAsyncFacade
+    from geckolib.driver.accessor import (
+        GeckoBoolStructAccessor,
+    )
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class GeckoHeatPump(GeckoSelect):
-    """A select object can select between options and can report the current state."""
+    """The heatpump mode."""
 
-    def __init__(self, facade, name, accessor: GeckoEnumStructAccessor):
+    def __init__(self, facade: GeckoAsyncFacade) -> None:
         """Initialize the heatpump class."""
-        super().__init__(facade, name, accessor)
+        super().__init__(facade, "Heat Pump", GeckoConstants.KEY_COOLZONE_MODE)
+
+        if GeckoConstants.KEY_MODBUS_HEATPUMP_DETECTED not in self._spa.accessors:
+            self.set_availability(is_available=False)
+        else:
+            modbus_heatpump_detected: GeckoBoolStructAccessor = self._spa.accessors[
+                GeckoConstants.KEY_MODBUS_HEATPUMP_DETECTED
+            ]
+            if not modbus_heatpump_detected.value:
+                self.set_availability(is_available=False)
+
         # Set of mappings of constants to UI options
-        self.mapping = {
-            "CHILL": "Cool",
-            "INTERNAL_HEAT": "Electric",
-            "HEAT_SAVER": "Eco Heat",
-            "HEAT_W_BOOST": "Smart Heat",
-            "AUTO_SAVER": "Eco Auto",
-            "AUTO_W_BOOST": "Smart Auto",
-        }
-        self.reverse = {v: k for k, v in self.mapping.items()}
+        self.set_mapping(
+            {
+                "CHILL": "Cool",
+                "INTERNAL_HEAT": "Electric",
+                "HEAT_SAVER": "Eco Heat",
+                "HEAT_W_BOOST": "Smart Heat",
+                "AUTO_SAVER": "Eco Auto",
+                "AUTO_W_BOOST": "Smart Auto",
+            }
+        )
 
     @property
     def state(self) -> str:

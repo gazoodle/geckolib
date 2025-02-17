@@ -289,7 +289,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Handle inMix for lighting control
 - Add API documentation
 - Tidy up support files. One class per file
-- Full sweep for typing hints - Ongoing
 - Add switch for winterizing
 - Add ability to set hours so we can implement a crude clock sync mechanism
 - Move to pytest unit test framework (replace all unittest fixtures and custom asserts)
@@ -297,9 +296,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Build some documentation
 - Add coverage to GitHub package workflow
 - API set_config_mode needs to be per device rather than global
-- Need to develop a way to force reconnection if certain accessors change, the intouch2 application
-  will do this if certain values are changed, and using the simulator snapshots, I've noticed that
-  the HA integration can get confused leading to possible values beiing posted to the wrong locations.
 - Move localizable strings so that HA can handle itself
 - Add command to simulator to start a blank configuration instead of loading a snapshot
 - Use MinSetpointG and MaxSetpointG if available
@@ -307,6 +303,26 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Add a watt setting to pumps, heaters and so on so that the library can produce an instantaneous
   power consumption figure which ought to be able to integrate into HA's energy dashboard.
 - Add ability to change the RF channel. The app sends a CHACH\xb4\x0c command, play in the simulator!
+- When there are two spas loaded, the pinp frequency seems to be too high. Is this related to the
+  shared global config?
+
+## Done/Fixed in 1.0.2
+ - Some progress toward support for MrSteam units
+ - Refactoring to allow accessory modules such as inMix to be handled.
+ - Library is now RUFF compliant, all typing hints are done.
+ - Can connect to MrSteam without throwing any errors. This ought to be good to get some snapshots.
+ - Rebuilt GeckoPump class to cleanly handle one, two or variable speed pumps
+ - Spa manager will reload if critical data changed
+ - Update light management to handle both Li and L120 light systems
+ - Waterfall to new pattern, still might not reflect actual state if CP is on same circuit
+ - Support bubble generator on the pack Aux port
+ - Add keypad buttons for all available pumps, blowers, etc.
+
+## BREAKING CHANGES 1.0.2
+ - Blower is now a single speed pump, not a switch
+ - Single speed pumps no longer support modes, it's either on or off
+ - Pump modes are from the user demand list not the device control one, so previously
+   "HIGH" was a pump mode, it is now "HI".
 
 ## Done/Fixed in 1.0.1
  - Add support for lock mode if it exists on the spa

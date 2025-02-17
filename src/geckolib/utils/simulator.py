@@ -11,6 +11,7 @@ from typing import Any, Self
 
 from geckolib import VERSION
 from geckolib.async_taskman import GeckoAsyncTaskMan
+from geckolib.config import config_sleep
 from geckolib.const import GeckoConstants
 from geckolib.driver import (
     GeckoAsyncPartialStatusBlockProtocolHandler,
@@ -32,6 +33,7 @@ from geckolib.driver.accessor import GeckoStructAccessor
 from geckolib.driver.async_spastruct import GeckoAsyncStructure
 from geckolib.driver.async_udp_protocol import GeckoAsyncUdpProtocol
 from geckolib.driver.protocol.unhandled import GeckoUnhandledProtocolHandler
+from geckolib.driver.udp_protocol_handler import GeckoUdpProtocolHandler
 
 from .shared_command import GeckoCmd
 from .simulator_action import GeckoSimulatorAction
@@ -69,6 +71,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self.snapshot: GeckoSnapshot = GeckoSnapshot()
         self._reliability = 1.0
         self._do_rferr = False
+        self._do_thermodynamics = False
         self._send_structure_change = False
         self._clients = []
         random.seed()
@@ -90,6 +93,12 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         except ImportError:
             pass
 
+        self._action = GeckoSimulatorAction()
+        for name in GeckoSimulatorAction.__annotations__:
+            setattr(self._action, name, None)
+
+        self._current_watercare_mode = GeckoConstants.WATERCARE_MODE[1]
+
     async def __aenter__(self) -> Self:
         """Support async with."""
         await GeckoAsyncTaskMan.__aenter__(self)
@@ -99,6 +108,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         GeckoAsyncTaskMan.add_task(
             self, self._notify_structure_changes(), "Notify Structure Changes", "SIM"
         )
+        self.add_task(self._timer_loop(), "Timer", "SIM")
         return self
 
     async def __aexit__(self, *_args: object) -> None:
@@ -140,18 +150,24 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             self._transport.close()
             self._transport = None
 
-    def do_parse(self, args):
+    def do_parse(self, args: str) -> None:
         """
-        Parse logfiles to extract snapshots to the ./snapshot directory. Will
-        overwrite identically named snapshot files if present : parse <logfile>
+        Parse logfiles.
+
+        Extract snapshots to the ./snapshot directory. Will
+        overwrite identically named snapshot files if present.
+
+        usage: parse <logfile>
         """
         for snapshot in GeckoSnapshot.parse_log_file(args):
             snapshot.save("snapshots")
             print(f"Saved snapshot snapshots/{snapshot.filename}")
 
-    def do_reliability(self, args):
+    def do_reliability(self, args: str) -> None:
         """
-        Set simulator reliability factor. Reliability is a measure of how likely
+        Set simulator reliability factor.
+
+        Reliability is a measure of how likely
         the simulator will respond to an incoming message. Reliability of 1.0 (default)
         means the simulator will always respond, whereas 0.0 means it will never
         respond. This does not take into account messages that actually don't get
@@ -163,15 +179,18 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             return
         self._reliability = min(1.0, max(0.0, float(args)))
 
-    def do_rferr(self, args):
-        """Set the simulator to response with RFERR if the parameter is True"""
+    def do_rferr(self, args: str) -> None:
+        """Set the simulator to response with RFERR if the parameter is True."""
         self._do_rferr = args.lower() == "true"
         print(f"RFERR mode set to {self._do_rferr}")
 
-    def complete_parse(self, text, line, start_idx, end_idx):
+    def complete_parse(
+        self, text: str, _line: str, _start_idx: int, _end_idx: int
+    ) -> list[str]:
+        """Complete the parse command."""
         return self._complete_path(text)
 
-    async def do_load(self, args):
+    async def do_load(self, args: str) -> None:
         """
         Load a snapshot.
 
@@ -186,7 +205,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             f" `parse` command to break it apart"
         )
 
-    def complete_load(self, text, line, start_idx, end_idx):
+    def complete_load(
+        self, text: str, _line: str, _start_idx: int, _end_idx: int
+    ) -> list[str]:
+        """Complete the load command."""
         return self._complete_path(text)
 
     def do_save(self, args: str) -> None:
@@ -200,30 +222,39 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         with path.open("w") as f:
             f.write(f"{data}")
 
-    def complete_save(self, text, line, start_idx, end_idx):
+    def complete_save(
+        self, text: str, _line: str, _start_idx: int, _end_idx: int
+    ) -> list[str]:
+        """Complete the save command."""
         return self._complete_path(text)
 
-    async def do_import(self, args) -> None:
+    async def do_import(self, args: str) -> None:
         """Import a JSON snapshot."""
         snapshot = GeckoSnapshot.parse_json(args)
         await self.set_snapshot(snapshot)
 
-    def do_name(self, args):
+    def do_name(self, args: str) -> None:
         """Set the name of the spa : name <spaname>."""
         self._name = args
 
-    async def set_snapshot(self, snapshot):
+    async def set_snapshot(self, snapshot: GeckoSnapshot) -> None:
         """Assign snapshot to this simulator."""
         compatible = self.snapshot.is_compatible(snapshot)
         if not compatible:
             print("The new snapshot structure is not compatible, so doing a full reset")
             print(self.prompt, end="", flush=True)
+            if "PackType" in self.structure.accessors:
+                await self.structure.accessors["PackType"].async_set_value(
+                    self.structure.accessors["PackType"].value, always_send=True
+                )
+
             self.structure.reset()
 
         self.snapshot = snapshot
+        _LOGGER.debug(snapshot)
 
         await self._set_structure_from_snapshot(
-            self.structure, self.snapshot, not compatible
+            self.structure, self.snapshot, do_rebuild=not compatible
         )
         if not compatible:
             for accessor in self.structure.accessors.values():
@@ -231,7 +262,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 accessor.watch(self._on_accessor_changed)
 
     async def _set_structure_from_snapshot(
-        self, struct: GeckoAsyncStructure, snapshot: GeckoSnapshot, do_rebuild: bool
+        self, struct: GeckoAsyncStructure, snapshot: GeckoSnapshot, *, do_rebuild: bool
     ) -> None:
         struct.replace_status_block_segment(0, snapshot.bytes)
 
@@ -244,8 +275,9 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 await struct.load_log_module(snapshot.log_version)
                 struct.build_accessors()
 
-            except:  # noqa
-                _LOGGER.exception("Exception during snapshot load")
+            except ModuleNotFoundError:
+                _LOGGER.exception("Module not found during snapshot load")
+        struct.build_connections()
 
     async def do_diff(self, arg: str) -> None:
         """
@@ -266,7 +298,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
 
         struct = GeckoAsyncStructure(None)
         snapshot = GeckoSnapshot.parse_log_file(file1)[0]
-        await self._set_structure_from_snapshot(struct, snapshot, True)
+        await self._set_structure_from_snapshot(struct, snapshot, do_rebuild=True)
 
         differences = self.structure.get_differences(struct)
         if differences:
@@ -282,15 +314,45 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         """Complete the do_diff command."""
         return self._complete_path(text)
 
-    def _should_ignore(self, handler, sender, respect_rferr=True) -> bool:
+    async def do_reset_to(self, arg: str) -> None:
+        """
+        Reset simulator to specific platform and version.
+
+        usage: reset_to <platform> <config_version> <log_version>.
+        """
+        try:
+            plateform, config, log = arg.split(" ")
+            await self.set_snapshot(GeckoSnapshot.create(plateform, config, log))
+        except IndexError:
+            pass
+
+    def do_thermodynamics(self, arg: str) -> None:
+        """
+        Run thermodynamics simulator.
+
+        Turn the thermodynamics simulation control on or off
+        usage: thermodynamics <ON|OFF>. Defaults to ON
+        """
+        if not arg:
+            arg = "ON"
+        self._do_thermodynamics = arg == "ON"
+
+    def _should_ignore(
+        self,
+        handler: GeckoUdpProtocolHandler,
+        sender: tuple,
+        *,
+        respect_rferr: bool = True,
+    ) -> bool:
         if respect_rferr and self._do_rferr:
+            assert self._protocol is not None  # noqa: S101
             self._protocol.queue_send(
                 GeckoRFErrProtocolHandler.response(parms=sender), sender
             )
             # Always ignore responses because we've already replied with RFERR
             return True
 
-        should_ignore = random.random() > self._reliability
+        should_ignore = random.random() > self._reliability  # noqa: S311
         if should_ignore:
             print(f"Unreliable simulator ignoring request for {handler} from {sender}")
         return should_ignore
@@ -369,12 +431,12 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             "Status block",
             "SIM",
         )
-        # Watercase
+        # Watercare
         self.add_task(
             GeckoWatercareProtocolHandler(
                 async_on_handled=self._async_on_watercare
             ).consume(self._protocol),
-            "Watercase",
+            "Watercare",
             "SIM",
         )
         # Reminders
@@ -406,7 +468,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self, handler: GeckoHelloProtocolHandler, sender: tuple
     ) -> None:
         if handler.was_broadcast_discovery:
-            if self._should_ignore(handler, sender, False):
+            if self._should_ignore(handler, sender, respect_rferr=False):
                 return
             assert self._protocol is not None  # noqa: S101
             self._protocol.queue_send(handler, sender)
@@ -501,14 +563,16 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 self._STATUS_BLOCK_SEGMENT_SIZE,
                 len(self.structure.status_block) - start,
             )
-            next = (idx + 1) % ((handler.length // self._STATUS_BLOCK_SEGMENT_SIZE) + 1)
-            if self._should_ignore(handler, sender, False):
+            next_index = (idx + 1) % (
+                (handler.length // self._STATUS_BLOCK_SEGMENT_SIZE) + 1
+            )
+            if self._should_ignore(handler, sender, respect_rferr=False):
                 continue
             assert self._protocol is not None  # noqa: S101
             self._protocol.queue_send(
                 GeckoStatusBlockProtocolHandler.response(
                     idx,
-                    next,
+                    next_index,
                     self.structure.status_block[start : start + length],
                     parms=sender,
                 ),
@@ -525,9 +589,22 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             self._protocol.queue_send(
                 GeckoWatercareProtocolHandler.giveschedule(parms=sender), sender
             )
-        else:
+        elif handler.mode is None:
             self._protocol.queue_send(
-                GeckoWatercareProtocolHandler.response(1, parms=sender), sender
+                GeckoWatercareProtocolHandler.get_response(
+                    self._current_watercare_mode, parms=sender
+                ),
+                sender,
+            )
+        else:
+            self._current_watercare_mode = handler.mode % len(
+                GeckoConstants.WATERCARE_MODE
+            )
+            self._protocol.queue_send(
+                GeckoWatercareProtocolHandler.set_response(
+                    self._current_watercare_mode, parms=sender
+                ),
+                sender,
             )
 
     async def _async_on_get_reminders(
@@ -560,7 +637,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     ) -> None:
         if self._should_ignore(handler, sender):
             return
-        assert self._protocol is not None
+        assert self._protocol is not None  # noqa: S101
         self._protocol.queue_send(
             GeckoUpdateFirmwareProtocolHandler.response(parms=sender), sender
         )
@@ -585,17 +662,18 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         """Handle a key press command."""
         _LOGGER.debug("Pack command press key %d", keycode)
 
-        action = self._get_action()
+        self._fill_action_state()
 
         # Iterate through all attributes in GeckoConstants
         for name, val in vars(GeckoConstants).items():
-            # Check if the attribute is an integer, matches the given value, and starts with 'KEYPAD_'
+            # Check if the attribute is an integer, matches the given value,
+            # and starts with 'KEYPAD_'
             if isinstance(val, int) and val == keycode and name.startswith("KEYPAD_"):
                 # Now find a function in the action class
-                func = getattr(action, f"on_{name}", None)
+                func = getattr(self._action, f"on_{name}", None)
                 if func is not None:
                     func()
-                    await self._put_action(action)
+                    await self._report_action_state()
                     return
 
         _LOGGER.warning("Simulator didn't handle key pad command for %d", keycode)
@@ -608,7 +686,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         if self._send_structure_change:
             await self._structure_change_queue.put(pos)
 
-    async def _async_on_set_value(self, pos, length, newvalue) -> None:
+    async def _async_on_set_value(self, pos: int, length: int, newvalue: Any) -> None:
         """Call when the structure notifies a change."""
         change = (pos, GeckoStructAccessor.pack_data(length, newvalue))
         await self._async_handle_pack_set_value(change[0], length, change[1])
@@ -630,7 +708,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                     )
                     for change in changes
                 ]
-                assert self._protocol is not None
+                assert self._protocol is not None  # noqa: S101
                 for client in self._clients:
                     self._protocol.queue_send(
                         GeckoAsyncPartialStatusBlockProtocolHandler.report_changes(
@@ -666,11 +744,11 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             while True:
                 accessor, old_value, new_value = await self._accessor_change_queue.get()
 
-                action = self._get_action()
-                func = getattr(action, f"on_{accessor.tag}", None)
+                self._fill_action_state()
+                func = getattr(self._action, f"on_{accessor.tag}", None)
                 if func is not None:
                     func()
-                    await self._put_action(action)
+                    await self._report_action_state()
                 else:
                     _LOGGER.debug(
                         "%s changed from %s to %s", accessor, old_value, new_value
@@ -688,24 +766,27 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         finally:
             _LOGGER.debug("Simulator value update loop finished")
 
-    def _get_action(self) -> GeckoSimulatorAction:
-        action = GeckoSimulatorAction()
-        for name in GeckoSimulatorAction.__annotations__:
-            setattr(action, name, self.structure.accessors[name].value)
-        return action
+    def _fill_action_state(self) -> None:
+        for name in vars(self._action):
+            if name in self.structure.accessors:
+                setattr(self._action, name, self.structure.accessors[name].value)
+            else:
+                setattr(self._action, name, None)
+        self._action.set_connections(self.structure.connections)
 
-    async def _put_action(self, action: GeckoSimulatorAction) -> None:
+    async def _report_action_state(self) -> None:
         # Write all the properties back, only the changed
         # ones will be sent.
         self._can_report_structure_changes.clear()
-        for name, val in vars(action).items():
-            await self.structure.accessors[name].async_set_value(val)
+        for name, val in vars(self._action).items():
+            if name in self.structure.accessors and val is not None:
+                await self.structure.accessors[name].async_set_value(val)
         self._can_report_structure_changes.set()
 
     def get_snapshot_data(self) -> dict:
         """Get snapshot data that the simulator can supply."""
         data = self.structure.get_snapshot_data()
-        assert self.snapshot is not None
+        assert self.snapshot is not None  # noqa: S101
         data.update(
             {
                 "intouch version EN": self.snapshot.intouch_EN_str,
@@ -714,3 +795,26 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             }
         )
         return data
+
+    async def _timer_loop(self) -> None:
+        elapsed_time = 0
+        try:
+            while True:
+                await config_sleep(1, "Simulator Timer")
+                elapsed_time += 1
+                self._fill_action_state()
+                self._action.every_second(elapsed_time)
+                if elapsed_time % 10 == 0 and self._do_thermodynamics:
+                    self._action.check_thermodynamics(elapsed_time)
+                if elapsed_time % 60 == 0:
+                    self._action.every_minute(int(elapsed_time / 60))
+                if elapsed_time % 3600 == 0:
+                    self._action.every_hour(int(elapsed_time / 3600))
+                await self._report_action_state()
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("Simulator timer loop cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception("Simulator timer loop caught exception")
+            raise

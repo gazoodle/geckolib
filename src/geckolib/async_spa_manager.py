@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from .async_locator import GeckoAsyncLocator
 from .async_spa import GeckoAsyncSpa
@@ -13,7 +13,6 @@ from .async_taskman import GeckoAsyncTaskMan
 from .automation import (
     GeckoAsyncFacade,
     GeckoAutomationBase,
-    GeckoButton,
 )
 from .const import GeckoConstants
 from .spa_events import GeckoSpaEvent
@@ -37,55 +36,62 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
     implementation to manage the essential events that are required during operation
     """
 
-    class ReconnectButton(GeckoButton):
+    class ReconnectButton(GeckoAutomationBase):
         """Perform reconnect of the spa."""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            """Initialize the reconnect butto n class."""
             super().__init__(
                 spaman.unique_id, "Reconnect", spaman.spa_name, "RECONNECT"
             )
             self._spaman = spaman
 
-        async def async_press(self):
+        async def async_press(self) -> None:
+            """Press the button."""
             await self._spaman.async_reset()
 
     class PingSensor(GeckoAutomationBase):
-        """Sensor with the last ping time, or None"""
+        """Sensor with the last ping time, or None."""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            """Initialize the ping sensor."""
             super().__init__(spaman.unique_id, "Last Ping", spaman.spa_name, "PING")
             self._spaman: GeckoAsyncSpaMan = spaman
-            assert self._spaman._spa is not None
-            self._spaman._spa.watch(self._on_spa_change)
-            self._last_ping_at: datetime | None = self._spaman._spa.last_ping_at
+            assert self._spaman.spa is not None  # noqa: S101
+            self._spaman.spa.watch(self._on_spa_change)
+            self._last_ping_at: datetime | None = self._spaman.spa.last_ping_at
 
         @property
-        def state(self):
-            """The state of the sensor"""
+        def state(self) -> datetime | None:
+            """The state of the sensor."""
             return self._last_ping_at
 
         @property
-        def unit_of_measurement(self):
-            """The unit of measurement for the sensor, or None"""
+        def unit_of_measurement(self) -> None:
+            """The unit of measurement for the sensor, or None."""
             return None
 
         @property
-        def device_class(self):
+        def device_class(self) -> str:
+            """Device class for the ping sensor."""
             return "timestamp"
 
-        def _on_spa_change(self, *args):
-            if self._last_ping_at == self._spaman._spa.last_ping_at:
+        def _on_spa_change(self, *_args: Any) -> None:
+            assert self._spaman.spa is not None  # noqa: S101
+            if self._last_ping_at == self._spaman.spa.last_ping_at:
                 return
-            self._last_ping_at = self._spaman._spa.last_ping_at
+            self._last_ping_at = self._spaman.spa.last_ping_at
             self._on_change()
 
-        def __repr__(self):
+        def __repr__(self) -> str:
+            """Get string representation."""
             return f"{self.name}: {self.state}"
 
     class StatusSensor(GeckoAutomationBase):
         """Sensor with the current state."""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            """Initialize the status sensor class."""
             super().__init__(spaman.unique_id, "Status", spaman.spa_name, "STATUS")
             self._spaman: GeckoAsyncSpaMan = spaman
             self._state = "Unknown"
@@ -93,93 +99,104 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             self._last_event = GeckoSpaEvent.SPA_MAN_ENTER
 
         @property
-        def state(self):
-            """The state of the sensor"""
+        def state(self) -> str:
+            """The state of the sensor."""
             return self._state
 
         @property
-        def unit_of_measurement(self):
-            """The unit of measurement for the sensor, or None"""
+        def unit_of_measurement(self) -> None:
+            """The unit of measurement for the sensor, or None."""
             return None
 
         @property
-        def device_class(self):
+        def device_class(self) -> str:
+            """Get the device class."""
             return "string"
 
         @property
         def last_event(self) -> GeckoSpaEvent:
-            """Return the last event the sensor was notified of"""
+            """Return the last event the sensor was notified of."""
             return self._last_event
 
         @property
         def spa_state(self) -> GeckoSpaState:
-            """Returns the state of the spa at the time of the last event"""
+            """Returns the state of the spa at the time of the last event."""
             return self._last_state
 
         def on_event(self, event: GeckoSpaEvent) -> None:
+            """Event handler."""
             self._last_event = event
             self._last_state = self._spaman.spa_state
             self._state = GeckoSpaState.to_string(self.spa_state)
             self._on_change()
 
-        def __repr__(self):
+        def __repr__(self) -> str:
+            """Get string representation."""
             return f"{self.name}: {self.state}"
 
     class RadioConnectionSensor(GeckoAutomationBase):
         """Sensor with the current radio connection data."""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            """Initialise the radio sensor class."""
             super().__init__(spaman.unique_id, "RF Signal", spaman.spa_name, "RADIO")
-            self.signal = 0
-            self.set_signal(spaman._spa.signal)
+            self.signal: int = 0
+            self.set_signal(spaman.spa.signal)
 
-        def set_signal(self, signal):
+        def set_signal(self, signal: int) -> None:
+            """Set signal nstrength."""
             self.signal = signal
             self.signal = min(self.signal, 100)
 
         @property
-        def state(self):
-            """The state of the sensor"""
+        def state(self) -> int:
+            """The state of the sensor."""
             return self.signal
 
         @property
-        def device_class(self):
+        def device_class(self) -> None:
+            """Get the device class."""
             return None
 
         @property
-        def unit_of_measurement(self):
-            """The unit of measurement for the sensor, or None"""
+        def unit_of_measurement(self) -> str:
+            """The unit of measurement for the sensor, or None."""
             return "%"
 
-        def __repr__(self):
+        def __repr__(self) -> str:
+            """Get the string representation."""
             return f"{self.name}: {self.state}{self.unit_of_measurement}"
 
     class RadioChannelSensor(GeckoAutomationBase):
         """Sensor with the current radio connection data."""
 
         def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            """Initialize the radio channel sensor."""
             super().__init__(spaman.unique_id, "RF Channel", spaman.spa_name, "CHANNEL")
-            self.channel = 0
-            self.set_channel(spaman._spa.channel)
+            self.channel: int = 0
+            self.set_channel(spaman.spa.channel)
 
-        def set_channel(self, channel):
+        def set_channel(self, channel: int) -> None:
+            """Set the radio channel."""
             self.channel = channel
 
         @property
-        def state(self):
-            """The state of the sensor"""
+        def state(self) -> int:
+            """The state of the sensor."""
             return self.channel
 
         @property
-        def device_class(self):
+        def device_class(self) -> None:
+            """Get the device class."""
             return None
 
         @property
-        def unit_of_measurement(self):
-            """The unit of measurement for the sensor, or None"""
+        def unit_of_measurement(self) -> None:
+            """The unit of measurement for the sensor, or None."""
             return None
 
-        def __repr__(self):
+        def __repr__(self) -> str:
+            """Get the string representation."""
             return f"{self.name}: {self.state}"
 
     def __init__(self, client_uuid: str, **kwargs: str) -> None:
@@ -240,12 +257,14 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
     #
 
     async def __aenter__(self) -> Self:
+        """Support 'with'."""
         await GeckoAsyncTaskMan.__aenter__(self)
         await self._handle_event(GeckoSpaEvent.SPA_MAN_ENTER)
         self.add_task(self._sequence_pump(), "Sequence Pump", "SPAMAN")
         return self
 
     async def __aexit__(self, *exc_info: object) -> None:
+        """Support 'with'."""
         self.cancel_key_tasks("SPAMAN")
         await self._handle_event(GeckoSpaEvent.SPA_MAN_EXIT, exc_info=exc_info)
         await GeckoAsyncTaskMan.__aexit__(self, exc_info)
@@ -300,14 +319,17 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         return self._spa_descriptors
 
     async def async_connect_to_spa(
-        self, spa_descriptor: GeckoAsyncSpaDescriptor
+        self, spa_descriptor: GeckoAsyncSpaDescriptor | None
     ) -> GeckoAsyncFacade | None:
         """
         Connect to spa.
 
         This API will connect to the specified spa using the supplied descriptor.
         """
-        assert self._facade is None
+        assert self._facade is None  # noqa: S101
+        if spa_descriptor is None:
+            await self._handle_event(GeckoSpaEvent.SPA_NOT_FOUND)
+            return None
 
         try:
             self._spa_name = spa_descriptor.name
@@ -344,7 +366,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
 
         spa_descriptors = await self.async_locate_spas(spa_address, spa_identifier)
 
-        assert spa_descriptors is not None
+        assert spa_descriptors is not None  # noqa: S101
         if len(spa_descriptors) == 0:
             await self._handle_event(
                 GeckoSpaEvent.SPA_NOT_FOUND,
@@ -392,13 +414,13 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
     @property
     def unique_id(self) -> str:
         """A unique id for the spa manager."""
-        assert self._spa_identifier is not None
+        assert self._spa_identifier is not None  # noqa: S101
         return f"{self._spa_identifier.replace(':', '')}"
 
     @property
     def spa_name(self) -> str:
         """The name of the spa being managed."""
-        assert self._spa_name is not None
+        assert self._spa_name is not None  # noqa: S101
         return self._spa_name
 
     @property
@@ -410,6 +432,11 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
     def facade(self) -> GeckoAsyncFacade | None:
         """Get the connected facade, or None."""
         return self._facade
+
+    @property
+    def spa(self) -> GeckoAsyncSpa | None:
+        """Get the spa, or None."""
+        return self._spa
 
     @property
     def spa_state(self) -> GeckoSpaState:
@@ -444,9 +471,11 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
 
     @property
     def ping_sensor(self) -> GeckoAsyncSpaMan.PingSensor | None:
+        """Get the ping sensor."""
         return self._ping_sensor
 
     def __str__(self) -> str:
+        """Get the stringized version."""
         return GeckoSpaState.to_string(self.spa_state)
 
     ########################################################################
@@ -454,7 +483,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
     #   Abstract methods
     #
     @abstractmethod
-    async def handle_event(self, event: GeckoSpaEvent, **_kwargs) -> None:
+    async def handle_event(self, event: GeckoSpaEvent, **_kwargs: Any) -> None:
         """Handle the event."""
 
     ########################################################################
@@ -462,7 +491,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
     #   Private methods
     #
 
-    async def _handle_event(self, event: GeckoSpaEvent, **kwargs) -> None:
+    async def _handle_event(self, event: GeckoSpaEvent, **kwargs: Any) -> None:  # noqa: PLR0912, PLR0915
         if (
             self._status_sensor is None
             and self._spa_identifier is not None
@@ -516,6 +545,9 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             ):
                 await self.async_reset()
 
+        elif event == GeckoSpaEvent.RUNNING_SPA_NEEDS_RELOAD:
+            await self.async_reset()
+
         elif event == GeckoSpaEvent.ERROR_RF_ERROR:
             if self.spa_state == GeckoSpaState.CONNECTED:
                 self.set_spa_state(GeckoSpaState.ERROR_RF_FAULT)
@@ -538,9 +570,9 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             self.set_spa_state(GeckoSpaState.ERROR_NEEDS_ATTENTION)
 
         elif event == GeckoSpaEvent.RUNNING_SPA_WATER_CARE_ERROR:
-            assert self.facade is not None
-            assert self._spa is not None
-            self.facade._water_care.change_watercare_mode(
+            assert self.facade is not None  # noqa: S101
+            assert self._spa is not None  # noqa: S101
+            self.facade.water_care.change_watercare_mode(
                 await self._spa.async_get_watercare()
             )
 
@@ -584,9 +616,12 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
                     if self._spa_descriptors is not None:
                         await self.async_connect_to_spa(
                             next(
-                                d
-                                for d in self._spa_descriptors
-                                if d.identifier_as_string == self._spa_identifier
+                                (
+                                    d
+                                    for d in self._spa_descriptors
+                                    if d.identifier_as_string == self._spa_identifier
+                                ),
+                                None,
                             )
                         )
                     else:

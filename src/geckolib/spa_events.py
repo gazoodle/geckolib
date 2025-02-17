@@ -1,4 +1,4 @@
-"""Connection events issued during spa discovery/connection"""
+"""Connection events issued during spa discovery/connection."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 
 
 class GeckoSpaEvent(Enum):
-    """Events triggered during locating and connection status of spas"""
+    """Events triggered during locating and connection status of spas."""
 
     # Spa manager -------------------------------------------------------
     SPA_MAN_ENTER = 1
@@ -83,6 +83,8 @@ class GeckoSpaEvent(Enum):
     """A running spa will sometimes get an unprompted watercare error"""
     RUNNING_SPA_PACK_REFRESHED = 305
     """A running spa will update the spapack data and radio strength periodically"""
+    RUNNING_SPA_NEEDS_RELOAD = 306
+    """A running spa has detected that it needs a complete reload"""
 
     # Events targeted at clients, to determine when things can be shown
     # or hidden in the UI

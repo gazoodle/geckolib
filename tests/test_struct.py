@@ -88,6 +88,10 @@ class MockStructure(GeckoAsyncStructure):
                 self.struct = struct_
 
             @property
+            def output_keys(self) -> list:
+                return []
+
+            @property
             def temperature_keys(self) -> list:
                 return []
 

@@ -1,5 +1,7 @@
 """Unit tests for the UDP protocol handlers."""  # noqa: INP001
 
+# ruff: noqa: E501
+
 import unittest
 import unittest.mock
 
@@ -296,7 +298,7 @@ class MockProtocol:
     ) -> None:
         self.sendbytes = protocol_handler.send_bytes
 
-    def get_and_increment_sequence_counter(self, command: bool) -> int:
+    def get_and_increment_sequence_counter(self, *, command: bool = False) -> int:
         if command:
             return 192
         return 1
@@ -381,7 +383,6 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
             [(365, b"\x03\x84"), (366, b"\x84\x0c"), (367, b"\x01\x02")],
             parms=PARMS,
         )
-        print(handler.send_bytes)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(
             handler.send_bytes,
@@ -396,7 +397,6 @@ class TestGeckoStatusBlockHandler(unittest.TestCase):
             [(367, b"\x01")],
             parms=PARMS,
         )
-        print(handler.send_bytes)
         self.assertFalse(handler.should_remove_handler)
         self.assertEqual(
             handler.send_bytes,
@@ -514,7 +514,7 @@ class TestGeckoWatercareHandler(unittest.TestCase):
         )
 
     def test_send_construct_response(self) -> None:
-        handler = GeckoWatercareProtocolHandler.response(3, parms=PARMS)
+        handler = GeckoWatercareProtocolHandler.get_response(3, parms=PARMS)
         self.assertEqual(
             handler.send_bytes,
             b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN>"

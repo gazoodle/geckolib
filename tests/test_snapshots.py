@@ -1,4 +1,4 @@
-"""Unit tests for the actual snapshots."""
+"""Unit tests for the actual snapshots."""  # noqa: INP001
 
 import pathlib
 from unittest import IsolatedAsyncioTestCase, main
@@ -10,11 +10,14 @@ from context import (
     GeckoSnapshot,
 )
 
+from geckolib.driver.accessor import GeckoStructAccessor
+
 
 class GeckoAsyncSpa:
     """Mock spa for testing."""
 
-    def __init__(self, snapshotfile):
+    def __init__(self, snapshotfile: str) -> None:
+        """Initialize the class."""
         self.struct = GeckoAsyncStructure(None)
 
         cwd = pathlib.Path(__file__).parent.resolve()
@@ -30,8 +33,14 @@ class GeckoAsyncSpa:
         self.log_version = snapshot.log_version
 
     @property
-    def accessors(self):
+    def accessors(self) -> list[GeckoStructAccessor]:
+        """Get the accessors."""
         return self.struct.accessors
+
+    @property
+    def is_responding_to_pings(self) -> bool:
+        """Is the remote end responding to pings."""
+        return True
 
     async def async_init(self) -> None:
         """Init async."""
@@ -56,17 +65,19 @@ class TestSnapshots(IsolatedAsyncioTestCase):
     def tearDown(self) -> None:
         del self.taskman
 
-    async def build_facade(self, snapshotfile) -> GeckoAsyncFacade:
+    async def build_facade(self, snapshotfile: str) -> GeckoAsyncFacade:
         spa = GeckoAsyncSpa(snapshotfile)
         await spa.async_init()
         return GeckoAsyncFacade(spa, self.taskman)
 
     async def test_default(self) -> None:
         facade = await self.build_facade("snapshots/default.snapshot")
-        self.assertListEqual(
-            ["P1", "P2", "BL", "LI"],
-            [device["device"] for device in facade.actual_user_devices],
-        )
+        self.assertTrue(facade.pump_1.is_available)
+        self.assertTrue(facade.pump_2.is_available)
+        self.assertFalse(facade.pump_3.is_available)
+        self.assertTrue(facade.blower.is_available)
+        self.assertTrue(facade.light.is_available)
+        self.assertFalse(facade.light2.is_available)
         self.assertFalse(facade.pumps[0].is_on)
         self.assertFalse(facade.pumps[1].is_on)
         self.assertFalse(facade.blowers[0].is_on)
@@ -78,11 +89,10 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         facade = await self.build_facade(
             "snapshots/inYT-Pump1Lo-2020-12-13 11_19_35.snapshot"
         )
-        self.assertListEqual(
-            ["P1", "P2", "LI"],
-            [device["device"] for device in facade.actual_user_devices],
-        )
-        self.assertEqual("LOW", facade.pumps[0].mode)
+        self.assertTrue(facade.pump_1.is_available)
+        self.assertTrue(facade.pump_2.is_available)
+        self.assertTrue(facade.light.is_available)
+        self.assertEqual("LO", facade.pumps[0].mode)
         self.assertEqual("OFF", facade.pumps[1].mode)
         self.assertTrue(facade.pumps[0].is_on)
         self.assertFalse(facade.pumps[1].is_on)
@@ -94,11 +104,10 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         facade = await self.build_facade(
             "snapshots/inYT-Pump1Hi-2020-12-13 11_19_35.snapshot"
         )
-        self.assertListEqual(
-            ["P1", "P2", "LI"],
-            [device["device"] for device in facade.actual_user_devices],
-        )
-        self.assertEqual("HIGH", facade.pumps[0].mode)
+        self.assertTrue(facade.pump_1.is_available)
+        self.assertTrue(facade.pump_2.is_available)
+        self.assertTrue(facade.light.is_available)
+        self.assertEqual("HI", facade.pumps[0].mode)
         self.assertEqual("OFF", facade.pumps[1].mode)
         self.assertTrue(facade.pumps[0].is_on)
         self.assertFalse(facade.pumps[1].is_on)
@@ -110,10 +119,10 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         facade = await self.build_facade(
             "snapshots/inYT-waterfall on-2020-10-23 18_01_30.snapshot"
         )
-        self.assertListEqual(
-            ["P1", "P2", "Waterfall", "LI"],
-            [device["device"] for device in facade.actual_user_devices],
-        )
+        self.assertTrue(facade.pump_1.is_available)
+        self.assertTrue(facade.pump_2.is_available)
+        self.assertTrue(facade.waterfall.is_available)
+        self.assertTrue(facade.light.is_available)
         self.assertEqual("OFF", facade.pumps[0].mode)
         self.assertEqual("OFF", facade.pumps[1].mode)
         self.assertEqual("ON", facade.pumps[2].mode)
@@ -127,16 +136,13 @@ class TestSnapshots(IsolatedAsyncioTestCase):
         facade = await self.build_facade(
             "snapshots/inYJ-All off-2020-12-18 11_24_09.snapshot"
         )
-        self.assertListEqual(
-            ["P1", "LI"],
-            [device["device"] for device in facade.actual_user_devices],
-        )
+        self.assertTrue(facade.pump_1.is_available)
+        self.assertTrue(facade.light.is_available)
         self.assertEqual("OFF", facade.pumps[0].mode)
         self.assertFalse(facade.pumps[0].is_on)
         self.assertFalse(facade.lights[0].is_on)
         self.assertEqual(37.0, facade.water_heater.current_temperature)
         self.assertEqual("°C", facade.water_heater.temperature_unit)
-        print(facade.all_user_devices)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+"""Setup main."""
 
 import setuptools
 

@@ -1,4 +1,4 @@
-"""Spa state"""
+"""Spa state."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from enum import Enum
 
 
 class GeckoSpaState(Enum):
-    """Spa, locator or spa manager state"""
+    """Spa, locator or spa manager state."""
 
     IDLE = 1
     """Idle state is when the spa manager is first initialized"""
@@ -36,7 +36,8 @@ class GeckoSpaState(Enum):
     """State when the EN module reports it can't talk to the CO module"""
 
     @staticmethod
-    def to_string(state: GeckoSpaState) -> str:
+    def to_string(state: GeckoSpaState) -> str:  # noqa: PLR0911
+        """Convert GeckoSpaState to string."""
         if state == GeckoSpaState.CONNECTED:
             return "Connected"
         if state == GeckoSpaState.CONNECTING:

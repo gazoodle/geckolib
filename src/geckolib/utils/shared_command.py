@@ -261,7 +261,15 @@ class GeckoCmd(AsyncCmd):
         _LOGGER.info(f"SNAPSHOT ========{data}========")  # noqa: G004
         print(data)
 
-    def _complete_path(self, path) -> list[str]:
-        if os.path.isdir(path):
-            return glob.glob(os.path.join(path, "*"))
-        return glob.glob(path + "*")
+    def _complete_path(self, path: str) -> list[str]:
+        if os.path.isdir(path):  # noqa: PTH112
+            return glob.glob(os.path.join(path, "*"))  # noqa: PTH118, PTH207
+        return glob.glob(path + "*")  # noqa: PTH207
+
+    def do_pack(self, _args: str) -> None:
+        """List pack info."""
+        print(f"Outputs {self.structure.all_outputs}")
+        print(f"Connections: {self.structure.connections}")
+        print(f"All Devices: {self.structure.all_devices}")
+        print(f"Error Keys: {self.structure.error_keys}")
+        print(f"User Demands: {self.structure.user_demands}")
