@@ -306,6 +306,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - When there are two spas loaded, the pinp frequency seems to be too high. Is this related to the
   shared global config?
 
+## Done/Fixed in 1.0.3
+
 ## Done/Fixed in 1.0.2
  - Some progress toward support for MrSteam units
  - Refactoring to allow accessory modules such as inMix to be handled.
