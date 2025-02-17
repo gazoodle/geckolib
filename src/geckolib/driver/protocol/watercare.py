@@ -11,10 +11,10 @@ from geckolib.const import GeckoConstants
 
 from .packet import GeckoPacketProtocolHandler
 
-GETWC_VERB = b"GETWC"
-WCGET_VERB = b"WCGET"
-SETWC_VERB = b"SETWC"
-WCSET_VERB = b"WCSET"
+GETWC_VERB = b"GETWC"  # Get watercare mode
+WCGET_VERB = b"WCGET"  # Get watercare mode response
+SETWC_VERB = b"SETWC"  # Set watercare mode
+WCSET_VERB = b"WCSET"  # Set watercare mode response
 REQWC_VERB = b"REQWC"
 WCREQ_VERB = b"WCREQ"
 WCERR_VERB = b"WCERR"
@@ -53,8 +53,8 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
-    def response(mode: int, **kwargs: Any) -> GeckoWatercareProtocolHandler:
-        """Generate a watercare mode change response."""
+    def get_response(mode: int, **kwargs: Any) -> GeckoWatercareProtocolHandler:
+        """Generate a watercare mode request response."""
         return GeckoWatercareProtocolHandler(
             content=b"".join(
                 [
@@ -69,8 +69,24 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
         )
 
     @staticmethod
+    def set_response(mode: int, **kwargs: Any) -> GeckoWatercareProtocolHandler:
+        """Generate a watercare set mode response."""
+        return GeckoWatercareProtocolHandler(
+            content=b"".join(
+                [
+                    WCSET_VERB,
+                    struct.pack(
+                        GET_WATERCARE_FORMAT,
+                        mode,
+                    ),
+                ]
+            ),
+            **kwargs,
+        )
+
+    @staticmethod
     def giveschedule(**kwargs: Any) -> GeckoWatercareProtocolHandler:
-        """Generate a give schedule response."""
+        """Generate a watercare schedule request response."""
         return GeckoWatercareProtocolHandler(
             content=b"".join(
                 [
@@ -92,25 +108,35 @@ class GeckoWatercareProtocolHandler(GeckoPacketProtocolHandler):
     def can_handle(self, received_bytes: bytes, _sender: tuple) -> bool:
         """Can we handle the verb."""
         return received_bytes.startswith(
-            (GETWC_VERB, WCGET_VERB, REQWC_VERB, WCSET_VERB)
+            (GETWC_VERB, SETWC_VERB, WCGET_VERB, REQWC_VERB, WCSET_VERB)
         )
 
     def handle(self, received_bytes: bytes, _sender: tuple) -> None:
         """Handle the verb."""
         remainder = received_bytes[5:]
+        self.schedule = False
+        self.mode = None
         if received_bytes.startswith(GETWC_VERB):
             self._sequence = struct.unpack(">B", remainder)[0]
-            self.schedule = False
             return  # Stay in the handler list
         if received_bytes.startswith(REQWC_VERB):
             self._sequence = struct.unpack(">B", remainder)[0]
             self.schedule = True
             return  # Stay in the handler list
+        if received_bytes.startswith(SETWC_VERB):
+            self.mode = struct.unpack(SET_WATERCARE_FORMAT, remainder)[1] % len(
+                GeckoConstants.WATERCARE_MODE
+            )
+            return  # Stay in the handler list
         if received_bytes.startswith(WCGET_VERB):
             self.mode = struct.unpack(GET_WATERCARE_FORMAT, remainder)[0] % len(
                 GeckoConstants.WATERCARE_MODE
             )
-            self.schedule = False
+        if received_bytes.startswith(WCSET_VERB):
+            self.mode = struct.unpack(GET_WATERCARE_FORMAT, remainder)[0] % len(
+                GeckoConstants.WATERCARE_MODE
+            )
+
         # Otherwise must be WCSET
         self._should_remove_handler = True
 

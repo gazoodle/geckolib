@@ -35,6 +35,20 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
         """Return all the possible water care modes."""
         return GeckoConstants.WATERCARE_MODE_STRING
 
+    @property
+    def state(self) -> str:
+        """Return all the current state."""
+        return GeckoConstants.WATERCARE_MODE_STRING[self.mode]
+
+    @property
+    def states(self) -> list[str]:
+        """Return all the states."""
+        return self.modes
+
+    async def async_set_state(self, new_mode: str | int) -> None:
+        """Set the state. Support select style objects."""
+        await self.async_set_mode(new_mode)
+
     async def async_set_mode(self, new_mode: str | int) -> None:
         """
         Set the active watercare mode to new_mode.

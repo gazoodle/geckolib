@@ -720,7 +720,7 @@ class GeckoAsyncSpa(Observable):
         )
 
         if set_watercare_handler is None:
-            _LOGGER.error("Cannot set version, protocol retry count exceeded")
+            _LOGGER.error("Cannot set watercare, protocol retry count exceeded")
             await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
 
     def _get_reminders_handler_func(self) -> GeckoRemindersProtocolHandler:

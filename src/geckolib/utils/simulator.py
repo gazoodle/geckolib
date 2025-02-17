@@ -97,6 +97,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         for name in GeckoSimulatorAction.__annotations__:
             setattr(self._action, name, None)
 
+        self._current_watercare_mode = GeckoConstants.WATERCARE_MODE[1]
+
     async def __aenter__(self) -> Self:
         """Support async with."""
         await GeckoAsyncTaskMan.__aenter__(self)
@@ -429,12 +431,12 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             "Status block",
             "SIM",
         )
-        # Watercase
+        # Watercare
         self.add_task(
             GeckoWatercareProtocolHandler(
                 async_on_handled=self._async_on_watercare
             ).consume(self._protocol),
-            "Watercase",
+            "Watercare",
             "SIM",
         )
         # Reminders
@@ -587,9 +589,22 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             self._protocol.queue_send(
                 GeckoWatercareProtocolHandler.giveschedule(parms=sender), sender
             )
-        else:
+        elif handler.mode is None:
             self._protocol.queue_send(
-                GeckoWatercareProtocolHandler.response(1, parms=sender), sender
+                GeckoWatercareProtocolHandler.get_response(
+                    self._current_watercare_mode, parms=sender
+                ),
+                sender,
+            )
+        else:
+            self._current_watercare_mode = handler.mode % len(
+                GeckoConstants.WATERCARE_MODE
+            )
+            self._protocol.queue_send(
+                GeckoWatercareProtocolHandler.set_response(
+                    self._current_watercare_mode, parms=sender
+                ),
+                sender,
             )
 
     async def _async_on_get_reminders(

@@ -514,7 +514,7 @@ class TestGeckoWatercareHandler(unittest.TestCase):
         )
 
     def test_send_construct_response(self) -> None:
-        handler = GeckoWatercareProtocolHandler.response(3, parms=PARMS)
+        handler = GeckoWatercareProtocolHandler.get_response(3, parms=PARMS)
         self.assertEqual(
             handler.send_bytes,
             b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN>"
