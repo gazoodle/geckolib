@@ -30,7 +30,6 @@ if TYPE_CHECKING:
     from geckolib.async_spa import GeckoAsyncSpa
     from geckolib.async_taskman import GeckoAsyncTaskMan
     from geckolib.automation.power import GeckoPower
-    from geckolib.driver.accessor import GeckoBoolStructAccessor
 
 _LOGGER = logging.getLogger(__name__)
 

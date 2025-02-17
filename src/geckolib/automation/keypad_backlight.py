@@ -24,11 +24,11 @@ class GeckoKeypadBacklight(GeckoSelect):
             {
                 "OFF": "Off",
                 "RED": "Red",
-                "GREEN": "Greed",
+                "GREEN": "Green",
                 "YELLOW": "Yellow",
                 "BLUE": "Blue",
                 "MAGENTA": "Magenta",
-                "CYAN": "Cyna",
+                "CYAN": "Cyan",
                 "WHITE": "White",
             }
         )
