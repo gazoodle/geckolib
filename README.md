@@ -306,6 +306,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - When there are two spas loaded, the pinp frequency seems to be too high. Is this related to the
   shared global config?
 
+## Done/Fixed in 1.0.4
+
 ## Done/Fixed in 1.0.3
  - Support setting of the remaining duration for reminders
 
