@@ -47,6 +47,7 @@ class GeckoAsyncSpa:
         await self.struct.load_pack_class(self.plateform_key)
         await self.struct.load_config_module(self.config_version)
         await self.struct.load_log_module(self.log_version)
+        await self.struct.check_for_accessories()
         self.struct.build_accessors()
 
 

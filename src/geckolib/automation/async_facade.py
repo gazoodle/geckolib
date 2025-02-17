@@ -10,6 +10,7 @@ from geckolib.automation.base import GeckoAutomationBase
 from geckolib.automation.bubblegen import GeckoBubbleGenerator
 from geckolib.automation.heatpump import GeckoHeatPump
 from geckolib.automation.ingrid import GeckoInGrid
+from geckolib.automation.inmix import GeckoInMix
 from geckolib.automation.lockmode import GeckoLockMode
 from geckolib.automation.waterfall import GeckoWaterfall
 from geckolib.config import GeckoConfig, config_sleep, set_config_mode
@@ -97,18 +98,24 @@ class GeckoAsyncFacade(Observable):
 
         # Declare all the items that a spa might have. If they are
         # available for this configuration, they will be marked as such.
-        self.pump_1 = GeckoPump(self, "Pump 1", "P1")
-        self.pump_2 = GeckoPump(self, "Pump 2", "P2")
-        self.pump_3 = GeckoPump(self, "Pump 3", "P3")
-        self.pump_4 = GeckoPump(self, "Pump 4", "P4")
-        self.pump_5 = GeckoPump(self, "Pump 5", "P5")
+        self.pump_1: GeckoPump = GeckoPump(self, "Pump 1", "P1")
+        self.pump_2: GeckoPump = GeckoPump(self, "Pump 2", "P2")
+        self.pump_3: GeckoPump = GeckoPump(self, "Pump 3", "P3")
+        self.pump_4: GeckoPump = GeckoPump(self, "Pump 4", "P4")
+        self.pump_5: GeckoPump = GeckoPump(self, "Pump 5", "P5")
 
-        self.blower = GeckoBlower(self)
-        self.waterfall = GeckoWaterfall(self)
-        self.bubblegenerator = GeckoBubbleGenerator(self)
+        self.blower: GeckoBlower = GeckoBlower(self)
+        self.waterfall: GeckoWaterfall = GeckoWaterfall(self)
+        self.bubblegenerator: GeckoBubbleGenerator = GeckoBubbleGenerator(self)
 
-        self.light = GeckoLightLi(self)
-        self.light2 = GeckoLightL120(self)
+        self.light: GeckoLightLi = GeckoLightLi(self)
+        self.light2: GeckoLightL120 = GeckoLightL120(self)
+
+        self._heatpump: GeckoHeatPump = GeckoHeatPump(self)
+        self._ingrid: GeckoInGrid = GeckoInGrid(self)
+        self._lockmode: GeckoLockMode = GeckoLockMode(self)
+
+        self._inmix: GeckoInMix = GeckoInMix(self)
 
         #################
 
@@ -119,9 +126,6 @@ class GeckoAsyncFacade(Observable):
         self._blowers: list[GeckoBlower] = []
         self._lights: list[GeckoLight] = []
         self._ecomode: GeckoSwitch | None = None
-        self._heatpump: GeckoHeatPump = GeckoHeatPump(self)
-        self._ingrid: GeckoInGrid = GeckoInGrid(self)
-        self._lockmode: GeckoLockMode = GeckoLockMode(self)
         self._standby: GeckoStandby | None = None
 
         # Build the automation items
@@ -336,6 +340,11 @@ class GeckoAsyncFacade(Observable):
     def standby(self) -> GeckoStandby | None:
         """Get the standby switch if available."""
         return self._standby
+
+    @property
+    def inmix(self) -> GeckoInMix:
+        """Get the inMix handler."""
+        return self._inmix
 
     @property
     def spa_in_use_sensor(self) -> GeckoAsyncFacade.SpaInUseSensor:

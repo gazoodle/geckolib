@@ -6,6 +6,9 @@ from .blower import GeckoBlower
 from .bubblegen import GeckoBubbleGenerator
 from .button import GeckoButton
 from .heater import GeckoWaterHeater
+from .heatpump import GeckoHeatPump
+from .ingrid import GeckoInGrid
+from .inmix import GeckoInMix
 from .keypad import GeckoKeypad
 from .keypad_backlight import GeckoKeypadBacklight
 from .light import GeckoLight
@@ -25,6 +28,9 @@ __all__ = [
     "GeckoBubbleGenerator",
     "GeckoButton",
     "GeckoErrorSensor",
+    "GeckoHeatPump",
+    "GeckoInGrid",
+    "GeckoInMix",
     "GeckoKeypad",
     "GeckoKeypadBacklight",
     "GeckoLight",

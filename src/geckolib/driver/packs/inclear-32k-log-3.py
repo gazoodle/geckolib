@@ -56,12 +56,12 @@ class GeckoLogStruct:
     def accessors(self) -> dict[str, GeckoStructAccessor]:
         """The structure accessors."""
         return {
-            "Hours": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/Hours", 544, None
+            "inClear-32K-Hours": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-Hours", 544, None
             ),
-            "FlowState": GeckoEnumStructAccessor(
+            "inClear-32K-FlowState": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/All/FlowState",
+                "LogStructure/All/inClear-32K-FlowState",
                 545,
                 0,
                 ["NO_FLOW", "FLOW"],
@@ -69,9 +69,9 @@ class GeckoLogStruct:
                 2,
                 None,
             ),
-            "CellPolarity": GeckoEnumStructAccessor(
+            "inClear-32K-CellPolarity": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/All/CellPolarity",
+                "LogStructure/All/inClear-32K-CellPolarity",
                 545,
                 1,
                 ["OUT1", "OUT2"],
@@ -79,87 +79,110 @@ class GeckoLogStruct:
                 2,
                 None,
             ),
-            "PowerUp": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/All/PowerUp", 545, 2, None
+            "inClear-32K-PowerUp": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-PowerUp", 545, 2, None
             ),
-            "ResistivityCheck": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/All/ResistivityCheck", 545, 3, None
-            ),
-            "MaintenanceQtyByte0": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/MaintenanceQtyByte0", 546, None
-            ),
-            "MaintenanceQtyByte1": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/MaintenanceQtyByte1", 547, None
-            ),
-            "MaintenanceQtyByte2": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/MaintenanceQtyByte2", 548, None
-            ),
-            "MaintenanceQtyByte3": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/MaintenanceQtyByte3", 549, None
-            ),
-            "BoostQtyByte0": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/BoostQtyByte0", 550, None
-            ),
-            "BoostQtyByte1": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/BoostQtyByte1", 551, None
-            ),
-            "BoostQtyByte2": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/BoostQtyByte2", 552, None
-            ),
-            "BoostQtyByte3": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/BoostQtyByte3", 553, None
-            ),
-            "RemainMinutes": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/RemainMinutes", 554, None
-            ),
-            "MaintenanceCurrent": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/MaintenanceCurrent", 556, None
-            ),
-            "BoostCurrent": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/BoostCurrent", 558, None
-            ),
-            "NeededCurrent": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/NeededCurrent", 560, None
-            ),
-            "SupplyVoltage": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/SupplyVoltage", 562, None
-            ),
-            "CellCurrent": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/CellCurrent", 564, None
-            ),
-            "PwmValue": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/PwmValue", 566, None
-            ),
-            "Resistivity": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/Resistivity", 568, None
-            ),
-            "LoSupplyError": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/All/LoSupplyError", 570, 0, None
-            ),
-            "LoSaltError": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/All/LoSaltError", 570, 1, None
-            ),
-            "LoSaltWarning": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/All/LoSaltWarning", 570, 2, None
-            ),
-            "HiSaltWarning": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/All/HiSaltWarning", 570, 3, None
-            ),
-            "HiSaltError": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/All/HiSaltError", 570, 5, None
-            ),
-            "FloError": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/All/FloError", 570, 6, None
-            ),
-            "CompatibilityError": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/All/CompatibilityError", 570, 7, None
-            ),
-            "NumberOfResets": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/NumberOfResets", 571, None
-            ),
-            "Action": GeckoEnumStructAccessor(
+            "inClear-32K-ResistivityCheck": GeckoBoolStructAccessor(
                 self.struct,
-                "LogStructure/All/Action",
+                "LogStructure/All/inClear-32K-ResistivityCheck",
+                545,
+                3,
+                None,
+            ),
+            "inClear-32K-MaintenanceQtyByte0": GeckoByteStructAccessor(
+                self.struct,
+                "LogStructure/All/inClear-32K-MaintenanceQtyByte0",
+                546,
+                None,
+            ),
+            "inClear-32K-MaintenanceQtyByte1": GeckoByteStructAccessor(
+                self.struct,
+                "LogStructure/All/inClear-32K-MaintenanceQtyByte1",
+                547,
+                None,
+            ),
+            "inClear-32K-MaintenanceQtyByte2": GeckoByteStructAccessor(
+                self.struct,
+                "LogStructure/All/inClear-32K-MaintenanceQtyByte2",
+                548,
+                None,
+            ),
+            "inClear-32K-MaintenanceQtyByte3": GeckoByteStructAccessor(
+                self.struct,
+                "LogStructure/All/inClear-32K-MaintenanceQtyByte3",
+                549,
+                None,
+            ),
+            "inClear-32K-BoostQtyByte0": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-BoostQtyByte0", 550, None
+            ),
+            "inClear-32K-BoostQtyByte1": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-BoostQtyByte1", 551, None
+            ),
+            "inClear-32K-BoostQtyByte2": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-BoostQtyByte2", 552, None
+            ),
+            "inClear-32K-BoostQtyByte3": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-BoostQtyByte3", 553, None
+            ),
+            "inClear-32K-RemainMinutes": GeckoWordStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-RemainMinutes", 554, None
+            ),
+            "inClear-32K-MaintenanceCurrent": GeckoWordStructAccessor(
+                self.struct,
+                "LogStructure/All/inClear-32K-MaintenanceCurrent",
+                556,
+                None,
+            ),
+            "inClear-32K-BoostCurrent": GeckoWordStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-BoostCurrent", 558, None
+            ),
+            "inClear-32K-NeededCurrent": GeckoWordStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-NeededCurrent", 560, None
+            ),
+            "inClear-32K-SupplyVoltage": GeckoWordStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-SupplyVoltage", 562, None
+            ),
+            "inClear-32K-CellCurrent": GeckoWordStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-CellCurrent", 564, None
+            ),
+            "inClear-32K-PwmValue": GeckoWordStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-PwmValue", 566, None
+            ),
+            "inClear-32K-Resistivity": GeckoWordStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-Resistivity", 568, None
+            ),
+            "inClear-32K-LoSupplyError": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-LoSupplyError", 570, 0, None
+            ),
+            "inClear-32K-LoSaltError": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-LoSaltError", 570, 1, None
+            ),
+            "inClear-32K-LoSaltWarning": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-LoSaltWarning", 570, 2, None
+            ),
+            "inClear-32K-HiSaltWarning": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-HiSaltWarning", 570, 3, None
+            ),
+            "inClear-32K-HiSaltError": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-HiSaltError", 570, 5, None
+            ),
+            "inClear-32K-FloError": GeckoBoolStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-FloError", 570, 6, None
+            ),
+            "inClear-32K-CompatibilityError": GeckoBoolStructAccessor(
+                self.struct,
+                "LogStructure/All/inClear-32K-CompatibilityError",
+                570,
+                7,
+                None,
+            ),
+            "inClear-32K-NumberOfResets": GeckoWordStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-NumberOfResets", 571, None
+            ),
+            "inClear-32K-Action": GeckoEnumStructAccessor(
+                self.struct,
+                "LogStructure/All/inClear-32K-Action",
                 573,
                 None,
                 [
@@ -175,9 +198,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Menu": GeckoEnumStructAccessor(
+            "inClear-32K-Menu": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/All/Menu",
+                "LogStructure/All/inClear-32K-Menu",
                 574,
                 None,
                 [
@@ -199,18 +222,18 @@ class GeckoLogStruct:
                 None,
                 None,
             ),
-            "BootID": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/BootID", 575, None
+            "inClear-32K-BootID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-BootID", 575, None
             ),
-            "BootRev": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/BootRev", 577, None
+            "inClear-32K-BootRev": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-BootRev", 577, None
             ),
-            "BootRel": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/BootRel", 578, None
+            "inClear-32K-BootRel": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-BootRel", 578, None
             ),
-            "PackType": GeckoEnumStructAccessor(
+            "inClear-32K-PackType": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/All/PackType",
+                "LogStructure/All/inClear-32K-PackType",
                 579,
                 None,
                 [
@@ -230,9 +253,9 @@ class GeckoLogStruct:
                 None,
                 None,
             ),
-            "MemRange": GeckoEnumStructAccessor(
+            "inClear-32K-MemRange": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/All/MemRange",
+                "LogStructure/All/inClear-32K-MemRange",
                 580,
                 0,
                 ["16K", "32K", "48K", "64K"],
@@ -240,30 +263,30 @@ class GeckoLogStruct:
                 4,
                 None,
             ),
-            "FirmwareID": GeckoWordStructAccessor(
-                self.struct, "LogStructure/All/FirmwareID", 581, None
+            "inClear-32K-FirmwareID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-FirmwareID", 581, None
             ),
-            "FirmwareRev": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/FirmwareRev", 583, None
+            "inClear-32K-FirmwareRev": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-FirmwareRev", 583, None
             ),
-            "FirmwareRel": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/FirmwareRel", 584, None
+            "inClear-32K-FirmwareRel": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-FirmwareRel", 584, None
             ),
-            "ConfigLib": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/ConfigLib", 585, None
+            "inClear-32K-ConfigLib": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-ConfigLib", 585, None
             ),
-            "StatusLib": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/StatusLib", 586, None
+            "inClear-32K-StatusLib": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-StatusLib", 586, None
             ),
-            "ResVariation": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/ResVariation", 587, None
+            "inClear-32K-ResVariation": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-ResVariation", 587, None
             ),
-            "MinimumFlowTime": GeckoByteStructAccessor(
-                self.struct, "LogStructure/All/MinimumFlowTime", 588, None
+            "inClear-32K-MinimumFlowTime": GeckoByteStructAccessor(
+                self.struct, "LogStructure/All/inClear-32K-MinimumFlowTime", 588, None
             ),
-            "InvalidRemoteFlow": GeckoEnumStructAccessor(
+            "inClear-32K-InvalidRemoteFlow": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/All/InvalidRemoteFlow",
+                "LogStructure/All/inClear-32K-InvalidRemoteFlow",
                 589,
                 0,
                 ["USE_PACK_FLOW", "NOT_USE_PACK_FLOW"],
@@ -271,9 +294,9 @@ class GeckoLogStruct:
                 2,
                 "ALL",
             ),
-            "DoNotForceFilter": GeckoEnumStructAccessor(
+            "inClear-32K-DoNotForceFilter": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/All/DoNotForceFilter",
+                "LogStructure/All/inClear-32K-DoNotForceFilter",
                 589,
                 1,
                 ["FORCE_FILTER", "NOT_FORCE_FILTER"],
@@ -281,9 +304,9 @@ class GeckoLogStruct:
                 2,
                 "ALL",
             ),
-            "PSNotInstalled": GeckoEnumStructAccessor(
+            "inClear-32K-PSNotInstalled": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/All/PSNotInstalled",
+                "LogStructure/All/inClear-32K-PSNotInstalled",
                 589,
                 2,
                 ["WITH_PS", "WITHOUT_PS"],

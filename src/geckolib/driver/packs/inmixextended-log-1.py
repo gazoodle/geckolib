@@ -56,9 +56,9 @@ class GeckoLogStruct:
     def accessors(self) -> dict[str, GeckoStructAccessor]:
         """The structure accessors."""
         return {
-            "Synchro1": GeckoEnumStructAccessor(
+            "InMixExtended-Synchro1": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Synchro1",
+                "LogStructure/Status/InMixExtended-Synchro1",
                 704,
                 None,
                 ["ZONE1", "ZONE2", "ZONE3", "ZONE4"],
@@ -66,9 +66,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Mode1": GeckoEnumStructAccessor(
+            "InMixExtended-Mode1": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Mode1",
+                "LogStructure/Status/InMixExtended-Mode1",
                 705,
                 None,
                 ["STATIC", "VERY_SLOW_FADE", "SLOW_FADE", "BENOIT1", "BENOIT2", "RGB"],
@@ -76,9 +76,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Color1": GeckoEnumStructAccessor(
+            "InMixExtended-Color1": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Color1",
+                "LogStructure/Status/InMixExtended-Color1",
                 706,
                 None,
                 [
@@ -96,9 +96,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Speed1": GeckoEnumStructAccessor(
+            "InMixExtended-Speed1": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Speed1",
+                "LogStructure/Status/InMixExtended-Speed1",
                 707,
                 None,
                 ["PRESET", "LOW", "MEDIUM", "HIGH", "PAUSE"],
@@ -106,18 +106,18 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "RedLevel1": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/RedLevel1", 708, "ALL"
+            "InMixExtended-RedLevel1": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-RedLevel1", 708, "ALL"
             ),
-            "GreenLevel1": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/GreenLevel1", 709, "ALL"
+            "InMixExtended-GreenLevel1": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-GreenLevel1", 709, "ALL"
             ),
-            "BlueLevel1": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/BlueLevel1", 710, "ALL"
+            "InMixExtended-BlueLevel1": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-BlueLevel1", 710, "ALL"
             ),
-            "Synchro2": GeckoEnumStructAccessor(
+            "InMixExtended-Synchro2": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Synchro2",
+                "LogStructure/Status/InMixExtended-Synchro2",
                 711,
                 None,
                 ["ZONE1", "ZONE2", "ZONE3", "ZONE4"],
@@ -125,9 +125,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Mode2": GeckoEnumStructAccessor(
+            "InMixExtended-Mode2": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Mode2",
+                "LogStructure/Status/InMixExtended-Mode2",
                 712,
                 None,
                 ["STATIC", "VERY_SLOW_FADE", "SLOW_FADE", "BENOIT1", "BENOIT2", "RGB"],
@@ -135,9 +135,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Color2": GeckoEnumStructAccessor(
+            "InMixExtended-Color2": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Color2",
+                "LogStructure/Status/InMixExtended-Color2",
                 713,
                 None,
                 [
@@ -155,9 +155,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Speed2": GeckoEnumStructAccessor(
+            "InMixExtended-Speed2": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Speed2",
+                "LogStructure/Status/InMixExtended-Speed2",
                 714,
                 None,
                 ["PRESET", "LOW", "MEDIUM", "HIGH", "PAUSE"],
@@ -165,18 +165,18 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "RedLevel2": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/RedLevel2", 715, "ALL"
+            "InMixExtended-RedLevel2": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-RedLevel2", 715, "ALL"
             ),
-            "GreenLevel2": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/GreenLevel2", 716, "ALL"
+            "InMixExtended-GreenLevel2": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-GreenLevel2", 716, "ALL"
             ),
-            "BlueLevel2": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/BlueLevel2", 717, "ALL"
+            "InMixExtended-BlueLevel2": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-BlueLevel2", 717, "ALL"
             ),
-            "Synchro3": GeckoEnumStructAccessor(
+            "InMixExtended-Synchro3": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Synchro3",
+                "LogStructure/Status/InMixExtended-Synchro3",
                 718,
                 None,
                 ["ZONE1", "ZONE2", "ZONE3", "ZONE4"],
@@ -184,9 +184,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Mode3": GeckoEnumStructAccessor(
+            "InMixExtended-Mode3": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Mode3",
+                "LogStructure/Status/InMixExtended-Mode3",
                 719,
                 None,
                 ["STATIC", "VERY_SLOW_FADE", "SLOW_FADE", "BENOIT1", "BENOIT2", "RGB"],
@@ -194,9 +194,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Color3": GeckoEnumStructAccessor(
+            "InMixExtended-Color3": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Color3",
+                "LogStructure/Status/InMixExtended-Color3",
                 720,
                 None,
                 [
@@ -214,9 +214,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Speed3": GeckoEnumStructAccessor(
+            "InMixExtended-Speed3": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Speed3",
+                "LogStructure/Status/InMixExtended-Speed3",
                 721,
                 None,
                 ["PRESET", "LOW", "MEDIUM", "HIGH", "PAUSE"],
@@ -224,18 +224,18 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "RedLevel3": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/RedLevel3", 722, "ALL"
+            "InMixExtended-RedLevel3": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-RedLevel3", 722, "ALL"
             ),
-            "GreenLevel3": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/GreenLevel3", 723, "ALL"
+            "InMixExtended-GreenLevel3": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-GreenLevel3", 723, "ALL"
             ),
-            "BlueLevel3": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/BlueLevel3", 724, "ALL"
+            "InMixExtended-BlueLevel3": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-BlueLevel3", 724, "ALL"
             ),
-            "Synchro4": GeckoEnumStructAccessor(
+            "InMixExtended-Synchro4": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Synchro4",
+                "LogStructure/Status/InMixExtended-Synchro4",
                 725,
                 None,
                 ["ZONE1", "ZONE2", "ZONE3", "ZONE4"],
@@ -243,9 +243,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Mode4": GeckoEnumStructAccessor(
+            "InMixExtended-Mode4": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Mode4",
+                "LogStructure/Status/InMixExtended-Mode4",
                 726,
                 None,
                 ["STATIC", "VERY_SLOW_FADE", "SLOW_FADE", "BENOIT1", "BENOIT2", "RGB"],
@@ -253,9 +253,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Color4": GeckoEnumStructAccessor(
+            "InMixExtended-Color4": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Color4",
+                "LogStructure/Status/InMixExtended-Color4",
                 727,
                 None,
                 [
@@ -273,9 +273,9 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "Speed4": GeckoEnumStructAccessor(
+            "InMixExtended-Speed4": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/Status/Speed4",
+                "LogStructure/Status/InMixExtended-Speed4",
                 728,
                 None,
                 ["PRESET", "LOW", "MEDIUM", "HIGH", "PAUSE"],
@@ -283,18 +283,18 @@ class GeckoLogStruct:
                 None,
                 "ALL",
             ),
-            "RedLevel4": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/RedLevel4", 729, "ALL"
+            "InMixExtended-RedLevel4": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-RedLevel4", 729, "ALL"
             ),
-            "GreenLevel4": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/GreenLevel4", 730, "ALL"
+            "InMixExtended-GreenLevel4": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-GreenLevel4", 730, "ALL"
             ),
-            "BlueLevel4": GeckoByteStructAccessor(
-                self.struct, "LogStructure/Status/BlueLevel4", 731, "ALL"
+            "InMixExtended-BlueLevel4": GeckoByteStructAccessor(
+                self.struct, "LogStructure/Status/InMixExtended-BlueLevel4", 731, "ALL"
             ),
-            "PackType": GeckoEnumStructAccessor(
+            "InMixExtended-PackType": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/PackInfo/PackType",
+                "LogStructure/PackInfo/InMixExtended-PackType",
                 732,
                 None,
                 [
@@ -318,9 +318,9 @@ class GeckoLogStruct:
                 None,
                 None,
             ),
-            "MemRange": GeckoEnumStructAccessor(
+            "InMixExtended-MemRange": GeckoEnumStructAccessor(
                 self.struct,
-                "LogStructure/PackInfo/MemRange",
+                "LogStructure/PackInfo/InMixExtended-MemRange",
                 733,
                 0,
                 ["8K", "16K", "32K", "64K"],
@@ -328,25 +328,39 @@ class GeckoLogStruct:
                 4,
                 None,
             ),
-            "FirmwareID": GeckoWordStructAccessor(
-                self.struct, "LogStructure/PackInfo/FirmwareID", 734, None
+            "InMixExtended-FirmwareID": GeckoWordStructAccessor(
+                self.struct, "LogStructure/PackInfo/InMixExtended-FirmwareID", 734, None
             ),
-            "FirmwareRev": GeckoByteStructAccessor(
-                self.struct, "LogStructure/PackInfo/FirmwareRev", 736, None
+            "InMixExtended-FirmwareRev": GeckoByteStructAccessor(
+                self.struct,
+                "LogStructure/PackInfo/InMixExtended-FirmwareRev",
+                736,
+                None,
             ),
-            "FirmwareRel": GeckoByteStructAccessor(
-                self.struct, "LogStructure/PackInfo/FirmwareRel", 737, None
+            "InMixExtended-FirmwareRel": GeckoByteStructAccessor(
+                self.struct,
+                "LogStructure/PackInfo/InMixExtended-FirmwareRel",
+                737,
+                None,
             ),
-            "ConfigLib": GeckoByteStructAccessor(
-                self.struct, "LogStructure/PackInfo/ConfigLib", 738, None
+            "InMixExtended-ConfigLib": GeckoByteStructAccessor(
+                self.struct, "LogStructure/PackInfo/InMixExtended-ConfigLib", 738, None
             ),
-            "StatusLib": GeckoByteStructAccessor(
-                self.struct, "LogStructure/PackInfo/StatusLib", 739, None
+            "InMixExtended-StatusLib": GeckoByteStructAccessor(
+                self.struct, "LogStructure/PackInfo/InMixExtended-StatusLib", 739, None
             ),
-            "ErrorFlag": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/Messages/ErrorFlag", 740, None, None
+            "InMixExtended-ErrorFlag": GeckoBoolStructAccessor(
+                self.struct,
+                "LogStructure/Messages/InMixExtended-ErrorFlag",
+                740,
+                None,
+                None,
             ),
-            "ReminderFlag": GeckoBoolStructAccessor(
-                self.struct, "LogStructure/Messages/ReminderFlag", 741, None, None
+            "InMixExtended-ReminderFlag": GeckoBoolStructAccessor(
+                self.struct,
+                "LogStructure/Messages/InMixExtended-ReminderFlag",
+                741,
+                None,
+                None,
             ),
         }

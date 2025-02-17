@@ -30,9 +30,9 @@ class GeckoConfigStruct:
     def accessors(self) -> dict[str, GeckoStructAccessor]:
         """The structure accessors."""
         return {
-            "Mode": GeckoEnumStructAccessor(
+            "inClear-32K-Mode": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/All/Mode",
+                "ConfigStructure/All/inClear-32K-Mode",
                 512,
                 None,
                 ["OFF", "ON"],
@@ -40,46 +40,85 @@ class GeckoConfigStruct:
                 None,
                 "ALL",
             ),
-            "MaintenanceLevel": GeckoByteStructAccessor(
-                self.struct, "ConfigStructure/All/MaintenanceLevel", 513, "ALL"
+            "inClear-32K-MaintenanceLevel": GeckoByteStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-MaintenanceLevel",
+                513,
+                "ALL",
             ),
-            "BoostLevel": GeckoByteStructAccessor(
-                self.struct, "ConfigStructure/All/BoostLevel", 514, "ALL"
+            "inClear-32K-BoostLevel": GeckoByteStructAccessor(
+                self.struct, "ConfigStructure/All/inClear-32K-BoostLevel", 514, "ALL"
             ),
-            "MaxCellCurrent": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/MaxCellCurrent", 515, "ALL"
+            "inClear-32K-MaxCellCurrent": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-MaxCellCurrent",
+                515,
+                "ALL",
             ),
-            "MaxMaintenanceLevel": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/MaxMaintenanceLevel", 517, "ALL"
+            "inClear-32K-MaxMaintenanceLevel": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-MaxMaintenanceLevel",
+                517,
+                "ALL",
             ),
-            "ErrDelayAfterReset": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/ErrDelayAfterReset", 519, "ALL"
+            "inClear-32K-ErrDelayAfterReset": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-ErrDelayAfterReset",
+                519,
+                "ALL",
             ),
-            "Boost1Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/Boost1Durx6Minutes", 521, "ALL"
+            "inClear-32K-Boost1Durx6Minutes": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-Boost1Durx6Minutes",
+                521,
+                "ALL",
             ),
-            "Boost2Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/Boost2Durx6Minutes", 523, "ALL"
+            "inClear-32K-Boost2Durx6Minutes": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-Boost2Durx6Minutes",
+                523,
+                "ALL",
             ),
-            "Boost3Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/Boost3Durx6Minutes", 525, "ALL"
+            "inClear-32K-Boost3Durx6Minutes": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-Boost3Durx6Minutes",
+                525,
+                "ALL",
             ),
-            "Boost4Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/Boost4Durx6Minutes", 527, "ALL"
+            "inClear-32K-Boost4Durx6Minutes": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-Boost4Durx6Minutes",
+                527,
+                "ALL",
             ),
-            "Boost5Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/Boost5Durx6Minutes", 529, "ALL"
+            "inClear-32K-Boost5Durx6Minutes": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-Boost5Durx6Minutes",
+                529,
+                "ALL",
             ),
-            "Boost6Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/Boost6Durx6Minutes", 531, "ALL"
+            "inClear-32K-Boost6Durx6Minutes": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-Boost6Durx6Minutes",
+                531,
+                "ALL",
             ),
-            "Boost7Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/Boost7Durx6Minutes", 533, "ALL"
+            "inClear-32K-Boost7Durx6Minutes": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-Boost7Durx6Minutes",
+                533,
+                "ALL",
             ),
-            "Boost8Durx6Minutes": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/Boost8Durx6Minutes", 535, "ALL"
+            "inClear-32K-Boost8Durx6Minutes": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-Boost8Durx6Minutes",
+                535,
+                "ALL",
             ),
-            "ValidRemoteFlow": GeckoWordStructAccessor(
-                self.struct, "ConfigStructure/All/ValidRemoteFlow", 537, "ALL"
+            "inClear-32K-ValidRemoteFlow": GeckoWordStructAccessor(
+                self.struct,
+                "ConfigStructure/All/inClear-32K-ValidRemoteFlow",
+                537,
+                "ALL",
             ),
         }

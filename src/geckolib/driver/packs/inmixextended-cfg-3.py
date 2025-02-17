@@ -29,9 +29,9 @@ class GeckoConfigStruct:
     def accessors(self) -> dict[str, GeckoStructAccessor]:
         """The structure accessors."""
         return {
-            "Zone1Led": GeckoEnumStructAccessor(
+            "InMixExtended-Zone1Led": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone1Led",
+                "ConfigStructure/InMixExtended-Zone1Led",
                 696,
                 0,
                 ["RGB", "WHITE"],
@@ -39,9 +39,9 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone1Type": GeckoEnumStructAccessor(
+            "InMixExtended-Zone1Type": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone1Type",
+                "ConfigStructure/InMixExtended-Zone1Type",
                 696,
                 1,
                 ["NORMAL", "STATUS"],
@@ -49,9 +49,9 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone1Supply": GeckoEnumStructAccessor(
+            "InMixExtended-Zone1Supply": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone1Supply",
+                "ConfigStructure/InMixExtended-Zone1Supply",
                 696,
                 2,
                 ["12V", "5V"],
@@ -59,21 +59,21 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone1UseOut1": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone1UseOut1", 696, 4, None
+            "InMixExtended-Zone1UseOut1": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone1UseOut1", 696, 4, None
             ),
-            "Zone1UseOut2": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone1UseOut2", 696, 5, None
+            "InMixExtended-Zone1UseOut2": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone1UseOut2", 696, 5, None
             ),
-            "Zone1UseOut3": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone1UseOut3", 696, 6, None
+            "InMixExtended-Zone1UseOut3": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone1UseOut3", 696, 6, None
             ),
-            "Zone1UseOut4": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone1UseOut4", 696, 7, None
+            "InMixExtended-Zone1UseOut4": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone1UseOut4", 696, 7, None
             ),
-            "Zone2Led": GeckoEnumStructAccessor(
+            "InMixExtended-Zone2Led": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone2Led",
+                "ConfigStructure/InMixExtended-Zone2Led",
                 697,
                 0,
                 ["RGB", "WHITE"],
@@ -81,9 +81,9 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone2Type": GeckoEnumStructAccessor(
+            "InMixExtended-Zone2Type": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone2Type",
+                "ConfigStructure/InMixExtended-Zone2Type",
                 697,
                 1,
                 ["NORMAL", "STATUS"],
@@ -91,9 +91,9 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone2Supply": GeckoEnumStructAccessor(
+            "InMixExtended-Zone2Supply": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone2Supply",
+                "ConfigStructure/InMixExtended-Zone2Supply",
                 697,
                 2,
                 ["12V", "5V"],
@@ -101,21 +101,21 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone2UseOut1": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone2UseOut1", 697, 4, None
+            "InMixExtended-Zone2UseOut1": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone2UseOut1", 697, 4, None
             ),
-            "Zone2UseOut2": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone2UseOut2", 697, 5, None
+            "InMixExtended-Zone2UseOut2": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone2UseOut2", 697, 5, None
             ),
-            "Zone2UseOut3": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone2UseOut3", 697, 6, None
+            "InMixExtended-Zone2UseOut3": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone2UseOut3", 697, 6, None
             ),
-            "Zone2UseOut4": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone2UseOut4", 697, 7, None
+            "InMixExtended-Zone2UseOut4": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone2UseOut4", 697, 7, None
             ),
-            "Zone3Led": GeckoEnumStructAccessor(
+            "InMixExtended-Zone3Led": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone3Led",
+                "ConfigStructure/InMixExtended-Zone3Led",
                 698,
                 0,
                 ["RGB", "WHITE"],
@@ -123,9 +123,9 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone3Type": GeckoEnumStructAccessor(
+            "InMixExtended-Zone3Type": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone3Type",
+                "ConfigStructure/InMixExtended-Zone3Type",
                 698,
                 1,
                 ["NORMAL", "STATUS"],
@@ -133,9 +133,9 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone3Supply": GeckoEnumStructAccessor(
+            "InMixExtended-Zone3Supply": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone3Supply",
+                "ConfigStructure/InMixExtended-Zone3Supply",
                 698,
                 2,
                 ["12V", "5V"],
@@ -143,21 +143,21 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone3UseOut1": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone3UseOut1", 698, 4, None
+            "InMixExtended-Zone3UseOut1": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone3UseOut1", 698, 4, None
             ),
-            "Zone3UseOut2": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone3UseOut2", 698, 5, None
+            "InMixExtended-Zone3UseOut2": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone3UseOut2", 698, 5, None
             ),
-            "Zone3UseOut3": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone3UseOut3", 698, 6, None
+            "InMixExtended-Zone3UseOut3": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone3UseOut3", 698, 6, None
             ),
-            "Zone3UseOut4": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone3UseOut4", 698, 7, None
+            "InMixExtended-Zone3UseOut4": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone3UseOut4", 698, 7, None
             ),
-            "Zone4Led": GeckoEnumStructAccessor(
+            "InMixExtended-Zone4Led": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone4Led",
+                "ConfigStructure/InMixExtended-Zone4Led",
                 699,
                 0,
                 ["RGB", "WHITE"],
@@ -165,9 +165,9 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone4Type": GeckoEnumStructAccessor(
+            "InMixExtended-Zone4Type": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone4Type",
+                "ConfigStructure/InMixExtended-Zone4Type",
                 699,
                 1,
                 ["NORMAL", "STATUS"],
@@ -175,9 +175,9 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone4Supply": GeckoEnumStructAccessor(
+            "InMixExtended-Zone4Supply": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/Zone4Supply",
+                "ConfigStructure/InMixExtended-Zone4Supply",
                 699,
                 2,
                 ["12V", "5V"],
@@ -185,21 +185,21 @@ class GeckoConfigStruct:
                 2,
                 None,
             ),
-            "Zone4UseOut1": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone4UseOut1", 699, 4, None
+            "InMixExtended-Zone4UseOut1": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone4UseOut1", 699, 4, None
             ),
-            "Zone4UseOut2": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone4UseOut2", 699, 5, None
+            "InMixExtended-Zone4UseOut2": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone4UseOut2", 699, 5, None
             ),
-            "Zone4UseOut3": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone4UseOut3", 699, 6, None
+            "InMixExtended-Zone4UseOut3": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone4UseOut3", 699, 6, None
             ),
-            "Zone4UseOut4": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/Zone4UseOut4", 699, 7, None
+            "InMixExtended-Zone4UseOut4": GeckoBoolStructAccessor(
+                self.struct, "ConfigStructure/InMixExtended-Zone4UseOut4", 699, 7, None
             ),
-            "NumberOfZones": GeckoEnumStructAccessor(
+            "InMixExtended-NumberOfZones": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/NumberOfZones",
+                "ConfigStructure/InMixExtended-NumberOfZones",
                 700,
                 0,
                 ["0", "1", "2", "3", "4"],
@@ -207,9 +207,9 @@ class GeckoConfigStruct:
                 5,
                 "ALL",
             ),
-            "StatusLightNormalColor": GeckoEnumStructAccessor(
+            "InMixExtended-StatusLightNormalColor": GeckoEnumStructAccessor(
                 self.struct,
-                "ConfigStructure/StatusLightNormalColor",
+                "ConfigStructure/InMixExtended-StatusLightNormalColor",
                 700,
                 3,
                 ["BLUE", "WHITE", "GREEN", "PURPLE", "YELLOW", "CYAN", "ORANGE", "OFF"],
@@ -217,12 +217,16 @@ class GeckoConfigStruct:
                 8,
                 "ALL",
             ),
-            "OutputAttribution": GeckoBoolStructAccessor(
-                self.struct, "ConfigStructure/OutputAttribution", 700, 7, None
-            ),
-            "MinimumFadeIntensity": GeckoEnumStructAccessor(
+            "InMixExtended-OutputAttribution": GeckoBoolStructAccessor(
                 self.struct,
-                "ConfigStructure/MinimumFadeIntensity",
+                "ConfigStructure/InMixExtended-OutputAttribution",
+                700,
+                7,
+                None,
+            ),
+            "InMixExtended-MinimumFadeIntensity": GeckoEnumStructAccessor(
+                self.struct,
+                "ConfigStructure/InMixExtended-MinimumFadeIntensity",
                 701,
                 0,
                 [

@@ -11,6 +11,11 @@ from typing import TYPE_CHECKING, Any
 
 from geckolib._version import VERSION
 from geckolib.const import GeckoConstants
+from geckolib.driver.accessor import (
+    GeckoByteStructAccessor,
+)
+
+INMIX_PACKTYPE = 14
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -53,7 +58,12 @@ class GeckoAsyncStructure:
 
     def build_accessors(self) -> None:
         """Build the accessors."""
-        self.accessors = dict(self.config_class.accessors, **self.log_class.accessors)
+        self.accessors = dict(
+            self.config_class.accessors,
+            **self.log_class.accessors,
+            **self.inmix_config_accessors,
+            **self.inmix_log_accessors,
+        )
         # Get all outputs
         self.all_outputs = [*self.config_class.output_keys, *self.log_class.output_keys]
         # Get collection of possible devices
@@ -79,6 +89,11 @@ class GeckoAsyncStructure:
         self.config_class = None
         self.log_version: int = 0
         self.log_class = None
+
+        self.inmix_config_class = None
+        self.inmix_config_accessors = {}
+        self.inmix_log_class = None
+        self.inmix_log_accessors = {}
 
     async def get(
         self,
@@ -242,3 +257,36 @@ class GeckoAsyncStructure:
         ]
 
         _LOGGER.debug("Connections are %s", self.connections)
+
+    ############################################################################
+    #
+    #   Accessory support
+
+    async def check_for_accessories(self) -> None:
+        """After the initial pack has been loaded, check for accessories too."""
+        inmix_packtype = GeckoByteStructAccessor(self, "inMix-PackType", 628, None)
+        if inmix_packtype.value == INMIX_PACKTYPE:
+            inmix_configlib = GeckoByteStructAccessor(
+                self, "inMix-ConfigLib", 634, None
+            )
+            inmix_statuslib = GeckoByteStructAccessor(
+                self, "inMix-StatusLib", 635, None
+            )
+            await self.load_inmix_config_module(inmix_configlib.value)
+            await self.load_inmix_log_module(inmix_statuslib.value)
+
+    async def load_inmix_config_module(self, config_version: int) -> None:
+        """Load the config module for the inmix system."""
+        config_module_name = f"geckolib.driver.packs.inmix-cfg-{config_version}"
+        config_class = (
+            await self._async_import_module(config_module_name)
+        ).GeckoConfigStruct
+        self.inmix_config_class = config_class(self)
+        self.inmix_config_accessors = self.inmix_config_class.accessors
+
+    async def load_inmix_log_module(self, log_version: int) -> None:
+        """Load the config module for the inmix system."""
+        log_module_name = f"geckolib.driver.packs.inmix-log-{log_version}"
+        log_class = (await self._async_import_module(log_module_name)).GeckoLogStruct
+        self.inmix_log_class = log_class(self)
+        self.inmix_log_accessors = self.inmix_log_class.accessors

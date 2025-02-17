@@ -347,10 +347,10 @@ class PackGenerator:
         xml.attrib["ErrorMessages"] = self.add_constant(errors)
 
     def _write_one_accessor(  # noqa: PLR0912
-        self, file: TextIOWrapper, path: str, element: ET.Element
+        self, file: TextIOWrapper, path: str, element: ET.Element, extra: str
     ) -> None:
         """Write a single accessor."""
-        tag = f'"{element.tag}"'
+        tag = f'"{extra}{element.tag}"'
         pos = element.attrib["Pos"]
         accessor_type = f'"{element.attrib["Type"]}"'
         bitpos = None
@@ -409,7 +409,9 @@ class PackGenerator:
                 f"GeckoStructAccessor(self.struct, {self.add_constant(tag)}, {pos}, {type}, {bitpos}, {items}, {size}, {maxitems}, {rw}),\n"  # noqa: E501
             )
 
-    def write_get_accessors(self, file: TextIOWrapper, xml: ET.Element) -> None:
+    def write_get_accessors(
+        self, file: TextIOWrapper, xml: ET.Element, extra: str = ""
+    ) -> None:
         """Write the accessors for the spa pack structure."""
         file.write("\n")
         file.write("    @property\n")
@@ -420,15 +422,15 @@ class PackGenerator:
         file.write("        return {\n")
         for parent in xml.findall("./*"):
             if "Pos" in parent.attrib:
-                path = f'"{xml.tag}/{parent.tag}"'
-                self._write_one_accessor(file, path, parent)
+                path = f'"{xml.tag}/{extra}{parent.tag}"'
+                self._write_one_accessor(file, path, parent, extra)
 
             for element in parent.findall("./*[@Pos]"):
                 if element.tag.startswith("CFG"):
                     continue
 
-                path = f'"{xml.tag}/{parent.tag}/{element.tag}"'
-                self._write_one_accessor(file, path, element)
+                path = f'"{xml.tag}/{parent.tag}/{extra}{element.tag}"'
+                self._write_one_accessor(file, path, element, extra)
 
         file.write("        }\n")
 
@@ -465,7 +467,12 @@ class PackGenerator:
         file.write(f"        return {xml.attrib['ErrorMessages']}\n")
 
     def build_log_struct(
-        self, plateform_name: str, _plateform: ET.Element, logstruct: ET.Element
+        self,
+        plateform_name: str,
+        _plateform: ET.Element,
+        logstruct: ET.Element,
+        *,
+        is_accessory: bool,
     ) -> None:
         """Build log structure."""
         self.reset_constants()
@@ -479,10 +486,17 @@ class PackGenerator:
             self.write_all_device_keys(file, logstruct)
             self.write_user_demand_keys(file, logstruct)
             self.write_error_keys(file, logstruct)
-            self.write_get_accessors(file, logstruct)
+            self.write_get_accessors(
+                file, logstruct, f"{plateform_name}-" if is_accessory else ""
+            )
 
     def build_config_struct(
-        self, plateform_name: str, _plateform: ET.Element, configstruct: ET.Element
+        self,
+        plateform_name: str,
+        _plateform: ET.Element,
+        configstruct: ET.Element,
+        *,
+        is_accessory: bool,
     ) -> None:
         """Build configuration structure."""
         self.reset_constants()
@@ -491,11 +505,15 @@ class PackGenerator:
         with Path(module).open("w") as file:
             self.write_cfg_preamble(file, plateform_name, configstruct)
             self.write_output_keys(file, configstruct)
-            self.write_get_accessors(file, configstruct)
+            self.write_get_accessors(
+                file, configstruct, f"{plateform_name}-" if is_accessory else ""
+            )
 
     def build_plateform(self, plateform: ET.Element, version: str) -> None:
         """Build Plateform files."""
         plateform_name = plateform.attrib["Name"]
+        plateform_segment = plateform.attrib["Segment"]
+        is_accessory = plateform_segment == "aAccessory"
 
         # Create path for pack code modules
         if not Path(CODE_PATH).exists():
@@ -515,9 +533,13 @@ class PackGenerator:
             )
 
             for logstruct in plateform.findall("./LogStructures/LogStructure"):
-                self.build_log_struct(plateform_name, plateform, logstruct)
+                self.build_log_struct(
+                    plateform_name, plateform, logstruct, is_accessory=is_accessory
+                )
             for configstruct in plateform.findall("./ConfigStructures/ConfigStructure"):
-                self.build_config_struct(plateform_name, plateform, configstruct)
+                self.build_config_struct(
+                    plateform_name, plateform, configstruct, is_accessory=is_accessory
+                )
 
     def build_pack_code(self) -> None:
         """Build all the code from the SpaPackStruct.xml file."""

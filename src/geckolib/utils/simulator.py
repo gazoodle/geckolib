@@ -285,6 +285,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 await struct.load_pack_class(snapshot.packtype.lower())
                 await struct.load_config_module(snapshot.config_version)
                 await struct.load_log_module(snapshot.log_version)
+                await struct.check_for_accessories()
                 struct.build_accessors()
 
             except ModuleNotFoundError:

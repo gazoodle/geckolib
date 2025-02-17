@@ -285,28 +285,25 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Error handling (ongoing)
 - Pythonize where possible
 - More unit tests
-- Handle other device types such as Waterfall
 - Handle inMix for lighting control
 - Add API documentation
 - Tidy up support files. One class per file
 - Add switch for winterizing
-- Add ability to set hours so we can implement a crude clock sync mechanism
 - Move to pytest unit test framework (replace all unittest fixtures and custom asserts)
 - Use snapshots to generate some specific tests
-- Build some documentation
 - Add coverage to GitHub package workflow
 - API set_config_mode needs to be per device rather than global
 - Move localizable strings so that HA can handle itself
-- Add command to simulator to start a blank configuration instead of loading a snapshot
 - Use MinSetpointG and MaxSetpointG if available
-- One of the accessors is AuxAsBubbleGen. Investigate how this is used
 - Add a watt setting to pumps, heaters and so on so that the library can produce an instantaneous
   power consumption figure which ought to be able to integrate into HA's energy dashboard.
 - Add ability to change the RF channel. The app sends a CHACH\xb4\x0c command, play in the simulator!
-- When there are two spas loaded, the pinp frequency seems to be too high. Is this related to the
+- When there are two spas loaded, the ping frequency seems to be too high. Is this related to the
   shared global config?
+- Expose the master timeouts as configurations and the ud timeouts as controls
 
 ## Done/Fixed in 1.0.4
+ - Putting foundations in for inMix support
 
 ## Done/Fixed in 1.0.3
  - Support setting of the remaining duration for reminders

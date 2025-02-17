@@ -253,6 +253,8 @@ class GeckoAsyncSpa(Observable):
 
             return
 
+        await self.struct.check_for_accessories()
+
         _LOGGER.debug("Status block was completed, so spa can be connected")
 
         self.struct.build_accessors()
