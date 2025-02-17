@@ -6,7 +6,7 @@ import logging
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from geckolib.driver import GeckoRemindersProtocolHandler, GeckoReminderType
+from geckolib.driver import GeckoReminderType
 
 from .base import GeckoAutomationFacadeBase
 
@@ -42,6 +42,10 @@ class GeckoReminders(GeckoAutomationFacadeBase):
             """Get the remaining days."""
             return self._days
 
+        def set_days(self, days: int) -> None:
+            """Set the remaining days."""
+            self._days = days
+
         @property
         def monitor(self) -> str:
             """Get the monitor string."""
@@ -61,23 +65,40 @@ class GeckoReminders(GeckoAutomationFacadeBase):
         """Initialize the reminders class."""
         super().__init__(facade, "Reminders", "REMINDERS")
 
-        self._active_reminders: list[GeckoReminders.Reminder] = []
+        self._all_reminders: list[GeckoReminders.Reminder] = []
         self._reminders_handler = None
         self._last_update = None
 
     @property
     def reminders(self) -> list[Reminder]:
-        """Return all reminders."""
-        return self._active_reminders
+        """Return active reminders."""
+        return [
+            reminder
+            for reminder in self._all_reminders
+            if reminder.reminder_type != GeckoReminderType.INVALID
+        ]
 
     def get_reminder(
         self, reminder_type: GeckoReminderType
     ) -> GeckoReminders.Reminder | None:
         """Get the reminder of the specified type, or None if not found."""
-        for reminder in self.reminders:
+        for reminder in self._all_reminders:
             if reminder.reminder_type == reminder_type:
                 return reminder
         return None
+
+    async def set_reminder(self, reminder_type: GeckoReminderType, days: int) -> None:
+        """Set the remaining days for the specified reminder type."""
+        for reminder in self._all_reminders:
+            if reminder.reminder_type == reminder_type:
+                reminder.set_days(days)
+        await self.facade.spa.async_set_reminders(
+            [
+                (reminder.reminder_type, reminder.days)
+                for reminder in self._all_reminders
+            ]
+        )
+        self._on_change(self)
 
     @property
     def last_update(self) -> datetime | None:
@@ -87,40 +108,10 @@ class GeckoReminders(GeckoAutomationFacadeBase):
     def change_reminders(self, reminders: list[tuple]) -> None:
         """Call from async facade to update active reminders."""
         self._last_update = datetime.now(tz=UTC)
-        self._active_reminders = []
-        for reminder in reminders:
-            if reminder[0] != GeckoReminderType.INVALID:
-                self._active_reminders.append(GeckoReminders.Reminder(reminder))
+        self._all_reminders = [
+            GeckoReminders.Reminder(reminder) for reminder in reminders
+        ]
         self._on_change(self)
-
-    def _on_reminders(
-        self, handler: GeckoRemindersProtocolHandler, _sender: tuple
-    ) -> None:
-        """Call to from protocal handler. Will filter out only the active reminders."""
-        self._active_reminders = []
-        if handler.reminders is not None:
-            # get actual time
-            now = datetime.now(tz=UTC)  # current date and time
-            time = now.strftime("%d.%m.%Y, %H:%M:%S")
-            self._active_reminders.append(("Time", time))
-            for reminder in handler.reminders:
-                if reminder[0] != GeckoReminderType.INVALID:
-                    self._active_reminders.append(
-                        (GeckoReminderType.to_string(reminder[0]), reminder[1])
-                    )
-
-        self._reminders_handler = None
-
-    def obsolete_update(self) -> None:
-        """Update the reminders."""
-        self._reminders_handler = GeckoRemindersProtocolHandler.request(
-            self._spa.get_and_increment_sequence_counter(),
-            on_handled=self._on_reminders,
-            parms=self._spa.sendparms,
-        )
-
-        self._spa.add_receive_handler(self._reminders_handler)
-        self._spa.queue_send(self._reminders_handler, self._spa.sendparms)
 
     def __str__(self) -> str:
         """Stringize the class."""

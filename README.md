@@ -307,6 +307,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
   shared global config?
 
 ## Done/Fixed in 1.0.3
+ - Support setting of the remaining duration for reminders
 
 ## Done/Fixed in 1.0.2
  - Some progress toward support for MrSteam units

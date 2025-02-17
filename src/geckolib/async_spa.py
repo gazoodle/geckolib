@@ -11,6 +11,7 @@ from types import ModuleType
 from typing import Any
 
 from geckolib.driver.accessor import GeckoStructAccessor
+from geckolib.driver.protocol.reminders import GeckoReminderType
 
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_taskman import GeckoAsyncTaskMan
@@ -750,6 +751,29 @@ class GeckoAsyncSpa(Observable):
             return []
 
         return get_reminders_handler.reminders
+
+    async def async_set_reminders(
+        self, reminders: list[tuple[GeckoReminderType, int]]
+    ) -> None:
+        """Set the reminders."""
+        if not self.is_connected:
+            _LOGGER.warning("Cannot set reminders when spa not connected")
+            return
+        if not self.is_responding_to_pings:
+            _LOGGER.debug("Cannot set reminders when spa not responding to pings")
+            return
+        assert self._protocol is not None  # noqa: S101
+        set_reminders_handler = await self._protocol.get(
+            lambda: GeckoRemindersProtocolHandler.set(
+                self._protocol.get_and_increment_sequence_counter(),
+                reminders,
+                parms=self.sendparms,
+            )
+        )
+
+        if set_reminders_handler is None:
+            _LOGGER.error("Cannot set reminders, protocol retry count exceeded")
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
 
     def get_snapshot_data(self) -> dict:
         """Get the snapshot data for this spa."""

@@ -98,6 +98,18 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             setattr(self._action, name, None)
 
         self._current_watercare_mode = GeckoConstants.WATERCARE_MODE[1]
+        self._reminders: list[tuple[GeckoReminderType, int]] = [
+            (GeckoReminderType.RINSE_FILTER, -13),
+            (GeckoReminderType.CLEAN_FILTER, 0),
+            (GeckoReminderType.CHANGE_WATER, 47),
+            (GeckoReminderType.CHECK_SPA, 687),
+            (GeckoReminderType.INVALID, -13),
+            (GeckoReminderType.INVALID, -13),
+            (GeckoReminderType.INVALID, 0),
+            (GeckoReminderType.INVALID, 0),
+            (GeckoReminderType.INVALID, 0),
+            (GeckoReminderType.INVALID, 0),
+        ]
 
     async def __aenter__(self) -> Self:
         """Support async with."""
@@ -442,7 +454,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         # Reminders
         self.add_task(
             GeckoRemindersProtocolHandler(
-                async_on_handled=self._async_on_get_reminders
+                async_on_handled=self._async_on_reminders
             ).consume(self._protocol),
             "Reminders",
             "SIM",
@@ -607,29 +619,26 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 sender,
             )
 
-    async def _async_on_get_reminders(
+    async def _async_on_reminders(
         self, handler: GeckoRemindersProtocolHandler, sender: tuple
     ) -> None:
         if self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
+        if handler.is_request:
+            self._protocol.queue_send(
+                GeckoRemindersProtocolHandler.req_response(
+                    self._reminders,
+                    parms=sender,
+                ),
+                sender,
+            )
+            return
+
+        assert handler.reminders  # noqa: S101
+        self._reminders = handler.reminders
         self._protocol.queue_send(
-            GeckoRemindersProtocolHandler.response(
-                [
-                    (GeckoReminderType.RINSE_FILTER, -13),
-                    (GeckoReminderType.CLEAN_FILTER, 0),
-                    (GeckoReminderType.CHANGE_WATER, 47),
-                    (GeckoReminderType.CHECK_SPA, 687),
-                    (GeckoReminderType.INVALID, -13),
-                    (GeckoReminderType.INVALID, -13),
-                    (GeckoReminderType.INVALID, 0),
-                    (GeckoReminderType.INVALID, 0),
-                    (GeckoReminderType.INVALID, 0),
-                    (GeckoReminderType.INVALID, 0),
-                ],
-                parms=sender,
-            ),
-            sender,
+            GeckoRemindersProtocolHandler.set_ack(parms=sender), sender
         )
 
     async def _async_on_update_firmware(
