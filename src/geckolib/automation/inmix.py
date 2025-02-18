@@ -130,7 +130,7 @@ class GeckoInMixZone(GeckoLight):
             self._blue_accessor.value,
         )
         _LOGGER.debug("get_inmix: Got %s", rgb)
-        self._brightness: int = max(rgb)
+        self._brightness: int = max(1, *rgb)
         # Scale the colours from the apparent brightness
         self._rgb = (
             int(255 * rgb[0] / self._brightness),

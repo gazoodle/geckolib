@@ -302,6 +302,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
   shared global config?
 - Expose the master timeouts as configurations and the ud timeouts as controls
 
+## Done/Fixed in 1.0.5
+ - Fix DIV/0 in inMix RGB scaler
+
 ## Done/Fixed in 1.0.4
  - First version of inMix support. Only currenty handles RGB zones, no auto-modes or syncro.
 
