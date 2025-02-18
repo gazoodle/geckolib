@@ -301,6 +301,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - When there are two spas loaded, the ping frequency seems to be too high. Is this related to the
   shared global config?
 - Expose the master timeouts as configurations and the ud timeouts as controls
+- Keep looking to see if there is a time sync mechanism
 
 ## Done/Fixed in 1.0.6
 
