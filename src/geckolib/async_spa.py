@@ -407,6 +407,10 @@ class GeckoAsyncSpa(Observable):
             self.accessors["PackStatusLib"].watch(self._on_critical_info_changed)
         for output in self.struct.all_outputs:
             self.accessors[output].watch(self._on_critical_info_changed)
+        if "InMix-PackType" in self.accessors:
+            self.accessors["InMix-PackType"].watch(self._on_critical_info_changed)
+        if "InMix-NumberOfZones" in self.accessors:
+            self.accessors["InMix-NumberOfZones"].watch(self._on_critical_info_changed)
 
     async def connect(self) -> None:
         """Wrap the connection with exception safety."""

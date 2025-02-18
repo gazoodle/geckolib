@@ -160,6 +160,10 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 lines.extend(f"{pump}" for pump in self.facade.pumps)
                 lines.extend(f"{blower}" for blower in self.facade.blowers)
                 lines.extend(f"{light}" for light in self.facade.lights)
+                if self.facade.inmix.is_available:
+                    lines.extend(f"{zone}" for zone in self.facade.inmix.zones)
+                    if self.facade.inmix.syncro.is_available:
+                        lines.append(f"{self.facade.inmix.syncro}")
                 lines.extend(
                     f"{reminder}"
                     for reminder in self.facade.reminders_manager.reminders

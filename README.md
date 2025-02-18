@@ -303,7 +303,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Expose the master timeouts as configurations and the ud timeouts as controls
 
 ## Done/Fixed in 1.0.4
- - Putting foundations in for inMix support
+ - First version of inMix support. Only currenty handles RGB zones, no auto-modes or syncro.
 
 ## Done/Fixed in 1.0.3
  - Support setting of the remaining duration for reminders

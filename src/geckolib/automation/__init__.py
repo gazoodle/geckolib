@@ -8,7 +8,7 @@ from .button import GeckoButton
 from .heater import GeckoWaterHeater
 from .heatpump import GeckoHeatPump
 from .ingrid import GeckoInGrid
-from .inmix import GeckoInMix
+from .inmix import GeckoInMix, GeckoInMixSynchro, GeckoInMixZone
 from .keypad import GeckoKeypad
 from .keypad_backlight import GeckoKeypadBacklight
 from .light import GeckoLight
@@ -31,6 +31,8 @@ __all__ = [
     "GeckoHeatPump",
     "GeckoInGrid",
     "GeckoInMix",
+    "GeckoInMixSynchro",
+    "GeckoInMixZone",
     "GeckoKeypad",
     "GeckoKeypadBacklight",
     "GeckoLight",
