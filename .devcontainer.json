@@ -40,7 +40,7 @@
     "postCreateCommand": "pip install -r requirements.txt",
     "runArgs": [
         "-v",
-        "${env:HOME}${env:USERPROFILE}/.ssh:/tmp/.ssh",
+        "${env:HOME}${env:USERPROFILE}/.ssh:/workspaces/.ssh",
         "--add-host",
         "spa=10.1.209.91"
     ]
