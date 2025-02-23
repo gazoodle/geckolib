@@ -11,7 +11,6 @@ import asyncio
 import curses
 import inspect
 import logging
-import time
 from datetime import UTC, datetime
 from typing import Any, Self
 
@@ -311,4 +310,4 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
     async def handle_mouse(self, mouse: tuple[int, int, int, int, int]) -> None:
         """Handle the mouse events."""
-        _LOGGER.debug(f"{mouse}")
+        _LOGGER.debug(f"{mouse}")  # noqa: G004
