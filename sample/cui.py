@@ -42,16 +42,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         AbstractDisplay.__init__(self, stdscr)
         GeckoAsyncSpaMan.__init__(self, CLIENT_ID)
 
-        # Enable mouse events
-        curses.mousemask(1)
-
         self._config = Config()
         self._spas: GeckoAsyncSpaDescriptor | None = None
-
-        self._last_update = time.monotonic()
-        self._last_char = None
-        self._commands = {}
-        self._watching_ping_sensor = False
 
         # Various flags based on the SpaMan events to simulate an
         # automation client
@@ -74,7 +66,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
     async def _timer_loop(self) -> None:
         try:
             while True:
-                self.make_display()
+                self.refresh()
                 await config_sleep(1, "CUI Timer")
         except asyncio.CancelledError:
             _LOGGER.debug("Timer loop cancelled")
@@ -94,7 +86,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         ):
             self._can_use_facade = False
 
-        self.make_display()
+        self.refresh()
 
     async def _select_spa(self, spa: GeckoAsyncSpaDescriptor) -> None:
         self._config.set_spa_id(spa.identifier_as_string)
@@ -144,13 +136,11 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         """Make a display."""
         try:
             maxy, maxx = self.stdscr.getmaxyx()
-            self.stdscr.erase()
             self.stdscr.box()
 
             self.make_title(maxy, maxx)
 
             lines = []
-            self._commands = {}
 
             if self._can_use_facade:
                 assert self.facade is not None  # noqa: S101
@@ -268,6 +258,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             if self._config.spa_id is not None:
                 lines.append("Press 's' to scan for spas")
                 self._commands["s"] = self._clear_spa
+            lines.append("Press 'f' to flash the screen")
+            self._commands["f"] = curses.flash
             lines.append("Press 'q' to exit")
             self._commands["q"] = self.set_exit
 
@@ -284,12 +276,22 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 f"{datetime.now(tz=UTC):%x %X} - {self}",
             )
 
+            self.stdscr.addstr(1, 2, "+----------+  ╔══════════╗  ┌──────────┐")
+            self.stdscr.addstr(2, 2, "| A Button |  ║ B Button ║  │ C Button │")
+            self.stdscr.addstr(3, 2, "+----------+  ╚══════════╝  └──────────┘")
+
+            self.add_line(2, 100, "[Line]")
+
+            self.add_text_box(1, 50, "Hello")
+            self.add_text_box(1, 80, ["One", "Two"])
+
         except _curses.error:
             # If window gets too small, we won't output anything
             _LOGGER.warning("Screen too small")
             self.stdscr.erase()
+            self.stdscr.addstr("Window too small")
 
-        self.stdscr.refresh()
+        # self.stdscr.refresh()
 
     async def handle_char(self, char: int) -> None:
         """Handle a command character."""
@@ -306,5 +308,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                     func(*parms)
             else:
                 func()
-            _LOGGER.debug("Back from handling %c", char)
-        self._last_char = char
+
+    async def handle_mouse(self, mouse: tuple[int, int, int, int, int]) -> None:
+        """Handle the mouse events."""
+        _LOGGER.debug(f"{mouse}")
