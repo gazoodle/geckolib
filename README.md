@@ -280,6 +280,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Expose the master timeouts as configurations and the ud timeouts as controls
 - Keep looking to see if there is a time sync mechanism
 
+## Done/Fixed in 1.0.7
+
 ## Done/Fixed in 1.0.6
  - Fix error in pump is_on function if the state accessor wasn't created.
  - Bubble generator now tolerant of AuxAsBubbleGen being present and turned on, but no output set to AUX
