@@ -32,7 +32,7 @@ class GeckoPump(GeckoPower):
         super().__init__(facade, name, key)
         self.device_class = GeckoConstants.DEVICE_CLASS_PUMP
         self.pump_type = GeckoPump.PumpType.NONE
-        self._state_accessor: GeckoStructAccessor
+        self._state_accessor: GeckoStructAccessor | None = None
 
         if key in facade.spa.struct.connections:
             self.pump_type = GeckoPump.PumpType.SINGLE_SPEED

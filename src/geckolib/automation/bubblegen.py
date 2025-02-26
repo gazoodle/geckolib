@@ -16,7 +16,7 @@ class GeckoBubbleGenerator(GeckoPump):
     def __init__(self, facade: GeckoAsyncFacade) -> None:
         """Initialize the bubble generator."""
         super().__init__(facade, "Bubble Generator", "Aux")
-        if "AuxAsBubbleGen" in self.facade.spa.accessors:
+        if self.is_available and "AuxAsBubbleGen" in self.facade.spa.accessors:
             self.set_availability(
                 is_available=self.facade.spa.accessors["AuxAsBubbleGen"].value
             )
