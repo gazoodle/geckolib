@@ -1,4 +1,4 @@
-"""Configuration class for complete async example."""  # noqa: INP001
+"""Configuration class for complete async example."""
 
 import configparser
 import logging

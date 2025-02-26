@@ -2,7 +2,7 @@
 Abstract curses display class for use in asyncio app.
 
 Thanks to https://gist.github.com/davesteele/8838f03e0594ef11c89f77a7bca91206
-"""  # noqa: INP001
+"""
 
 import _curses
 import asyncio
@@ -22,7 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 class Button:
     """A button wrapper."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         stdscr: _curses.window,
         y: int,
@@ -65,7 +65,10 @@ class Button:
 
     def __str__(self) -> str:
         """Stringize the button."""
-        return f"Button ({self.text} with '{self.char}') at ({self.y}, {self.x}, {self.height}, {self.width})"
+        return (
+            f"Button ({self.text} with '{self.char}') at ({self.y},"
+            f" {self.x}, {self.height}, {self.width})"
+        )
 
 
 class AbstractDisplay(ABC):

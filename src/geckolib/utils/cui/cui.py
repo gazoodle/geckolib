@@ -4,13 +4,12 @@ Complete sample client CUI - Console User Interface.
 All the code to drive the CUI is in this file, it should only
 talk to the facade as it is the example of how to integrate
 geckolib into an automation system.
-"""  # noqa: INP001
+"""
 
 import _curses
 import asyncio
 import curses
 import curses.textpad
-import inspect
 import logging
 from datetime import UTC, datetime
 from typing import Any, Self
@@ -280,7 +279,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             lines.append("Press 'f' to flash the screen")
             self._commands["f"] = curses.flash
 
-            exit_button = self.add_button(
+            _exit_button = self.add_button(
                 maxy - 4, maxx - 10, "eXit", "x", self.set_exit
             )
 
@@ -296,22 +295,6 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 1,
                 f"{datetime.now(tz=UTC):%x %X} - {self}",
             )
-
-            # self.stdscr.addstr(5, 2, "+----------+  ╔══════════╗  ┌──────────┐")
-            # self.stdscr.addstr(6, 2, "| A Button |  ║ B Button ║  │ C Button │")
-            # self.stdscr.addstr(7, 2, "+----------+  ╚══════════╝  └──────────┘")
-
-            # self.add_line(1, 100, "[Line]")
-
-            # self.add_text_box(1, 50, "Hello")
-            # self.add_text_box(1, 80, ["One", "Two"])
-
-            # subwin = self.stdscr.subwin(5, 30, 20, 80)
-            # subwin.erase()
-            # subwin.box()
-            # tb = curses.textpad.Textbox(subwin)
-            # tb.edit()
-            # subwin.addstr(1, 1, "Box Hi!")
 
             b = self.add_button(
                 1, 2, "Click Me!", "c", lambda: _LOGGER.debug("Clicked")
