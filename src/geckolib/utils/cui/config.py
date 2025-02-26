@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 
 # Configuration file constants
-CONFIG_FILE = "sample.ini"
+CONFIG_FILE = "cui.ini"
 CK_DEFAULT = "DEFAULT"
 CK_SPA_ID = "SPA_ID"
 CK_SPA_ADDR = "SPA_ADDR"

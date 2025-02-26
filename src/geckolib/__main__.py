@@ -6,8 +6,7 @@ import logging
 from pathlib import Path
 from sys import argv
 
-from geckolib.utils.shell import GeckoShell
-from geckolib.utils.simulator import GeckoSimulator
+from geckolib import CUI, GeckoShell, GeckoSimulator
 
 
 def usage() -> None:
@@ -37,6 +36,6 @@ elif argv[1] == "simulator":
     GeckoSimulator.run(["load ../tests/snapshots/default.snapshot", "start"] + argv[2:])
 elif argv[1] == "cui":
     install_logging(argv[1])
-    print("Do CUI")
+    CUI.launch()
 else:
     usage()
