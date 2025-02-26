@@ -19,15 +19,24 @@ This library is hosted on PyPI and can be installed with the following command-l
 
 `pip install geckolib`
 
+# CUI sample
+
+_Work In Progress_
+
+There is a complete async sample which uses the full API and shows how to
+client the SpaManager class, react to events, discover devices and so on.
+This can be run using `python3 -m geckolib cui`. On Windows you will need to
+install the `curses` library.
+
+It can also be used to diagnose issues with your Gecko client, test drive your
+spa and investigate anything that the previous GeckoShell was able to do.
+
 # GeckoShell usage
 
-Once the library is installed, you should be able to start a Python interpreter session
-by using the command `python3`, then executing the following commands
+Once the library is installed, you should be able to start a Gecko shell with the
+command `python3 -m geckolib shell`
 
 ```python
->>> from geckolib import GeckoShell
->>> GeckoShell.run()
-
 
     <Disclaimer>
     :
@@ -101,38 +110,12 @@ Spa$
 
 ```
 
-If you want to get some diagnostics you can enable file logging at the start of the session
-
-```python
->>> from geckolib import GeckoShell
->>> GeckoShell.run(["logfile client.log"])
-
-  :
-  :
-
-```
-
-or it can be used later after you've connected to your spa with the `logfile` command
-
-```
-
-Spa$ logfile client.log
-
-```
-
-The file `client.log` will contain diagnostic information that may be useful
-for tracking down issues
+Diagnostics are created for each run, you can find them in the folder where the shell
+was started in the file `shell.log`
 
 If you want to start the client and point it at a specific IP address (maybe you have your SPA on a different subnet), you can issue the discovery command as part of the launch parameters
 
-```python
->>> from geckolib import GeckoShell
->>> GeckoShell.run(["logfile client.log", "discover 192.168.1.2"])
-
-  :
-  :
-
-```
+`python3 -m geckolib shell "discover 192.168.1.2"`
 
 # Simulator Usage
 
@@ -259,12 +242,6 @@ Turning pump 1 off
 
 ```
 
-# Complete sample
-
-There is also a complete async sample which can be found in the repo under
-the /sample folder. This can be run using `python3 complete.py`. Full path
-https://github.com/gazoodle/geckolib/tree/main/sample. Only works on Linux
-
 # Home Assistant integration
 
 The best example of use is in the Home Assistant integration which can be
@@ -301,6 +278,13 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - When there are two spas loaded, the ping frequency seems to be too high. Is this related to the
   shared global config?
 - Expose the master timeouts as configurations and the ud timeouts as controls
+- Keep looking to see if there is a time sync mechanism
+
+## Done/Fixed in 1.0.6
+ - Fix error in pump is_on function if the state accessor wasn't created.
+ - Bubble generator now tolerant of AuxAsBubbleGen being present and turned on, but no output set to AUX
+ - Moving simulator, shell and CUI support to module main command.
+ - CUI sample is work in progress, check-in needed for bug fix!
 
 ## Done/Fixed in 1.0.5
  - Fix DIV/0 in inMix RGB scaler

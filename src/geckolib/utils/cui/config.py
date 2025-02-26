@@ -1,11 +1,11 @@
-"""Configuration class for complete async example."""  # noqa: INP001
+"""Configuration class for complete async example."""
 
 import configparser
 import logging
 from pathlib import Path
 
 # Configuration file constants
-CONFIG_FILE = "sample.ini"
+CONFIG_FILE = "cui.ini"
 CK_DEFAULT = "DEFAULT"
 CK_SPA_ID = "SPA_ID"
 CK_SPA_ADDR = "SPA_ADDR"

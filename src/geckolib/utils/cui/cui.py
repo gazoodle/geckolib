@@ -4,28 +4,27 @@ Complete sample client CUI - Console User Interface.
 All the code to drive the CUI is in this file, it should only
 talk to the facade as it is the example of how to integrate
 geckolib into an automation system.
-"""  # noqa: INP001
+"""
 
 import _curses
 import asyncio
 import curses
-import inspect
+import curses.textpad
 import logging
-import time
 from datetime import UTC, datetime
 from typing import Any, Self
 
-from abstract_display import AbstractDisplay
-from config import Config
-from context_sample import (
+from geckolib import (
     GeckoAsyncSpaDescriptor,
     GeckoAsyncSpaMan,
     GeckoConstants,
     GeckoSpaEvent,
 )
-
 from geckolib.config import config_sleep
 from geckolib.spa_state import GeckoSpaState
+
+from .abstract_display import AbstractDisplay
+from .config import Config
 
 # Replace with your own UUID, see https://www.uuidgenerator.net/>
 CLIENT_ID = "1eca3a27-9b00-476a-9645-d13f4b1f9b56"
@@ -37,21 +36,34 @@ _LOGGER = logging.getLogger(__name__)
 class CUI(AbstractDisplay, GeckoAsyncSpaMan):
     """The console UI implementation."""
 
+    @staticmethod
+    def launch() -> None:
+        """Launch the CUI."""
+        curses.wrapper(CUI.main)
+
+    @staticmethod
+    def main(stdscr: curses.window) -> None:
+        """Run the async loop."""
+        asyncio.run(
+            CUI.async_main(stdscr),
+        )
+
+    @staticmethod
+    async def async_main(stdscr: curses.window) -> None:
+        """Async main manages the console UI."""
+        task = asyncio.current_task()
+        if task is not None:
+            task.set_name("CUI main")
+            async with CUI(stdscr):
+                pass
+
     def __init__(self, stdscr: _curses.window) -> None:
         """Initialize the CUI class."""
         AbstractDisplay.__init__(self, stdscr)
         GeckoAsyncSpaMan.__init__(self, CLIENT_ID)
 
-        # Enable mouse events
-        curses.mousemask(1)
-
         self._config = Config()
         self._spas: GeckoAsyncSpaDescriptor | None = None
-
-        self._last_update = time.monotonic()
-        self._last_char = None
-        self._commands = {}
-        self._watching_ping_sensor = False
 
         # Various flags based on the SpaMan events to simulate an
         # automation client
@@ -74,27 +86,28 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
     async def _timer_loop(self) -> None:
         try:
             while True:
-                self.make_display()
+                self.refresh()
                 await config_sleep(1, "CUI Timer")
         except asyncio.CancelledError:
             _LOGGER.debug("Timer loop cancelled")
-            raise
         except Exception:
             _LOGGER.exception("Timer loop caught exception")
-            raise
 
     async def handle_event(self, event: GeckoSpaEvent, **_kwargs: Any) -> None:
         """Rebuild the UI when there is an event."""
-        _LOGGER.debug(f"{event} : {self.spa_state}")  # noqa: G004
-        if event == GeckoSpaEvent.CLIENT_FACADE_IS_READY:
-            self._can_use_facade = True
-        elif event in (
-            GeckoSpaEvent.CLIENT_FACADE_TEARDOWN,
-            GeckoSpaState.ERROR_NEEDS_ATTENTION,
-        ):
-            self._can_use_facade = False
+        try:
+            _LOGGER.debug(f"{event} : {self.spa_state}")  # noqa: G004
+            if event == GeckoSpaEvent.CLIENT_FACADE_IS_READY:
+                self._can_use_facade = True
+            elif event in (
+                GeckoSpaEvent.CLIENT_FACADE_TEARDOWN,
+                GeckoSpaState.ERROR_NEEDS_ATTENTION,
+            ):
+                self._can_use_facade = False
 
-        self.make_display()
+            self.refresh()
+        except Exception:
+            _LOGGER.exception("Exception in handle event")
 
     async def _select_spa(self, spa: GeckoAsyncSpaDescriptor) -> None:
         self._config.set_spa_id(spa.identifier_as_string)
@@ -119,11 +132,6 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         )
         await self.facade.water_care.async_set_mode(new_mode)
 
-    def make_title(self, _maxy: int, maxx: int) -> None:
-        """Make the title for the app."""
-        title = "Gecko Async Sample App"
-        self.stdscr.addstr(0, int((maxx - len(title)) / 2), title)
-
     async def increase_temp(self) -> None:
         """Increase the setpoint."""
         await self.facade.water_heater.async_set_target_temperature(
@@ -139,18 +147,18 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
     async def key_press(self, keypad: int) -> None:
         """Simulate keypress."""
         await self.facade.spa.async_press(keypad)
+        self.make_display()
 
     def make_display(self) -> None:  # noqa: PLR0912, PLR0915
         """Make a display."""
         try:
             maxy, maxx = self.stdscr.getmaxyx()
-            self.stdscr.erase()
             self.stdscr.box()
 
-            self.make_title(maxy, maxx)
+            title = "Gecko Async Sample App"
+            self.stdscr.addstr(0, int((maxx - len(title)) / 2), title)
 
             lines = []
-            self._commands = {}
 
             if self._can_use_facade:
                 assert self.facade is not None  # noqa: S101
@@ -263,13 +271,17 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 lines.append("Press 'w' to select next watercare mode")
                 self._commands["w"] = self._select_next_watercare_mode
 
-            lines.append("Press 'r' to reconnect")
+            lines.append("Press 'r' to reset")
             self._commands["r"] = self.async_reset
             if self._config.spa_id is not None:
                 lines.append("Press 's' to scan for spas")
                 self._commands["s"] = self._clear_spa
-            lines.append("Press 'q' to exit")
-            self._commands["q"] = self.set_exit
+            lines.append("Press 'f' to flash the screen")
+            self._commands["f"] = curses.flash
+
+            _exit_button = self.add_button(
+                maxy - 4, maxx - 10, "eXit", "x", self.set_exit
+            )
 
             half = int(len(lines) / 2)
 
@@ -284,27 +296,20 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 f"{datetime.now(tz=UTC):%x %X} - {self}",
             )
 
+            b = self.add_button(
+                1, 2, "Click Me!", "c", lambda: _LOGGER.debug("Clicked")
+            )
+            if self._can_use_facade:
+                self.add_button(
+                    1,
+                    b.width + 4,
+                    ["Pump 1", self.facade.pump_1.mode],
+                    None,
+                    (self.key_press, GeckoConstants.KEYPAD_PUMP_1),
+                )
+
         except _curses.error:
             # If window gets too small, we won't output anything
-            _LOGGER.warning("Screen too small")
+            _LOGGER.warning("Window too small")
             self.stdscr.erase()
-
-        self.stdscr.refresh()
-
-    async def handle_char(self, char: int) -> None:
-        """Handle a command character."""
-        cmd = chr(char)
-        if cmd in self._commands:
-            func = self._commands[cmd]
-            if inspect.iscoroutinefunction(func):
-                await func()
-            elif isinstance(func, tuple):
-                func, *parms = func
-                if inspect.iscoroutinefunction(func):
-                    await func(*parms)
-                else:
-                    func(*parms)
-            else:
-                func()
-            _LOGGER.debug("Back from handling %c", char)
-        self._last_char = char
+            self.stdscr.addstr("Window too small")

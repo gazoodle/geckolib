@@ -60,7 +60,7 @@ from .driver import (
 )
 from .spa_events import GeckoSpaEvent
 from .spa_state import GeckoSpaState
-from .utils import GeckoShell, GeckoSimulator, GeckoSnapshot
+from .utils import CUI, GeckoShell, GeckoSimulator, GeckoSnapshot
 
 # Module logger, uses the library name (at this time it was geckolib) and it
 # is silent unless required ...
@@ -69,6 +69,7 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 __version__ = VERSION
 
 __all__ = [
+    "CUI",
     "VERSION",
     "AsyncTasks",
     "GeckoAsyncFacade",
