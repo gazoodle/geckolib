@@ -20,6 +20,8 @@ from geckolib import (
     GeckoConstants,
     GeckoSpaEvent,
 )
+from geckolib.automation.light import GeckoLight
+from geckolib.automation.pump import GeckoPump
 from geckolib.config import config_sleep
 from geckolib.spa_state import GeckoSpaState
 
@@ -44,6 +46,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
     @staticmethod
     def main(stdscr: curses.window) -> None:
         """Run the async loop."""
+        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
         asyncio.run(
             CUI.async_main(stdscr),
         )
@@ -68,6 +71,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         # Various flags based on the SpaMan events to simulate an
         # automation client
         self._can_use_facade = False
+        self._lines: list[str | tuple[str, int]] = []
 
     async def __aenter__(self) -> Self:
         """Async enter for with statement."""
@@ -90,8 +94,10 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 await config_sleep(1, "CUI Timer")
         except asyncio.CancelledError:
             _LOGGER.debug("Timer loop cancelled")
+            raise
         except Exception:
             _LOGGER.exception("Timer loop caught exception")
+            raise
 
     async def handle_event(self, event: GeckoSpaEvent, **_kwargs: Any) -> None:
         """Rebuild the UI when there is an event."""
@@ -149,167 +155,227 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         await self.facade.spa.async_press(keypad)
         self.make_display()
 
-    def make_display(self) -> None:  # noqa: PLR0912, PLR0915
+    async def _device_click(self, device: GeckoPump | GeckoLight) -> None:
+        _LOGGER.debug("Device %s clicked", device)
+        if device.is_on:
+            await device.async_turn_off()
+        else:
+            await device.async_turn_on()
+
+    def _located_spas(self, maxy: int, maxx: int) -> None:
+        if self.spa_descriptors is None:
+            return
+
+        no_of_spas = len(self.spa_descriptors)
+        if no_of_spas == 0:
+            self._lines.append(
+                (
+                    "No spas were found on your network",
+                    curses.color_pair(1),
+                )
+            )
+            return
+
+        buttons_height = no_of_spas * 3
+
+        for idx, spa in enumerate(self.spa_descriptors):
+            button_text = f"{idx + 1}. {spa.name} at {spa.ipaddress}"
+            self.add_button(
+                int((maxy - buttons_height) / 2) + (idx * 3),
+                int(maxx / 2) - int(len(button_text) / 2) - 2,
+                button_text,
+                f"{idx + 1}",
+                (self._select_spa, spa),
+            )
+
+    def _spa_problem(self) -> None:
+        self._lines.append((f"{self.spa_name} not ready", curses.color_pair(1)))
+        self._lines.append("")
+        self._lines.append(f"{self.ping_sensor}")
+        self._lines.append(f"{self.radio_sensor}")
+        self._lines.append(f"{self.channel_sensor}")
+        self._lines.append("")
+
+        if self.spa_state == GeckoSpaState.ERROR_RF_FAULT:
+            self._lines.append(
+                (
+                    "Lost contact with your spa, it looks as if it is turned off",
+                    curses.color_pair(1),
+                )
+            )
+        if self.spa_state == GeckoSpaState.ERROR_PING_MISSED:
+            self._lines.append(
+                (
+                    "Lost contact with your intouch2 module, please investigate",
+                    curses.color_pair(1),
+                )
+            )
+
+    def _build_facade_ui(self, _maxy: int, maxx: int) -> None:
+        if self.facade is None:
+            return
+        curx = 2
+        cury = 1
+        button_line = []
+
+        for device in list(
+            self.facade.pumps + self.facade.blowers + self.facade.lights
+        ):
+            device_button = self.add_button(
+                cury,
+                curx,
+                [device.name, device.state],
+                None,
+                (self._device_click, device),
+            )
+            if device_button.x + device_button.width > maxx - 2:
+                delta = int(((maxx - 2) - curx) / 2)
+                for moveit in button_line:
+                    moveit.move(moveit.y, moveit.x + delta)
+                button_line = []
+                curx = 2
+                cury += 4
+                device_button.move(cury, curx)
+            curx += device_button.width + 1
+            button_line.append(device_button)
+
+        delta = int(((maxx - 2) - curx) / 2)
+        for moveit in button_line:
+            moveit.move(moveit.y, moveit.x + delta)
+
+        self._lines.append(f"{self.facade.water_heater}")
+        if self.facade.inmix.is_available:
+            self._lines.extend(f"{zone}" for zone in self.facade.inmix.zones)
+            if self.facade.inmix.syncro.is_available:
+                self._lines.append(f"{self.facade.inmix.syncro}")
+        self._lines.extend(
+            f"{reminder}" for reminder in self.facade.reminders_manager.reminders
+        )
+        self._lines.append(f"{self.facade.water_care}")
+        if self.facade.heatpump.is_available:
+            self._lines.append(f"{self.facade.heatpump}")
+        if self.facade.ingrid.is_available:
+            self._lines.append(f"{self.facade.ingrid}")
+        if self.facade.lockmode.is_available:
+            self._lines.append(f"{self.facade.lockmode}")
+        if self.facade.standby is not None:
+            self._lines.append(f"{self.facade.standby}")
+        self._lines.extend(
+            f"{sensor}"
+            for sensor in [
+                *self.facade.sensors,
+                *self.facade.binary_sensors,
+            ]
+        )
+        self._lines.append(f"{self.facade.eco_mode}")
+        self._lines.append(
+            f"{self.ping_sensor} (Responding: {self._spa.is_responding_to_pings})"
+        )
+        self._lines.append(f"{self.radio_sensor}")
+        self._lines.append(f"{self.channel_sensor}")
+        self._lines.append(f"{self.facade.error_sensor}")
+        self._lines.append(f"{self.facade.spa_in_use_sensor}")
+
+    def make_display(self) -> None:
         """Make a display."""
         try:
             maxy, maxx = self.stdscr.getmaxyx()
             self.stdscr.box()
 
-            title = "Gecko Async Sample App"
+            title = (
+                f"{self.facade.name} is ready"
+                if self._can_use_facade
+                else "Gecko Async Sample App"
+            )
             self.stdscr.addstr(0, int((maxx - len(title)) / 2), title)
 
-            lines = []
+            self._lines = []
 
             if self._can_use_facade:
-                assert self.facade is not None  # noqa: S101
-                lines.append(f"{self.facade.name} is ready")
-                lines.append("")
-                lines.append(f"{self.facade.water_heater}")
-                lines.extend(f"{pump}" for pump in self.facade.pumps)
-                lines.extend(f"{blower}" for blower in self.facade.blowers)
-                lines.extend(f"{light}" for light in self.facade.lights)
-                if self.facade.inmix.is_available:
-                    lines.extend(f"{zone}" for zone in self.facade.inmix.zones)
-                    if self.facade.inmix.syncro.is_available:
-                        lines.append(f"{self.facade.inmix.syncro}")
-                lines.extend(
-                    f"{reminder}"
-                    for reminder in self.facade.reminders_manager.reminders
-                )
-                lines.append(f"{self.facade.water_care}")
-                if self.facade.heatpump.is_available:
-                    lines.append(f"{self.facade.heatpump}")
-                if self.facade.ingrid.is_available:
-                    lines.append(f"{self.facade.ingrid}")
-                if self.facade.lockmode.is_available:
-                    lines.append(f"{self.facade.lockmode}")
-                if self.facade.standby is not None:
-                    lines.append(f"{self.facade.standby}")
-                lines.extend(
-                    f"{sensor}"
-                    for sensor in [
-                        *self.facade.sensors,
-                        *self.facade.binary_sensors,
-                    ]
-                )
-                lines.append(f"{self.facade.eco_mode}")
-                lines.append(
-                    f"{self.ping_sensor} (Responding: {self._spa.is_responding_to_pings})"  # noqa: E501
-                )
-                lines.append(f"{self.radio_sensor}")
-                lines.append(f"{self.channel_sensor}")
-                lines.append(f"{self.facade.error_sensor}")
-                lines.append(f"{self.facade.spa_in_use_sensor}")
+                self._build_facade_ui(maxy, maxx)
 
             elif self.spa_state == GeckoSpaState.LOCATED_SPAS:
-                if self.spa_descriptors is not None:
-                    # If the _spas property is available, that means we've got
-                    # a list of spas that we can choose from
-                    for idx, spa in enumerate(self.spa_descriptors, start=1):
-                        lines.append(f"{idx}. {spa.name} at {spa.ipaddress}")
-                        self._commands[f"{idx}"] = (self._select_spa, spa)
+                self._located_spas(maxy, maxx)
 
-                    if len(self.spa_descriptors) == 0:
-                        lines.append("No spas were found on your network")
+            elif self.spa_state in (
+                GeckoSpaState.ERROR_RF_FAULT,
+                GeckoSpaState.ERROR_PING_MISSED,
+            ):
+                self._spa_problem()
 
-            elif self.spa_state == GeckoSpaState.CONNECTED:
-                lines.append(f"{self.spa_name} connecting")
-                lines.append(f"{self.ping_sensor}")
-                lines.append(f"{self.radio_sensor}")
-                lines.append(f"{self.channel_sensor}")
-                lines.append("")
-
-            elif self.spa_state == GeckoSpaState.ERROR_RF_FAULT:
-                lines.append(f"{self.spa_name} not ready")
-                lines.append(f"{self.ping_sensor}")
-                lines.append(f"{self.radio_sensor}")
-                lines.append(f"{self.channel_sensor}")
-                lines.append("")
-                lines.append(
-                    "Lost contact with your spa, it looks as if it is turned off"
-                )
-
-            elif self.spa_state == GeckoSpaState.ERROR_PING_MISSED:
-                lines.append(f"{self.spa_name} not ready")
-                lines.append(f"{self.ping_sensor}")
-                lines.append(f"{self.radio_sensor}")
-                lines.append(f"{self.channel_sensor}")
-                lines.append("")
-                lines.append(
-                    "Lost contact with your intouch2 module, please investigate"
-                )
-
-            lines.append("")
+            self._lines.append("")
 
             if self._can_use_facade:
                 assert self.facade is not None  # noqa: S101
-                if self.facade.blowers:
-                    lines.append("Press 'b' to toggle blower")
-                    if self.facade.blowers[0].is_on:
-                        self._commands["b"] = self.facade.blowers[0].async_turn_off
-                    else:
-                        self._commands["b"] = self.facade.blowers[0].async_turn_on
-                if self.facade.pumps:
-                    lines.append("Press 'p' to toggle pump 1")
-                    if self.facade.pumps[0].mode == "OFF":
-                        self._commands["p"] = (
-                            self.facade.pumps[0].async_set_mode,
-                            "HI",
-                        )
-                    else:
-                        self._commands["p"] = (
-                            self.facade.pumps[0].async_set_mode,
-                            "OFF",
-                        )
-                    lines.append("Press '1' to simulate keypad 1 press")
-                    self._commands["1"] = (self.key_press, GeckoConstants.KEYPAD_PUMP_1)
-
-                lines.append("Press '+' to increase setpoint")
+                self._lines.append("Press '+' to increase setpoint")
                 self._commands["+"] = self.increase_temp
-                lines.append("Press '-' to decrease setpoint")
+                self._lines.append("Press '-' to decrease setpoint")
                 self._commands["-"] = self.decrease_temp
-                lines.append("Press 'w' to select next watercare mode")
+                self._lines.append("Press 'w' to select next watercare mode")
                 self._commands["w"] = self._select_next_watercare_mode
 
-            lines.append("Press 'r' to reset")
-            self._commands["r"] = self.async_reset
-            if self._config.spa_id is not None:
-                lines.append("Press 's' to scan for spas")
-                self._commands["s"] = self._clear_spa
-            lines.append("Press 'f' to flash the screen")
-            self._commands["f"] = curses.flash
-
+            #       ┌──────┐
+            #       │ eXit │
+            #       └──────┘
             _exit_button = self.add_button(
                 maxy - 4, maxx - 10, "eXit", "x", self.set_exit
             )
 
-            half = int(len(lines) / 2)
+            #       ┌─────────┐    ┌─────────────┐
+            #       │ Re-scan │ or │ Re-connnect │
+            #       └─────────┘    └─────────────┘
+            reset_text = (
+                "Re-scan"
+                if self.spa_state
+                in (
+                    GeckoSpaState.LOCATING_SPAS,
+                    GeckoSpaState.LOCATED_SPAS,
+                )
+                and self._config.spa_id is None
+                else "Re-connect"
+            )
+            _reset_button = self.add_button(
+                maxy - 4,
+                _exit_button.x - len(reset_text) - 5,
+                reset_text,
+                "r",
+                self.async_reset,
+            )
 
-            for idx, line in enumerate(lines):
-                self.stdscr.addstr(
-                    int(maxy / 2) - half + idx, int((maxx - len(line)) / 2), line
+            #       ┌───────────┐
+            #       │ Clear Spa │
+            #       └───────────┘
+            if self._config.spa_id is not None:
+                _clear_spa = self.add_button(
+                    maxy - 4, _reset_button.x - 14, "Clear Spa", "c", self._clear_spa
                 )
 
+            # Lines of data centred
+
+            half = int(len(self._lines) / 2)
+
+            for idx, line in enumerate(self._lines):
+                attr: int = curses.A_NORMAL
+                text: str = line
+                if isinstance(line, tuple):
+                    attr = int(line[1])
+                    text = line[0]
+                self.stdscr.addstr(
+                    int(maxy / 2) - half + idx, int((maxx - len(text)) / 2), text, attr
+                )
+
+            # Status liine
             self.stdscr.addstr(
                 maxy - 2,
                 1,
                 f"{datetime.now(tz=UTC):%x %X} - {self}",
             )
 
-            b = self.add_button(
-                1, 2, "Click Me!", "c", lambda: _LOGGER.debug("Clicked")
-            )
-            if self._can_use_facade:
-                self.add_button(
-                    1,
-                    b.width + 4,
-                    ["Pump 1", self.facade.pump_1.mode],
-                    None,
-                    (self.key_press, GeckoConstants.KEYPAD_PUMP_1),
-                )
-
         except _curses.error:
             # If window gets too small, we won't output anything
             _LOGGER.warning("Window too small")
             self.stdscr.erase()
             self.stdscr.addstr("Window too small")
+
+        except Exception:
+            _LOGGER.exception("During make display")

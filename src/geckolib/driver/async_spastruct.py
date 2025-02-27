@@ -230,17 +230,42 @@ class GeckoAsyncStructure:
 
     def get_snapshot_data(self) -> dict:
         """Get snapshot data that the structure can supply."""
+        pack_id = GeckoConstants.KEY_PACK_CONFIG_ID
+        if pack_id not in self.accessors:
+            pack_id = GeckoConstants.KEY_PACK_CORE_ID
+        rev_id = GeckoConstants.KEY_PACK_CONFIG_REV
+        if rev_id not in self.accessors:
+            rev_id = GeckoConstants.KEY_PACK_CORE_REV
+        rel_id = GeckoConstants.KEY_PACK_CONFIG_REL
+        if rel_id not in self.accessors:
+            rel_id = GeckoConstants.KEY_PACK_CORE_REL
+
         return {
             "Library Version": VERSION,
             "SpaPackStruct.xml revision": self.pack_class.revision,
             "Spa pack": f"{self.accessors[GeckoConstants.KEY_PACK_TYPE].value}"
-            f" {self.accessors[GeckoConstants.KEY_PACK_CONFIG_ID].value}"
-            f" v{self.accessors[GeckoConstants.KEY_PACK_CONFIG_REV].value}"
-            f".{self.accessors[GeckoConstants.KEY_PACK_CONFIG_REL].value}",
+            f" {
+                self.accessors[pack_id].value
+                if pack_id in self.accessors
+                else ' (NO PACK)'
+            }"
+            f" v{
+                self.accessors[rev_id].value
+                if rev_id in self.accessors
+                else ' (NO REV)'
+            }"
+            f".{
+                self.accessors[rel_id].value
+                if rel_id in self.accessors
+                else ' (NO REL)'
+            }",
             "Low level configuration #": self.accessors[
                 GeckoConstants.KEY_CONFIG_NUMBER
-            ].value,
+            ].value
+            if GeckoConstants.KEY_CONFIG_NUMBER in self.accessors
+            else "(NO CONFIG #)",
             "Log version": self.log_version,
+            "Config version": self.config_version,
             "Pack type": self.pack_type,
             "Snapshot UTC Time": f"{datetime.datetime.now(tz=datetime.UTC)}",
             "Status Block": [hex(b) for b in self.status_block],

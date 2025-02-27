@@ -28,7 +28,7 @@ class GeckoLight(GeckoPower):
 
     @property
     @abstractmethod
-    def state(self) -> Any:
+    def state(self) -> str:
         """Get the state of the light."""
         raise NotImplementedError
 
@@ -69,7 +69,7 @@ class GeckoLightLi(GeckoLight):
         return self.state != "OFF"
 
     @property
-    def state(self) -> Any:
+    def state(self) -> str:
         """Get the state of the light."""
         return self._state_accessor.value
 
@@ -105,7 +105,7 @@ class GeckoLightL120(GeckoLight):
         return self.state != "OFF"
 
     @property
-    def state(self) -> Any:
+    def state(self) -> str:
         """Get the state of the light."""
         return self._state_accessor.value
 

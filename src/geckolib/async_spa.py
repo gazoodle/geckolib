@@ -587,6 +587,10 @@ class GeckoAsyncSpa(Observable):
                 _LOGGER.debug("Refresh channel %s/%s", self.channel, self.signal)
                 await self._event_handler(GeckoSpaEvent.RUNNING_SPA_PACK_REFRESHED)
 
+        except asyncio.CancelledError:
+            _LOGGER.debug("Refresh loop cancelled")
+            raise
+
         except Exception:
             _LOGGER.exception("Refresh loop caught exception")
             raise
@@ -788,7 +792,6 @@ class GeckoAsyncSpa(Observable):
             {
                 "intouch version EN": self.intouch_version_en,
                 "intouch version CO": self.intouch_version_co,
-                "Config version": self.config_version,
             }
         )
         return data

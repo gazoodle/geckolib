@@ -33,7 +33,7 @@ class Observable:
 
     def unwatch_all(self) -> None:
         """Remove all observers on this observable class."""
-        _LOGGER.debug("Remove all observers from %s", self)
+        _LOGGER.debug("Remove all observers from %r", self)
         self._observers.clear()
 
     def _on_change(

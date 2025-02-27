@@ -148,10 +148,13 @@ class GeckoAsyncFacade(Observable):
 
     async def disconnect(self) -> None:
         """Disconnect the facade."""
-        _LOGGER.debug("Disconnect facade")
-        self._taskman.cancel_key_tasks("FACADE")
-        for device in self.all_automation_devices:
-            device.unwatch_all()
+        try:
+            _LOGGER.debug("Disconnect facade")
+            self._taskman.cancel_key_tasks("FACADE")
+            for device in self.all_automation_devices:
+                device.unwatch_all()
+        except Exception:
+            _LOGGER.exception("During facade disconnect")
 
     def _on_config_device_change(self, *_args: Any) -> None:
         in_use = False

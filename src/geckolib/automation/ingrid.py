@@ -43,10 +43,15 @@ class GeckoInGrid(GeckoSelect):
     @property
     def state(self) -> str:
         """Get the current state via the mapping."""
+        if self._accessor is None:
+            return "(Unknown)"
         return self.mapping[self._accessor.value]
 
     async def async_set_state(self, new_state: str) -> None:
         """Set the state of the select entity."""
+        if self._accessor is None:
+            _LOGGER.warning("%s can't set state with no accessor", self)
+            return
         if new_state in self.reverse:
             new_state = self.reverse[new_state]
         await self._accessor.async_set_value(new_state)
@@ -54,4 +59,6 @@ class GeckoInGrid(GeckoSelect):
     @property
     def states(self) -> list[str]:
         """Get the possible states."""
+        if self._accessor is None:
+            return []
         return list(self.mapping.values())

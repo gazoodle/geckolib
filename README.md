@@ -31,6 +31,8 @@ install the `curses` library.
 It can also be used to diagnose issues with your Gecko client, test drive your
 spa and investigate anything that the previous GeckoShell was able to do.
 
+
+
 # GeckoShell usage
 
 Once the library is installed, you should be able to start a Gecko shell with the
@@ -281,6 +283,9 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Keep looking to see if there is a time sync mechanism
 
 ## Done/Fixed in 1.0.7
+ - Move on with MrSteam device detection, it ought to load the facade cleanly now
+ - Protect various select sub-classes from missing accessor during reconnection
+ - More work on CUI
 
 ## Done/Fixed in 1.0.6
  - Fix error in pump is_on function if the state accessor wasn't created.

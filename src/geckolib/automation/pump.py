@@ -149,15 +149,18 @@ class GeckoPump(GeckoPower):
             _LOGGER.debug("%s async set mode %s", self.name, mode)
             await self._state_accessor.async_set_value(mode)
 
+    @property
+    def state(self) -> str:
+        """Get state."""
+        if self.pump_type == GeckoPump.PumpType.VARIABLE_SPEED and self.mode == 0:
+            return "OFF"
+        return f"{self.mode}"
+
     def __str__(self) -> str:
         """Stringize class."""
-        if self.pump_type == GeckoPump.PumpType.VARIABLE_SPEED:
-            if self.mode == 0:
-                return f"{self.name}: OFF"
-            return f"{self.name}: {self.mode}%"
-        return f"{self.name}: {self.mode}"
+        return f"{self.name}: {self.state}"
 
     @property
     def monitor(self) -> str:
         """Get monitor string."""
-        return f"{self.key}: {self.mode}"
+        return f"{self.key}: {self.state}"

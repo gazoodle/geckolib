@@ -276,16 +276,20 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
 
     async def async_reset(self) -> None:
         """Reset the spa manager."""
-        self._spa_descriptors = None
-        self._has_descriptors.clear()
-        if self._facade is not None:
-            await self._facade.disconnect()
-            self._facade = None
-            self._facade_state_known.clear()
-        if self._spa is not None:
-            await self._spa.disconnect()
-            self._spa = None
-        self.set_spa_state(GeckoSpaState.IDLE)
+        try:
+            self._spa_descriptors = None
+            self._has_descriptors.clear()
+            if self._facade is not None:
+                await self._facade.disconnect()
+                self._facade = None
+                self._facade_state_known.clear()
+            if self._spa is not None:
+                await self._spa.disconnect()
+                self._spa = None
+            self.set_spa_state(GeckoSpaState.IDLE)
+        except Exception:
+            _LOGGER.exception("Exception during reset")
+            raise
 
     async def async_locate_spas(
         self, spa_address: str | None = None, spa_identifier: str | None = None

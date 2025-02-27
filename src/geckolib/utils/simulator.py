@@ -801,7 +801,6 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             {
                 "intouch version EN": self.snapshot.intouch_EN_str,
                 "intouch version CO": self.snapshot.intouch_CO_str,
-                "Config version": self.snapshot.config_version,
             }
         )
         return data

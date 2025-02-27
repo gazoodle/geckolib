@@ -29,9 +29,10 @@ class Button:
         x: int,
         text: str | list[str],
         char: str | None,
-        command: Callable | tuple[Callable, Any],
+        command: Callable | tuple[Callable, Any] | None,
     ) -> None:
         """Initialize the button."""
+        self.stdscr = stdscr
         self.y = y
         self.x = x
         self.text: list[str] = text if isinstance(text, list) else [text]
@@ -40,10 +41,17 @@ class Button:
 
         self.width = max([len(t) for t in self.text]) + 4
         self.height = len(self.text) + 2
-        self.window = stdscr.subwin(self.height, self.width, self.y, self.x)
+        self.window = None
+
+    def _create_window(self) -> None:
+        if self.window is None:
+            self.window = self.stdscr.subwin(self.height, self.width, self.y, self.x)
 
     def make(self, attr: int = curses.A_NORMAL) -> None:
         """Make the curses objects."""
+        self._create_window()
+        if self.window is None:
+            return
         self.window.erase()
         self.window.box()
         for idx, txt in enumerate(self.text):
@@ -52,16 +60,19 @@ class Button:
 
     def is_in_button(self, y: int, x: int) -> bool:
         """Test if point is in the button."""
-        if y < self.y:
+        self._create_window()
+        if self.window is None:
             return False
-        if y >= self.y + self.height:
-            return False
-        if x < self.x:
-            return False
-        if x >= self.x + self.width:
-            return False
-        _LOGGER.debug(f"{y},{x} in {self}")  # noqa: G004
-        return True
+        return self.window.enclose(y, x)
+
+    def move(self, new_y: int, new_x: int) -> None:
+        """Move the button to a new location."""
+        self.y = new_y
+        self.x = new_x
+        if self.window is None:
+            return
+        self.window.mvderwin(new_y, new_x)
+        self.window.mvwin(new_y, new_x)
 
     def __str__(self) -> str:
         """Stringize the button."""
@@ -101,18 +112,25 @@ class AbstractDisplay(ABC):
 
     async def execute(self, func: Any) -> None:
         """Execute a function, or unpack and execute a function tuple."""
-        if isinstance(func, Button):
-            await self.execute(cast(Button, func).command)
-        if inspect.iscoroutinefunction(func):
-            await func()
-        elif isinstance(func, tuple):
-            func, *parms = func
+        try:
+            if func is None:
+                return
+            if isinstance(func, Button):
+                await self.execute(cast(Button, func).command)
+                return
             if inspect.iscoroutinefunction(func):
-                await func(*parms)
+                await func()
+            elif isinstance(func, tuple):
+                func, *parms = func
+                if inspect.iscoroutinefunction(func):
+                    await func(*parms)
+                else:
+                    func(*parms)
             else:
-                func(*parms)
-        else:
-            func()
+                func()
+        except Exception:
+            _LOGGER.exception("Exception during execute %s", func)
+            raise
 
     async def handle_char(self, char: int) -> None:
         """Handle a command character."""
@@ -133,8 +151,14 @@ class AbstractDisplay(ABC):
         self._last_y = y
         button = self._get_button(y, x)
         if button is not None:
-            if bstate & curses.BUTTON1_CLICKED == curses.BUTTON1_CLICKED:
+            if (
+                bstate & curses.BUTTON1_PRESSED == curses.BUTTON1_PRESSED
+                or bstate & curses.BUTTON1_CLICKED == curses.BUTTON1_CLICKED
+                or bstate & curses.BUTTON1_DOUBLE_CLICKED
+                == curses.BUTTON1_DOUBLE_CLICKED
+            ):
                 await self.execute(button.command)
+
             if button is not self._last_button:
                 button.make(curses.A_BOLD)
                 self._last_button = button
@@ -147,6 +171,7 @@ class AbstractDisplay(ABC):
         """Refesh the display."""
         self._commands = {}
         self._buttons = []
+        self._last_button = None
         self.stdscr.erase()
         self.make_display()
         for button in self._buttons:
@@ -163,9 +188,16 @@ class AbstractDisplay(ABC):
 
     async def enqueue_input(self) -> None:
         """Get input and queue it up."""
-        while not self.done_event.is_set():
-            char = self.stdscr.getch()
-            await self.queue.put(char)
+        try:
+            while not self.done_event.is_set():
+                char = self.stdscr.getch()
+                await self.queue.put(char)
+        except asyncio.CancelledError:
+            _LOGGER.debug("CUI enqueue loop cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception("CUI enqueue loop caught exception")
+            raise
 
     async def process_input(self) -> None:
         """Get queue data and process it."""
@@ -173,7 +205,7 @@ class AbstractDisplay(ABC):
             while not self.done_event.is_set():
                 char = await self.queue.get()
                 if char == ERR:
-                    # Do nothing and let the loop continue without sleeping continue
+                    # Do nothing and let the loop continue without sleeping
                     pass
                 elif char == KEY_RESIZE:
                     self.refresh()
@@ -226,7 +258,7 @@ class AbstractDisplay(ABC):
         x: int,
         text: str | list[str],
         char: str | None,
-        command: Callable | tuple[Callable, Any],
+        command: Callable | tuple[Callable, Any] | None,
     ) -> Button:
         """Add a button to the window."""
         button = Button(self.stdscr, y, x, text, char, command)
