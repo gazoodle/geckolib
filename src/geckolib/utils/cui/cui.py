@@ -211,7 +211,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 )
             )
 
-    def _build_facade_ui(self, _maxy: int, maxx: int) -> None:
+    def _build_facade_ui(self, _maxy: int, maxx: int) -> None:  # noqa: PLR0912
         if self.facade is None:
             return
         curx = 2
@@ -247,7 +247,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             self._lines.append("We have a Mr Steam unit")
             self._lines.append("")
 
-        self._lines.append(f"{self.facade.water_heater}")
+        if self.facade.water_heater.is_available:
+            self._lines.append(f"{self.facade.water_heater}")
         if self.facade.inmix.is_available:
             self._lines.extend(f"{zone}" for zone in self.facade.inmix.zones)
             if self.facade.inmix.syncro.is_available:

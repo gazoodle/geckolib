@@ -287,6 +287,7 @@ class GeckoAsyncStructure:
     #
     #   Accessory support
 
+    @property
     def is_mr_steam(self) -> bool:
         """Is this a MrSteam pack."""
         return self.plateform_key == "mrsteam"

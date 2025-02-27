@@ -281,6 +281,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
   shared global config?
 - Expose the master timeouts as configurations and the ud timeouts as controls
 - Keep looking to see if there is a time sync mechanism
+- Use the config ver and status ver check in simulator to make sure partial block updates are acceptable
 
 ## Done/Fixed in 1.0.7
  - Move on with MrSteam device detection, it ought to load the facade cleanly now

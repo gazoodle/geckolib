@@ -67,6 +67,11 @@ class GeckoConstants:
     KEY_LOCKMODE = "LockMode"
     KEY_STANDBY = "QuietState"
 
+    KEY_MRSTEAM_USER_MODE = "UserMode"
+    KEY_MRSTEAM_USER_AROMA = "UserAroma"
+    KEY_MRSTEAM_USER_SETPOINT_G = "UserSetpointG"
+    KEY_MRSTEAM_REMAINING_RUNTIME = "RemainingRuntime"
+
     KEY_USER_DEMAND_LIGHT = "UdLi"
 
     EXCEPTION_MESSAGE_NOT_WRITABLE = (

@@ -234,21 +234,27 @@ class GeckoAsyncFacade(Observable):
             self._sensors.extend(
                 [
                     GeckoSensor(
-                        self, "Mr.Steam On/Off", self._spa.accessors["UserMode"]
+                        self,
+                        "Mr.Steam On/Off",
+                        self._spa.accessors[GeckoConstants.KEY_MRSTEAM_USER_MODE],
                     ),
                     GeckoSensor(
-                        self, "Mr.Steam Aroma", self._spa.accessors["UserAroma"]
+                        self,
+                        "Mr.Steam Aroma",
+                        self._spa.accessors[GeckoConstants.KEY_MRSTEAM_USER_AROMA],
                     ),
                     GeckoSensor(
                         self,
                         "Mr.Steam Temperature",
-                        self._spa.accessors["UserSetpointG"],
-                        self._spa.accessors["TempUnits"],
+                        self._spa.accessors[GeckoConstants.KEY_MRSTEAM_USER_SETPOINT_G],
+                        self._spa.accessors[GeckoConstants.KEY_TEMP_UNITS],
                     ),
                     GeckoSensor(
                         self,
                         "Mr.Steam Runtime",
-                        self._spa.accessors["RemainingRuntime"],
+                        self._spa.accessors[
+                            GeckoConstants.KEY_MRSTEAM_REMAINING_RUNTIME
+                        ],
                     ),
                 ]
             )

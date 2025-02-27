@@ -6,12 +6,12 @@ import logging
 from typing import TYPE_CHECKING
 
 from geckolib.const import GeckoConstants
-from geckolib.driver import GeckoWatercareProtocolHandler
 
 from .base import GeckoAutomationFacadeBase
 
 if TYPE_CHECKING:
     from geckolib.automation.async_facade import GeckoAsyncFacade
+    from geckolib.driver import GeckoWatercareProtocolHandler
 
 _LOGGER = logging.getLogger(__name__)
 
