@@ -24,6 +24,8 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
         super().__init__(facade, "WaterCare", "WATERCARE")
         self.active_mode: int | None = None
         self._water_care_handler: GeckoWatercareProtocolHandler | None = None
+        if not facade.spa.struct.is_mr_steam:
+            self.set_availability(is_available=True)
 
     @property
     def mode(self) -> int | None:
@@ -37,7 +39,9 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
 
     @property
     def state(self) -> str:
-        """Return all the current state."""
+        """Return the current state."""
+        if self.mode is None:
+            return "Unknown"
         return GeckoConstants.WATERCARE_MODE_STRING[self.mode]
 
     @property
@@ -71,20 +75,6 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
             self._on_change(self, old_mode, self.active_mode)
         self._water_care_handler = None
 
-    def obsolete_update(self) -> None:
-        """Update the state."""
-        if self._water_care_handler is not None:
-            return
-
-        assert self._spa is not None  # noqa: S101
-        self._water_care_handler = GeckoWatercareProtocolHandler.request(
-            self._spa.get_and_increment_sequence_counter(),
-            on_handled=self._on_watercare,
-            parms=self._spa.sendparms,
-        )
-        self._spa.add_receive_handler(self._water_care_handler)
-        self._spa.queue_send(self._water_care_handler, self._spa.sendparms)
-
     def change_watercare_mode(self, new_mode: int) -> None:
         """Change the watercare mode."""
         if self.active_mode != new_mode:
@@ -94,6 +84,8 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
 
     def __str__(self) -> str:
         """Stringise the class."""
+        if not self.is_available:
+            return f"{self.name}: Unavailable"
         if self.active_mode is None:
             return f"{self.name}: Waiting..."
         if self.active_mode < 0 or self.active_mode > len(
@@ -105,6 +97,8 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
     @property
     def monitor(self) -> str:
         """Get monitor string."""
+        if not self.is_available:
+            return "WC: None"
         if self.active_mode is None:
             return "WC: ?"
         return f"WC: {self.active_mode}"

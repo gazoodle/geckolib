@@ -243,15 +243,22 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         for moveit in button_line:
             moveit.move(moveit.y, moveit.x + delta)
 
+        if self.facade.spa.struct.is_mr_steam:
+            self._lines.append("We have a Mr Steam unit")
+            self._lines.append("")
+
         self._lines.append(f"{self.facade.water_heater}")
         if self.facade.inmix.is_available:
             self._lines.extend(f"{zone}" for zone in self.facade.inmix.zones)
             if self.facade.inmix.syncro.is_available:
                 self._lines.append(f"{self.facade.inmix.syncro}")
-        self._lines.extend(
-            f"{reminder}" for reminder in self.facade.reminders_manager.reminders
-        )
-        self._lines.append(f"{self.facade.water_care}")
+        if self.facade.reminders_manager.is_available:
+            self._lines.extend(
+                f"{reminder}" for reminder in self.facade.reminders_manager.reminders
+            )
+        # if self.facade.water_care.is_available:
+        if self.facade.water_care.is_available:
+            self._lines.append(f"{self.facade.water_care}")
         if self.facade.heatpump.is_available:
             self._lines.append(f"{self.facade.heatpump}")
         if self.facade.ingrid.is_available:
@@ -267,7 +274,8 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 *self.facade.binary_sensors,
             ]
         )
-        self._lines.append(f"{self.facade.eco_mode}")
+        if self.facade.eco_mode is not None:
+            self._lines.append(f"{self.facade.eco_mode}")
         self._lines.append(
             f"{self.ping_sensor} (Responding: {self._spa.is_responding_to_pings})"
         )

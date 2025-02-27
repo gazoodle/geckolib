@@ -11,6 +11,7 @@ from typing import Any, Self
 
 from geckolib import VERSION, GeckoConstants, GeckoPump
 from geckolib.async_spa_manager import GeckoAsyncSpaMan
+from geckolib.automation import inmix
 from geckolib.automation.base import GeckoAutomationBase, GeckoAutomationFacadeBase
 from geckolib.config import release_config_change_waiters
 from geckolib.driver.accessor import GeckoStructAccessor
@@ -220,16 +221,25 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
             print(blower)
         for light in self.facade.lights:
             print(light)
-        for reminder in self.facade.reminders_manager.reminders:
-            print(reminder)
-        print(self.facade.water_care)
+        if self.facade.reminders_manager.is_available:
+            for reminder in self.facade.reminders_manager.reminders:
+                print(reminder)
+        if self.facade.water_care.is_available:
+            print(self.facade.water_care)
         for sensor in [
             *self.facade.sensors,
             *self.facade.binary_sensors,
         ]:
             print(sensor)
-        print(self.facade.eco_mode)
+        if self.facade.eco_mode is not None:
+            print(self.facade.eco_mode)
         print(self.facade.error_sensor)
+        if self.facade.ingrid.is_available:
+            print(self.facade.ingrid)
+        if self.facade.heatpump.is_available:
+            print(self.facade.heatpump)
+        if self.facade.inmix.is_available:
+            print(self.facade.inmix)
 
     def monitor_get_states(self) -> list[str]:
         """Get the monitor states as a string list."""

@@ -287,6 +287,10 @@ class GeckoAsyncStructure:
     #
     #   Accessory support
 
+    def is_mr_steam(self) -> bool:
+        """Is this a MrSteam pack."""
+        return self.plateform_key == "mrsteam"
+
     async def check_for_accessories(self) -> None:
         """After the initial pack has been loaded, check for accessories too."""
         inmix_packtype = GeckoByteStructAccessor(self, "inMix-PackType", 628, None)

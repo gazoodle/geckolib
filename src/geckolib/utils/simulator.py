@@ -444,22 +444,23 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             "Status block",
             "SIM",
         )
-        # Watercare
-        self.add_task(
-            GeckoWatercareProtocolHandler(
-                async_on_handled=self._async_on_watercare
-            ).consume(self._protocol),
-            "Watercare",
-            "SIM",
-        )
-        # Reminders
-        self.add_task(
-            GeckoRemindersProtocolHandler(
-                async_on_handled=self._async_on_reminders
-            ).consume(self._protocol),
-            "Reminders",
-            "SIM",
-        )
+        # Watercare if not MrSteam
+        if not self.structure.is_mr_steam:
+            self.add_task(
+                GeckoWatercareProtocolHandler(
+                    async_on_handled=self._async_on_watercare
+                ).consume(self._protocol),
+                "Watercare",
+                "SIM",
+            )
+            # Reminders
+            self.add_task(
+                GeckoRemindersProtocolHandler(
+                    async_on_handled=self._async_on_reminders
+                ).consume(self._protocol),
+                "Reminders",
+                "SIM",
+            )
         # Update firmware fake
         self.add_task(
             GeckoUpdateFirmwareProtocolHandler(

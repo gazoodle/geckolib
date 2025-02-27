@@ -172,12 +172,13 @@ class GeckoAsyncFacade(Observable):
                 if not self._spa.is_responding_to_pings:
                     wait_time = GeckoConfig.PING_FREQUENCY_IN_SECONDS
                 else:
-                    self._water_care.change_watercare_mode(
-                        await self._spa.async_get_watercare()
-                    )
-                    self._reminders_manager.change_reminders(
-                        await self._spa.async_get_reminders()
-                    )
+                    if self._water_care.is_available:
+                        self._water_care.change_watercare_mode(
+                            await self._spa.async_get_watercare()
+                        )
+                        self._reminders_manager.change_reminders(
+                            await self._spa.async_get_reminders()
+                        )
                     self._on_config_device_change()
 
                     # After we've been round here at least once, we're ready
@@ -228,6 +229,29 @@ class GeckoAsyncFacade(Observable):
             for sensor in GeckoConstants.SENSORS
             if sensor[1] in self._spa.accessors
         ]
+
+        if self._spa.struct.is_mr_steam:
+            self._sensors.extend(
+                [
+                    GeckoSensor(
+                        self, "Mr.Steam On/Off", self._spa.accessors["UserMode"]
+                    ),
+                    GeckoSensor(
+                        self, "Mr.Steam Aroma", self._spa.accessors["UserAroma"]
+                    ),
+                    GeckoSensor(
+                        self,
+                        "Mr.Steam Temperature",
+                        self._spa.accessors["UserSetpointG"],
+                        self._spa.accessors["TempUnits"],
+                    ),
+                    GeckoSensor(
+                        self,
+                        "Mr.Steam Runtime",
+                        self._spa.accessors["RemainingRuntime"],
+                    ),
+                ]
+            )
 
         self._binary_sensors = [
             GeckoBinarySensor(
