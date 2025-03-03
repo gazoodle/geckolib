@@ -237,37 +237,42 @@ class GeckoSnapshot:
         return f"{self.name} ({self.timestamp}) for {self.packtype}"
 
     @staticmethod
-    def parse_log_file(file: str) -> list[GeckoSnapshot]:
+    def parse_log_file(file: str) -> list[GeckoSnapshot]:  # noqa: PLR0912
         """Parse a log file into one or more snapshots."""
         snapshots = []
 
         snapshot = None
         connection = None
 
-        with Path(file).open() as f:
-            for line in f:
-                if line.startswith("{"):
-                    snapshot = GeckoSnapshot.parse_json(line)
-                elif "Snapshot" in line:
-                    snapshot = GeckoSnapshot()
+        if file.endswith(".json"):
+            with Path(file).open() as f:
+                json = "".join(f.readlines())
+                snapshot = GeckoSnapshot.parse_json(json)
+        else:
+            with Path(file).open() as f:
+                for line in f:
+                    if line.startswith("{"):
+                        snapshot = GeckoSnapshot.parse_json(line)
+                    elif "Snapshot" in line:
+                        snapshot = GeckoSnapshot()
 
-                if snapshot:
-                    if "INFO" in line:
-                        snapshot.parse(line)
-                    else:
-                        snapshots.append(snapshot)
-                        snapshot = None
+                    if snapshot:
+                        if "INFO" in line:
+                            snapshot.parse(line)
+                        else:
+                            snapshots.append(snapshot)
+                            snapshot = None
 
-                if "Starting spa connection handshake..." in line:
-                    connection = GeckoSnapshot()
-                    connection.set_name("Connection found")
-                if connection:
-                    if "Spa is connected" in line:
-                        connection.parse(line)
-                        snapshots.append(connection)
-                        connection = None
-                    else:
-                        connection.parse(line)
+                    if "Starting spa connection handshake..." in line:
+                        connection = GeckoSnapshot()
+                        connection.set_name("Connection found")
+                    if connection:
+                        if "Spa is connected" in line:
+                            connection.parse(line)
+                            snapshots.append(connection)
+                            connection = None
+                        else:
+                            connection.parse(line)
 
         # Handle dangling snapshot
         if snapshot is not None:

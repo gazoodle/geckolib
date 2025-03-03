@@ -284,6 +284,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Use the config ver and status ver check in simulator to make sure partial block updates are acceptable
 
 ## Done/Fixed in 1.0.8
+ - Snapshots can be a full JSON file now
+ - Working through various inMix and Mr.Steam issues
+ - Trying to get Bain Ultra bath support too
+ - Basic Mr.Steam support ready for testing
 
 ## Done/Fixed in 1.0.7
  - Move on with MrSteam device detection, it ought to load the facade cleanly now

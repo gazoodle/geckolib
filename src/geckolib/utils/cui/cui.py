@@ -157,10 +157,13 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
     async def _device_click(self, device: GeckoPump | GeckoLight) -> None:
         _LOGGER.debug("Device %s clicked", device)
-        if device.is_on:
-            await device.async_turn_off()
-        else:
-            await device.async_turn_on()
+        try:
+            if device.is_on:
+                await device.async_turn_off()
+            else:
+                await device.async_turn_on()
+        except Exception:
+            _LOGGER.exception("Exception during click")
 
     def _located_spas(self, maxy: int, maxx: int) -> None:
         if self.spa_descriptors is None:
@@ -219,7 +222,10 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         button_line = []
 
         for device in list(
-            self.facade.pumps + self.facade.blowers + self.facade.lights
+            self.facade.pumps
+            + self.facade.blowers
+            + self.facade.lights
+            + self.facade.switches
         ):
             device_button = self.add_button(
                 cury,
@@ -243,7 +249,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         for moveit in button_line:
             moveit.move(moveit.y, moveit.x + delta)
 
-        if self.facade.spa.struct.is_mr_steam:
+        if self.facade.mrsteam.is_available:
             self._lines.append("We have a Mr Steam unit")
             self._lines.append("")
 

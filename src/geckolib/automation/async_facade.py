@@ -12,6 +12,7 @@ from geckolib.automation.heatpump import GeckoHeatPump
 from geckolib.automation.ingrid import GeckoInGrid
 from geckolib.automation.inmix import GeckoInMix
 from geckolib.automation.lockmode import GeckoLockMode
+from geckolib.automation.mrsteam import MrSteam
 from geckolib.automation.waterfall import GeckoWaterfall
 from geckolib.config import GeckoConfig, config_sleep, set_config_mode
 from geckolib.const import GeckoConstants
@@ -116,6 +117,8 @@ class GeckoAsyncFacade(Observable):
         self._lockmode: GeckoLockMode = GeckoLockMode(self)
 
         self._inmix: GeckoInMix = GeckoInMix(self)
+
+        self._mrsteam: MrSteam = MrSteam(self)
 
         #################
 
@@ -230,35 +233,6 @@ class GeckoAsyncFacade(Observable):
             if sensor[1] in self._spa.accessors
         ]
 
-        if self._spa.struct.is_mr_steam:
-            self._sensors.extend(
-                [
-                    GeckoSensor(
-                        self,
-                        "Mr.Steam On/Off",
-                        self._spa.accessors[GeckoConstants.KEY_MRSTEAM_USER_MODE],
-                    ),
-                    GeckoSensor(
-                        self,
-                        "Mr.Steam Aroma",
-                        self._spa.accessors[GeckoConstants.KEY_MRSTEAM_USER_AROMA],
-                    ),
-                    GeckoSensor(
-                        self,
-                        "Mr.Steam Temperature",
-                        self._spa.accessors[GeckoConstants.KEY_MRSTEAM_USER_SETPOINT_G],
-                        self._spa.accessors[GeckoConstants.KEY_TEMP_UNITS],
-                    ),
-                    GeckoSensor(
-                        self,
-                        "Mr.Steam Runtime",
-                        self._spa.accessors[
-                            GeckoConstants.KEY_MRSTEAM_REMAINING_RUNTIME
-                        ],
-                    ),
-                ]
-            )
-
         self._binary_sensors = [
             GeckoBinarySensor(
                 self, binary_sensor[0], self._spa.accessors[binary_sensor[1]]
@@ -300,6 +274,11 @@ class GeckoAsyncFacade(Observable):
         return self._spa
 
     @property
+    def mrsteam(self) -> MrSteam:
+        """Get the Mr.Steam object."""
+        return self._mrsteam
+
+    @property
     def reminders_manager(self) -> GeckoReminders:
         """Get the reminders handler."""
         return self._reminders_manager
@@ -333,6 +312,15 @@ class GeckoAsyncFacade(Observable):
     def lights(self) -> list[GeckoLight]:
         """Get the lights list."""
         return self._lights
+
+    @property
+    def switches(self) -> list[GeckoSwitch]:
+        """Get the switches."""
+        if self.mrsteam.is_available:
+            return self.mrsteam.switches
+        if self.eco_mode is not None:
+            return [self.eco_mode]
+        return []
 
     @property
     def sensors(self) -> list[GeckoSensorBase]:

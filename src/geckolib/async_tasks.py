@@ -5,7 +5,7 @@ import logging
 from collections.abc import Coroutine
 from typing import Self
 
-from .config import GeckoConfig, config_sleep
+from .config import GeckoConfig, config_sleep, release_config_change_waiters
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class AsyncTasks:
         """Async exit, when out of scope."""
         await self.gather()
 
-    def add_task(self, coroutine: Coroutine, name_: str, key_: str) -> None:
+    def add_task(self, coroutine: Coroutine, name_: str, key_: str) -> asyncio.Task:
         """Add tasks to the task list."""
         taskname = f"{key_}:{name_}"
         for task in self._tasks:
@@ -45,6 +45,7 @@ class AsyncTasks:
         _LOGGER.debug("Starting task `%s` in domain `%s`", name_, key_)
         task = asyncio.create_task(coroutine, name=taskname)
         self._tasks.append(task)
+        return task
 
     def cancel_key_tasks(self, key_: str) -> None:
         """Cancel tasks that use the specified key."""
@@ -52,6 +53,7 @@ class AsyncTasks:
             if task.get_name().startswith(f"{key_}:"):
                 _LOGGER.debug("Cancel task %s", task)
                 task.cancel()
+        release_config_change_waiters()
 
     async def gather(self) -> None:
         """Cancel all tasks."""

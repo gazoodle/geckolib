@@ -62,6 +62,11 @@ class AsyncCmd(cmd.Cmd):
                     self.queue.task_done()
                 except Empty:
                     await asyncio.sleep(0)
+                except asyncio.CancelledError:
+                    _LOGGER.debug("Command loop cancelled")
+                    raise
+                except Exception:
+                    _LOGGER.exception("Command loop exception, logged and continue")
         finally:
             aexit = self.__getattribute__("__aexit__")
             if aexit is not None:

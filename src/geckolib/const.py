@@ -16,6 +16,8 @@ class GeckoConstants:
     CONNECTION_TIMEOUT_IN_SECONDS = 45
     # Async Locator sleep times
     ASYNC_LOCATOR_BROADCAST_SLEEP = 1
+    # Simulator min time between responses to broadcast <HELLO>
+    SIMULATOR_MIN_TIME_BETWEEN_HELLO_BROADCAST_RESPONSES = 1
 
     CONNECTION_STEP_PAUSE_IN_SECONDS = None  # Time between connection steps
     MAX_RF_ERRORS_BEFORE_HALT = 50
@@ -69,8 +71,18 @@ class GeckoConstants:
 
     KEY_MRSTEAM_USER_MODE = "UserMode"
     KEY_MRSTEAM_USER_AROMA = "UserAroma"
+    KEY_MRSTEAM_USER_CHROMA = "UserChroma"
     KEY_MRSTEAM_USER_SETPOINT_G = "UserSetpointG"
+    KEY_MRSTEAM_USER_RUNTIME = "UserRuntime"
+
+    KEY_MRSTEAM_HEATER_OUTPUT = "HeaterOutput"
+    KEY_MRSTEAM_AROMA_OUTPUT = "AromaOutput"
+    KEY_MRSTEAM_CHROMA_OUTPUT = "ChromaOutput"
     KEY_MRSTEAM_REMAINING_RUNTIME = "RemainingRuntime"
+    KEY_MRSTEAM_MAX_RUNTIME = "MaxRuntime"
+
+    KEY_MIN_SETPOINT_G = "MinSetpointG"
+    KEY_MAX_SETPOINT_G = "MaxSetpointG"
 
     KEY_USER_DEMAND_LIGHT = "UdLi"
 

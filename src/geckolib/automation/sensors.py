@@ -6,12 +6,12 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from geckolib.driver import GeckoBoolStructAccessor
+from geckolib.driver.accessor import GeckoStructAccessor
 
 from .base import GeckoAutomationFacadeBase
 
 if TYPE_CHECKING:
     from geckolib.automation.async_facade import GeckoAsyncFacade
-    from geckolib.driver.accessor import GeckoStructAccessor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class GeckoSensor(GeckoSensorBase):
         facade: GeckoAsyncFacade,
         name: str,
         accessor: GeckoStructAccessor,
-        unit_accessor: GeckoStructAccessor | None = None,
+        unit_accessor: GeckoStructAccessor | str | None = None,
         device_class: str | None = None,
     ) -> None:
         """Initialize the sensor class."""
@@ -69,7 +69,7 @@ class GeckoSensor(GeckoSensorBase):
         # Bubble up change notification
         accessor.watch(self._on_change)
         self._unit_of_measurement_accessor = unit_accessor
-        if unit_accessor:
+        if isinstance(self._unit_of_measurement_accessor, GeckoStructAccessor):
             unit_accessor.watch(self._on_change)
 
     @property
@@ -80,9 +80,9 @@ class GeckoSensor(GeckoSensorBase):
     @property
     def unit_of_measurement(self) -> str | None:
         """The unit of measurement for the sensor, or None."""
-        if self._unit_of_measurement_accessor is None:
-            return None
-        return self._unit_of_measurement_accessor.value
+        if isinstance(self._unit_of_measurement_accessor, GeckoStructAccessor):
+            return self._unit_of_measurement_accessor.value
+        return self._unit_of_measurement_accessor
 
     @property
     def accessor(self) -> GeckoStructAccessor:

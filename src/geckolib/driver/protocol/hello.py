@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 from geckolib.const import GeckoConstants
@@ -25,6 +26,7 @@ class GeckoHelloProtocolHandler(GeckoUdpProtocolHandler):
         self._client_identifier: bytes | None = None
         self._spa_identifier: bytes | None = None
         self._spa_name: str | None = None
+        self.last_response: float = time.monotonic()
 
     @staticmethod
     def broadcast_address(static_ip: str | None) -> tuple:

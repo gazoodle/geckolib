@@ -21,10 +21,13 @@ _LOGGER = logging.getLogger(__name__)
 class GeckoSwitch(GeckoPower):
     """A switch can turn something on or off, and can report the current state."""
 
-    def __init__(self, facade: GeckoAsyncFacade, key: str, props: list) -> None:
+    def __init__(self, facade: GeckoAsyncFacade, key: str, props: tuple) -> None:
         """Props is a tuple of (name, keypad_button, state_key, device_class)."""
         super().__init__(facade, props[0], key)
-        self._accessor = self._spa.accessors[props[2]]
+        if key in self._spa.accessors:
+            self._accessor = self._spa.accessors[key]
+        else:
+            self._accessor = self._spa.accessors[props[2]]
         self._state_sensor = GeckoSensor(facade, f"{props[0]} State", self._accessor)
         self._state_sensor.watch(self._on_change)
         self._keypad_button = props[1]
@@ -43,11 +46,14 @@ class GeckoSwitch(GeckoPower):
         if self.is_on:
             _LOGGER.debug("%s request to turn ON ignored, it's already on!", self.name)
             return
-        if self._keypad_button != 0:
+        if self._keypad_button is not None:
             await self._spa.async_press(self._keypad_button)
             return
         _LOGGER.debug("Set async state on accessor")
-        await self._accessor.async_set_value(True)  # noqa: FBT003
+        if self._accessor.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
+            await self._accessor.async_set_value(True)  # noqa: FBT003
+        else:
+            await self._accessor.async_set_value("ON")
 
     async def async_turn_off(self) -> None:
         """Turn the device OFF, but does nothing if it is already OFF."""
@@ -57,15 +63,25 @@ class GeckoSwitch(GeckoPower):
                 "%s request to turn OFF ignored, it's already off!", self.name
             )
             return
-        if self._keypad_button != 0:
+        if self._keypad_button is not None:
             await self._spa.async_press(self._keypad_button)
             return
         _LOGGER.debug("Set async state on accessor")
-        await self._accessor.async_set_value(False)  # noqa: FBT003
+        if self._accessor.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
+            await self._accessor.async_set_value(False)  # noqa: FBT003
+        else:
+            await self._accessor.async_set_value("OFF")
 
     def state_sensor(self) -> GeckoSensor:
         """Get the state sensor."""
         return self._state_sensor
+
+    @property
+    def state(self) -> str:
+        """Get the switch state."""
+        if self._accessor.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
+            return "ON" if self._state_sensor.state else "OFF"
+        return self._state_sensor.state
 
     def __str__(self) -> str:
         """Stringize."""

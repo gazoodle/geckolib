@@ -5,13 +5,15 @@ from .base import GeckoAutomationBase, GeckoAutomationFacadeBase
 from .blower import GeckoBlower
 from .bubblegen import GeckoBubbleGenerator
 from .button import GeckoButton
-from .heater import GeckoWaterHeater
+from .heater import GeckoWaterHeater, GeckoWaterHeaterAbstract
 from .heatpump import GeckoHeatPump
 from .ingrid import GeckoInGrid
 from .inmix import GeckoInMix, GeckoInMixSynchro, GeckoInMixZone
 from .keypad import GeckoKeypad
 from .keypad_backlight import GeckoKeypadBacklight
 from .light import GeckoLight
+from .mrsteam import MrSteam
+from .number import GeckoNumber
 from .pump import GeckoPump
 from .reminders import GeckoReminders
 from .sensors import GeckoBinarySensor, GeckoErrorSensor, GeckoSensor
@@ -36,11 +38,14 @@ __all__ = [
     "GeckoKeypad",
     "GeckoKeypadBacklight",
     "GeckoLight",
+    "GeckoNumber",
     "GeckoPump",
     "GeckoReminders",
     "GeckoSensor",
     "GeckoSwitch",
     "GeckoWaterCare",
     "GeckoWaterHeater",
+    "GeckoWaterHeaterAbstract",
     "GeckoWaterfall",
+    "MrSteam",
 ]

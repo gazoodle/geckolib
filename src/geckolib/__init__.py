@@ -25,6 +25,7 @@ from .automation import (
     GeckoInMixZone,
     GeckoKeypad,
     GeckoLight,
+    GeckoNumber,
     GeckoPump,
     GeckoReminders,
     GeckoSensor,
@@ -32,6 +33,8 @@ from .automation import (
     GeckoWaterCare,
     GeckoWaterfall,
     GeckoWaterHeater,
+    GeckoWaterHeaterAbstract,
+    MrSteam,
 )
 from .config import GeckoConfig
 from .const import GeckoConstants
@@ -102,6 +105,7 @@ __all__ = [
     "GeckoInMixZone",
     "GeckoKeypad",
     "GeckoLight",
+    "GeckoNumber",
     "GeckoPackCommandProtocolHandler",
     "GeckoPacketProtocolHandler",
     "GeckoPingProtocolHandler",
@@ -123,8 +127,10 @@ __all__ = [
     "GeckoVersionProtocolHandler",
     "GeckoWaterCare",
     "GeckoWaterHeater",
+    "GeckoWaterHeaterAbstract",
     "GeckoWatercareProtocolHandler",
     "GeckoWaterfall",
     "GeckoWordStructAccessor",
+    "MrSteam",
     "Observable",
 ]

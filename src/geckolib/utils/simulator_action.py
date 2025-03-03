@@ -35,6 +35,14 @@ class GeckoSimulatorAction:
     UdQuietTime: Any
     SetpointG: Any
 
+    # Mr.Steam
+    UserMode: Any
+    HeaterOutput: Any
+    UserAroma: Any
+    AromaOutput: Any
+    UserChroma: Any
+    ChromaOutput: Any
+
     # Support accessors
     P1: Any
     P2: Any
@@ -46,6 +54,7 @@ class GeckoSimulatorAction:
     L120: Any
     CP: Any
     QuietState: Any
+    EconActive: Any
 
     # Water heater
     DisplayedTempG: Any
@@ -54,6 +63,8 @@ class GeckoSimulatorAction:
     Heating: Any
     HeaterPump: Any
     TempUnits: Any
+    UserRuntime: Any
+    RemainingRuntime: Any
 
     # Utility accessors
     CheckFlo: Any
@@ -136,6 +147,10 @@ class GeckoSimulatorAction:
     def on_KEYPAD_DOWN(self) -> None:
         """Handle keypad temp down."""
         self.SetpointG -= 0.5 if self.TempUnits == "C" else 1.0
+
+    def on_KEYPAD_ECOMODE(self) -> None:
+        """Handfle eco mode key."""
+        self.EconActive = not self.EconActive
 
     ############################################################################
     #
@@ -271,6 +286,26 @@ class GeckoSimulatorAction:
     def on_SetpointG(self) -> None:
         """Handle changes to setpoint."""
         self._temp_helper()
+
+    def on_UserMode(self) -> None:
+        """Handle Mr.Steam user mode."""
+        self.HeaterOutput = self.UserMode == "ON"
+        if self.UserRuntime == 0:
+            self.UserRuntime = 2
+        if self.HeaterOutput:
+            self.RemainingRuntime = self.UserRuntime
+
+    def on_UserAroma(self) -> None:
+        """Handle Mr.Steam aroma mode."""
+        self.AromaOutput = self.UserAroma == "ON"
+
+    def on_UserChroma(self) -> None:
+        """Handle Mr.Steam chroma mode."""
+        self.ChromaOutput = self.UserChroma == "ON"
+
+    def on_UserRuntime(self) -> None:
+        """Handle Mr.Steam user runtime change."""
+        self.RemainingRuntime = self.UserRuntime
 
     ############################################################################
     #

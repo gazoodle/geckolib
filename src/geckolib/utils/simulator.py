@@ -6,12 +6,13 @@ import asyncio
 import logging
 import random
 import socket
+import time
 from pathlib import Path
 from typing import Any, Self
 
 from geckolib import VERSION
 from geckolib.async_taskman import GeckoAsyncTaskMan
-from geckolib.config import config_sleep
+from geckolib.config import config_sleep, release_config_change_waiters
 from geckolib.const import GeckoConstants
 from geckolib.driver import (
     GeckoAsyncPartialStatusBlockProtocolHandler,
@@ -111,6 +112,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             (GeckoReminderType.INVALID, 0),
         ]
 
+        self._hello_task: asyncio.Task | None = None
+
     async def __aenter__(self) -> Self:
         """Support async with."""
         await GeckoAsyncTaskMan.__aenter__(self)
@@ -150,7 +153,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             lambda: GeckoAsyncUdpProtocol(self, self._con_lost, None),
             sock=sock,
         )
-        self._install_standard_handlers()
+        await self._install_standard_handlers()
         self._send_structure_change = True
 
     async def do_stop(self, _args: str) -> None:
@@ -245,9 +248,26 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         snapshot = GeckoSnapshot.parse_json(args)
         await self.set_snapshot(snapshot)
 
-    def do_name(self, args: str) -> None:
+    async def do_name(self, args: str) -> None:
         """Set the name of the spa : name <spaname>."""
         self._name = args
+        if self._hello_task is not None:
+            self._hello_task.cancel()
+            self._hello_task = None
+            release_config_change_waiters()
+            await asyncio.sleep(1)
+
+        assert self._protocol is not None  # noqa: S101
+        # Hello handler
+        self._hello_task = self.add_task(
+            GeckoHelloProtocolHandler.response(
+                SPA_IDENTIFIER,
+                self._name,
+                async_on_handled=self._async_on_hello,
+            ).consume(self._protocol),
+            "Hello handler",
+            "SIM",
+        )
 
     async def set_snapshot(self, snapshot: GeckoSnapshot) -> None:
         """Assign snapshot to this simulator."""
@@ -370,26 +390,16 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             print(f"Unreliable simulator ignoring request for {handler} from {sender}")
         return should_ignore
 
-    def _install_standard_handlers(self) -> None:
+    async def _install_standard_handlers(self) -> None:
         """
         Install standard handlers.
 
         All simulators needs to have some basic functionality such
         as discovery, error handling et al
         """
-        self.do_name("Udp Test Spa")
+        await self.do_name("Simulator")
 
         assert self._protocol is not None  # noqa: S101
-        # Hello handler
-        self.add_task(
-            GeckoHelloProtocolHandler.response(
-                SPA_IDENTIFIER,
-                self._name,
-                async_on_handled=self._async_on_hello,
-            ).consume(self._protocol),
-            "Hello handler",
-            "SIM",
-        )
         # Helper to unwrap PACK packets
         self.add_task(
             GeckoPacketProtocolHandler(async_on_handled=self._async_on_packet).consume(
@@ -485,7 +495,12 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             if self._should_ignore(handler, sender, respect_rferr=False):
                 return
             assert self._protocol is not None  # noqa: S101
-            self._protocol.queue_send(handler, sender)
+            if (
+                time.monotonic() - handler.last_response
+                > GeckoConstants.SIMULATOR_MIN_TIME_BETWEEN_HELLO_BROADCAST_RESPONSES
+            ):
+                handler.last_response = time.monotonic()
+                self._protocol.queue_send(handler, sender)
         elif handler.client_identifier is not None:
             # We're not fussy, we'll chat to anyone!
             pass

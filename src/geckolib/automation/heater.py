@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 from geckolib.automation.power import GeckoPower
@@ -13,11 +14,45 @@ if TYPE_CHECKING:
     from geckolib.automation.async_facade import GeckoAsyncFacade
 
 
-class GeckoWaterHeater(GeckoPower):
-    """Water Heater object based on Home Assistant Entity Type Climate."""
+class GeckoWaterHeaterAbstract(GeckoPower):
+    """Abstract base for water heaters."""
 
     TEMP_CELCIUS = "°C"
     TEMP_FARENHEIGHT = "°F"
+
+    @property
+    @abstractmethod
+    def current_operation(self) -> str:
+        """Get the current operation."""
+
+    @property
+    @abstractmethod
+    def temperature_unit(self) -> str:
+        """Get the temperature unit."""
+
+    @property
+    @abstractmethod
+    def current_temperature(self) -> float:
+        """Get the current temperature."""
+
+    @property
+    @abstractmethod
+    def target_temperature(self) -> float:
+        """Get the target temperature."""
+
+    @property
+    @abstractmethod
+    def min_temp(self) -> float:
+        """Get the min temp."""
+
+    @property
+    @abstractmethod
+    def max_temp(self) -> float:
+        """Get the max temp."""
+
+
+class GeckoWaterHeater(GeckoWaterHeaterAbstract):
+    """Water Heater object based on Home Assistant Entity Type Climate."""
 
     MIN_TEMP_C = 8
     MAX_TEMP_C = 40
@@ -105,7 +140,9 @@ class GeckoWaterHeater(GeckoPower):
     @property
     def real_target_temperature(self) -> float:
         """Get the real target temperature (takes eco mode into account)."""
-        return self._real_setpoint_sensor.state
+        if self._real_setpoint_sensor is not None:
+            return self._real_setpoint_sensor.state
+        return self.target_temperature
 
     @property
     def real_target_temperature_sensor(self) -> GeckoSensor:
