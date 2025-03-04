@@ -286,6 +286,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
  - Fixed broken EcoMode switch that 1.0.8 introduced
  - Added pump and blower sensors to show P<n> & BL device states because buttons now
    exclusively use UdP<n> for control.
+ - Restore old min temperature, but use the pack config data if available to override.
 
 ## Done/Fixed in 1.0.8
  - Snapshots can be a full JSON file now

@@ -54,9 +54,9 @@ class GeckoWaterHeaterAbstract(GeckoPower):
 class GeckoWaterHeater(GeckoWaterHeaterAbstract):
     """Water Heater object based on Home Assistant Entity Type Climate."""
 
-    MIN_TEMP_C = 8
+    MIN_TEMP_C = 15
     MAX_TEMP_C = 40
-    MIN_TEMP_F = 46
+    MIN_TEMP_F = 59
     MAX_TEMP_F = 104
 
     def __init__(self, facade: GeckoAsyncFacade) -> None:
@@ -69,6 +69,8 @@ class GeckoWaterHeater(GeckoWaterHeaterAbstract):
         self._temperature_unit_accessor = None
         self._heating_action_sensor = None
         self._cooling_action_sensor = None
+        self._min_temp_sensor = None
+        self._max_temp_sensor = None
 
         # Attempt to locate the various items needed from the spa accessors
         self._temperature_unit_accessor = self._spa.accessors[
@@ -110,6 +112,20 @@ class GeckoWaterHeater(GeckoWaterHeaterAbstract):
                 "Cooling",
                 self._spa.accessors[GeckoConstants.KEY_COOLINGDOWN],
             )
+        if GeckoConstants.KEY_MIN_SETPOINT_G in self._spa.accessors:
+            self._min_temp_sensor = GeckoSensor(
+                self.facade,
+                "Min Temperature",
+                self._spa.accessors[GeckoConstants.KEY_MIN_SETPOINT_G],
+                self._temperature_unit_accessor,
+            )
+        if GeckoConstants.KEY_MAX_SETPOINT_G in self._spa.accessors:
+            self._max_temp_sensor = GeckoSensor(
+                self.facade,
+                "Max Temperature",
+                self._spa.accessors[GeckoConstants.KEY_MAX_SETPOINT_G],
+                self._temperature_unit_accessor,
+            )
 
         # Setup change observers
         for sensor in [
@@ -119,6 +135,8 @@ class GeckoWaterHeater(GeckoWaterHeaterAbstract):
             self._temperature_unit_accessor,
             self._heating_action_sensor,
             self._cooling_action_sensor,
+            self._min_temp_sensor,
+            self._max_temp_sensor,
         ]:
             if sensor is not None:
                 sensor.watch(self._on_change)
@@ -152,6 +170,8 @@ class GeckoWaterHeater(GeckoWaterHeaterAbstract):
     @property
     def min_temp(self) -> float:
         """Get the minimum temperature of the water heater."""
+        if self._min_temp_sensor is not None:
+            return self._min_temp_sensor.state
         return (
             self.MIN_TEMP_C
             if self._temperature_unit_accessor.value == "C"
@@ -161,6 +181,8 @@ class GeckoWaterHeater(GeckoWaterHeaterAbstract):
     @property
     def max_temp(self) -> float:
         """Get the maximum temperature of the water heater."""
+        if self._max_temp_sensor is not None:
+            return self._max_temp_sensor.state
         return (
             self.MAX_TEMP_C
             if self._temperature_unit_accessor.value == "C"
