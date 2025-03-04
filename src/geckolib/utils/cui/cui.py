@@ -313,6 +313,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             elif self.spa_state in (
                 GeckoSpaState.ERROR_RF_FAULT,
                 GeckoSpaState.ERROR_PING_MISSED,
+                GeckoSpaState.ERROR_NEEDS_ATTENTION,
             ):
                 self._spa_problem()
 

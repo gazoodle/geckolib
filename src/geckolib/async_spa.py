@@ -15,7 +15,12 @@ from geckolib.driver.protocol.reminders import GeckoReminderType
 
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_taskman import GeckoAsyncTaskMan
-from .config import GeckoConfig, config_sleep, release_config_change_waiters
+from .config import (
+    GeckoConfig,
+    config_sleep,
+    release_config_change_waiters,
+    set_config_mode,
+)
 from .const import GeckoConstants
 from .driver import (
     GeckoAsyncPartialStatusBlockProtocolHandler,
@@ -145,6 +150,7 @@ class GeckoAsyncSpa(Observable):
                 self.descriptor.name,
             )
             await self._event_handler(GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS)
+            set_config_mode(active=False)
 
     async def _async_import_module(
         self, loop: asyncio.AbstractEventLoop, module: str
