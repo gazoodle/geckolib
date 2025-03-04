@@ -282,6 +282,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Keep looking to see if there is a time sync mechanism
 - Use the config ver and status ver check in simulator to make sure partial block updates are acceptable
 
+## Done/Fixed in 1.0.11
+
 ## Done/Fixed in 1.0.10
  - Handle TempNotValid error
 
