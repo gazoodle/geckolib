@@ -246,7 +246,7 @@ class GeckoUdpProtocolHandler(ABC):
     ) -> None:
         """Handle retry failure."""
         _LOGGER.debug("Default retry failed handler for %r being used", handler)
-        handler._should_remove_handler = True  # noqa: SLF001
+        handler._should_remove_handler = True
 
     # Pythonic methods
     def __repr__(self) -> str:

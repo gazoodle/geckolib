@@ -298,7 +298,7 @@ class GeckoSnapshot:
     def parse_json(json: str) -> GeckoSnapshot:
         """Parse a JSON snapshot."""
         snapshot = GeckoSnapshot()
-        snapshot._parse_json(json)  # noqa: SLF001
+        snapshot._parse_json(json)
         return snapshot
 
     @staticmethod
@@ -310,9 +310,9 @@ class GeckoSnapshot:
         snapshot.parse("intouch version EN 88 v15.0")
         snapshot.parse("intouch version CO 89 v11.0")
 
-        snapshot._config_version = config_version  # noqa: SLF001
-        snapshot._log_version = log_version  # noqa: SLF001
-        snapshot._bytes = bytearray(1024)  # noqa: SLF001
+        snapshot._config_version = config_version
+        snapshot._log_version = log_version
+        snapshot._bytes = bytearray(1024)
 
         return snapshot
 
