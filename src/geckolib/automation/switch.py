@@ -110,6 +110,11 @@ class GeckoStandby(GeckoAutomationFacadeBase):
         """Turn off standby mode."""
         await self._accessor.async_set_value("NOT_SET")
 
+    @property
+    def state(self) -> str:
+        """Get the standby state."""
+        return f"{self.is_on}"
+
     def __str__(self) -> str:
         """Stringize the class."""
         return f"{self.name}: {self.is_on}"

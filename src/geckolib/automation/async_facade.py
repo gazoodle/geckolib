@@ -317,9 +317,12 @@ class GeckoAsyncFacade(Observable):
         """Get the switches."""
         if self.mrsteam.is_available:
             return self.mrsteam.switches
+        switches = []
         if self.eco_mode is not None:
-            return [self.eco_mode]
-        return []
+            switches.append(self.eco_mode)
+        if self.standby is not None:
+            switches.append(self.standby)
+        return switches
 
     @property
     def sensors(self) -> list[GeckoSensorBase]:
