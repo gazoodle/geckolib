@@ -264,7 +264,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Error handling (ongoing)
 - Pythonize where possible
 - More unit tests
-- Handle inMix for lighting control
 - Add API documentation
 - Tidy up support files. One class per file
 - Add switch for winterizing
@@ -284,7 +283,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Use the config ver and status ver check in simulator to make sure partial block updates are acceptable
 
 ## Done/Fixed in 1.0.9
-
+ - Fixed broken EcoMode switch that 1.0.8 introduced
 
 ## Done/Fixed in 1.0.8
  - Snapshots can be a full JSON file now

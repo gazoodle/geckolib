@@ -33,7 +33,6 @@ class MrSteam(GeckoWaterHeaterAbstract):
             GeckoConstants.KEY_MRSTEAM_USER_MODE,
             (
                 "On/Off",
-                None,
                 GeckoConstants.KEY_MRSTEAM_USER_MODE,
                 GeckoConstants.DEVICE_CLASS_SWITCH,
             ),
@@ -45,7 +44,6 @@ class MrSteam(GeckoWaterHeaterAbstract):
             GeckoConstants.KEY_MRSTEAM_USER_AROMA,
             (
                 "Aroma",
-                None,
                 GeckoConstants.KEY_MRSTEAM_USER_AROMA,
                 GeckoConstants.DEVICE_CLASS_SWITCH,
             ),
@@ -57,7 +55,6 @@ class MrSteam(GeckoWaterHeaterAbstract):
             GeckoConstants.KEY_MRSTEAM_USER_CHROMA,
             (
                 "Chroma",
-                None,
                 GeckoConstants.KEY_MRSTEAM_USER_CHROMA,
                 GeckoConstants.DEVICE_CLASS_SWITCH,
             ),

@@ -249,7 +249,6 @@ class GeckoAsyncFacade(Observable):
                 GeckoConstants.KEY_ECON_ACTIVE,
                 (
                     GeckoConstants.ECON_ACTIVE_DESCRIPTION,
-                    GeckoConstants.KEYPAD_ECOMODE,
                     GeckoConstants.KEY_ECON_ACTIVE,
                     GeckoConstants.DEVICE_CLASS_SWITCH,
                 ),

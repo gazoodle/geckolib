@@ -27,11 +27,10 @@ class GeckoSwitch(GeckoPower):
         if key in self._spa.accessors:
             self._accessor = self._spa.accessors[key]
         else:
-            self._accessor = self._spa.accessors[props[2]]
+            self._accessor = self._spa.accessors[props[1]]
         self._state_sensor = GeckoSensor(facade, f"{props[0]} State", self._accessor)
         self._state_sensor.watch(self._on_change)
-        self._keypad_button = props[1]
-        self.device_class = props[3]
+        self.device_class = props[2]
 
     @property
     def is_on(self) -> bool:
@@ -46,9 +45,6 @@ class GeckoSwitch(GeckoPower):
         if self.is_on:
             _LOGGER.debug("%s request to turn ON ignored, it's already on!", self.name)
             return
-        if self._keypad_button is not None:
-            await self._spa.async_press(self._keypad_button)
-            return
         _LOGGER.debug("Set async state on accessor")
         if self._accessor.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:
             await self._accessor.async_set_value(True)  # noqa: FBT003
@@ -62,9 +58,6 @@ class GeckoSwitch(GeckoPower):
             _LOGGER.debug(
                 "%s request to turn OFF ignored, it's already off!", self.name
             )
-            return
-        if self._keypad_button is not None:
-            await self._spa.async_press(self._keypad_button)
             return
         _LOGGER.debug("Set async state on accessor")
         if self._accessor.accessor_type == GeckoConstants.SPA_PACK_STRUCT_BOOL_TYPE:

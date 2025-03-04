@@ -148,10 +148,6 @@ class GeckoSimulatorAction:
         """Handle keypad temp down."""
         self.SetpointG -= 0.5 if self.TempUnits == "C" else 1.0
 
-    def on_KEYPAD_ECOMODE(self) -> None:
-        """Handfle eco mode key."""
-        self.EconActive = not self.EconActive
-
     ############################################################################
     #
     #               The pack properties that we want to watch
