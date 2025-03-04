@@ -233,6 +233,35 @@ class GeckoAsyncFacade(Observable):
             if sensor[1] in self._spa.accessors
         ]
 
+        if self.pump_1.is_available:
+            self._sensors.append(
+                GeckoSensor(self, "Pump 1 State", self.spa.accessors["P1"])
+            )
+        if self.pump_2.is_available:
+            self._sensors.append(
+                GeckoSensor(self, "Pump 2 State", self.spa.accessors["P2"])
+            )
+        if self.pump_3.is_available:
+            self._sensors.append(
+                GeckoSensor(self, "Pump 3 State", self.spa.accessors["P3"])
+            )
+        if self.pump_4.is_available:
+            self._sensors.append(
+                GeckoSensor(self, "Pump 4 State", self.spa.accessors["P4"])
+            )
+        if self.pump_5.is_available:
+            self._sensors.append(
+                GeckoSensor(self, "Pump 5 State", self.spa.accessors["P5"])
+            )
+        if self.blower.is_available:
+            self._sensors.append(
+                GeckoSensor(self, "Blower State", self.spa.accessors["BL"])
+            )
+        if self.waterfall.is_available:
+            self._sensors.append(
+                GeckoSensor(self, "Waterfall State", self.spa.accessors["Waterfall"])
+            )
+
         self._binary_sensors = [
             GeckoBinarySensor(
                 self, binary_sensor[0], self._spa.accessors[binary_sensor[1]]

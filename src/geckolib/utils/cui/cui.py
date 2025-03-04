@@ -272,8 +272,6 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
             self._lines.append(f"{self.facade.ingrid}")
         if self.facade.lockmode.is_available:
             self._lines.append(f"{self.facade.lockmode}")
-        if self.facade.standby is not None:
-            self._lines.append(f"{self.facade.standby}")
         self._lines.extend(
             f"{sensor}"
             for sensor in [
