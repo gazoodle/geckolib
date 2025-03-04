@@ -157,3 +157,5 @@ class GeckoErrorSensor(GeckoSensorBase):
             _LOGGER.debug("Error sensor state is %s", self.state)
         else:
             self._state = "None"
+
+        self._on_change(None, None, None)

@@ -48,6 +48,7 @@ class GeckoConstants:
     KEY_DISPLAYED_TEMP_G = "DisplayedTempG"
     KEY_HEATING = "Heating"
     KEY_COOLINGDOWN = "CoolingDown"
+    KEY_TEMP_NOT_VALID = "TempNotValid"
     KEY_PUMP_1 = "P1"
     KEY_PUMP_2 = "P2"
     KEY_PUMP_3 = "P3"

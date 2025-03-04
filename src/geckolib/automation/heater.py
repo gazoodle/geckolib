@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 from abc import abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from geckolib.automation.power import GeckoPower
 from geckolib.const import GeckoConstants
@@ -12,6 +13,8 @@ from .sensors import GeckoBinarySensor, GeckoSensor
 
 if TYPE_CHECKING:
     from geckolib.automation.async_facade import GeckoAsyncFacade
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class GeckoWaterHeaterAbstract(GeckoPower):
@@ -71,6 +74,7 @@ class GeckoWaterHeater(GeckoWaterHeaterAbstract):
         self._cooling_action_sensor = None
         self._min_temp_sensor = None
         self._max_temp_sensor = None
+        self._temp_not_valid_sensor = None
 
         # Attempt to locate the various items needed from the spa accessors
         self._temperature_unit_accessor = self._spa.accessors[
@@ -126,6 +130,12 @@ class GeckoWaterHeater(GeckoWaterHeaterAbstract):
                 self._spa.accessors[GeckoConstants.KEY_MAX_SETPOINT_G],
                 self._temperature_unit_accessor,
             )
+        if GeckoConstants.KEY_TEMP_NOT_VALID in self._spa.accessors:
+            self._temp_not_valid_sensor = GeckoSensor(
+                self.facade,
+                "Temp Not Valid",
+                self._spa.accessors[GeckoConstants.KEY_TEMP_NOT_VALID],
+            )
 
         # Setup change observers
         for sensor in [
@@ -137,9 +147,12 @@ class GeckoWaterHeater(GeckoWaterHeaterAbstract):
             self._cooling_action_sensor,
             self._min_temp_sensor,
             self._max_temp_sensor,
+            self._temp_not_valid_sensor,
         ]:
             if sensor is not None:
                 sensor.watch(self._on_change)
+
+        self._on_change(None, None, None)
 
     @property
     def target_temperature_sensor(self) -> GeckoSensor:
@@ -261,6 +274,13 @@ class GeckoWaterHeater(GeckoWaterHeaterAbstract):
                 f"{self.current_operation}"
             )
         return f"{self.name}: Not present"
+
+    def _on_change(
+        self, sender: Any = None, old_value: Any = None, new_value: Any = None
+    ) -> None:
+        if self._temp_not_valid_sensor is not None:
+            self.set_availability(is_available=not self._temp_not_valid_sensor.state)
+        return super()._on_change(sender, old_value, new_value)
 
     @property
     def monitor(self) -> str:
