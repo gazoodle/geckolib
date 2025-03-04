@@ -283,6 +283,7 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Use the config ver and status ver check in simulator to make sure partial block updates are acceptable
 
 ## Done/Fixed in 1.0.11
+ - Refactor watercare handling to build full support
 
 ## Done/Fixed in 1.0.10
  - Handle TempNotValid error

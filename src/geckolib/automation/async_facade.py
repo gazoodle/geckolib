@@ -177,7 +177,7 @@ class GeckoAsyncFacade(Observable):
                 else:
                     if self._water_care.is_available:
                         self._water_care.change_watercare_mode(
-                            await self._spa.async_get_watercare()
+                            await self._spa.async_get_watercare_mode()
                         )
                         self._reminders_manager.change_reminders(
                             await self._spa.async_get_reminders()

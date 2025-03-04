@@ -577,7 +577,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             assert self.facade is not None  # noqa: S101
             assert self._spa is not None  # noqa: S101
             self.facade.water_care.change_watercare_mode(
-                await self._spa.async_get_watercare()
+                await self._spa.async_get_watercare_mode()
             )
 
         if self._status_sensor is not None:

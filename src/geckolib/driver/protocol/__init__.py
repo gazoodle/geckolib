@@ -15,12 +15,21 @@ from .statusblock import (
 )
 from .unhandled import GeckoUnhandledProtocolHandler
 from .version import GeckoVersionProtocolHandler
-from .watercare import GeckoWatercareErrorHandler, GeckoWatercareProtocolHandler
+from .watercare import (
+    GeckoGetWatercareModeProtocolHandler,
+    GeckoGetWatercareScheduleListProtocolHandler,
+    GeckoSetWatercareModeProtocolHandler,
+    GeckoWatercareErrorHandler,
+    GeckoWatercareScheduleManager,
+)
 
 __all__ = [
     "GeckoAsyncPartialStatusBlockProtocolHandler",
     "GeckoConfigFileProtocolHandler",
     "GeckoGetChannelProtocolHandler",
+    "GeckoGetWatercareModeProtocolHandler",
+    "GeckoGetWatercareModeProtocolHandler",
+    "GeckoGetWatercareScheduleListProtocolHandler",
     "GeckoHelloProtocolHandler",
     "GeckoPackCommandProtocolHandler",
     "GeckoPacketProtocolHandler",
@@ -28,10 +37,11 @@ __all__ = [
     "GeckoRFErrProtocolHandler",
     "GeckoReminderType",
     "GeckoRemindersProtocolHandler",
+    "GeckoSetWatercareModeProtocolHandler",
     "GeckoStatusBlockProtocolHandler",
     "GeckoUnhandledProtocolHandler",
     "GeckoUpdateFirmwareProtocolHandler",
     "GeckoVersionProtocolHandler",
     "GeckoWatercareErrorHandler",
-    "GeckoWatercareProtocolHandler",
+    "GeckoWatercareScheduleManager",
 ]

@@ -12,6 +12,7 @@ from typing import Any
 
 from geckolib.driver.accessor import GeckoStructAccessor
 from geckolib.driver.protocol.reminders import GeckoReminderType
+from geckolib.driver.protocol.watercare import GeckoSetWatercareModeProtocolHandler
 
 from .async_spa_descriptor import GeckoAsyncSpaDescriptor
 from .async_taskman import GeckoAsyncTaskMan
@@ -28,6 +29,7 @@ from .driver import (
     GeckoAsyncUdpProtocol,
     GeckoConfigFileProtocolHandler,
     GeckoGetChannelProtocolHandler,
+    GeckoGetWatercareModeProtocolHandler,
     GeckoPackCommandProtocolHandler,
     GeckoPacketProtocolHandler,
     GeckoPingProtocolHandler,
@@ -37,7 +39,6 @@ from .driver import (
     GeckoUnhandledProtocolHandler,
     GeckoVersionProtocolHandler,
     GeckoWatercareErrorHandler,
-    GeckoWatercareProtocolHandler,
     Observable,
 )
 from .spa_events import GeckoSpaEvent
@@ -687,19 +688,19 @@ class GeckoAsyncSpa(Observable):
             _LOGGER.exception("Async press caught exception")
             raise
 
-    def _get_watercare_handler_func(self) -> GeckoWatercareProtocolHandler:
+    def _get_watercare_handler_func(self) -> GeckoGetWatercareModeProtocolHandler:
         assert self._protocol is not None  # noqa: S101
-        return GeckoWatercareProtocolHandler.request(
+        return GeckoGetWatercareModeProtocolHandler.get(
             self._protocol.get_and_increment_sequence_counter(),
             parms=self.sendparms,
         )
 
     async def _async_on_wcerr(
-        self, _handler: GeckoWatercareProtocolHandler, _sender: tuple
+        self, _handler: GeckoWatercareErrorHandler, _sender: tuple
     ) -> None:
         await self._event_handler(GeckoSpaEvent.RUNNING_SPA_WATER_CARE_ERROR)
 
-    async def async_get_watercare(self) -> int | None:
+    async def async_get_watercare_mode(self) -> int | None:
         """Get the watercare mode."""
         if not self.is_connected:
             _LOGGER.warning("Cannot get watercare when spa not connected")
@@ -713,13 +714,13 @@ class GeckoAsyncSpa(Observable):
         )
 
         if get_watercare_handler is None:
-            _LOGGER.error("Cannot get watercare, protocol retry count exceeded")
+            _LOGGER.error("Cannot get watercare mode, protocol retry count exceeded")
             await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
             return None
 
         return get_watercare_handler.mode
 
-    async def async_set_watercare(self, new_mode: int) -> None:
+    async def async_set_watercare_mode(self, new_mode: int) -> None:
         """Set the watercare more."""
         if not self.is_connected:
             _LOGGER.warning("Cannot set watercare when spa not connected")
@@ -729,16 +730,17 @@ class GeckoAsyncSpa(Observable):
             return
         assert self._protocol is not None  # noqa: S101
         set_watercare_handler = await self._protocol.get(
-            lambda: GeckoWatercareProtocolHandler.set(
+            lambda: GeckoSetWatercareModeProtocolHandler.set(
                 self._protocol.get_and_increment_sequence_counter(),
                 new_mode,
                 parms=self.sendparms,
             )
         )
-
         if set_watercare_handler is None:
-            _LOGGER.error("Cannot set watercare, protocol retry count exceeded")
+            _LOGGER.error("Cannot set watercare mode, protocol retry count exceeded")
             await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
+        else:
+            _LOGGER.debug("Spa responded with %d", set_watercare_handler.mode)
 
     def _get_reminders_handler_func(self) -> GeckoRemindersProtocolHandler:
         assert self._protocol is not None  # noqa: S101

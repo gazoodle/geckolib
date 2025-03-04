@@ -16,8 +16,11 @@ from geckolib.config import config_sleep, release_config_change_waiters
 from geckolib.const import GeckoConstants
 from geckolib.driver import (
     GeckoAsyncPartialStatusBlockProtocolHandler,
+    GeckoAsyncStructure,
+    GeckoAsyncUdpProtocol,
     GeckoConfigFileProtocolHandler,
     GeckoGetChannelProtocolHandler,
+    GeckoGetWatercareModeProtocolHandler,
     GeckoHelloProtocolHandler,
     GeckoPackCommandProtocolHandler,
     GeckoPacketProtocolHandler,
@@ -25,16 +28,18 @@ from geckolib.driver import (
     GeckoRemindersProtocolHandler,
     GeckoReminderType,
     GeckoRFErrProtocolHandler,
+    GeckoSetWatercareModeProtocolHandler,
     GeckoStatusBlockProtocolHandler,
+    GeckoStructAccessor,
+    GeckoUdpProtocolHandler,
+    GeckoUnhandledProtocolHandler,
     GeckoUpdateFirmwareProtocolHandler,
     GeckoVersionProtocolHandler,
-    GeckoWatercareProtocolHandler,
+    GeckoWatercareScheduleManager,
 )
-from geckolib.driver.accessor import GeckoStructAccessor
-from geckolib.driver.async_spastruct import GeckoAsyncStructure
-from geckolib.driver.async_udp_protocol import GeckoAsyncUdpProtocol
-from geckolib.driver.protocol.unhandled import GeckoUnhandledProtocolHandler
-from geckolib.driver.udp_protocol_handler import GeckoUdpProtocolHandler
+from geckolib.driver.protocol.watercare import (
+    GeckoGetWatercareScheduleListProtocolHandler,
+)
 
 from .shared_command import GeckoCmd
 from .simulator_action import GeckoSimulatorAction
@@ -98,7 +103,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         for name in GeckoSimulatorAction.__annotations__:
             setattr(self._action, name, None)
 
-        self._current_watercare_mode = GeckoConstants.WATERCARE_MODE[1]
+        self._current_watercare_mode: int = GeckoConstants.WATERCARE_MODE[1]
         self._reminders: list[tuple[GeckoReminderType, int]] = [
             (GeckoReminderType.RINSE_FILTER, -13),
             (GeckoReminderType.CLEAN_FILTER, 0),
@@ -111,6 +116,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             (GeckoReminderType.INVALID, 0),
             (GeckoReminderType.INVALID, 0),
         ]
+
+        self._watercare_schedule_manager: GeckoWatercareScheduleManager = (
+            GeckoWatercareScheduleManager()
+        )
 
         self._hello_task: asyncio.Task | None = None
 
@@ -457,12 +466,27 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         # Watercare if not MrSteam
         if not self.structure.is_mr_steam:
             self.add_task(
-                GeckoWatercareProtocolHandler(
-                    async_on_handled=self._async_on_watercare
+                GeckoGetWatercareModeProtocolHandler(
+                    async_on_handled=self._async_on_get_watercare_mode
                 ).consume(self._protocol),
-                "Watercare",
+                "GetWatercareMode",
                 "SIM",
             )
+            self.add_task(
+                GeckoSetWatercareModeProtocolHandler(
+                    async_on_handled=self._async_on_set_watercare_mode
+                ).consume(self._protocol),
+                "SetWatercareMode",
+                "SIM",
+            )
+            self.add_task(
+                GeckoGetWatercareScheduleListProtocolHandler(
+                    async_on_handled=self._async_on_get_watercare_schedule
+                ).consume(self._protocol),
+                "GetWatercareSchedule",
+                "SIM",
+            )
+
             # Reminders
             self.add_task(
                 GeckoRemindersProtocolHandler(
@@ -608,33 +632,48 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 sender,
             )
 
-    async def _async_on_watercare(
-        self, handler: GeckoWatercareProtocolHandler, sender: tuple
+    async def _async_on_get_watercare_mode(
+        self, handler: GeckoGetWatercareModeProtocolHandler, sender: tuple
     ) -> None:
         if self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
-        if handler.schedule:
-            self._protocol.queue_send(
-                GeckoWatercareProtocolHandler.giveschedule(parms=sender), sender
-            )
-        elif handler.mode is None:
-            self._protocol.queue_send(
-                GeckoWatercareProtocolHandler.get_response(
-                    self._current_watercare_mode, parms=sender
-                ),
-                sender,
-            )
-        else:
-            self._current_watercare_mode = handler.mode % len(
-                GeckoConstants.WATERCARE_MODE
-            )
-            self._protocol.queue_send(
-                GeckoWatercareProtocolHandler.set_response(
-                    self._current_watercare_mode, parms=sender
-                ),
-                sender,
-            )
+        self._protocol.queue_send(
+            GeckoGetWatercareModeProtocolHandler.get_response(
+                self._current_watercare_mode, parms=sender
+            ),
+            sender,
+        )
+
+    async def _async_on_set_watercare_mode(
+        self, handler: GeckoSetWatercareModeProtocolHandler, sender: tuple
+    ) -> None:
+        if self._should_ignore(handler, sender):
+            return
+        assert self._protocol is not None  # noqa: S101
+        print(
+            f"Set watercare mode to {GeckoConstants.WATERCARE_MODE_STRING[handler.mode]}"  # noqa: E501
+        )
+        self._current_watercare_mode = handler.mode
+        self._protocol.queue_send(
+            GeckoSetWatercareModeProtocolHandler.set_response(
+                self._current_watercare_mode, parms=sender
+            ),
+            sender,
+        )
+
+    async def _async_on_get_watercare_schedule(
+        self, handler: GeckoGetWatercareScheduleListProtocolHandler, sender: tuple
+    ) -> None:
+        if self._should_ignore(handler, sender):
+            return
+        assert self._protocol is not None  # noqa: S101
+        self._protocol.queue_send(
+            GeckoGetWatercareScheduleListProtocolHandler.get_response(
+                self._watercare_schedule_manager, parms=sender
+            ),
+            sender,
+        )
 
     async def _async_on_reminders(
         self, handler: GeckoRemindersProtocolHandler, sender: tuple

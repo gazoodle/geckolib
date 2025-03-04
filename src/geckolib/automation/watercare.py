@@ -11,7 +11,6 @@ from .base import GeckoAutomationFacadeBase
 
 if TYPE_CHECKING:
     from geckolib.automation.async_facade import GeckoAsyncFacade
-    from geckolib.driver import GeckoWatercareProtocolHandler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +22,6 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
         """Initialize watercare class."""
         super().__init__(facade, "WaterCare", "WATERCARE")
         self.active_mode: int | None = None
-        self._water_care_handler: GeckoWatercareProtocolHandler | None = None
         if not facade.spa.struct.is_mr_steam:
             self.set_availability(is_available=True)
 
@@ -63,17 +61,8 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
         """
         if isinstance(new_mode, str):
             new_mode = GeckoConstants.WATERCARE_MODE_STRING.index(new_mode)
-        await self._spa.async_set_watercare(new_mode)
+        await self._spa.async_set_watercare_mode(new_mode)
         self.change_watercare_mode(new_mode)
-
-    def _on_watercare(
-        self, handler: GeckoWatercareProtocolHandler, _sender: tuple
-    ) -> None:
-        if self.active_mode != handler.mode:
-            old_mode = self.active_mode
-            self.active_mode = handler.mode
-            self._on_change(self, old_mode, self.active_mode)
-        self._water_care_handler = None
 
     def change_watercare_mode(self, new_mode: int) -> None:
         """Change the watercare mode."""
