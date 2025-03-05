@@ -26,7 +26,6 @@ class GeckoPacketProtocolHandler(GeckoUdpProtocolHandler):
         super().__init__(**kwargs)
         self._parms: tuple = kwargs.get("parms")
         self._content: bytes = kwargs.get("content")
-        self._socket = kwargs.get("socket")
         self._on_get_parms = kwargs.get("on_get_parms")
         if self._content is not None and not isinstance(self._content, bytes):
             raise TypeError(self._content, "Content must be of type `bytes`")
@@ -97,8 +96,6 @@ class GeckoPacketProtocolHandler(GeckoUdpProtocolHandler):
             self._packet_content,
         ) = self._extract_packet_parts(received_bytes[7:-8])
         self._parms = (sender[0], sender[1], src_identifier, dest_identifier)
-        if self._socket is not None:
-            self._socket.dispatch_recevied_data(self._packet_content, self._parms)
 
     @property
     def packet_content(self) -> bytes | None:

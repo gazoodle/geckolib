@@ -282,8 +282,27 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Keep looking to see if there is a time sync mechanism
 - Use the config ver and status ver check in simulator to make sure partial block updates are acceptable
 
+# Recent discovery
+
+There have been some issues with the library not getting updates from the spa, or other things not working
+as well as they could, so I went back to basics, but this time I did some captures with two in.touch2 app
+clients running at the same time. This was quite revealing. I pressed the light-on button on one of them
+and then almost immediately, the other one updated, which isn't how the library currrently works.
+
+Further investigation showed that the in.touch module seems to need the ping to be running around 2 seconds
+otherwise it simply forgets about reporting changes to the client, so I needed to ensure that an idle spa
+still maintains this. I know we changed this quite a while ago, probably to reduce logfile clutter, but if
+it impacts the behaviour of the library, it needs changing. Anyway, it's back to 2 seconds always now. What
+this also revealed was that we don't need to do the full structure refresh that we had been doing either
+because that was to mitigate the missing change updates. Anyway, quite a big protocol change.
+
+
 ## Done/Fixed in 1.0.11
  - Refactor watercare handling to build full support
+ - Change ping frequency to be 2 seconds always, see discovery above.
+ - Updated the protocol queue to have two queues, one for normal protocol and one for commands
+   per v0.4.6
+ - Ensure that STATQ and SPACK commands are placed on the command queue
 
 ## Done/Fixed in 1.0.10
  - Handle TempNotValid error

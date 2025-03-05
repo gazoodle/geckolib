@@ -149,7 +149,7 @@ class TestGeckoAsyncStatusBlockHandler:
         assert handler.changes == [(365, b"\x03\x84"), (366, b"\x84\x0c")]
         assert (
             protocol.sendbytes
-            == b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATQ\x01</DATAS></PACKT>"
+            == b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATQ\xc0</DATAS></PACKT>"
         )
 
     @pytest.mark.asyncio
@@ -169,7 +169,7 @@ class TestGeckoAsyncStatusBlockHandler:
         ]
         assert (
             protocol.sendbytes
-            == b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATQ\x01</DATAS></PACKT>"
+            == b"<PACKT><SRCCN>DESTID</SRCCN><DESCN>SRCID</DESCN><DATAS>STATQ\xc0</DATAS></PACKT>"
         )
 
 

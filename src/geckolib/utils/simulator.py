@@ -511,6 +511,14 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             "Pack command",
             "SIM",
         )
+        # Partial pack ack
+        self.add_task(
+            GeckoAsyncPartialStatusBlockProtocolHandler(self._protocol).consume(
+                self._protocol
+            ),
+            "Partial pack ACK",
+            "SIM",
+        )
 
     async def _async_on_hello(
         self, handler: GeckoHelloProtocolHandler, sender: tuple
@@ -712,16 +720,16 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     ) -> None:
         if self._should_ignore(handler, sender):
             return
+        assert self._protocol is not None  # noqa: S101
+        self._protocol.queue_send(
+            GeckoPackCommandProtocolHandler.response(parms=sender), sender
+        )
         if handler.is_key_press:
             await self._async_handle_pack_key_press(handler.keycode)
         elif handler.is_set_value:
             await self._async_handle_pack_set_value(
                 handler.position, handler.length, handler.new_data
             )
-        assert self._protocol is not None  # noqa: S101
-        self._protocol.queue_send(
-            GeckoPackCommandProtocolHandler.response(parms=sender), sender
-        )
 
     async def _async_handle_pack_key_press(self, keycode: int) -> None:
         """Handle a key press command."""

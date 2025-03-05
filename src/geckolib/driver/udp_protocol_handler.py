@@ -52,7 +52,6 @@ class GeckoUdpProtocolHandler(ABC):
         self.last_destination = None
 
         # Receive functionality
-        self._on_handled = kwargs.get("on_handled")
         self._async_on_handled = kwargs.get("async_on_handled")
 
         # Lifetime functionality
@@ -111,13 +110,6 @@ class GeckoUdpProtocolHandler(ABC):
         you should set the `should_remove_handler member.
         """
 
-    def handled(self, sender: tuple) -> None:
-        """Handle the data in the base class. Derivatives must call this."""
-        self._reset_timeout()
-        assert self._async_on_handled is None  # noqa: S101
-        if self._on_handled is not None:
-            self._on_handled(self, sender)
-
     ##########################################################################
     #
     #                           ASYNC FUNCTIONALITY
@@ -137,7 +129,6 @@ class GeckoUdpProtocolHandler(ABC):
     async def async_handled(self, sender: tuple) -> None:
         """Handle the data in the base class. Derivatives must call this."""
         self._reset_timeout()
-        assert self._on_handled is None  # noqa: S101
         if self._async_on_handled is not None:
             await self._async_on_handled(self, sender)
 
@@ -145,7 +136,7 @@ class GeckoUdpProtocolHandler(ABC):
         """
         Wait for a response that this command can handle.
 
-        This function doesn't respect the _on_handled functionality since its
+        This function doesn't respect the _async_on_handled functionality since its
         use is for inline async stuff.
         """
         assert self.timeout_in_seconds > 0  # noqa: S101
@@ -157,13 +148,16 @@ class GeckoUdpProtocolHandler(ABC):
                     async with asyncio.timeout(self.timeout_in_seconds):
                         await protocol.queue.wait()
 
-                    if protocol.queue.peek() is not None:
-                        data, sender = protocol.queue.peek()
-                        if self.can_handle(data, sender):
-                            protocol.queue.pop()
-                            await self.async_handle(data, sender)
-                            self._reset_timeout()
-                            return
+                    peeked_data = protocol.queue.peek()
+                    if peeked_data is None:
+                        continue
+
+                    data, sender = peeked_data
+                    if self.can_handle(data, sender):
+                        protocol.queue.pop()
+                        await self.async_handle(data, sender)
+                        self._reset_timeout()
+                        return
 
                 except TimeoutError:
                     _LOGGER.debug(
@@ -186,6 +180,7 @@ class GeckoUdpProtocolHandler(ABC):
     def _can_handle(
         self, _protocol: GeckoAsyncUdpProtocol, received_bytes: bytes, sender: tuple
     ) -> bool:
+        """Provide for derived classes to overide."""
         return self.can_handle(received_bytes, sender)
 
     async def consume(self, protocol: GeckoAsyncUdpProtocol) -> None:
@@ -196,16 +191,20 @@ class GeckoUdpProtocolHandler(ABC):
                 await config_sleep(None, f"Async UDP handler - consume for {self}")
                 await protocol.queue.wait()
 
-                if protocol.queue.peek() is not None:
-                    data, sender = protocol.queue.peek()
-                    if self._can_handle(protocol, data, sender):
-                        protocol.queue.pop()
-                        await self.async_handle(data, sender)
-                        await self.async_handled(sender)
+                peeked_data = protocol.queue.peek()
+                if peeked_data is None:
+                    continue
+
+                data, sender = peeked_data
+                if self._can_handle(protocol, data, sender):
+                    protocol.queue.pop()
+                    await self.async_handle(data, sender)
+                    await self.async_handled(sender)
 
                 if self.should_remove_handler:
                     _LOGGER.debug("%s will be removed, consume loop terminating", self)
                     break
+
         except asyncio.CancelledError:
             _LOGGER.debug("Consume loop for %r cancelled", self)
             raise

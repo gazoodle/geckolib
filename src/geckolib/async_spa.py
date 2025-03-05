@@ -571,12 +571,16 @@ class GeckoAsyncSpa(Observable):
                     continue
                 if not self.is_responding_to_pings:
                     continue
-                if not await self.struct.get(
-                    self._protocol, self._get_status_block_handler_func
-                ):
-                    await self._event_handler(
-                        GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED
-                    )
+
+                if False:
+                    # Removed because I don't think this is required now that ping
+                    # is back to 2 seconds. Time will tell.
+                    if not await self.struct.get(
+                        self._protocol, self._get_status_block_handler_func
+                    ):
+                        await self._event_handler(
+                            GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED
+                        )
 
                 assert self._protocol is not None  # noqa: S101
                 get_channel_handler = await self._protocol.get(

@@ -152,7 +152,11 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
     def datagram_received(self, data: Any, addr: tuple) -> None:
         """Handle datagrame."""
         _LOGGER.debug("Datagram received: %s from %s", data, addr)
-        self.queue.push((data, addr))
+        if b"SPACK" in data or b"STATQ" in data:
+            _LOGGER.debug("Put on command queue")
+            self.queue.push_command((data, addr))
+        else:
+            self.queue.push((data, addr))
 
     T = TypeVar("T", bound="GeckoUdpProtocolHandler")
 

@@ -155,7 +155,9 @@ class GeckoAsyncPartialStatusBlockProtocolHandler(GeckoPacketProtocolHandler):
                         STATQ_VERB,
                         struct.pack(
                             ">B",
-                            self._protocol.get_and_increment_sequence_counter(),
+                            self._protocol.get_and_increment_sequence_counter(
+                                command=True
+                            ),
                         ),
                     ]
                 ),
