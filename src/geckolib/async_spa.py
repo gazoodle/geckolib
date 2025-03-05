@@ -559,11 +559,11 @@ class GeckoAsyncSpa(Observable):
         try:
             _LOGGER.debug("Refresh loop started")
             while self.isopen:
-                await config_sleep(
+                if not await config_sleep(
                     GeckoConfig.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS,
-                    "Async spa status block refresh handler ",
-                )
-                _LOGGER.debug("Refresh status block")
+                    "Async spa refresh handler ",
+                ):
+                    continue
                 if self._needs_reload:
                     await self._event_handler(GeckoSpaEvent.RUNNING_SPA_NEEDS_RELOAD)
                     continue

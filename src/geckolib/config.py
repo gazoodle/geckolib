@@ -101,13 +101,14 @@ def set_config_mode(*, active: bool) -> None:
     release_config_change_waiters()
 
 
-async def config_sleep(delay: float | None, _reason: str) -> None:
-    """Sleep wrapper that also handles config changes."""
+async def config_sleep(delay: float | None, _reason: str) -> bool:
+    """Sleep wrapper that also handles config changes, returns True on timeout."""
     if delay is None:
         await asyncio.sleep(0)
-        return
+        return False
     try:
         async with asyncio.timeout(delay):
             await ConfigChangeEvent.wait()
     except TimeoutError:
-        pass
+        return True
+    return False
