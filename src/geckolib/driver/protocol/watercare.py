@@ -39,7 +39,6 @@ class GeckoGetWatercareModeProtocolHandler(GeckoPacketProtocolHandler):
         return GeckoGetWatercareModeProtocolHandler(
             content=b"".join([GETWC_VERB, struct.pack(">B", seq)]),
             timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
-            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler.default_retry_failed_handler,
             **kwargs,
         )
@@ -89,7 +88,6 @@ class GeckoSetWatercareModeProtocolHandler(GeckoPacketProtocolHandler):
                 [SETWC_VERB, struct.pack(SET_WATERCARE_FORMAT, seq, mode)]
             ),
             timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
-            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             **kwargs,
         )
 
@@ -127,7 +125,6 @@ class GeckoGetWatercareScheduleListProtocolHandler(GeckoPacketProtocolHandler):
         return GeckoGetWatercareScheduleListProtocolHandler(
             content=b"".join([REQWC_VERB, struct.pack(">B", seq)]),
             timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
-            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler.default_retry_failed_handler,
             **kwargs,
         )

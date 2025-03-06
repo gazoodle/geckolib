@@ -26,7 +26,6 @@ class GeckoVersionProtocolHandler(GeckoPacketProtocolHandler):
         return GeckoVersionProtocolHandler(
             content=b"".join([AVERS_VERB, struct.pack(">B", seq)]),
             timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
-            retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler.default_retry_failed_handler,
             **kwargs,
         )

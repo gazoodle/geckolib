@@ -57,7 +57,6 @@ class GeckoUdpProtocolHandler(ABC):
         # Lifetime functionality
         self._start_time = time.monotonic()
         self._timeout_in_seconds: float = kwargs.get("timeout", 0)
-        self._retry_count = kwargs.get("retry_count", 0)
         self._on_retry_failed = kwargs.get("on_retry_failed")
         self._should_remove_handler = False
 
@@ -248,7 +247,6 @@ class GeckoUdpProtocolHandler(ABC):
             f"{self.__class__.__name__}(send_bytes={self._send_bytes!r},"
             f" age={self.age},"
             f" should_remove_handler={self.should_remove_handler},"
-            f" timeout={self.timeout_in_seconds}s,"
-            f" retry_count={self._retry_count}"
+            f" timeout={self.timeout_in_seconds}s"
             f")"
         )

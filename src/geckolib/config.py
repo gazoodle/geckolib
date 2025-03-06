@@ -35,9 +35,6 @@ class _GeckoConfig:
     PROTOCOL_TIMEOUT_IN_SECONDS = 1
     """Default timeout for most protocol commands"""
 
-    PROTOCOL_RETRY_COUNT = 1
-    """Default retry count for protocol commands"""
-
     PAUSE_BETWEEN_RETRIES_IN_SECONDS = 1
     """Default pause between retry operations"""
 
@@ -61,7 +58,6 @@ class _GeckoActiveConfig(_GeckoConfig):
     FACADE_UPDATE_FREQUENCY_IN_SECONDS = 28800
     SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS = 28800
     PROTOCOL_TIMEOUT_IN_SECONDS = 4
-    PROTOCOL_RETRY_COUNT = 10
     PAUSE_BETWEEN_RETRIES_IN_SECONDS = 0.4
 
 
@@ -77,7 +73,6 @@ class _GeckoIdleConfig(_GeckoConfig):
     FACADE_UPDATE_FREQUENCY_IN_SECONDS = 3600
     SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS = 3600
     PROTOCOL_TIMEOUT_IN_SECONDS = 4
-    PROTOCOL_RETRY_COUNT = 10
     PAUSE_BETWEEN_RETRIES_IN_SECONDS = 0.4
 
 

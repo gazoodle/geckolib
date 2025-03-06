@@ -164,7 +164,6 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self,
         create_func: Callable[[], T],
         destination: tuple | None = None,
-        _retry_count: int = GeckoConfig.PROTOCOL_RETRY_COUNT,
         packet_timeout: int = GeckoConfig.PAUSE_BETWEEN_RETRIES_IN_SECONDS,
     ) -> T | None:
         """Get the response to the request."""

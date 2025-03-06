@@ -307,6 +307,8 @@ because that was to mitigate the missing change updates. Anyway, quite a big pro
  - Desyncronize various protocol updates from their async wait mechanisms because this
    resulted in busy traffic immediately after a user demand causing the next one to go into
    a retry loop resulting in tardy updates in HA.
+ - Protocol retry count removed because it is now intrinsic to retry operations every so
+   often until the timeout period is exceeded.
 
 ## Done/Fixed in 1.0.10
  - Handle TempNotValid error

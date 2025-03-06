@@ -186,9 +186,9 @@ class GeckoAsyncSpa(Observable):
 
         get_channel_handler = await self._protocol.get(self._get_channel_handler_func)
         if get_channel_handler is None:
-            _LOGGER.error("Cannot get channel, protocol retry count exceeded")
+            _LOGGER.error("Cannot get channel, protocol retry time exceeded")
             await self._event_handler(
-                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_TIME_EXCEEDED
             )
             return
 
@@ -208,13 +208,12 @@ class GeckoAsyncSpa(Observable):
         config_file_handler = await self._protocol.get(
             self._get_config_file_handler_func,
             None,
-            GeckoConfig.PROTOCOL_RETRY_COUNT,
             4,
         )
         if config_file_handler is None:
-            _LOGGER.error("Cannot get file, protocol retry count exceeded")
+            _LOGGER.error("Cannot get file, protocol retry time exceeded")
             await self._event_handler(
-                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_TIME_EXCEEDED
             )
             return
 
@@ -255,12 +254,11 @@ class GeckoAsyncSpa(Observable):
                 self._protocol.get_and_increment_sequence_counter(),
                 parms=self.sendparms,
             ),
-            10,
             5,
         ):
-            _LOGGER.error("Cannot get full struct, protocol retry count exceeded")
+            _LOGGER.error("Cannot get full struct, protocol retry time exceeded")
             await self._event_handler(
-                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_TIME_EXCEEDED
             )
 
             return
@@ -342,9 +340,9 @@ class GeckoAsyncSpa(Observable):
     async def _connect_get_version(self) -> bool:
         version_handler = await self._protocol.get(self._get_version_handler_func)
         if version_handler is None:
-            _LOGGER.error("Cannot get version, protocol retry count exceeded")
+            _LOGGER.error("Cannot get version, protocol retry time exceeded")
             await self._event_handler(
-                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+                GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_TIME_EXCEEDED
             )
             return False
 
@@ -497,9 +495,7 @@ class GeckoAsyncSpa(Observable):
             while self.isopen:
                 assert self._protocol is not None  # noqa: S101
                 ping_handler = await self._protocol.get(
-                    lambda: GeckoPingProtocolHandler.request(parms=self.sendparms),
-                    None,
-                    1,
+                    lambda: GeckoPingProtocolHandler.request(parms=self.sendparms)
                 )
 
                 if ping_handler is not None:
@@ -584,11 +580,10 @@ class GeckoAsyncSpa(Observable):
                     if not await self.struct.get(
                         self._protocol,
                         self._get_status_block_handler_func,
-                        10,
                         5,
                     ):
                         await self._event_handler(
-                            GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED
+                            GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED
                         )
 
                 assert self._protocol is not None  # noqa: S101
@@ -596,9 +591,9 @@ class GeckoAsyncSpa(Observable):
                     self._get_channel_handler_func
                 )
                 if get_channel_handler is None:
-                    _LOGGER.error("Cannot get channel, protocol retry count exceeded")
+                    _LOGGER.error("Cannot get channel, protocol retry time exceeded")
                     await self._event_handler(
-                        GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED
+                        GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_TIME_EXCEEDED
                     )
                     continue
 
@@ -651,9 +646,9 @@ class GeckoAsyncSpa(Observable):
                     pos, GeckoStructAccessor.pack_data(length, newvalue)
                 )
             else:
-                _LOGGER.error("Cannot set value, protocol retry count exceeded")
+                _LOGGER.error("Cannot set value, protocol retry time exceeded")
                 await self._event_handler(
-                    GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED
+                    GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED
                 )
 
         except asyncio.CancelledError:
@@ -690,9 +685,9 @@ class GeckoAsyncSpa(Observable):
             )
 
             if pack_command_handler is None:
-                _LOGGER.error("Cannot press keypad, protocol retry count exceeded")
+                _LOGGER.error("Cannot press keypad, protocol retry time exceeded")
                 await self._event_handler(
-                    GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED
+                    GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED
                 )
         except asyncio.CancelledError:
             _LOGGER.debug("Async press cancelled")
@@ -727,8 +722,8 @@ class GeckoAsyncSpa(Observable):
         )
 
         if get_watercare_handler is None:
-            _LOGGER.error("Cannot get watercare mode, protocol retry count exceeded")
-            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
+            _LOGGER.error("Cannot get watercare mode, protocol retry time exceeded")
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED)
             return None
 
         return get_watercare_handler.mode
@@ -750,8 +745,8 @@ class GeckoAsyncSpa(Observable):
             )
         )
         if set_watercare_handler is None:
-            _LOGGER.error("Cannot set watercare mode, protocol retry count exceeded")
-            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
+            _LOGGER.error("Cannot set watercare mode, protocol retry time exceeded")
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED)
         else:
             _LOGGER.debug("Spa responded with %d", set_watercare_handler.mode)
 
@@ -777,8 +772,8 @@ class GeckoAsyncSpa(Observable):
         )
 
         if get_reminders_handler is None:
-            _LOGGER.error("Cannot get reminders, protocol retry count exceeded")
-            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
+            _LOGGER.error("Cannot get reminders, protocol retry time exceeded")
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED)
             return []
 
         return get_reminders_handler.reminders
@@ -803,8 +798,8 @@ class GeckoAsyncSpa(Observable):
         )
 
         if set_reminders_handler is None:
-            _LOGGER.error("Cannot set reminders, protocol retry count exceeded")
-            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED)
+            _LOGGER.error("Cannot set reminders, protocol retry time exceeded")
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED)
 
     def get_snapshot_data(self) -> dict:
         """Get the snapshot data for this spa."""

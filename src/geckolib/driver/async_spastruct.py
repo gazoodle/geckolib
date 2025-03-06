@@ -100,7 +100,6 @@ class GeckoAsyncStructure:
         self,
         protocol: GeckoAsyncUdpProtocol,
         create_func: Callable,
-        _retry_count: int = 10,
         packet_timeout: int = GeckoConfig.PAUSE_BETWEEN_RETRIES_IN_SECONDS,
     ) -> bool:
         """Get response from a command."""

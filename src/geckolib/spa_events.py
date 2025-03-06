@@ -62,8 +62,8 @@ class GeckoSpaEvent(Enum):
     """During connection, the calculated spa pack could not be found.
     **kwargs has details"""
 
-    CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED = 298
-    """During connection, the retry count was exceeded for part of the
+    CONNECTION_PROTOCOL_RETRY_TIME_EXCEEDED = 298
+    """During connection, the retry time was exceeded for part of the
     protocol handshake"""
 
     CONNECTION_FINISHED = 299
@@ -108,8 +108,8 @@ class GeckoSpaEvent(Enum):
     ERROR_TOO_MANY_RF_ERRORS = 500
     """The spa has had too many RF errors"""
 
-    ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED = 501
-    """Protocol retry count was exceeded during normal operations"""
+    ERROR_PROTOCOL_RETRY_TIME_EXCEEDED = 501
+    """Protocol retry time was exceeded during normal operations"""
 
     ERROR_RF_ERROR = 502
     """The in.touch EN module can't communicate with the CO module"""

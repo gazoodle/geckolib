@@ -567,8 +567,8 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             self._channel_sensor.set_channel(self._spa.channel)
 
         elif event in (
-            GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_COUNT_EXCEEDED,
-            GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED,
+            GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_TIME_EXCEEDED,
+            GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED,
             GeckoSpaEvent.ERROR_TOO_MANY_RF_ERRORS,
         ):
             self.set_spa_state(GeckoSpaState.ERROR_NEEDS_ATTENTION)
