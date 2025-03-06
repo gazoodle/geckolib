@@ -315,8 +315,8 @@ because that was to mitigate the missing change updates. Anyway, quite a big pro
 
 ## Done/Fixed in 1.0.9
  - Fixed broken EcoMode switch that 1.0.8 introduced
- - Added pump and blower sensors to show P<n> & BL device states because buttons now
-   exclusively use UdP<n> for control.
+ - Added pump and blower sensors to show P[n] & BL device states because buttons now
+   exclusively use UdP[n] for control.
  - Restore old min temperature, but use the pack config data if available to override.
 
 ## Done/Fixed in 1.0.8
