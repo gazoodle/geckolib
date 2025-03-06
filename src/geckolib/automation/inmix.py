@@ -146,7 +146,6 @@ class GeckoInMixZone(GeckoLight):
             return
         self._get_inmix()
         super()._on_change(sender, old_value, new_value)
-        _LOGGER.debug("inmix changed from spa")
 
 
 class GeckoInMixSynchro(GeckoSelect):

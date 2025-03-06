@@ -2,8 +2,6 @@
 
 # ruff: noqa: E501
 
-import pytest
-
 from geckolib.driver.async_peekablequeue import AsyncPeekableQueue
 
 

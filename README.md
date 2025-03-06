@@ -303,6 +303,10 @@ because that was to mitigate the missing change updates. Anyway, quite a big pro
  - Updated the protocol queue to have two queues, one for normal protocol and one for commands
    per v0.4.6
  - Ensure that STATQ and SPACK commands are placed on the command queue
+ - Refactor protocol retry mechanism to deal with busy in.touch modules
+ - Desyncronize various protocol updates from their async wait mechanisms because this
+   resulted in busy traffic immediately after a user demand causing the next one to go into
+   a retry loop resulting in tardy updates in HA.
 
 ## Done/Fixed in 1.0.10
  - Handle TempNotValid error

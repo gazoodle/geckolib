@@ -170,15 +170,21 @@ class GeckoAsyncFacade(Observable):
     async def _facade_update(self) -> None:
         _LOGGER.debug("Facade update task started")
         try:
+            do_check = True
             while True:
+                # Only want to do the protocol work if timeout, otherwise we run
+                # the risk of swamping the spa when we're making operational changes
                 wait_time = GeckoConfig.FACADE_UPDATE_FREQUENCY_IN_SECONDS
                 if not self._spa.is_responding_to_pings:
                     wait_time = GeckoConfig.PING_FREQUENCY_IN_SECONDS
-                else:
+                elif do_check:
                     if self._water_care.is_available:
+                        _LOGGER.debug("Facade update: Get watercare mode")
                         self._water_care.change_watercare_mode(
                             await self._spa.async_get_watercare_mode()
                         )
+                    if self._reminders_manager.is_available:
+                        _LOGGER.debug("Facade update: Get reminders")
                         self._reminders_manager.change_reminders(
                             await self._spa.async_get_reminders()
                         )
@@ -187,7 +193,8 @@ class GeckoAsyncFacade(Observable):
                     # After we've been round here at least once, we're ready
                     self._ready.set()
 
-                await config_sleep(wait_time, "Async facade update loop")
+                do_check = await config_sleep(wait_time, "Async facade update loop")
+                _LOGGER.debug("Facade update, wait over. do_check=%s", f"{do_check}")
 
         except asyncio.CancelledError:
             _LOGGER.debug("Facade update loop cancelled")

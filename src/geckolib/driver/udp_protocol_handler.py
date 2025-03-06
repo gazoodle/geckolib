@@ -7,7 +7,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from geckolib.config import config_sleep
+from geckolib.config import GeckoConfig, config_sleep
 
 if TYPE_CHECKING:
     from .async_udp_protocol import GeckoAsyncUdpProtocol
@@ -56,7 +56,7 @@ class GeckoUdpProtocolHandler(ABC):
 
         # Lifetime functionality
         self._start_time = time.monotonic()
-        self._timeout_in_seconds = kwargs.get("timeout", 0)
+        self._timeout_in_seconds: float = kwargs.get("timeout", 0)
         self._retry_count = kwargs.get("retry_count", 0)
         self._on_retry_failed = kwargs.get("on_retry_failed")
         self._should_remove_handler = False
@@ -79,7 +79,7 @@ class GeckoUdpProtocolHandler(ABC):
         return self._send_bytes
 
     @property
-    def timeout_in_seconds(self) -> int:
+    def timeout_in_seconds(self) -> float:
         """The timeout in seconds."""
         return self._timeout_in_seconds
 
@@ -132,7 +132,11 @@ class GeckoUdpProtocolHandler(ABC):
         if self._async_on_handled is not None:
             await self._async_on_handled(self, sender)
 
-    async def wait_for_response(self, protocol: GeckoAsyncUdpProtocol) -> None:
+    async def wait_for_response(
+        self,
+        protocol: GeckoAsyncUdpProtocol,
+        packet_timeout: int = GeckoConfig.PAUSE_BETWEEN_RETRIES_IN_SECONDS,
+    ) -> bool:
         """
         Wait for a response that this command can handle.
 
@@ -140,12 +144,13 @@ class GeckoUdpProtocolHandler(ABC):
         use is for inline async stuff.
         """
         assert self.timeout_in_seconds > 0  # noqa: S101
+        _LOGGER.debug("Wait for response for %s", self)
         try:
             while True:
                 try:
                     await config_sleep(None, "Async UDP handler - wait for response")
 
-                    async with asyncio.timeout(self.timeout_in_seconds):
+                    async with asyncio.timeout(packet_timeout):
                         await protocol.queue.wait()
 
                     peeked_data = protocol.queue.peek()
@@ -157,23 +162,19 @@ class GeckoUdpProtocolHandler(ABC):
                         protocol.queue.pop()
                         await self.async_handle(data, sender)
                         self._reset_timeout()
-                        return
+                        return False
 
                 except TimeoutError:
                     _LOGGER.debug(
-                        "TIMEOUT: Handler %s threw TimeoutError (%ds), status is %d",
+                        "TIMEOUT: Packet timeout for %s threw TimeoutError (%fs)",
                         self,
-                        self.timeout_in_seconds,
-                        self.has_timedout,
+                        packet_timeout,
                     )
-                    return
+                    return True
 
-        except asyncio.CancelledError:
-            _LOGGER.debug("wait_for_response loop for %r cancelled", self)
-            raise
         except Exception:
             _LOGGER.exception("wait_for_response loop for %r caught exception", self)
-            raise
+            return True
         finally:
             _LOGGER.debug("wait_for_response loop for %r terminated", self)
 
@@ -225,13 +226,6 @@ class GeckoUdpProtocolHandler(ABC):
         return time.monotonic() - self._start_time
 
     @property
-    def has_timedout(self) -> bool:
-        """Get the timedout status."""
-        return (
-            self.age > self.timeout_in_seconds if self.timeout_in_seconds > 0 else False
-        )
-
-    @property
     def should_remove_handler(self) -> bool:
         """Get the should remove handler property."""
         return self._should_remove_handler
@@ -252,7 +246,7 @@ class GeckoUdpProtocolHandler(ABC):
         """Get string representation of this class."""
         return (
             f"{self.__class__.__name__}(send_bytes={self._send_bytes!r},"
-            f" age={self.age}, has_timedout={self.has_timedout},"
+            f" age={self.age},"
             f" should_remove_handler={self.should_remove_handler},"
             f" timeout={self.timeout_in_seconds}s,"
             f" retry_count={self._retry_count}"

@@ -203,24 +203,25 @@ class AbstractDisplay(ABC):
         """Get queue data and process it."""
         try:
             while not self.done_event.is_set():
-                char = await self.queue.get()
-                if char == ERR:
-                    # Do nothing and let the loop continue without sleeping
-                    pass
-                elif char == KEY_RESIZE:
-                    self.refresh()
-                elif char == KEY_MOUSE:
-                    await self.handle_mouse(getmouse())
-                else:
-                    await self.handle_char(char)
-                self.queue.task_done()
+                try:
+                    char = await self.queue.get()
+                    if char == ERR:
+                        # Do nothing and let the loop continue without sleeping
+                        pass
+                    elif char == KEY_RESIZE:
+                        self.refresh()
+                    elif char == KEY_MOUSE:
+                        await self.handle_mouse(getmouse())
+                    else:
+                        await self.handle_char(char)
+                    self.queue.task_done()
 
-        except asyncio.CancelledError:
-            _LOGGER.debug("Input loop cancelled")
-            raise
+                except asyncio.CancelledError:
+                    _LOGGER.debug("Input loop cancelled")
+                    raise
 
-        except Exception:
-            _LOGGER.exception("Exception in input loop")
+                except Exception:
+                    _LOGGER.exception("Exception in input loop, ignored and continuing")
 
         finally:
             _LOGGER.debug("Input loop finished")

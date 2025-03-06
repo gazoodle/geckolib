@@ -10,6 +10,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Any
 
 from geckolib._version import VERSION
+from geckolib.config import GeckoConfig
 from geckolib.const import GeckoConstants
 from geckolib.driver.accessor import (
     GeckoByteStructAccessor,
@@ -99,54 +100,65 @@ class GeckoAsyncStructure:
         self,
         protocol: GeckoAsyncUdpProtocol,
         create_func: Callable,
-        retry_count: int = 10,
+        _retry_count: int = 10,
+        packet_timeout: int = GeckoConfig.PAUSE_BETWEEN_RETRIES_IN_SECONDS,
     ) -> bool:
         """Get response from a command."""
         _LOGGER.debug("Async get for struct")
         async with protocol.lock:
-            while retry_count > 0:
-                # Create the request
-                request = create_func()
+            # Create the request
+            request = create_func()
 
-                # Queue it for delivery
-                protocol.queue_send(request)
+            try:
+                async with asyncio.timeout(request.timeout_in_seconds):
+                    while True:
+                        # Queue it for delivery
+                        protocol.queue_send(request)
 
-                # Setup some controls for the multiple responses expected
-                next_expected = 0
-                segments = []
+                        # Setup some controls for the multiple responses expected
+                        next_expected = 0
+                        segments = []
 
-                while True:
-                    # Wait for a response up to a certain amount of time
-                    await request.wait_for_response(protocol)
-                    if request.has_timedout:
-                        _LOGGER.debug("timeout waiting for any block")
-                        break
+                        while True:
+                            # Wait for a response up to a certain amount of time
+                            if await request.wait_for_response(
+                                protocol, packet_timeout
+                            ):
+                                _LOGGER.debug("timeout waiting for any block")
+                                break
 
-                    if next_expected == request.sequence:
-                        segments.append(request.data)
-                        next_expected = request.next
+                            if next_expected == request.sequence:
+                                segments.append(request.data)
+                                next_expected = request.next
 
-                        if request.next == 0:
-                            _LOGGER.debug(
-                                "Status block segments complete, update and complete"
-                            )
+                                if request.next == 0:
+                                    _LOGGER.debug(
+                                        "Status block segments complete, update"
+                                    )
+                                    self.replace_status_block_segment(
+                                        request.start,
+                                        b"".join(segments),
+                                    )
+                                    return True
+                            else:
+                                _LOGGER.debug(
+                                    "Out-of-sequence status block segment %d - ignored",
+                                    request.sequence,
+                                )
 
-                            self.replace_status_block_segment(
-                                request.start,
-                                b"".join(segments),
-                            )
+                                if request.next == 0:
+                                    break
 
-                            return True
-                    else:
-                        _LOGGER.debug(
-                            "Out-of-sequence status block segment %d - ignored",
-                            request.sequence,
-                        )
+                        # Create a clean new request
+                        request = create_func()
 
-                        if request.next == 0:
-                            break
+            except TimeoutError:
+                _LOGGER.debug(
+                    "TIMEOUT: Handler %s threw TimeoutError (%fs)",
+                    request,
+                    request.timeout_in_seconds,
+                )
 
-                retry_count -= 1
             return False
 
     async def async_set_value(self, pos: int, length: int, newvalue: Any) -> None:

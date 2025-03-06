@@ -7,7 +7,7 @@ from types import TracebackType
 from typing import Any, TypeVar
 
 from geckolib.async_taskman import GeckoAsyncTaskMan
-from geckolib.config import GeckoConfig, config_sleep
+from geckolib.config import GeckoConfig
 
 from .async_peekablequeue import AsyncPeekableQueue
 from .udp_protocol_handler import GeckoUdpProtocolHandler
@@ -164,33 +164,32 @@ class GeckoAsyncUdpProtocol(asyncio.DatagramProtocol):
         self,
         create_func: Callable[[], T],
         destination: tuple | None = None,
-        retry_count: int = GeckoConfig.PROTOCOL_RETRY_COUNT,
+        _retry_count: int = GeckoConfig.PROTOCOL_RETRY_COUNT,
+        packet_timeout: int = GeckoConfig.PAUSE_BETWEEN_RETRIES_IN_SECONDS,
     ) -> T | None:
         """Get the response to the request."""
-        try:
-            async with self.lock:
-                while retry_count > 0:
-                    # Create the request
-                    request = create_func()
+        async with self.lock:
+            # Create the request
+            request = create_func()
 
-                    # Queue it for delivery
-                    self.queue_send(request, destination)
+            try:
+                async with asyncio.timeout(request.timeout_in_seconds):
+                    while True:
+                        # Queue it for delivery
+                        self.queue_send(request, destination)
 
-                    # Wait for a response up to a certain amount of time
-                    await request.wait_for_response(self)
-                    if not request.has_timedout:
-                        # If handled, then return the handler which ought
-                        # to contain the information as requested
-                        return request
+                        # Wait for a response up to a certain amount of time
+                        if not await request.wait_for_response(self, packet_timeout):
+                            # If handled, then return the handler which ought
+                            # to contain the information as requested
+                            return request
 
-                    # Loop for retry
-                    retry_count -= 1
+                        # Create a clean new request
+                        request = create_func()
 
-                    # Pause between retries
-                    await config_sleep(
-                        GeckoConfig.PAUSE_BETWEEN_RETRIES_IN_SECONDS,
-                        "Async UDP protocol retry",
-                    )
-            return None
-        finally:
-            pass
+            except TimeoutError:
+                _LOGGER.debug(
+                    "TIMEOUT: Handler %s threw TimeoutError (%fs)",
+                    request,
+                    request.timeout_in_seconds,
+                )

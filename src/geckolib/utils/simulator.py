@@ -76,6 +76,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         )
         self.snapshot: GeckoSnapshot = GeckoSnapshot()
         self._reliability = 1.0
+        self._tardiness = 0.0
         self._do_rferr = False
         self._do_thermodynamics = False
         self._send_structure_change = False
@@ -202,6 +203,24 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             print(f"Current reliability is {self._reliability}")
             return
         self._reliability = min(1.0, max(0.0, float(args)))
+
+    def do_tardiness(self, args: str) -> None:
+        """
+        Set simulator tardiness factor.
+
+        Tardomess is a measure of how rapidly the simulator will respond to an
+        incoming message. Tardiness of 0.0 (default) means the simulator will
+        respond immediately. Larger numbers are how long in seconds it could
+        take to respond. This isn't an absolute delay, it will be somewhere in
+        the range 0.0 to the tardiness value.
+
+        Usage: tardiness [<factor>] where <factor> is a float. Missing the
+               parameter will show the current value
+        """
+        if args == "":
+            print(f"Current tardiness is {self._tardiness}")
+            return
+        self._tardiness = float(args)
 
     def do_rferr(self, args: str) -> None:
         """Set the simulator to response with RFERR if the parameter is True."""
@@ -379,7 +398,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             arg = "ON"
         self._do_thermodynamics = arg == "ON"
 
-    def _should_ignore(
+    async def _should_ignore(
         self,
         handler: GeckoUdpProtocolHandler,
         sender: tuple,
@@ -394,9 +413,15 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             # Always ignore responses because we've already replied with RFERR
             return True
 
-        should_ignore = random.random() > self._reliability  # noqa: S311
+        tardiness = random.random() * self._tardiness  # noqa: S311 (Not interested in crypto strength!)
+        if tardiness > 0.0:
+            await asyncio.sleep(tardiness)
+
+        should_ignore = random.random() > self._reliability  # noqa: S311 (Not interested in crypto strength!)
         if should_ignore:
-            print(f"Unreliable simulator ignoring request for {handler} from {sender}")
+            _LOGGER.debug(
+                f"Unreliable simulator ignoring request for {handler} from {sender}"  # noqa: G004
+            )
         return should_ignore
 
     async def _install_standard_handlers(self) -> None:
@@ -524,7 +549,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self, handler: GeckoHelloProtocolHandler, sender: tuple
     ) -> None:
         if handler.was_broadcast_discovery:
-            if self._should_ignore(handler, sender, respect_rferr=False):
+            if await self._should_ignore(handler, sender, respect_rferr=False):
                 return
             assert self._protocol is not None  # noqa: S101
             if (
@@ -540,7 +565,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_ping(
         self, handler: GeckoPingProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
         self._protocol.queue_send(
@@ -567,7 +592,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_version(
         self, handler: GeckoVersionProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
         assert self.snapshot is not None  # noqa: S101
@@ -583,7 +608,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_get_channel(
         self, handler: GeckoGetChannelProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
         self._protocol.queue_send(
@@ -594,7 +619,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_config_file(
         self, handler: GeckoConfigFileProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
         assert self.snapshot is not None  # noqa: S101
@@ -611,7 +636,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_status_block(
         self, handler: GeckoStatusBlockProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         for idx, start in enumerate(
             range(
@@ -627,7 +652,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             next_index = (idx + 1) % (
                 (handler.length // self._STATUS_BLOCK_SEGMENT_SIZE) + 1
             )
-            if self._should_ignore(handler, sender, respect_rferr=False):
+            if await self._should_ignore(handler, sender, respect_rferr=False):
                 continue
             assert self._protocol is not None  # noqa: S101
             self._protocol.queue_send(
@@ -643,7 +668,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_get_watercare_mode(
         self, handler: GeckoGetWatercareModeProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
         self._protocol.queue_send(
@@ -656,7 +681,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_set_watercare_mode(
         self, handler: GeckoSetWatercareModeProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
         print(
@@ -673,7 +698,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_get_watercare_schedule(
         self, handler: GeckoGetWatercareScheduleListProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
         self._protocol.queue_send(
@@ -686,7 +711,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_reminders(
         self, handler: GeckoRemindersProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
         if handler.is_request:
@@ -708,7 +733,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_update_firmware(
         self, handler: GeckoUpdateFirmwareProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
         self._protocol.queue_send(
@@ -718,7 +743,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
     async def _async_on_pack_command(
         self, handler: GeckoPackCommandProtocolHandler, sender: tuple
     ) -> None:
-        if self._should_ignore(handler, sender):
+        if await self._should_ignore(handler, sender):
             return
         assert self._protocol is not None  # noqa: S101
         self._protocol.queue_send(

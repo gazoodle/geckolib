@@ -206,7 +206,10 @@ class GeckoAsyncSpa(Observable):
         )
 
         config_file_handler = await self._protocol.get(
-            self._get_config_file_handler_func
+            self._get_config_file_handler_func,
+            None,
+            GeckoConfig.PROTOCOL_RETRY_COUNT,
+            4,
         )
         if config_file_handler is None:
             _LOGGER.error("Cannot get file, protocol retry count exceeded")
@@ -252,6 +255,8 @@ class GeckoAsyncSpa(Observable):
                 self._protocol.get_and_increment_sequence_counter(),
                 parms=self.sendparms,
             ),
+            10,
+            5,
         ):
             _LOGGER.error("Cannot get full struct, protocol retry count exceeded")
             await self._event_handler(
@@ -462,7 +467,7 @@ class GeckoAsyncSpa(Observable):
         # are successful
         return (
             time.monotonic() - self._last_ping
-        ) < GeckoConfig.PING_FREQUENCY_IN_SECONDS * 2
+        ) < GeckoConfig.PING_DEVICE_NOT_RESPONDING_TIMEOUT_IN_SECONDS
 
     async def _async_on_packet(
         self, handler: GeckoPacketProtocolHandler, _sender: tuple
@@ -559,11 +564,10 @@ class GeckoAsyncSpa(Observable):
         try:
             _LOGGER.debug("Refresh loop started")
             while self.isopen:
-                if not await config_sleep(
+                time_to_doit = await config_sleep(
                     GeckoConfig.SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS,
                     "Async spa refresh handler ",
-                ):
-                    continue
+                )
                 if self._needs_reload:
                     await self._event_handler(GeckoSpaEvent.RUNNING_SPA_NEEDS_RELOAD)
                     continue
@@ -571,12 +575,17 @@ class GeckoAsyncSpa(Observable):
                     continue
                 if not self.is_responding_to_pings:
                     continue
+                if not time_to_doit:
+                    continue
 
                 if False:
                     # Removed because I don't think this is required now that ping
                     # is back to 2 seconds. Time will tell.
                     if not await self.struct.get(
-                        self._protocol, self._get_status_block_handler_func
+                        self._protocol,
+                        self._get_status_block_handler_func,
+                        10,
+                        5,
                     ):
                         await self._event_handler(
                             GeckoSpaEvent.ERROR_PROTOCOL_RETRY_COUNT_EXCEEDED

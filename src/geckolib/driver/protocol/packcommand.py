@@ -51,7 +51,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                     GeckoStructAccessor.pack_data(length, data),
                 ]
             ),
-            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
+            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS * 3,
             retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler.default_retry_failed_handler,
             **kwargs,
@@ -71,7 +71,7 @@ class GeckoPackCommandProtocolHandler(GeckoPacketProtocolHandler):
                     ),
                 ]
             ),
-            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS,
+            timeout=GeckoConfig.PROTOCOL_TIMEOUT_IN_SECONDS * 3,
             retry_count=GeckoConfig.PROTOCOL_RETRY_COUNT,
             on_retry_failed=GeckoPacketProtocolHandler.default_retry_failed_handler,
             **kwargs,
