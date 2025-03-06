@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -45,6 +46,12 @@ class GeckoInMixZone(GeckoLight):
         self._blue_accessor: GeckoByteStructAccessor = self.facade.spa.accessors[
             f"InMix-BlueLevel{zone}"
         ]
+
+        # Set accessors for direct struct update
+        self._mode_accessor.direct_update = True
+        self._red_accessor.direct_update = True
+        self._blue_accessor.direct_update = True
+        self._green_accessor.direct_update = True
 
         self._mode_accessor.watch(self._on_change)
         self._red_accessor.watch(self._on_change)
@@ -196,6 +203,8 @@ class GeckoInMix(GeckoPower):
         if "InMix-PackType" not in facade.spa.accessors:
             return
 
+        self.struct_begin = facade.spa.struct.inmix_log_class.begin
+
         self.number_of_zones: int = int(
             facade.spa.accessors["InMix-NumberOfZones"].value
         )
@@ -216,6 +225,39 @@ class GeckoInMix(GeckoPower):
         #   RGB 0-255 per normal
         #
 
+        self.zone_1.watch(self._on_change)
+        self.zone_2.watch(self._on_change)
+        self.zone_3.watch(self._on_change)
+        self.syncro.watch(self._on_change)
+
+        # Start task for
+        # facade.taskmanager.add_task(self._in
+        facade.taskmanager.add_task(self._inmix_update(), "inix Update", "FACADE")
+        self._update_event = asyncio.Event()
+
+    async def _inmix_update(self) -> None:
+        _LOGGER.debug("inMix update task started")
+        try:
+            while True:
+                await self._update_event.wait()
+
+                _LOGGER.debug("Perform struct update")
+                block_size = len(self.zones) * 7
+                data = self.facade.spa.struct.status_block[
+                    self.struct_begin : self.struct_begin + block_size
+                ]
+                await self.facade.spa.async_on_set_value(
+                    self.struct_begin, block_size, data
+                )
+                self._update_event.clear()
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("Facade update loop cancelled")
+            raise
+        except Exception:
+            _LOGGER.exception("Facade update loop caught execption")
+            raise
+
     @property
     def zones(self) -> list[GeckoInMixZone]:
         """Get the available zones."""
@@ -224,3 +266,9 @@ class GeckoInMix(GeckoPower):
             for zone in [self.zone_1, self.zone_2, self.zone_3]
             if zone.is_available
         ]
+
+    def _on_change(
+        self, sender: Any = None, old_value: Any = None, new_value: Any = None
+    ) -> None:
+        self._update_event.set()
+        return super()._on_change(sender, old_value, new_value)

@@ -454,3 +454,8 @@ class GeckoAsyncFacade(Observable):
         Keys can be passed to get_device to find the specific device.
         """
         return [device.key for device in self.all_automation_devices]
+
+    @property
+    def taskmanager(self) -> GeckoAsyncTaskMan:
+        """The facade's task manager."""
+        return self._taskman

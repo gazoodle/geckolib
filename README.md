@@ -309,6 +309,9 @@ because that was to mitigate the missing change updates. Anyway, quite a big pro
    a retry loop resulting in tardy updates in HA.
  - Protocol retry count removed because it is now intrinsic to retry operations every so
    often until the timeout period is exceeded.
+ - Noticed that inMix updates seem to always send 7 x the number of zones worth of data
+   based at 600 (which is the SpaPackStruct.xml's start location of the inMix log structure)
+   so replicate this behaviour in the hope that it will drive the inMix modules correctly.
 
 ## Done/Fixed in 1.0.10
  - Handle TempNotValid error

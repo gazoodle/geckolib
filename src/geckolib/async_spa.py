@@ -91,7 +91,7 @@ class GeckoAsyncSpa(Observable):
         self.version = ""
         self.config_number = 0
 
-        self.struct: GeckoAsyncStructure = GeckoAsyncStructure(self._async_on_set_value)
+        self.struct: GeckoAsyncStructure = GeckoAsyncStructure(self.async_on_set_value)
         self._last_ping_at: datetime | None = None
         self._needs_reload: bool = False
 
@@ -618,7 +618,8 @@ class GeckoAsyncSpa(Observable):
         for change in handler.changes:
             self.struct.replace_status_block_segment(change[0], change[1])
 
-    async def _async_on_set_value(self, pos: int, length: int, newvalue: Any) -> None:
+    async def async_on_set_value(self, pos: int, length: int, newvalue: Any) -> None:
+        """Set the data block to a specific value."""
         try:
             assert self._protocol is not None  # noqa: S101
             if not self.is_connected:

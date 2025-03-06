@@ -26,6 +26,8 @@ class GeckoStructAccessor(Observable):
     @staticmethod
     def pack_data(length: int, data: Any) -> bytes:
         """Pack the data into bytes."""
+        if isinstance(data, bytes):
+            return data
         if length == 1:
             return struct.pack(">B", data)
         if length == 2:  # noqa: PLR2004
@@ -55,6 +57,7 @@ class GeckoStructAccessor(Observable):
         self.bitpos: int | None = bitpos
         self.items: list[str] | None = None
         self.maxitems: int | None = None
+        self.direct_update: bool = False
 
         if bitpos is not None:
             self.bitmask = 1
@@ -230,8 +233,13 @@ class GeckoStructAccessor(Observable):
             self.length,
         )
 
-        # We can't handle this here, we must delegate via the structure
-        await self.struct.async_set_value(self.pos, self.length, newvalue)
+        if self.direct_update:
+            self.struct.replace_status_block_segment(
+                self.pos, GeckoStructAccessor.pack_data(self.length, newvalue)
+            )
+        else:
+            # We can't handle this here, we must delegate via the structure
+            await self.struct.async_set_value(self.pos, self.length, newvalue)
 
     def diag_info(self) -> str:
         """Get diagnostic data for this accessor."""

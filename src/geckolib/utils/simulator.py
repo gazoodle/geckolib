@@ -755,6 +755,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             await self._async_handle_pack_set_value(
                 handler.position, handler.length, handler.new_data
             )
+        else:
+            _LOGGER.error("Unhandled pack command")
 
     async def _async_handle_pack_key_press(self, keycode: int) -> None:
         """Handle a key press command."""
@@ -780,6 +782,12 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self, pos: int, _length: int, data: bytes
     ) -> None:
         """Handle set value."""
+        _LOGGER.debug(
+            "Replace status block segmemnt @ %d with %s (%d bytes)",
+            pos,
+            f"{data}",
+            len(data),
+        )
         self.structure.replace_status_block_segment(pos, data)
         if self._send_structure_change:
             await self._structure_change_queue.put(pos)
