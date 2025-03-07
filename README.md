@@ -296,6 +296,9 @@ it impacts the behaviour of the library, it needs changing. Anyway, it's back to
 this also revealed was that we don't need to do the full structure refresh that we had been doing either
 because that was to mitigate the missing change updates. Anyway, quite a big protocol change.
 
+## Done/Fixed in 1.0.13
+
+
 ## Done/Fixed in 1.0.12
  - Ask for initial data block before loading class modules, that way we can do a snapshot
    if there is a load fault.
