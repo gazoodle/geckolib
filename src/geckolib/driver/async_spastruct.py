@@ -253,8 +253,14 @@ class GeckoAsyncStructure:
 
         return {
             "Library Version": VERSION,
-            "SpaPackStruct.xml revision": self.pack_class.revision,
-            "Spa pack": f"{self.accessors[GeckoConstants.KEY_PACK_TYPE].value}"
+            "SpaPackStruct.xml revision": self.pack_class.revision
+            if self.pack_class is not None
+            else "Not Known",
+            "Spa pack": f"{
+                self.accessors[GeckoConstants.KEY_PACK_TYPE].value
+                if GeckoConstants.KEY_PACK_TYPE in self.accessors
+                else ' (NO PACK TYPE)'
+            }"
             f" {
                 self.accessors[pack_id].value
                 if pack_id in self.accessors

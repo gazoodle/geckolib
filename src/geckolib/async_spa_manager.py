@@ -573,6 +573,16 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         ):
             self.set_spa_state(GeckoSpaState.ERROR_NEEDS_ATTENTION)
 
+        elif event in (
+            GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK,
+            GeckoSpaEvent.CONNECTION_CANNOT_FIND_CONFIG_VERSION,
+            GeckoSpaEvent.CONNECTION_CANNOT_FIND_LOG_VERSION,
+        ):
+            self.set_spa_state(GeckoSpaState.ERROR_NOT_SUPPORTED)
+            data = self._spa.get_snapshot_data()
+            _LOGGER.info("Device not supported, %s", data)
+            await self._spa.disconnect()
+
         elif event == GeckoSpaEvent.RUNNING_SPA_WATER_CARE_ERROR:
             assert self.facade is not None  # noqa: S101
             assert self._spa is not None  # noqa: S101

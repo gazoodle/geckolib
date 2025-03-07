@@ -35,6 +35,9 @@ class GeckoSpaState(Enum):
     ERROR_RF_FAULT = 53
     """State when the EN module reports it can't talk to the CO module"""
 
+    ERROR_NOT_SUPPORTED = 100
+    """State when the pack isn't supported, but it looks like it talks the talk"""
+
     @staticmethod
     def to_string(state: GeckoSpaState) -> str:  # noqa: PLR0911
         """Convert GeckoSpaState to string."""
@@ -54,4 +57,6 @@ class GeckoSpaState(Enum):
             return "Choose spa"
         if state == GeckoSpaState.ERROR_SPA_NOT_FOUND:
             return "Cannot find spa, check logs"
+        if state == GeckoSpaState.ERROR_NOT_SUPPORTED:
+            return "Device not supported, check logs"
         return f"{state}"

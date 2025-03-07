@@ -239,9 +239,6 @@ class GeckoAsyncSpa(Observable):
             "Async spa connect - after files",
         )
 
-        if not await self._connect_load_pack(plateform_key):
-            return
-
         await self._event_handler(GeckoSpaEvent.CONNECTION_INITIAL_DATA_BLOCK_REQUEST)
         await config_sleep(
             GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS,
@@ -261,6 +258,9 @@ class GeckoAsyncSpa(Observable):
                 GeckoSpaEvent.CONNECTION_PROTOCOL_RETRY_TIME_EXCEEDED
             )
 
+            return
+
+        if not await self._connect_load_pack(plateform_key):
             return
 
         await self.struct.check_for_accessories()
@@ -375,25 +375,29 @@ class GeckoAsyncSpa(Observable):
         try:
             await self.struct.load_pack_class(plateform_key)
         except ModuleNotFoundError as ex:
+            _LOGGER.exception("Cannot load pack %s", plateform_key)
             await self._event_handler(
-                GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK, ex.args
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_SPA_PACK, exception=ex.args
             )
             return False
 
         try:
             await self.struct.load_config_module(self.config_version)
         except ModuleNotFoundError as ex:
+            _LOGGER.exception("Cannot load config %d", self.config_version)
             await self._event_handler(
-                GeckoSpaEvent.CONNECTION_CANNOT_FIND_CONFIG_VERSION, ex.args
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_CONFIG_VERSION, exception=ex.args
             )
             return False
 
         try:
             await self.struct.load_log_module(self.log_version)
         except ModuleNotFoundError as ex:
+            _LOGGER.exception("Cannot load log %d", self.log_version)
             await self._event_handler(
-                GeckoSpaEvent.CONNECTION_CANNOT_FIND_LOG_VERSION, ex.args
+                GeckoSpaEvent.CONNECTION_CANNOT_FIND_LOG_VERSION, exception=ex.args
             )
+            return False
 
         self.pack_type = self.struct.pack_class.plateform_type
         _LOGGER.debug(
