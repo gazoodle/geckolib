@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from re import A
 from typing import TYPE_CHECKING, Any
 
 from geckolib.automation.light import GeckoLight
@@ -21,6 +22,15 @@ _LOGGER = logging.getLogger(__name__)
 
 ATTR_RGBCOLOR = "rgb_color"
 ATTR_BRIGHTNESS = "brightness"
+ZONE_KEY_NONE = "None"
+
+"""
+    Notes:
+
+    InMix-Color[n]: If not NO_COLOR, then InMix-Mode[n] must be STATIC
+
+
+"""
 
 
 class GeckoInMixZone(GeckoLight):
@@ -34,8 +44,17 @@ class GeckoInMixZone(GeckoLight):
         else:
             return
 
+        self._synchro_accessor: GeckoEnumStructAccessor = self.facade.spa.accessors[
+            f"InMix-Synchro{zone}"
+        ]
         self._mode_accessor: GeckoEnumStructAccessor = self.facade.spa.accessors[
             f"InMix-Mode{zone}"
+        ]
+        self._color_accessor: GeckoEnumStructAccessor = self.facade.spa.accessors[
+            f"InMix-Color{zone}"
+        ]
+        self._speed_accessor: GeckoEnumStructAccessor = self.facade.spa.accessors[
+            f"InMix-Speed{zone}"
         ]
         self._red_accessor: GeckoByteStructAccessor = self.facade.spa.accessors[
             f"InMix-RedLevel{zone}"
@@ -47,17 +66,21 @@ class GeckoInMixZone(GeckoLight):
             f"InMix-BlueLevel{zone}"
         ]
 
-        # Set accessors for direct struct update
-        self._mode_accessor.direct_update = True
-        self._red_accessor.direct_update = True
-        self._blue_accessor.direct_update = True
-        self._green_accessor.direct_update = True
+        # Set accessors for direct struct update, and watch them
+        for accessor in [
+            self._synchro_accessor,
+            self._mode_accessor,
+            self._color_accessor,
+            self._speed_accessor,
+            self._red_accessor,
+            self._green_accessor,
+            self._blue_accessor,
+        ]:
+            accessor.direct_update = True
+            accessor.watch(self._on_change)
 
-        self._mode_accessor.watch(self._on_change)
-        self._red_accessor.watch(self._on_change)
-        self._green_accessor.watch(self._on_change)
-        self._blue_accessor.watch(self._on_change)
         self._brightness = 255
+        self._zone = zone
         self._get_inmix()
         self._ignore_changes = False
 
@@ -79,6 +102,35 @@ class GeckoInMixZone(GeckoLight):
         if self.is_on:
             return self._brightness
         return None
+
+    @property
+    def zone_key(self) -> str:
+        """Get the zone key."""
+        return f"ZONE{self._zone}"
+
+    @property
+    def synchro(self) -> str:
+        """Get this zone sync value."""
+        return self._synchro_accessor.value
+
+    async def set_synchro(self, zone: GeckoInMixZone | None) -> None:
+        """Set the zone sync value."""
+        if zone is None:
+            await self._synchro_accessor.async_set_value(self.zone_key)
+            return
+        if self.zone_key == zone.zone_key:
+            return
+        if zone.is_on:
+            await self.async_turn_on(
+                **{ATTR_BRIGHTNESS: zone.brightness, ATTR_RGBCOLOR: zone.rgb_color}
+            )
+            return
+        await self.async_turn_off()
+
+    @property
+    def is_synchro(self) -> bool:
+        """Is this zone synchro with another."""
+        return self.synchro != self.zone_key
 
     @property
     def state(self) -> Any:
@@ -168,14 +220,36 @@ class GeckoInMixSynchro(GeckoSelect):
         # Set of mappings of constants to UI options. There must be at
         # least 2 zones
         mappings = {
-            "None": "None",
-            "Zone1": "With Zone 1",
-            "Zone2": "With Zone 2",
+            ZONE_KEY_NONE: "None",
+            inmix.zone_1.zone_key: "With Zone 1",
+            inmix.zone_2.zone_key: "With Zone 2",
         }
         if inmix.number_of_zones == 3:  # noqa: PLR2004
-            mappings["Zone3"] = "With Zone 3"
+            mappings[inmix.zone_3.zone_key] = "With Zone 3"
         self.set_mapping(mappings)
-        self._state = "None"
+
+        self._inmix = inmix
+        self._lookup: dict = {ZONE_KEY_NONE: None}
+        for zone in inmix.zones:
+            self._lookup[zone.zone_key] = zone
+            zone.watch(self._on_zone_change)
+
+        self._state = ZONE_KEY_NONE
+        self._ignore_changes = False
+
+    def _on_zone_change(
+        self, _sender: Any = None, _old_value: Any = None, _new_value: Any = None
+    ) -> None:
+        if self._ignore_changes:
+            return
+        try:
+            for zone in self._inmix.zones:
+                if zone.is_synchro:
+                    self._state = zone.synchro
+                    return
+            self._state = ZONE_KEY_NONE
+        finally:
+            self._on_change(None, None, None)
 
     @property
     def state(self) -> str:
@@ -187,6 +261,12 @@ class GeckoInMixSynchro(GeckoSelect):
         if new_state in self.reverse:
             new_state = self.reverse[new_state]
         self._state = new_state
+        try:
+            self._ignore_changes = True
+            for zone in self._inmix.zones:
+                await zone.set_synchro(self._lookup[self._state])
+        finally:
+            self._ignore_changes = False
 
     @property
     def states(self) -> list[str]:
@@ -216,8 +296,6 @@ class GeckoInMix(GeckoPower):
         self.zone_2 = GeckoInMixZone(facade, self, 2)
         self.zone_3 = GeckoInMixZone(facade, self, 3)
         self.syncro = GeckoInMixSynchro(facade, self)
-        # Currently we don't support syncro mode
-        self.syncro.set_availability(is_available=False)
 
         #
         #   If one zone, then no synchro available
