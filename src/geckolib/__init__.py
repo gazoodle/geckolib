@@ -10,6 +10,7 @@ from .async_spa_manager import GeckoAsyncSpaMan
 from .async_taskman import GeckoAsyncTaskMan
 from .async_tasks import AsyncTasks
 from .automation import (
+    BainUltra,
     GeckoAsyncFacade,
     GeckoAutomationBase,
     GeckoAutomationFacadeBase,
@@ -78,6 +79,7 @@ __all__ = [
     "CUI",
     "VERSION",
     "AsyncTasks",
+    "BainUltra",
     "GeckoAsyncFacade",
     "GeckoAsyncLocator",
     "GeckoAsyncPartialStatusBlockProtocolHandler",

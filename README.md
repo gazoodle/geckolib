@@ -281,6 +281,10 @@ https://www.gnu.org/licenses/gpl-3.0.html
 - Expose the master timeouts as configurations and the ud timeouts as controls
 - Keep looking to see if there is a time sync mechanism
 - Use the config ver and status ver check in simulator to make sure partial block updates are acceptable
+- What is the purpose of the V2 & V3 structure definitions in SpaPackStruct.xml? How do we decide to use
+  this data. Compare them between all the version to see what the differences are. Perhaps amalagamate them
+  during PackGen...
+- SpaPackStruct nodes also contain Min/Max values that are currently being ignored, so look to deal with them
 
 # Recent discovery
 
@@ -297,6 +301,9 @@ this also revealed was that we don't need to do the full structure refresh that 
 because that was to mitigate the missing change updates. Anyway, quite a big protocol change.
 
 ## Done/Fixed in 1.0.14
+ - Increase the packet retry timeout for Keypress & SetValue from 400ms to 1000ms to prevent spa pump
+   judder if the response is just about to be processed, but another command is issued and toggles the state
+ - Support for Bain Ultra baths, including Chroma mode if present
 
 ## Done/Fixed in 1.0.13
  - Add inMix synchro support

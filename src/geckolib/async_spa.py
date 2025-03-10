@@ -643,7 +643,9 @@ class GeckoAsyncSpa(Observable):
                     length,
                     newvalue,
                     parms=self.sendparms,
-                )
+                ),
+                None,
+                1,
             )
 
             if pack_command_handler is not None:
@@ -686,7 +688,9 @@ class GeckoAsyncSpa(Observable):
                     self.pack_type,
                     keypad,
                     parms=self.sendparms,
-                )
+                ),
+                None,
+                1,
             )
 
             if pack_command_handler is None:

@@ -6,6 +6,7 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any
 
+from geckolib.automation.bainultra import BainUltra
 from geckolib.automation.base import GeckoAutomationBase
 from geckolib.automation.bubblegen import GeckoBubbleGenerator
 from geckolib.automation.heatpump import GeckoHeatPump
@@ -119,6 +120,7 @@ class GeckoAsyncFacade(Observable):
         self._inmix: GeckoInMix = GeckoInMix(self)
 
         self._mrsteam: MrSteam = MrSteam(self)
+        self._bainultra: BainUltra = BainUltra(self)
 
         #################
 
@@ -314,6 +316,11 @@ class GeckoAsyncFacade(Observable):
         return self._mrsteam
 
     @property
+    def bainultra(self) -> BainUltra:
+        """Get the Bain Ultra object."""
+        return self._bainultra
+
+    @property
     def reminders_manager(self) -> GeckoReminders:
         """Get the reminders handler."""
         return self._reminders_manager
@@ -353,6 +360,8 @@ class GeckoAsyncFacade(Observable):
         """Get the switches."""
         if self.mrsteam.is_available:
             return self.mrsteam.switches
+        if self.bainultra.is_available:
+            return self.bainultra.switches
         switches = []
         if self.eco_mode is not None:
             switches.append(self.eco_mode)
@@ -437,6 +446,10 @@ class GeckoAsyncFacade(Observable):
             extras.append(self.heatpump)
         if self.ingrid is not None:
             extras.append(self.ingrid)
+        if self.mrsteam.is_available:
+            extras.append(self.mrsteam)
+        if self.bainultra.is_available:
+            extras.append(self.bainultra)
         return extras
 
     def get_device(self, key: str) -> GeckoAutomationBase | None:

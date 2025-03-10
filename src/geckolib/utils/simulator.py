@@ -70,7 +70,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self._con_lost = asyncio.Event()
         self._protocol: GeckoAsyncUdpProtocol | None = None
         self._transport: asyncio.BaseTransport | None = None
-        self._name: str = "Sim"
+        self._name: str = ""
         self.structure: GeckoAsyncStructure = GeckoAsyncStructure(
             self._async_on_set_value
         )
@@ -278,6 +278,10 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
 
     async def do_name(self, args: str) -> None:
         """Set the name of the spa : name <spaname>."""
+        if args == "":
+            print(f"Spa name is {self._name}")
+            return
+
         self._name = args
         if self._hello_task is not None:
             self._hello_task.cancel()
@@ -285,17 +289,17 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             release_config_change_waiters()
             await asyncio.sleep(1)
 
-        assert self._protocol is not None  # noqa: S101
-        # Hello handler
-        self._hello_task = self.add_task(
-            GeckoHelloProtocolHandler.response(
-                SPA_IDENTIFIER,
-                self._name,
-                async_on_handled=self._async_on_hello,
-            ).consume(self._protocol),
-            "Hello handler",
-            "SIM",
-        )
+        if self._protocol is not None:
+            # Hello handler
+            self._hello_task = self.add_task(
+                GeckoHelloProtocolHandler.response(
+                    SPA_IDENTIFIER,
+                    self._name,
+                    async_on_handled=self._async_on_hello,
+                ).consume(self._protocol),
+                "Hello handler",
+                "SIM",
+            )
 
     async def set_snapshot(self, snapshot: GeckoSnapshot) -> None:
         """Assign snapshot to this simulator."""
@@ -311,6 +315,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             self.structure.reset()
 
         self.snapshot = snapshot
+        if self.snapshot.spa_name is not None:
+            await self.do_name(self.snapshot.spa_name)
         _LOGGER.debug(snapshot)
 
         await self._set_structure_from_snapshot(
@@ -431,7 +437,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         All simulators needs to have some basic functionality such
         as discovery, error handling et al
         """
-        await self.do_name("Simulator")
+        await self.do_name("Simulator" if self._name == "" else self._name)
 
         assert self._protocol is not None  # noqa: S101
         # Helper to unwrap PACK packets
@@ -488,8 +494,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
             "Status block",
             "SIM",
         )
-        # Watercare if not MrSteam
-        if not self.structure.is_mr_steam:
+        # Watercare if regular spa pack
+        if self.structure.is_spa_pack:
             self.add_task(
                 GeckoGetWatercareModeProtocolHandler(
                     async_on_handled=self._async_on_get_watercare_mode
@@ -512,6 +518,8 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 "SIM",
             )
 
+        # Reminders if regular spa pack
+        if self.structure.is_spa_pack:
             # Reminders
             self.add_task(
                 GeckoRemindersProtocolHandler(
@@ -520,6 +528,7 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
                 "Reminders",
                 "SIM",
             )
+
         # Update firmware fake
         self.add_task(
             GeckoUpdateFirmwareProtocolHandler(

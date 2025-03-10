@@ -22,7 +22,7 @@ class GeckoWaterCare(GeckoAutomationFacadeBase):
         """Initialize watercare class."""
         super().__init__(facade, "WaterCare", "WATERCARE")
         self.active_mode: int | None = None
-        if not facade.spa.struct.is_mr_steam:
+        if facade.spa.struct.is_spa_pack:
             self.set_availability(is_available=True)
 
     @property

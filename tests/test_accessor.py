@@ -34,6 +34,8 @@ class MockStructure(GeckoAsyncStructure):
             b"\x11\x70"
             # Bytes 21-22 are an empty sized bitpos enum
             b"\x00\x00"
+            # Byte 23 is a sparse select value (40)
+            b"\x28"
         )
 
     async def set_value_cb(self, pos: int, len_: int, newvalue: Any) -> None:
@@ -262,3 +264,81 @@ class TestStructAccessor:
         assert self.struct.last_data == b"\xa0\x00"
         assert self.struct.last_len == 2
         assert len(self.struct.last_data) == 2
+
+    def test_sparse_enum_read(self) -> None:
+        dry_delay = GeckoEnumStructAccessor(
+            self.struct,
+            "LogStructure/UserDemands/UserDryingDelay",
+            23,
+            0,
+            [
+                "0",
+                "",
+                "",
+                "",
+                "",
+                "5",
+                "",
+                "",
+                "",
+                "",
+                "10",
+                "",
+                "",
+                "",
+                "",
+                "15",
+                "",
+                "",
+                "",
+                "",
+                "20",
+                "",
+                "",
+                "",
+                "",
+                "25",
+                "",
+                "",
+                "",
+                "",
+                "30",
+                "",
+                "",
+                "",
+                "",
+                "35",
+                "",
+                "",
+                "",
+                "",
+                "40",
+                "",
+                "",
+                "",
+                "",
+                "45",
+                "",
+                "",
+                "",
+                "",
+                "50",
+                "",
+                "",
+                "",
+                "",
+                "55",
+                "",
+                "",
+                "",
+                "",
+                "60",
+            ],
+            None,
+            63,
+            "ALL",
+        )
+
+        assert len(dry_delay.items) == 61
+        assert dry_delay.raw_value == 40
+        assert dry_delay.value == "40"

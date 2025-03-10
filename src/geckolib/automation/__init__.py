@@ -1,6 +1,7 @@
 """GeckoLib automation interface."""
 
 from .async_facade import GeckoAsyncFacade
+from .bainultra import BainUltra
 from .base import GeckoAutomationBase, GeckoAutomationFacadeBase
 from .blower import GeckoBlower
 from .bubblegen import GeckoBubbleGenerator
@@ -22,6 +23,7 @@ from .watercare import GeckoWaterCare
 from .waterfall import GeckoWaterfall
 
 __all__ = [
+    "BainUltra",
     "GeckoAsyncFacade",
     "GeckoAutomationBase",
     "GeckoAutomationFacadeBase",

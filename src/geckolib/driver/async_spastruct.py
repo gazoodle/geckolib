@@ -309,6 +309,16 @@ class GeckoAsyncStructure:
         """Is this a MrSteam pack."""
         return self.plateform_key == "mrsteam"
 
+    @property
+    def is_bain_ultra(self) -> bool:
+        """Is this a Bain Ultra pack."""
+        return self.plateform_key == "mas-ibc-32k"
+
+    @property
+    def is_spa_pack(self) -> bool:
+        """Is this a regular pack pack."""
+        return not (self.is_mr_steam or self.is_bain_ultra)
+
     async def check_for_accessories(self) -> None:
         """After the initial pack has been loaded, check for accessories too."""
         inmix_packtype = GeckoByteStructAccessor(self, "inMix-PackType", 628, None)

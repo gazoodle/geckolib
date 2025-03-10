@@ -68,7 +68,7 @@ class GeckoReminders(GeckoAutomationFacadeBase):
         self._all_reminders: list[GeckoReminders.Reminder] = []
         self._reminders_handler = None
         self._last_update = None
-        if not facade.spa.struct.is_mr_steam:
+        if facade.spa.struct.is_spa_pack:
             self.set_availability(is_available=True)
 
     @property

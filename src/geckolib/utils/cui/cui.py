@@ -214,7 +214,7 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
                 )
             )
 
-    def _build_facade_ui(self, _maxy: int, maxx: int) -> None:  # noqa: PLR0912
+    def _build_facade_ui(self, _maxy: int, maxx: int) -> None:  # noqa: PLR0912, PLR0915
         if self.facade is None:
             return
         curx = 2
@@ -252,6 +252,17 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
         if self.facade.mrsteam.is_available:
             self._lines.append("We have a Mr Steam unit")
             self._lines.append("")
+        if self.facade.bainultra.is_available:
+            self._lines.append("We have a Bain Ultra bath")
+            self._lines.append("")
+            self._lines.append(f"{self.facade.bainultra.bath_runtime}")
+            self._lines.append(f"{self.facade.bainultra.bath_intensity}")
+            self._lines.append(f"{self.facade.bainultra.backrest}")
+            self._lines.append(f"{self.facade.bainultra.backrest2}")
+            if self.facade.bainultra.chroma.is_available:
+                self._lines.append(f"{self.facade.bainultra.chroma}")
+            self._lines.append(f"{self.facade.bainultra.drying_cycle}")
+            self._lines.append(f"{self.facade.bainultra.drying_cycle_delay}")
 
         if self.facade.water_heater.is_available:
             self._lines.append(f"{self.facade.water_heater}")
@@ -321,12 +332,14 @@ class CUI(AbstractDisplay, GeckoAsyncSpaMan):
 
             if self._can_use_facade:
                 assert self.facade is not None  # noqa: S101
-                self._lines.append("Press '+' to increase setpoint")
-                self._commands["+"] = self.increase_temp
-                self._lines.append("Press '-' to decrease setpoint")
-                self._commands["-"] = self.decrease_temp
-                self._lines.append("Press 'w' to select next watercare mode")
-                self._commands["w"] = self._select_next_watercare_mode
+                if self.facade.water_heater.is_available:
+                    self._lines.append("Press '+' to increase setpoint")
+                    self._commands["+"] = self.increase_temp
+                    self._lines.append("Press '-' to decrease setpoint")
+                    self._commands["-"] = self.decrease_temp
+                if self.facade.water_care.is_available:
+                    self._lines.append("Press 'w' to select next watercare mode")
+                    self._commands["w"] = self._select_next_watercare_mode
 
             #       ┌──────┐
             #       │ eXit │

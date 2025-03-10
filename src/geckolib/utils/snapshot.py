@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from geckolib.const import GeckoConstants
 from geckolib.driver import GeckoStatusBlockProtocolHandler
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ class GeckoSnapshot:
         self._bytes = b""
         self._status_block_handler = GeckoStatusBlockProtocolHandler()
         self._status_block_segments = []
+        self._spa_name = None
 
         self._funcs = [
             #
@@ -170,21 +172,32 @@ class GeckoSnapshot:
     @property
     def packtype(self) -> str:
         """Get the snapshot packtype."""
-        return self._pack_type
+        if self._pack_type != "":
+            return self._pack_type
+        pack_bytes = self.bytes[0x1E0:0x1E4]
+        pack_type = pack_bytes.decode(GeckoConstants.MESSAGE_ENCODING)
+        if pack_type in GeckoConstants.PACK_NAME_ADJUSTMENTS:
+            return GeckoConstants.PACK_NAME_ADJUSTMENTS[pack_type]
+        return pack_type
 
     @property
     def spapack(self) -> str:
         """Get the spapack."""
         return (
-            f"{self._pack_type} {self._pack_conf_id}"
+            f"{self.packtype} {self._pack_conf_id}"
             f" v{self._pack_conf_rev}.{self._pack_conf_rel}"
         )
+
+    @property
+    def spa_name(self) -> str | None:
+        """Get the name or None."""
+        return self._spa_name
 
     @property
     def filename(self) -> str:
         """Generate snapshot filename."""
         fixed_timestamp = f"{self.timestamp}".replace(":", "_").replace(" ", "-")
-        return f"{self._pack_type}-{self.name}-{fixed_timestamp}.snapshot"
+        return f"{self.packtype}-{self.name}-{fixed_timestamp}.snapshot"
 
     @property
     def intouch_EN(self) -> tuple[int, ...]:  # noqa: N802
@@ -215,12 +228,16 @@ class GeckoSnapshot:
     @property
     def config_version(self) -> int:
         """Get the config version."""
-        return int(self._config_version)
+        if self._config_version is not None:
+            return int(self._config_version)
+        return int(self.bytes[0x1E7:0x1E8].decode(GeckoConstants.MESSAGE_ENCODING))
 
     @property
     def log_version(self) -> int:
         """Get the log version."""
-        return int(self._log_version)
+        if self._log_version is not None:
+            return int(self._log_version)
+        return int(self.bytes[0x1F7:0x1F8].decode(GeckoConstants.MESSAGE_ENCODING))
 
     @property
     def bytes(self) -> bytes:
@@ -284,15 +301,20 @@ class GeckoSnapshot:
 
     def _parse_json(self, json: str) -> None:
         snap = ast.literal_eval(json)
-        self.parse(f"Spa pack {snap['Spa pack']}")
+        if "Spa pack" in snap:
+            self.parse(f"Spa pack {snap['Spa pack']}")
         self.parse(f"intouch version EN {snap['intouch version EN']}")
         self.parse(f"intouch version CO {snap['intouch version CO']}")
-        self._config_version = snap["Config version"]
-        self._log_version = snap["Log version"]
+        if "Config version" in snap:
+            self._config_version = snap["Config version"]
+        if "Log version" in snap:
+            self._log_version = snap["Log version"]
         self._bytes = bytes(
             bytearray([int(b.strip()[2:], 16) for b in snap["Status Block"]])
         )
         self._timestamp = datetime.fromisoformat(snap["Snapshot UTC Time"])
+        if "Name" in snap:
+            self._spa_name = snap["Name"]
 
     @staticmethod
     def parse_json(json: str) -> GeckoSnapshot:

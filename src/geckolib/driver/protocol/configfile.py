@@ -83,8 +83,10 @@ class GeckoConfigFileProtocolHandler(GeckoPacketProtocolHandler):
             raise ValueError(msg)
 
         self.plateform_key = gecko_pack_config[0]
-        if self.plateform_key == "MrSt":
-            self.plateform_key = "MrSteam"
+        if self.plateform_key in GeckoConstants.PACK_NAME_ADJUSTMENTS:
+            self.plateform_key = GeckoConstants.PACK_NAME_ADJUSTMENTS[
+                self.plateform_key
+            ]
         self.config_version = int(gecko_pack_config[1][1:])
         self.log_version = int(gecko_pack_log[1][1:])
         self._should_remove_handler = True

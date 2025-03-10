@@ -28,12 +28,14 @@ class GeckoNumber(GeckoAutomationFacadeBase):
         """Initialize the number class."""
         super().__init__(facade, name, tag)
         self._accessor = None
+        self.native_min_value: float = 0.0
+        self.native_max_value: float = 100.0
+        self.native_step: float = 1.0
+        self.mode = "auto"
         if tag in facade.spa.accessors:
             self._accessor = facade.spa.accessors[tag]
             self._accessor.watch(self._on_change)
             self.set_availability(is_available=True)
-        self.native_min_value: float = 0.0
-        self.native_max_value: float = 100.0
         self._unit_accessor = unit_accessor
         if isinstance(self._unit_accessor, GeckoStructAccessor):
             self._unit_accessor.watch(self._on_change)
@@ -62,9 +64,9 @@ class GeckoNumber(GeckoAutomationFacadeBase):
 
     def __str__(self) -> str:
         """Stringize the class."""
-        return f"{self.name}: {self.native_value}"
+        return f"{self.name}: {self.native_value}{self.native_unit_of_measurement}"
 
     @property
     def monitor(self) -> str:
         """Get monitore string."""
-        return f"{self.key}: {self.native_value}"
+        return f"{self.key}: {self.native_value}{self.native_unit_of_measurement}"

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import struct
 from typing import TYPE_CHECKING, Any
 
@@ -85,12 +86,7 @@ class GeckoStructAccessor(Observable):
 
         if maxitems is not None:
             self.maxitems = int(maxitems)
-            if self.maxitems > 8:  # noqa: PLR2004
-                self.bitmask = 15
-            elif self.maxitems > 4:  # noqa: PLR2004
-                self.bitmask = 7
-            elif self.maxitems > 2:  # noqa: PLR2004
-                self.bitmask = 3
+            self.bitmask = (1 << math.ceil(math.log2(max(self.maxitems, 2)))) - 1
 
         self.read_write: str | None = rw
 
@@ -184,7 +180,7 @@ class GeckoStructAccessor(Observable):
         if self.accessor_type == GeckoConstants.SPA_PACK_STRUCT_ENUM_TYPE:
             try:
                 assert self.items is not None  # noqa: S101
-                newvalue = self.items.index(newvalue)
+                newvalue = self.items.index(f"{newvalue}")
             except ValueError:
                 _LOGGER.exception(
                     "Can't set %s to %s, the list(%s) doesn't contain it",

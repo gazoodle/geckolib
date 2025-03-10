@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from re import A
 from typing import TYPE_CHECKING, Any
 
 from geckolib.automation.light import GeckoLight

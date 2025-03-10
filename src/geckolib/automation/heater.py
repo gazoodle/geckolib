@@ -77,9 +77,10 @@ class GeckoWaterHeater(GeckoWaterHeaterAbstract):
         self._temp_not_valid_sensor = None
 
         # Attempt to locate the various items needed from the spa accessors
-        self._temperature_unit_accessor = self._spa.accessors[
-            GeckoConstants.KEY_TEMP_UNITS
-        ]
+        if GeckoConstants.KEY_TEMP_UNITS in self._spa.accessors:
+            self._temperature_unit_accessor = self._spa.accessors[
+                GeckoConstants.KEY_TEMP_UNITS
+            ]
         if GeckoConstants.KEY_SETPOINT_G in self._spa.accessors:
             self._target_temperature_sensor = GeckoSensor(
                 facade,

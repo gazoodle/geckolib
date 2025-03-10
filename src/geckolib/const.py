@@ -82,6 +82,19 @@ class GeckoConstants:
     KEY_MRSTEAM_REMAINING_RUNTIME = "RemainingRuntime"
     KEY_MRSTEAM_MAX_RUNTIME = "MaxRuntime"
 
+    KEY_BAIN_POWER_STATE = "PowerState"
+    KEY_BAIN_GEYSAIR = "UserGeysair"
+    KEY_BAIN_HEATER1 = "UserHeater1"
+    KEY_BAIN_HEATER2 = "UserHeater2"
+    KEY_BAIN_DURATION = "UserBathTime"
+    KEY_BAIN_INTENSITY = "UserBlowerIntensity"
+    KEY_BAIN_DRYING_CYCLE = "UserDryingCycle"
+    KEY_BAIN_DRYING_CYCLE_DELAY = "UserDryingDelay"
+    KEY_BAIN_DRYING_CYCLE_HOUR = "UserDryingHour"
+    KEY_BAIN_DRYING_CYCLE_MINUTE = "UserDryingMinute"
+    KEY_BAIN_CHROMA = "UserChroma"
+    KEY_BAIN_HAS_CHROMO = "LL_Chromo"
+
     KEY_MIN_SETPOINT_G = "MinSetpointG"
     KEY_MAX_SETPOINT_G = "MaxSetpointG"
 
@@ -151,3 +164,8 @@ class GeckoConstants:
         "Super Energy Saving",
         "Weekender",
     ]
+
+    PACK_NAME_ADJUSTMENTS = {  # noqa: RUF012
+        "MrSt": "MrSteam",
+        "MASI": "MAS-IBC-32K",
+    }
