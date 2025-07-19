@@ -31,8 +31,6 @@ install the `curses` library.
 It can also be used to diagnose issues with your Gecko client, test drive your
 spa and investigate anything that the previous GeckoShell was able to do.
 
-
-
 # GeckoShell usage
 
 Once the library is installed, you should be able to start a Gecko shell with the
@@ -300,110 +298,130 @@ it impacts the behaviour of the library, it needs changing. Anyway, it's back to
 this also revealed was that we don't need to do the full structure refresh that we had been doing either
 because that was to mitigate the missing change updates. Anyway, quite a big protocol change.
 
+## Done/Fixed in 1.0.16
+
 ## Done/Fixed in 1.0.15
- - Bump SpaPackStruct to v40
+
+- Bump SpaPackStruct to v40
 
 ## Done/Fixed in 1.0.14
- - Increase the packet retry timeout for Keypress & SetValue from 400ms to 1000ms to prevent spa pump
-   judder if the response is just about to be processed, but another command is issued and toggles the state
- - Support for Bain Ultra baths, including Chroma mode if present
+
+- Increase the packet retry timeout for Keypress & SetValue from 400ms to 1000ms to prevent spa pump
+  judder if the response is just about to be processed, but another command is issued and toggles the state
+- Support for Bain Ultra baths, including Chroma mode if present
 
 ## Done/Fixed in 1.0.13
- - Add inMix synchro support
+
+- Add inMix synchro support
 
 ## Done/Fixed in 1.0.12
- - Ask for initial data block before loading class modules, that way we can do a snapshot
-   if there is a load fault.
- - Ensure that pack load failure doesn't trash the library, it records the failure cleanly,
-   sets the spa into an error state and then disconnects from the remote end.
+
+- Ask for initial data block before loading class modules, that way we can do a snapshot
+  if there is a load fault.
+- Ensure that pack load failure doesn't trash the library, it records the failure cleanly,
+  sets the spa into an error state and then disconnects from the remote end.
 
 ## Done/Fixed in 1.0.11
- - Refactor watercare handling to build full support
- - Change ping frequency to be 2 seconds always, see discovery above.
- - Updated the protocol queue to have two queues, one for normal protocol and one for commands
-   per v0.4.6
- - Ensure that STATQ and SPACK commands are placed on the command queue
- - Refactor protocol retry mechanism to deal with busy in.touch modules
- - Desyncronize various protocol updates from their async wait mechanisms because this
-   resulted in busy traffic immediately after a user demand causing the next one to go into
-   a retry loop resulting in tardy updates in HA.
- - Protocol retry count removed because it is now intrinsic to retry operations every so
-   often until the timeout period is exceeded.
- - Noticed that inMix updates seem to always send 7 x the number of zones worth of data
-   based at 600 (which is the SpaPackStruct.xml's start location of the inMix log structure)
-   so replicate this behaviour in the hope that it will drive the inMix modules correctly.
+
+- Refactor watercare handling to build full support
+- Change ping frequency to be 2 seconds always, see discovery above.
+- Updated the protocol queue to have two queues, one for normal protocol and one for commands
+  per v0.4.6
+- Ensure that STATQ and SPACK commands are placed on the command queue
+- Refactor protocol retry mechanism to deal with busy in.touch modules
+- Desyncronize various protocol updates from their async wait mechanisms because this
+  resulted in busy traffic immediately after a user demand causing the next one to go into
+  a retry loop resulting in tardy updates in HA.
+- Protocol retry count removed because it is now intrinsic to retry operations every so
+  often until the timeout period is exceeded.
+- Noticed that inMix updates seem to always send 7 x the number of zones worth of data
+  based at 600 (which is the SpaPackStruct.xml's start location of the inMix log structure)
+  so replicate this behaviour in the hope that it will drive the inMix modules correctly.
 
 ## Done/Fixed in 1.0.10
- - Handle TempNotValid error
+
+- Handle TempNotValid error
 
 ## Done/Fixed in 1.0.9
- - Fixed broken EcoMode switch that 1.0.8 introduced
- - Added pump and blower sensors to show P[n] & BL device states because buttons now
-   exclusively use UdP[n] for control.
- - Restore old min temperature, but use the pack config data if available to override.
+
+- Fixed broken EcoMode switch that 1.0.8 introduced
+- Added pump and blower sensors to show P[n] & BL device states because buttons now
+  exclusively use UdP[n] for control.
+- Restore old min temperature, but use the pack config data if available to override.
 
 ## Done/Fixed in 1.0.8
- - Snapshots can be a full JSON file now
- - Working through various inMix and Mr.Steam issues
- - Trying to get Bain Ultra bath support too
- - Basic Mr.Steam support ready for testing
+
+- Snapshots can be a full JSON file now
+- Working through various inMix and Mr.Steam issues
+- Trying to get Bain Ultra bath support too
+- Basic Mr.Steam support ready for testing
 
 ## Done/Fixed in 1.0.7
- - Move on with MrSteam device detection, it ought to load the facade cleanly now
- - Protect various select sub-classes from missing accessor during reconnection
- - More work on CUI
+
+- Move on with MrSteam device detection, it ought to load the facade cleanly now
+- Protect various select sub-classes from missing accessor during reconnection
+- More work on CUI
 
 ## Done/Fixed in 1.0.6
- - Fix error in pump is_on function if the state accessor wasn't created.
- - Bubble generator now tolerant of AuxAsBubbleGen being present and turned on, but no output set to AUX
- - Moving simulator, shell and CUI support to module main command.
- - CUI sample is work in progress, check-in needed for bug fix!
+
+- Fix error in pump is_on function if the state accessor wasn't created.
+- Bubble generator now tolerant of AuxAsBubbleGen being present and turned on, but no output set to AUX
+- Moving simulator, shell and CUI support to module main command.
+- CUI sample is work in progress, check-in needed for bug fix!
 
 ## Done/Fixed in 1.0.5
- - Fix DIV/0 in inMix RGB scaler
+
+- Fix DIV/0 in inMix RGB scaler
 
 ## Done/Fixed in 1.0.4
- - First version of inMix support. Only currenty handles RGB zones, no auto-modes or syncro.
+
+- First version of inMix support. Only currenty handles RGB zones, no auto-modes or syncro.
 
 ## Done/Fixed in 1.0.3
- - Support setting of the remaining duration for reminders
+
+- Support setting of the remaining duration for reminders
 
 ## Done/Fixed in 1.0.2
- - Some progress toward support for MrSteam units
- - Refactoring to allow accessory modules such as inMix to be handled.
- - Library is now RUFF compliant, all typing hints are done.
- - Can connect to MrSteam without throwing any errors. This ought to be good to get some snapshots.
- - Rebuilt GeckoPump class to cleanly handle one, two or variable speed pumps
- - Spa manager will reload if critical data changed
- - Update light management to handle both Li and L120 light systems
- - Waterfall to new pattern, still might not reflect actual state if CP is on same circuit
- - Support bubble generator on the pack Aux port
- - Add keypad buttons for all available pumps, blowers, etc.
+
+- Some progress toward support for MrSteam units
+- Refactoring to allow accessory modules such as inMix to be handled.
+- Library is now RUFF compliant, all typing hints are done.
+- Can connect to MrSteam without throwing any errors. This ought to be good to get some snapshots.
+- Rebuilt GeckoPump class to cleanly handle one, two or variable speed pumps
+- Spa manager will reload if critical data changed
+- Update light management to handle both Li and L120 light systems
+- Waterfall to new pattern, still might not reflect actual state if CP is on same circuit
+- Support bubble generator on the pack Aux port
+- Add keypad buttons for all available pumps, blowers, etc.
 
 ## BREAKING CHANGES 1.0.2
- - Blower is now a single speed pump, not a switch
- - Single speed pumps no longer support modes, it's either on or off
- - Pump modes are from the user demand list not the device control one, so previously
-   "HIGH" was a pump mode, it is now "HI".
+
+- Blower is now a single speed pump, not a switch
+- Single speed pumps no longer support modes, it's either on or off
+- Pump modes are from the user demand list not the device control one, so previously
+  "HIGH" was a pump mode, it is now "HI".
 
 ## Done/Fixed in 1.0.1
- - Add support for lock mode if it exists on the spa
- - Add support for standby mode
- - Add "Heating" binary sensor
+
+- Add support for lock mode if it exists on the spa
+- Add support for standby mode
+- Add "Heating" binary sensor
 
 ## Done/Fixed in 1.0.0
- - Breaking change, removed all sync APIs
- - Require Python 3.13 as minimum version
- - Made unit tests pass after sync API removal
- - Refactor a bit of the protocol stack to DRY out some code
- - Added "Spa In Use" sensor
- - Added useful diagnostic functionality to shell and simulator
- - Added support for external heat sources
+
+- Breaking change, removed all sync APIs
+- Require Python 3.13 as minimum version
+- Made unit tests pass after sync API removal
+- Refactor a bit of the protocol stack to DRY out some code
+- Added "Spa In Use" sensor
+- Added useful diagnostic functionality to shell and simulator
+- Added support for external heat sources
 
 ## Done/Fixed in 0.4.20
- - Remove deprecated constant, it's only available in Python 3.13 from warnings, we can re-add it
-   adter this package is released.
- - Min Python requirement is 3.11
+
+- Remove deprecated constant, it's only available in Python 3.13 from warnings, we can re-add it
+  adter this package is released.
+- Min Python requirement is 3.11
 
 ## Done/Fixed in 0.4.19
 
