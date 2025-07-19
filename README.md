@@ -301,6 +301,7 @@ this also revealed was that we don't need to do the full structure refresh that 
 because that was to mitigate the missing change updates. Anyway, quite a big protocol change.
 
 ## Done/Fixed in 1.0.15
+ - Bump SpaPackStruct to v40
 
 ## Done/Fixed in 1.0.14
  - Increase the packet retry timeout for Keypress & SetValue from 400ms to 1000ms to prevent spa pump

@@ -1191,6 +1191,7 @@ class GeckoConfigStruct:
                     "Titan_Spas",
                     "IberSpa",
                     "Master_Spas",
+                    "GPM",
                 ],
                 None,
                 None,

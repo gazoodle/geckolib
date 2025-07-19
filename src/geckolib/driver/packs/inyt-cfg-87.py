@@ -1,4 +1,4 @@
-"""GeckoConfigStruct - A class to manage the ConfigStruct for 'InYT v86'."""  # noqa: N999
+"""GeckoConfigStruct - A class to manage the ConfigStruct for 'InYT v87'."""  # noqa: N999
 
 from . import (
     GeckoAsyncStructure,
@@ -22,7 +22,7 @@ class GeckoConfigStruct:
     @property
     def version(self) -> int:
         """Get the config struct class version."""
-        return 86
+        return 87
 
     @property
     def output_keys(self) -> list[str]:
@@ -1709,7 +1709,12 @@ class GeckoConfigStruct:
                 "ConfigStructure/Exercise/ExerciseType",
                 133,
                 None,
-                ["NO_EXERCISE", "SWIM_EXERCISE"],
+                [
+                    "NO_EXERCISE",
+                    "SWIM_EXERCISE",
+                    "TREADMILL_EXERCISE",
+                    "CONSTANT_SPEED_SWIM_EXERCISE",
+                ],
                 None,
                 None,
                 "ALL",

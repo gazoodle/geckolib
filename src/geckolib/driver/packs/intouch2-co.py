@@ -28,4 +28,4 @@ class GeckoPack:
     @property
     def revision(self) -> str:
         """Get the SpaPackStruct revision."""
-        return "39.0"
+        return "40.00"

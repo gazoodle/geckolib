@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 # The XML file to process
-XML_FILE = "../src/geckolib/SpaPackStruct_39.0.0.0.xml"
+XML_FILE = "../src/geckolib/SpaPackStruct_40.0.0.0.xml"
 
 CODE_PATH = "../src/geckolib/driver/packs"
 
