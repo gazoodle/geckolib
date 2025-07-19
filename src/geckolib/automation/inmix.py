@@ -235,6 +235,7 @@ class GeckoInMixSynchro(GeckoSelect):
 
         self._state = ZONE_KEY_NONE
         self._ignore_changes = False
+        self._on_zone_change()
 
     def _on_zone_change(
         self, _sender: Any = None, _old_value: Any = None, _new_value: Any = None
