@@ -545,7 +545,6 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             if self.spa_state in (
                 GeckoSpaState.ERROR_PING_MISSED,
                 GeckoSpaState.ERROR_RF_FAULT,
-                GeckoSpaState.ERROR_NEEDS_ATTENTION,
             ):
                 await self.async_reset()
 
