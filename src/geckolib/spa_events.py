@@ -85,6 +85,10 @@ class GeckoSpaEvent(Enum):
     """A running spa will update the spapack data and radio strength periodically"""
     RUNNING_SPA_NEEDS_RELOAD = 306
     """A running spa has detected that it needs a complete reload"""
+    RUNNING_SPA_STALE_SUBSCRIPTION = 310
+    """A status block re-sync found changed data although no partial status
+    update (STATP) had arrived, meaning the in.touch2 module has silently
+    dropped this client's push subscription while still answering pings"""
 
     # Events targeted at clients, to determine when things can be shown
     # or hidden in the UI
