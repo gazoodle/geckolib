@@ -2,9 +2,14 @@
 
 from typing import Any
 from unittest import IsolatedAsyncioTestCase, main
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
-from context import GeckoAsyncSpaDescriptor, GeckoAsyncSpaMan, GeckoSpaEvent
+from context import (
+    GeckoAsyncSpaDescriptor,
+    GeckoAsyncSpaMan,
+    GeckoSpaEvent,
+    GeckoSpaState,
+)
 
 
 class SpaManImpl(GeckoAsyncSpaMan):
@@ -86,6 +91,23 @@ class TestSpaMan(IsolatedAsyncioTestCase):
             ],
         )
         self.assertIsNone(facade)
+
+    async def test_ping_received_does_not_reset_needs_attention(self) -> None:
+        self.spaman.set_spa_state(GeckoSpaState.ERROR_NEEDS_ATTENTION)
+
+        with patch.object(self.spaman, "async_reset", new=AsyncMock()) as async_reset:
+            await self.spaman._handle_event(GeckoSpaEvent.RUNNING_PING_RECEIVED)
+
+        async_reset.assert_not_called()
+        self.assertEqual(self.spaman.spa_state, GeckoSpaState.ERROR_NEEDS_ATTENTION)
+
+    async def test_ping_received_resets_ping_missed(self) -> None:
+        self.spaman.set_spa_state(GeckoSpaState.ERROR_PING_MISSED)
+
+        with patch.object(self.spaman, "async_reset", new=AsyncMock()) as async_reset:
+            await self.spaman._handle_event(GeckoSpaEvent.RUNNING_PING_RECEIVED)
+
+        async_reset.assert_awaited_once()
 
 
 if __name__ == "__main__":
