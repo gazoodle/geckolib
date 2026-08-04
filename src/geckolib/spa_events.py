@@ -90,6 +90,9 @@ class GeckoSpaEvent(Enum):
     update (STATP) had arrived, meaning the in.touch2 module has silently
     dropped this client's push subscription while still answering pings"""
 
+    RUNNING_SPA_PACK_UPDATED = 307
+    """A running spa received partial update"""
+    
     # Events targeted at clients, to determine when things can be shown
     # or hidden in the UI
     CLIENT_HAS_STATUS_SENSOR = 401

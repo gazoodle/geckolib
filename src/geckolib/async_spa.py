@@ -739,8 +739,17 @@ class GeckoAsyncSpa(Observable):
         # Push traffic proves the subscription is alive (again)
         self._consecutive_stale_resyncs = 0
         self._on_change()
+        updates = []
         for change in handler.changes:
             self.struct.replace_status_block_segment(change[0], change[1])
+            try:
+                name = [k for k in self.struct.accessors if self.struct.accessors[k].pos == change[0]][0]
+                value = self.struct.accessors[name].value
+                _LOGGER.debug(f"{name}: {value}")
+                updates.append([name, value])
+            except IndexError:
+                updates.append([change[0], change[1]])
+        await self._event_handler(GeckoSpaEvent.RUNNING_SPA_PACK_UPDATED, updates=updates)
 
     async def async_on_set_value(self, pos: int, length: int, newvalue: Any) -> None:
         """Set the data block to a specific value."""

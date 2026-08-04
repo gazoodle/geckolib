@@ -662,7 +662,6 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             if self.spa_state in (
                 GeckoSpaState.ERROR_PING_MISSED,
                 GeckoSpaState.ERROR_RF_FAULT,
-                GeckoSpaState.ERROR_NEEDS_ATTENTION,
             ):
                 self._try_schedule_reset("Ping recovery reset")
 
