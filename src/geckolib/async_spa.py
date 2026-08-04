@@ -751,7 +751,7 @@ class GeckoAsyncSpa(Observable):
                 value = self.struct.accessors[name].value
                 _LOGGER.debug("%s: %s", name, value)
                 updates.append([name, value])
-            except IndexError:
+            except (IndexError, StopIteration):
                 updates.append([change[0], change[1]])
         await self._event_handler(
             GeckoSpaEvent.RUNNING_SPA_PACK_UPDATED,

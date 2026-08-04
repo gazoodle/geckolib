@@ -136,10 +136,17 @@ class TestAsyncResync(IsolatedAsyncioTestCase):
     async def test_statp_between_stale_resyncs_resets_counter(self) -> None:
         harness = SpaHarness()
         harness.install_fake_get(result=True, mutate=True)
+        self.assertListEqual(harness.events, [])
 
         self.assertTrue(await harness.spa.async_resync())
+        self.assertListEqual(harness.events, [])
+
         # Push traffic resumes - the re-arm worked
         await harness.spa._async_on_partial_status_update(FakeStatpHandler(), (1, 2))
+        self.assertListEqual(
+            harness.events, [GeckoSpaEvent.RUNNING_SPA_PACK_UPDATED]
+        )
+        harness.events.clear()
         self.assertEqual(harness.spa._consecutive_stale_resyncs, 0)
         # A later stale resync is strike one again, not strike two
         self.assertTrue(await harness.spa.async_resync())

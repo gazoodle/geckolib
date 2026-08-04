@@ -91,12 +91,30 @@ class _GeckoIdleConfig(_GeckoConfig):
 # Root config
 GeckoConfig: _GeckoConfig = _GeckoIdleConfig()
 ConfigChangeEvent: asyncio.Event = asyncio.Event()
+_ConfigChangeEventLoop: asyncio.AbstractEventLoop | None = None
+
+
+def _get_config_change_event() -> asyncio.Event:
+    """Return the config event for the current running loop."""
+    global ConfigChangeEvent, _ConfigChangeEventLoop  # noqa: PLW0603
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return ConfigChangeEvent
+
+    bound_loop = getattr(ConfigChangeEvent, "_loop", None)
+    if _ConfigChangeEventLoop is not loop and bound_loop not in (None, loop):
+        ConfigChangeEvent = asyncio.Event()
+    _ConfigChangeEventLoop = loop
+    return ConfigChangeEvent
 
 
 def release_config_change_waiters() -> None:
     """Release config change waiters."""
-    ConfigChangeEvent.set()
-    ConfigChangeEvent.clear()
+    event = _get_config_change_event()
+    event.set()
+    event.clear()
 
 
 def set_config_mode(*, active: bool) -> None:
@@ -115,7 +133,7 @@ async def config_sleep(delay: float | None, _reason: str) -> bool:
         return False
     try:
         async with asyncio.timeout(delay):
-            await ConfigChangeEvent.wait()
+            await _get_config_change_event().wait()
     except TimeoutError:
         return True
     return False

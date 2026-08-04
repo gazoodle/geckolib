@@ -1,5 +1,6 @@
 """Unit tests for the SpaMan class."""  # noqa: INP001
 
+import asyncio
 from typing import Any
 from unittest import IsolatedAsyncioTestCase, main
 from unittest.mock import AsyncMock, patch
@@ -106,6 +107,7 @@ class TestSpaMan(IsolatedAsyncioTestCase):
 
         with patch.object(self.spaman, "async_reset", new=AsyncMock()) as async_reset:
             await self.spaman._handle_event(GeckoSpaEvent.RUNNING_PING_RECEIVED)
+            await asyncio.sleep(0)
 
         async_reset.assert_awaited_once()
 
