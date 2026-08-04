@@ -92,7 +92,12 @@ class GeckoAsyncSpa(Observable):
         self.config_number = 0
 
         self.struct: GeckoAsyncStructure = GeckoAsyncStructure(self.async_on_set_value)
+        self._last_ping: float | None = None
         self._last_ping_at: datetime | None = None
+        self._last_statp_at: datetime | None = None
+        self._last_statp_monotonic: float | None = None
+        self._last_data_at: datetime | None = None
+        self._consecutive_stale_resyncs: int = 0
         self._needs_reload: bool = False
 
     @property
@@ -260,6 +265,8 @@ class GeckoAsyncSpa(Observable):
 
             return
 
+        self._last_data_at = datetime.now(tz=UTC)
+
         if not await self._connect_load_pack(plateform_key):
             return
 
@@ -332,6 +339,7 @@ class GeckoAsyncSpa(Observable):
         )
         self._taskman.add_task(self._ping_loop(), "Ping loop", "SPA")
         self._taskman.add_task(self._refresh_loop(), "Refresh loop", "SPA")
+        self._taskman.add_task(self._resync_loop(), "Resync loop", "SPA")
         await config_sleep(
             GeckoConstants.CONNECTION_STEP_PAUSE_IN_SECONDS,
             "Async spa connect - before version ",
@@ -490,6 +498,21 @@ class GeckoAsyncSpa(Observable):
         """The datetime of the last successful ping response or None."""
         return self._last_ping_at
 
+    @property
+    def last_statp_at(self) -> datetime | None:
+        """The datetime of the last STATP partial status update or None."""
+        return self._last_statp_at
+
+    @property
+    def last_data_at(self) -> datetime | None:
+        """
+        The datetime of the last state-bearing data or None.
+
+        Refreshed by STATP partial status updates and by status block
+        (re)reads, so it reflects how fresh our copy of the spa state is.
+        """
+        return self._last_data_at
+
     async def _ping_loop(self) -> None:
         _LOGGER.debug("Ping loop started")
 
@@ -578,18 +601,6 @@ class GeckoAsyncSpa(Observable):
                 if not time_to_doit:
                     continue
 
-                if False:
-                    # Removed because I don't think this is required now that ping
-                    # is back to 2 seconds. Time will tell.
-                    if not await self.struct.get(
-                        self._protocol,
-                        self._get_status_block_handler_func,
-                        5,
-                    ):
-                        await self._event_handler(
-                            GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED
-                        )
-
                 assert self._protocol is not None  # noqa: S101
                 get_channel_handler = await self._protocol.get(
                     self._get_channel_handler_func
@@ -614,11 +625,120 @@ class GeckoAsyncSpa(Observable):
             _LOGGER.exception("Refresh loop caught exception")
             raise
 
+    async def _resync_loop(self) -> None:
+        """
+        Resync Loop.
+
+        Periodically re-read the live part of the status block as a safety
+        net underneath the STATP push stream. The in.touch2 module can
+        silently drop this client's push subscription while still answering
+        pings, which otherwise leaves stale data in place indefinitely.
+        """
+        try:
+            _LOGGER.debug("Resync loop started")
+            while self.isopen:
+                deadline = (
+                    time.monotonic()
+                    + GeckoConfig.SPA_STATUS_RESYNC_FREQUENCY_IN_SECONDS
+                )
+                # Absolute deadline; config-change wakeups (issued on every
+                # device toggle) must not postpone the safety net
+                while (remaining := deadline - time.monotonic()) > 0:
+                    await config_sleep(remaining, "Async spa resync loop")
+                if not self.is_connected:
+                    continue
+                if self._needs_reload:
+                    continue
+                if not self.is_responding_to_pings:
+                    continue
+                await self.async_resync()
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("Resync loop cancelled")
+            raise
+
+        except Exception:
+            _LOGGER.exception("Resync loop caught exception")
+            raise
+
+    STALE_RESYNCS_BEFORE_RECONNECT = 2
+    """Consecutive stale resyncs required before escalating to a reconnect.
+
+    A status block read re-arms the module's push registry by itself
+    (verified on live hardware 2026-07-27: after a resync pulled changed
+    data during a dead window, the next spa-side change arrived via
+    autonomous STATP with no reconnect), so the first detection needs no
+    action beyond the read that made it. Repeated stale resyncs mean the
+    re-arm is not taking - a genuinely wedged module - and only then is
+    the expensive reconnect justified."""
+
+    async def async_resync(self, *, escalate: bool = True) -> bool:
+        """
+        Re-read the live status block now, returning True on success.
+
+        Changed values propagate to watchers through the normal accessor
+        change notifications; an identical block produces no notifications
+        at all.
+
+        If the block content changed while no STATP push had arrived, the
+        module had silently dropped this client's push subscription; the
+        read itself re-arms it. When escalate is True and this happens on
+        STALE_RESYNCS_BEFORE_RECONNECT consecutive resyncs (the re-arm is
+        not working), RUNNING_SPA_STALE_SUBSCRIPTION is raised so the
+        manager can recover by reconnecting; when escalate is False
+        (diagnostic use) this only logs and counts.
+        """
+        if not self.is_connected:
+            _LOGGER.warning("Cannot resync status block when spa not connected")
+            return False
+        assert self._protocol is not None  # noqa: S101
+        assert self.struct.log_class is not None  # noqa: S101
+
+        log_begin: int = self.struct.log_class.begin
+        log_end: int = self.struct.log_class.end
+        before = self.struct.status_block[log_begin:log_end]
+        statp_before = self._last_statp_monotonic
+
+        if not await self.struct.get(
+            self._protocol,
+            self._get_status_block_handler_func,
+            5,
+        ):
+            _LOGGER.warning("Cannot resync status block, protocol retry time exceeded")
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED)
+            return False
+
+        self._last_data_at = datetime.now(tz=UTC)
+        self._on_change()
+
+        after = self.struct.status_block[log_begin:log_end]
+        if after != before and statp_before == self._last_statp_monotonic:
+            self._consecutive_stale_resyncs += 1
+            _LOGGER.warning(
+                "Status block resync found changed data but no partial status "
+                "update had arrived (consecutive detection %d); the module had "
+                "silently dropped our push subscription - this read re-arms it",
+                self._consecutive_stale_resyncs,
+            )
+            if (
+                escalate
+                and self._consecutive_stale_resyncs
+                >= self.STALE_RESYNCS_BEFORE_RECONNECT
+            ):
+                await self._event_handler(GeckoSpaEvent.RUNNING_SPA_STALE_SUBSCRIPTION)
+        return True
+
     async def _async_on_partial_status_update(
         self,
         handler: GeckoAsyncPartialStatusBlockProtocolHandler,
         _sender: tuple,
     ) -> None:
+        self._last_statp_at = datetime.now(tz=UTC)
+        self._last_statp_monotonic = time.monotonic()
+        self._last_data_at = self._last_statp_at
+        # Push traffic proves the subscription is alive (again)
+        self._consecutive_stale_resyncs = 0
+        self._on_change()
         updates = []
         for change in handler.changes:
             self.struct.replace_status_block_segment(change[0], change[1])

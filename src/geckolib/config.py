@@ -32,6 +32,14 @@ class _GeckoConfig:
     SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS = 1
     """Frequency in seconds to request all LOG data from spa"""
 
+    SPA_STATUS_RESYNC_FREQUENCY_IN_SECONDS = 1
+    """Frequency in seconds to re-read the live status block as a safety
+    net underneath the STATP push stream"""
+
+    SPA_RECONNECT_RETRY_FREQUENCY_IN_SECONDS = 1
+    """Time in seconds the manager may remain in an error state before the
+    error watchdog attempts automatic recovery"""
+
     PROTOCOL_TIMEOUT_IN_SECONDS = 1
     """Default timeout for most protocol commands"""
 
@@ -57,6 +65,8 @@ class _GeckoActiveConfig(_GeckoConfig):
     PING_DEVICE_NOT_RESPONDING_TIMEOUT_IN_SECONDS = 10
     FACADE_UPDATE_FREQUENCY_IN_SECONDS = 28800
     SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS = 28800
+    SPA_STATUS_RESYNC_FREQUENCY_IN_SECONDS = 300
+    SPA_RECONNECT_RETRY_FREQUENCY_IN_SECONDS = 120
     PROTOCOL_TIMEOUT_IN_SECONDS = 4
     PAUSE_BETWEEN_RETRIES_IN_SECONDS = 0.4
 
@@ -72,6 +82,8 @@ class _GeckoIdleConfig(_GeckoConfig):
     PING_DEVICE_NOT_RESPONDING_TIMEOUT_IN_SECONDS = 120
     FACADE_UPDATE_FREQUENCY_IN_SECONDS = 3600
     SPA_PACK_REFRESH_FREQUENCY_IN_SECONDS = 3600
+    SPA_STATUS_RESYNC_FREQUENCY_IN_SECONDS = 300
+    SPA_RECONNECT_RETRY_FREQUENCY_IN_SECONDS = 120
     PROTOCOL_TIMEOUT_IN_SECONDS = 4
     PAUSE_BETWEEN_RETRIES_IN_SECONDS = 0.4
 
