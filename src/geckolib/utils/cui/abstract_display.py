@@ -116,7 +116,7 @@ class AbstractDisplay(ABC):
             if func is None:
                 return
             if isinstance(func, Button):
-                await self.execute(cast(Button, func).command)
+                await self.execute(cast("Button", func).command)
                 return
             if inspect.iscoroutinefunction(func):
                 await func()

@@ -1,6 +1,9 @@
 {
     "name": "gazoodle/geckolib",
-    "image": "mcr.microsoft.com/devcontainers/python:3.13",
+    "build": {
+        "dockerfile": ".devcontainer/Dockerfile",
+        "context": "."
+    },
     "customizations": {
         "vscode": {
             "extensions": [
@@ -8,6 +11,7 @@
                 "github.vscode-pull-request-github",
                 "ms-python.python",
                 "ms-python.vscode-pylance",
+                "openai.chatgpt",
                 "ryanluker.vscode-coverage-gutters"
             ],
             "settings": {
@@ -37,11 +41,15 @@
             ]
         }
     },
-    "postCreateCommand": "pip install -r requirements.txt",
+    "mounts": [
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.codex,target=/home/vscode/.codex,type=bind,consistency=cached"
+    ],
+    "postCreateCommand": "pip install -r requirements.txt && tokensave install --agent codex --git-hook no",
     "runArgs": [
         "-v",
-        "${env:HOME}${env:USERPROFILE}/.ssh:/tmp/.ssh",
+        "${localEnv:HOME}${localEnv:USERPROFILE}/.ssh:/tmp/.ssh",
         "--add-host",
         "spa=10.1.209.91"
-    ]
+    ],
+    "postStartCommand": "bash scripts/devcontainer-tokensave-sync.sh \"${containerWorkspaceFolder}\""
 }

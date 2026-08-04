@@ -300,6 +300,26 @@ because that was to mitigate the missing change updates. Anyway, quite a big pro
 
 ## Done/Fixed in 1.0.16
 
+- [@DanSmith888]
+- Fix silent loss of the in.touch2 push subscription. The module stops sending STATP updates
+  while still answering pings, so clients sit on stale data indefinitely (issue #67). A new
+  resync loop re-reads the live log region every 5 minutes; the read itself re-arms the
+  module's push registry, so the push stream recovers in place without a reconnect
+- Detect the dropped subscription (`RUNNING_SPA_STALE_SUBSCRIPTION`) and escalate to a
+  reconnect only after two consecutive stale resyncs
+- New `last_statp_at` and `last_data_at` clocks on the spa, with a "Last Data" sensor and a
+  "Resync" button on the spa manager for client diagnostics
+- Automatic resets are now scheduled, serialized and rate limited to one per 30 seconds, and
+  a watchdog recovers the manager if it is stuck in a recoverable error state for over 120
+  seconds
+- The sequence pump now survives locate/connect exceptions instead of dying permanently
+- Fix RF signal and channel sensors never notifying clients of changes
+- Fix `_last_ping` being unset before the ping loop starts
+- Simulator gains `pushsuppress` to reproduce the failure offline
+- Added an event with accessor updates [@Chris-42]
+- Stop protocol failure from auto-retrying on ping [@thenoid]
+- Thanks @DanSmith888, @thenoid & @Chris-42
+
 ## Done/Fixed in 1.0.15
 
 - Bump SpaPackStruct to v40

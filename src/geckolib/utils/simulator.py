@@ -227,6 +227,29 @@ class GeckoSimulator(GeckoCmd, GeckoAsyncTaskMan):
         self._do_rferr = args.lower() == "true"
         print(f"RFERR mode set to {self._do_rferr}")
 
+    def do_pushsuppress(self, args: str) -> None:
+        """
+        Suppress or restore async STATP push notifications.
+
+        Simulates the in.touch2 module silently dropping this client's
+        push subscription while continuing to answer pings, which is the
+        failure mode where clients show stale data while apparently
+        connected.
+
+        usage: pushsuppress [ON|OFF] where no parameter shows the
+               current state
+        """
+        arg = args.strip().upper()
+        if arg == "ON":
+            self._send_structure_change = False
+            print("STATP push suppressed (pings still answered)")
+        elif arg == "OFF":
+            self._send_structure_change = True
+            print("STATP push restored")
+        else:
+            state = "suppressed" if not self._send_structure_change else "active"
+            print(f"STATP push is currently {state}")
+
     def complete_parse(
         self, text: str, _line: str, _start_idx: int, _end_idx: int
     ) -> list[str]:

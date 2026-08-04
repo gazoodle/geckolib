@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Self
 
@@ -14,6 +15,7 @@ from .automation import (
     GeckoAsyncFacade,
     GeckoAutomationBase,
 )
+from .config import GeckoConfig, config_sleep
 from .const import GeckoConstants
 from .spa_events import GeckoSpaEvent
 from .spa_state import GeckoSpaState
@@ -49,6 +51,55 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         async def async_press(self) -> None:
             """Press the button."""
             await self._spaman.async_reset()
+
+    class ResyncButton(GeckoAutomationBase):
+        """Re-read the spa status block in place, without reconnecting."""
+
+        def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            """Initialize the resync button class."""
+            super().__init__(spaman.unique_id, "Resync", spaman.spa_name, "RESYNC")
+            self._spaman = spaman
+
+        async def async_press(self) -> None:
+            """Press the button."""
+            await self._spaman.async_resync()
+
+    class LastDataSensor(GeckoAutomationBase):
+        """Sensor with the last time state-bearing data arrived, or None."""
+
+        def __init__(self, spaman: GeckoAsyncSpaMan) -> None:
+            """Initialize the last data sensor."""
+            super().__init__(spaman.unique_id, "Last Data", spaman.spa_name, "LASTDATA")
+            self._spaman: GeckoAsyncSpaMan = spaman
+            assert self._spaman.spa is not None  # noqa: S101
+            self._spaman.spa.watch(self._on_spa_change)
+            self._last_data_at: datetime | None = self._spaman.spa.last_data_at
+
+        @property
+        def state(self) -> datetime | None:
+            """The state of the sensor."""
+            return self._last_data_at
+
+        @property
+        def unit_of_measurement(self) -> None:
+            """The unit of measurement for the sensor, or None."""
+            return None
+
+        @property
+        def device_class(self) -> str:
+            """Device class for the last data sensor."""
+            return "timestamp"
+
+        def _on_spa_change(self, *_args: Any) -> None:
+            assert self._spaman.spa is not None  # noqa: S101
+            if self._last_data_at == self._spaman.spa.last_data_at:
+                return
+            self._last_data_at = self._spaman.spa.last_data_at
+            self._on_change()
+
+        def __repr__(self) -> str:
+            """Get string representation."""
+            return f"{self.name}: {self.state}"
 
     class PingSensor(GeckoAutomationBase):
         """Sensor with the last ping time, or None."""
@@ -144,9 +195,9 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             self.set_signal(spaman.spa.signal)
 
         def set_signal(self, signal: int) -> None:
-            """Set signal nstrength."""
-            self.signal = signal
-            self.signal = min(self.signal, 100)
+            """Set signal strength."""
+            self.signal = min(signal, 100)
+            self._on_change()
 
         @property
         def state(self) -> int:
@@ -179,6 +230,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         def set_channel(self, channel: int) -> None:
             """Set the radio channel."""
             self.channel = channel
+            self._on_change()
 
         @property
         def state(self) -> int:
@@ -247,9 +299,13 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
 
         self._status_sensor: GeckoAsyncSpaMan.StatusSensor | None = None
         self._reconnect_button: GeckoAsyncSpaMan.ReconnectButton | None = None
+        self._resync_button: GeckoAsyncSpaMan.ResyncButton | None = None
         self._ping_sensor: GeckoAsyncSpaMan.PingSensor | None = None
+        self._last_data_sensor: GeckoAsyncSpaMan.LastDataSensor | None = None
         self._radio_sensor: GeckoAsyncSpaMan.RadioConnectionSensor | None = None
         self._channel_sensor: GeckoAsyncSpaMan.RadioChannelSensor | None = None
+        self._reset_lock = asyncio.Lock()
+        self._last_auto_reset_at: float | None = None
 
     ########################################################################
     #
@@ -261,6 +317,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         await GeckoAsyncTaskMan.__aenter__(self)
         await self._handle_event(GeckoSpaEvent.SPA_MAN_ENTER)
         self.add_task(self._sequence_pump(), "Sequence Pump", "SPAMAN")
+        self.add_task(self._error_watchdog(), "Error watchdog", "SPAMAN")
         return self
 
     async def __aexit__(self, *exc_info: object) -> None:
@@ -277,19 +334,67 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
     async def async_reset(self) -> None:
         """Reset the spa manager."""
         try:
-            self._spa_descriptors = None
-            self._has_descriptors.clear()
-            if self._facade is not None:
-                await self._facade.disconnect()
-                self._facade = None
-                self._facade_state_known.clear()
-            if self._spa is not None:
-                await self._spa.disconnect()
-                self._spa = None
-            self.set_spa_state(GeckoSpaState.IDLE)
+            async with self._reset_lock:
+                self._spa_descriptors = None
+                self._has_descriptors.clear()
+                if self._facade is not None:
+                    await self._facade.disconnect()
+                    self._facade = None
+                    self._facade_state_known.clear()
+                if self._spa is not None:
+                    await self._spa.disconnect()
+                    self._spa = None
+                self.set_spa_state(GeckoSpaState.IDLE)
         except Exception:
             _LOGGER.exception("Exception during reset")
             raise
+
+    async def async_resync(self) -> bool:
+        """
+        Re-read the spa status block in place, without reconnecting.
+
+        Returns True if the resync read succeeded. This never triggers a
+        reconnect, making it suitable for diagnostics; the periodic resync
+        loop inside the spa handles automatic escalation.
+        """
+        if self._spa is None:
+            _LOGGER.warning("Cannot resync, no spa connected")
+            return False
+        return await self._spa.async_resync(escalate=False)
+
+    AUTO_RESET_MIN_INTERVAL_IN_SECONDS = 30.0
+    """Automatic resets are rate limited to bound reset/fail loops when a
+    reconnect persistently fails (see geckolib issue #92); manual resets
+    via the reconnect button are not limited."""
+
+    def _try_schedule_reset(self, name: str) -> None:
+        """
+        Schedule a reset onto a SPAMAN-key task.
+
+        Resets must not be awaited inside SPA-key tasks (the ping, refresh
+        and resync loops) because reset cancels those tasks, including its
+        own caller. Scheduling here keeps the teardown outside the task
+        being torn down. Requests are rate limited and dropped while a
+        reset task with this name is still running.
+        """
+        now = time.monotonic()
+        if (
+            self._last_auto_reset_at is not None
+            and now - self._last_auto_reset_at < self.AUTO_RESET_MIN_INTERVAL_IN_SECONDS
+        ):
+            _LOGGER.debug(
+                "Skipping reset '%s'; last automatic reset was %.1fs ago",
+                name,
+                now - self._last_auto_reset_at,
+            )
+            return
+        self._last_auto_reset_at = now
+        coro = self.async_reset()
+        try:
+            self.add_task(coro, name, "SPAMAN")
+        except RuntimeError:
+            _LOGGER.debug("Reset task '%s' is already running", name)
+            coro.close()
 
     async def async_locate_spas(
         self, spa_address: str | None = None, spa_identifier: str | None = None
@@ -474,9 +579,19 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         return self._reconnect_button
 
     @property
+    def resync_button(self) -> GeckoAsyncSpaMan.ResyncButton | None:
+        """Get the resync button."""
+        return self._resync_button
+
+    @property
     def ping_sensor(self) -> GeckoAsyncSpaMan.PingSensor | None:
         """Get the ping sensor."""
         return self._ping_sensor
+
+    @property
+    def last_data_sensor(self) -> GeckoAsyncSpaMan.LastDataSensor | None:
+        """Get the last data sensor."""
+        return self._last_data_sensor
 
     def __str__(self) -> str:
         """Get the stringized version."""
@@ -520,10 +635,12 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
         elif event == GeckoSpaEvent.CONNECTION_STARTED:
             self.set_spa_state(GeckoSpaState.CONNECTING)
             self._reconnect_button = GeckoAsyncSpaMan.ReconnectButton(self)
+            self._resync_button = GeckoAsyncSpaMan.ResyncButton(self)
             await self._handle_event(GeckoSpaEvent.CLIENT_HAS_RECONNECT_BUTTON)
 
         elif event == GeckoSpaEvent.CONNECTION_GOT_CHANNEL:
             self._ping_sensor = GeckoAsyncSpaMan.PingSensor(self)
+            self._last_data_sensor = GeckoAsyncSpaMan.LastDataSensor(self)
             self._radio_sensor = GeckoAsyncSpaMan.RadioConnectionSensor(self)
             self._channel_sensor = GeckoAsyncSpaMan.RadioChannelSensor(self)
             await self._handle_event(GeckoSpaEvent.CLIENT_HAS_PING_SENSOR)
@@ -545,12 +662,17 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             if self.spa_state in (
                 GeckoSpaState.ERROR_PING_MISSED,
                 GeckoSpaState.ERROR_RF_FAULT,
-                GeckoSpaState.ERROR_NEEDS_ATTENTION,
             ):
-                await self.async_reset()
+                self._try_schedule_reset("Ping recovery reset")
 
         elif event == GeckoSpaEvent.RUNNING_SPA_NEEDS_RELOAD:
-            await self.async_reset()
+            self._try_schedule_reset("Reload reset")
+
+        elif event == GeckoSpaEvent.RUNNING_SPA_STALE_SUBSCRIPTION:
+            _LOGGER.warning(
+                "Push subscription lost while pings still succeed; reconnecting"
+            )
+            self._try_schedule_reset("Stale subscription reset")
 
         elif event == GeckoSpaEvent.ERROR_RF_ERROR:
             if self.spa_state == GeckoSpaState.CONNECTED:
@@ -614,38 +736,97 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
                 await self._state_change.wait()
                 self._state_change.clear()
 
-                if (
-                    self.spa_state == GeckoSpaState.IDLE
-                    and self._spa_descriptors is None
-                ):
-                    _LOGGER.debug("Sequence pump did locate")
-                    await self.async_locate_spas(self._spa_address)
+                try:
+                    if (
+                        self.spa_state == GeckoSpaState.IDLE
+                        and self._spa_descriptors is None
+                    ):
+                        _LOGGER.debug("Sequence pump did locate")
+                        await self.async_locate_spas(self._spa_address)
 
-                if (
-                    self.spa_state == GeckoSpaState.LOCATED_SPAS
-                    and self._spa_identifier is not None
-                    and self._facade is None
-                ):
-                    _LOGGER.debug("Sequence pump did connect")
-                    if self._spa_descriptors is not None:
-                        await self.async_connect_to_spa(
-                            next(
-                                (
-                                    d
-                                    for d in self._spa_descriptors
-                                    if d.identifier_as_string == self._spa_identifier
-                                ),
-                                None,
+                    if (
+                        self.spa_state == GeckoSpaState.LOCATED_SPAS
+                        and self._spa_identifier is not None
+                        and self._facade is None
+                    ):
+                        _LOGGER.debug("Sequence pump did connect")
+                        if self._spa_descriptors is not None:
+                            await self.async_connect_to_spa(
+                                next(
+                                    (
+                                        d
+                                        for d in self._spa_descriptors
+                                        if d.identifier_as_string
+                                        == self._spa_identifier
+                                    ),
+                                    None,
+                                )
                             )
-                        )
-                    else:
-                        await self.async_connect(
-                            self._spa_identifier, self._spa_address
-                        )
+                        else:
+                            await self.async_connect(
+                                self._spa_identifier, self._spa_address
+                            )
+                except asyncio.CancelledError:
+                    raise
+                except Exception:
+                    # The pump must survive locate/connect failures or both
+                    # automatic recovery and the reconnect button die with
+                    # it; the error watchdog will retry later.
+                    _LOGGER.exception(
+                        "Sequence pump caught exception, will keep running"
+                    )
 
         except asyncio.CancelledError:
             _LOGGER.debug("Spaman sequence pump cancelled")
             raise
+
+    async def _error_watchdog(self) -> None:
+        """
+        Error watchdog loop.
+
+        Recovery normally rides on the ping loop (a successful ping while
+        in an error state schedules a reset), but the ping loop dies with
+        the spa object. If a reset fails to reconnect there is no ping
+        loop any more and the manager would otherwise park in an error
+        state forever. This loop is the backstop: if the manager has been
+        in any recoverable error state for longer than the retry window it
+        forces a reset.
+        """
+        error_states = (
+            GeckoSpaState.ERROR_SPA_NOT_FOUND,
+            GeckoSpaState.ERROR_NEEDS_ATTENTION,
+            GeckoSpaState.ERROR_PING_MISSED,
+            GeckoSpaState.ERROR_RF_FAULT,
+        )
+        watchdog_max_poll_seconds = 30.0
+        error_since: float | None = None
+        try:
+            _LOGGER.debug("Error watchdog started")
+            while True:
+                retry_after = GeckoConfig.SPA_RECONNECT_RETRY_FREQUENCY_IN_SECONDS
+                await config_sleep(
+                    min(watchdog_max_poll_seconds, retry_after / 4.0),
+                    "Error watchdog",
+                )
+                if self.spa_state not in error_states:
+                    error_since = None
+                    continue
+                if error_since is None:
+                    error_since = time.monotonic()
+                    continue
+                if time.monotonic() - error_since >= retry_after:
+                    _LOGGER.warning(
+                        "Spa stuck in state '%s' for over %s seconds, "
+                        "attempting automatic recovery",
+                        GeckoSpaState.to_string(self.spa_state),
+                        retry_after,
+                    )
+                    error_since = None
+                    await self.async_reset()
+
+        except asyncio.CancelledError:
+            _LOGGER.debug("Error watchdog cancelled")
+            raise
         except Exception:
-            _LOGGER.exception("Sequence pump caught exception")
+            _LOGGER.exception("Error watchdog caught exception")
             raise

@@ -1,4 +1,4 @@
-"""Automation selection class."""  # noqa: A005
+"""Automation selection class."""
 
 from __future__ import annotations
 
