@@ -22,7 +22,11 @@ class GeckoConstants:
     CONNECTION_STEP_PAUSE_IN_SECONDS = None  # Time between connection steps
     MAX_RF_ERRORS_BEFORE_HALT = 50
 
-    BROADCAST_ADDRESS = "<broadcast>"
+    # Note: this must be the literal dotted-quad address rather than the
+    # "<broadcast>" alias. The Windows ProactorEventLoop parses destination
+    # addresses with WSAStringToAddress, which rejects the alias with
+    # WSAEINVAL (WinError 10022).
+    BROADCAST_ADDRESS = "255.255.255.255"
     MESSAGE_ENCODING = "latin1"
     FORMAT_CLIENT_IDENTIFIER = "IOS{0}"
 

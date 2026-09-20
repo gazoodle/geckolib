@@ -176,6 +176,9 @@ class GeckoAsyncSpa(Observable):
                 (self.descriptor.destination[0], self.descriptor.destination[1]),
             ),
             family=socket.AF_INET,
+            # See the note in GeckoAsyncLocator.discover - Windows needs the
+            # socket bound before it can start an overlapped receive.
+            local_addr=("0.0.0.0", 0),  # noqa: S104
         )
         assert isinstance(_protocol, GeckoAsyncUdpProtocol)  # noqa: S101
         self._protocol = _protocol

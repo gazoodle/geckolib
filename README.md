@@ -19,6 +19,15 @@ This library is hosted on PyPI and can be installed with the following command-l
 
 `pip install geckolib`
 
+## A note for Windows users
+
+The commands below are written as `python3 ...`, which is how they are spelled on
+Linux and macOS. On Windows `python3` is the Microsoft Store app-execution alias,
+which is usually a *different* interpreter to the one `pip install geckolib` just
+installed into - so use `python` instead:
+
+`python -m geckolib shell`
+
 # CUI sample
 
 _Work In Progress_
