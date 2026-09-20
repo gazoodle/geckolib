@@ -1,6 +1,7 @@
 """Library to communicate with Gecko Alliance products via the in.touch2 module."""
 
 import logging
+from typing import TYPE_CHECKING, Any
 
 from ._version import VERSION
 from .async_locator import GeckoAsyncLocator
@@ -67,13 +68,32 @@ from .driver import (
 )
 from .spa_events import GeckoSpaEvent
 from .spa_state import GeckoSpaState
-from .utils import CUI, GeckoShell, GeckoSimulator, GeckoSnapshot
+from .utils import GeckoShell, GeckoSimulator, GeckoSnapshot
+
+if TYPE_CHECKING:
+    from .utils import CUI
 
 # Module logger, uses the library name (at this time it was geckolib) and it
 # is silent unless required ...
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __version__ = VERSION
+
+
+def __getattr__(name: str) -> Any:
+    """
+    Import the CUI on demand.
+
+    It needs curses, which isn't part of the standard library on Windows, so
+    importing it eagerly would stop the rest of the library being used there.
+    """
+    if name == "CUI":
+        from .utils import CUI
+
+        return CUI
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)
+
 
 __all__ = [
     "CUI",

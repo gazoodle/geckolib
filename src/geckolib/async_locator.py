@@ -136,6 +136,10 @@ class GeckoAsyncLocator(Observable):
         self._transport, _protocol = await loop.create_datagram_endpoint(
             lambda: GeckoAsyncUdpProtocol(self._task_man, on_con_lost, None),
             family=socket.AF_INET,
+            # Bind explicitly. Windows cannot start an overlapped receive on an
+            # unbound socket, so without this the very first read fails with
+            # WSAEINVAL (WinError 10022) and the endpoint is torn down.
+            local_addr=("0.0.0.0", 0),  # noqa: S104
             allow_broadcast=True,
         )
         try:
