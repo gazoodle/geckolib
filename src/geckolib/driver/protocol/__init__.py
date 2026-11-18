@@ -3,6 +3,8 @@
 from .configfile import GeckoConfigFileProtocolHandler
 from .firmware import GeckoUpdateFirmwareProtocolHandler
 from .getchannel import (
+    MAX_CHANNEL,
+    MIN_CHANNEL,
     GeckoChangeChannelProtocolHandler,
     GeckoGetChannelProtocolHandler,
 )
@@ -33,6 +35,8 @@ from .watercare import (
 )
 
 __all__ = [
+    "MAX_CHANNEL",
+    "MIN_CHANNEL",
     "GeckoAddWatercareScheduleProtocolHandler",
     "GeckoAsyncPartialStatusBlockProtocolHandler",
     "GeckoChangeChannelProtocolHandler",

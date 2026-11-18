@@ -13,6 +13,8 @@ from .async_spastruct import GeckoAsyncStructure
 from .async_udp_protocol import GeckoAsyncUdpProtocol
 from .observable import Observable
 from .protocol import (
+    MAX_CHANNEL,
+    MIN_CHANNEL,
     GeckoAddWatercareScheduleProtocolHandler,
     GeckoAsyncPartialStatusBlockProtocolHandler,
     GeckoChangeChannelProtocolHandler,
@@ -43,6 +45,8 @@ from .protocol import (
 from .udp_protocol_handler import GeckoUdpProtocolHandler
 
 __all__ = [
+    "MAX_CHANNEL",
+    "MIN_CHANNEL",
     "GeckoAddWatercareScheduleProtocolHandler",
     "GeckoAsyncPartialStatusBlockProtocolHandler",
     "GeckoAsyncStructure",

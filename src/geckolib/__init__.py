@@ -40,6 +40,8 @@ from .automation import (
 from .config import GeckoConfig
 from .const import GeckoConstants
 from .driver import (
+    MAX_CHANNEL,
+    MIN_CHANNEL,
     GeckoAddWatercareScheduleProtocolHandler,
     GeckoAsyncPartialStatusBlockProtocolHandler,
     GeckoAsyncStructure,
@@ -84,6 +86,8 @@ __version__ = VERSION
 
 __all__ = [
     "CUI",
+    "MAX_CHANNEL",
+    "MIN_CHANNEL",
     "VERSION",
     "AsyncTasks",
     "BainUltra",
