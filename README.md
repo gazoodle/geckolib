@@ -106,15 +106,54 @@ Spa$ help
 
 Documented commands (type help <topic>):
 ========================================
-BL  P2      discover  get      list    refresh   snapshot  watercare
-LI  about   download  help     live    set       state
-P1  config  exit      license  manage  setpoint  version
+BL  about      eco   hexdump  logfile   pack      schedules  state
+LI  accessors  exit  key      loglevel  peek      set        version
+P1  channel    get   license  manage    refresh   setpoint   watercare
+P2  discover   help  list     monitor   schedule  snapshot
 
 Spa$ help watercare
 Set the active watercare mode to one of ['Away From Home', 'Standard', 'Energy Saving', 'Super Energy Saving', 'Weekender'] : WATERCARE <mode>
 Spa$ watercare Weekender
 
 ```
+
+### Watercare schedules and the radio channel
+
+Each watercare mode has its own Economy and Filtration schedules. List them with
+`schedules`, and add, change or remove them with `schedule`. The `<mode>` is the number
+shown by `schedules`, `<days>` is a day (`mon`), a range (`mon-fri`), or one of `weekday`,
+`weekend` or `everyday`, and times are `HH:MM`.
+
+```
+
+Spa$ schedules
+3: Super Energy Saving
+   #0 filtration sun-sat  08:00 - 10:00
+   #1 filtration sun-sat  20:00 - 22:00
+Spa$ schedule add 3 filtration weekday 12:00 13:00
+Done
+Spa$ schedule modify 3 2 weekday 14:00 15:00
+Done
+Spa$ schedule delete 3 2
+Done
+
+```
+
+The in.touch2 radio channel can be shown and changed with `channel`. The module may be
+unreachable for a short while while it retunes.
+
+```
+
+Spa$ channel
+Channel 31, signal 64
+Spa$ channel 30
+Done
+
+```
+
+The same functions are available from the facade: `facade.water_care.schedules`,
+`async_add_schedule`, `async_modify_schedule` and `async_delete_schedule`, and
+`spa.async_set_channel`.
 
 If you have more than one spa/device detected, you can use the `list` and `manage` commands
 

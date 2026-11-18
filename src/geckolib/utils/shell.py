@@ -2,6 +2,7 @@
 
 # ruff: noqa: T201
 
+import dataclasses
 import datetime
 import logging
 import sys
@@ -9,7 +10,13 @@ import traceback
 from time import sleep
 from typing import Any, Self
 
-from geckolib import VERSION, GeckoConstants, GeckoPump
+from geckolib import (
+    VERSION,
+    GeckoConstants,
+    GeckoPump,
+    GeckoScheduleDay,
+    GeckoWatercareScheduleType,
+)
 from geckolib.async_spa_manager import GeckoAsyncSpaMan
 from geckolib.automation.base import GeckoAutomationBase, GeckoAutomationFacadeBase
 from geckolib.config import release_config_change_waiters
@@ -324,6 +331,116 @@ class GeckoShell(GeckoCmd, GeckoAsyncSpaMan):
             await self.facade.water_care.async_set_mode(arg)
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Exception setting watercare to '%s'", arg)
+
+    DAY_NAMES = ("sun", "mon", "tue", "wed", "thu", "fri", "sat")
+
+    @classmethod
+    def _parse_days(cls, text: str) -> tuple[int, int]:
+        """Parse `mon`, `mon-fri`, `weekday`, `weekend` or `everyday`."""
+        text = text.lower()
+        presets = {
+            "weekday": GeckoScheduleDay.WEEKDAY,
+            "weekend": GeckoScheduleDay.WEEKEND,
+            "everyday": GeckoScheduleDay.EVERYDAY,
+        }
+        if text in presets:
+            return GeckoScheduleDay.day_range(presets[text])
+        first, _, last = text.partition("-")
+        return (
+            cls.DAY_NAMES.index(first[:3]),
+            cls.DAY_NAMES.index((last or first)[:3]),
+        )
+
+    @staticmethod
+    def _parse_time(text: str) -> tuple[int, int]:
+        hour, _, minute = text.partition(":")
+        return (int(hour), int(minute or 0))
+
+    def do_schedules(self, _arg: str) -> None:
+        """List the watercare schedules for every mode : schedules."""
+        assert self.facade is not None  # noqa: S101
+        for mode, name in enumerate(GeckoConstants.WATERCARE_MODE_STRING):
+            print(f"{mode}: {name}")
+            for sched in self.facade.water_care.schedules_for_mode(mode):
+                first = self.DAY_NAMES[sched.start_day]
+                last = self.DAY_NAMES[sched.stop_day]
+                days = first if first == last else f"{first}-{last}"
+                print(
+                    f"   #{sched.number} {sched.schedule_type.name.lower():<10} "
+                    f"{days:<8} {sched.start_time} - {sched.stop_time}"
+                )
+
+    async def do_schedule(self, arg: str) -> None:
+        """
+        Change a watercare schedule.
+
+        schedule add <mode> <economy|filtration> <days> <start> <stop>
+        schedule modify <mode> <number> <days> <start> <stop>
+        schedule delete <mode> <number>
+
+        <mode> is the number shown by `schedules`. <days> is a day (`mon`), a
+        range (`mon-fri`), or `weekday`, `weekend` or `everyday`. Times are HH:MM.
+        """
+        assert self.facade is not None  # noqa: S101
+        water_care = self.facade.water_care
+        try:
+            action, *args = arg.split()
+            if action == "add":
+                mode, kind, days, start, stop = args
+                start_day, stop_day = self._parse_days(days)
+                done = await water_care.async_add_schedule(
+                    int(mode),
+                    GeckoWatercareScheduleType[kind.upper()],
+                    start_day,
+                    *self._parse_time(start),
+                    *self._parse_time(stop),
+                    stop_day=stop_day,
+                )
+            else:
+                mode, number, *rest = args
+                existing = next(
+                    s
+                    for s in water_care.schedules_for_mode(int(mode))
+                    if s.number == int(number)
+                )
+                if action == "delete":
+                    done = await water_care.async_delete_schedule(existing)
+                else:
+                    days, start, stop = rest
+                    start_day, stop_day = self._parse_days(days)
+                    sh, sm = self._parse_time(start)
+                    eh, em = self._parse_time(stop)
+                    done = await water_care.async_modify_schedule(
+                        dataclasses.replace(
+                            existing,
+                            start_day=start_day,
+                            stop_day=stop_day,
+                            start_hour=sh,
+                            start_minute=sm,
+                            stop_hour=eh,
+                            stop_minute=em,
+                        )
+                    )
+            print("Done" if done else "The spa did not acknowledge the change")
+        except (ValueError, KeyError, StopIteration):
+            print("Could not understand that, see `help schedule`")
+
+    async def do_channel(self, arg: str) -> None:
+        """
+        Show, or change, the in.touch2 radio channel : channel [<10-31>].
+
+        Changing the channel can make the spa unreachable for a short while.
+        """
+        assert self._spa is not None  # noqa: S101
+        if not arg:
+            print(f"Channel {self._spa.channel}, signal {self._spa.signal}")
+            return
+        try:
+            done = await self._spa.async_set_channel(int(arg))
+        except ValueError as ex:
+            print(ex)
+            return
+        print("Done" if done else "The spa did not acknowledge the change")
 
     async def do_setpoint(self, arg: str) -> None:
         """Set the spa setpoint temperature : setpoint <temp>."""

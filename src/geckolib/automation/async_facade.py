@@ -185,6 +185,8 @@ class GeckoAsyncFacade(Observable):
                         self._water_care.change_watercare_mode(
                             await self._spa.async_get_watercare_mode()
                         )
+                        _LOGGER.debug("Facade update: Get watercare schedules")
+                        await self._water_care.async_refresh_schedules()
                     if self._reminders_manager.is_available:
                         _LOGGER.debug("Facade update: Get reminders")
                         self._reminders_manager.change_reminders(

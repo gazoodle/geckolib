@@ -711,6 +711,7 @@ class GeckoAsyncSpaMan(ABC, GeckoAsyncTaskMan):
             self.facade.water_care.change_watercare_mode(
                 await self._spa.async_get_watercare_mode()
             )
+            await self.facade.water_care.async_refresh_schedules()
 
         if self._status_sensor is not None:
             self._status_sensor.on_event(event)
