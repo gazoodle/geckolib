@@ -5,6 +5,7 @@ import importlib
 import logging
 import socket
 import time
+from collections.abc import Callable
 from datetime import UTC, datetime
 from functools import partial
 from types import ModuleType
@@ -24,12 +25,17 @@ from .config import (
 )
 from .const import GeckoConstants
 from .driver import (
+    GeckoAddWatercareScheduleProtocolHandler,
     GeckoAsyncPartialStatusBlockProtocolHandler,
     GeckoAsyncStructure,
     GeckoAsyncUdpProtocol,
+    GeckoChangeChannelProtocolHandler,
     GeckoConfigFileProtocolHandler,
+    GeckoDeleteWatercareScheduleProtocolHandler,
     GeckoGetChannelProtocolHandler,
     GeckoGetWatercareModeProtocolHandler,
+    GeckoGetWatercareScheduleListProtocolHandler,
+    GeckoModifyWatercareScheduleProtocolHandler,
     GeckoPackCommandProtocolHandler,
     GeckoPacketProtocolHandler,
     GeckoPingProtocolHandler,
@@ -39,6 +45,7 @@ from .driver import (
     GeckoUnhandledProtocolHandler,
     GeckoVersionProtocolHandler,
     GeckoWatercareErrorHandler,
+    GeckoWatercareSchedule,
     Observable,
 )
 from .spa_events import GeckoSpaEvent
@@ -894,6 +901,125 @@ class GeckoAsyncSpa(Observable):
             await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED)
         else:
             _LOGGER.debug("Spa responded with %d", set_watercare_handler.mode)
+
+    async def async_get_watercare_schedules(
+        self,
+    ) -> list[GeckoWatercareSchedule] | None:
+        """
+        Get all the watercare schedules for all the watercare modes.
+
+        Returns None if they could not be retrieved.
+        """
+        if not self.is_connected:
+            _LOGGER.warning("Cannot get watercare schedules when spa not connected")
+            return None
+        if not self.is_responding_to_pings:
+            _LOGGER.debug("Cannot get watercare schedules when spa not responding")
+            return None
+        assert self._protocol is not None  # noqa: S101
+        handler = await self._protocol.get(
+            lambda: GeckoGetWatercareScheduleListProtocolHandler.get(
+                self._protocol.get_and_increment_sequence_counter(),
+                parms=self.sendparms,
+            )
+        )
+        if handler is None:
+            _LOGGER.error(
+                "Cannot get watercare schedules, protocol retry time exceeded"
+            )
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED)
+            return None
+        return handler.schedules
+
+    async def _async_change_watercare_schedule(
+        self, what: str, create: Callable[[int], Any]
+    ) -> bool:
+        """Send a schedule change and wait for the spa to acknowledge it."""
+        if not self.is_connected:
+            _LOGGER.warning("Cannot %s watercare schedule when spa not connected", what)
+            return False
+        if not self.is_responding_to_pings:
+            _LOGGER.debug("Cannot %s watercare schedule when spa not responding", what)
+            return False
+        assert self._protocol is not None  # noqa: S101
+        handler = await self._protocol.get(
+            lambda: create(self._protocol.get_and_increment_sequence_counter())
+        )
+        if handler is None:
+            _LOGGER.error("Cannot %s watercare schedule, retry time exceeded", what)
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED)
+            return False
+        return True
+
+    async def async_add_watercare_schedule(
+        self, schedule: GeckoWatercareSchedule
+    ) -> bool:
+        """Add a watercare schedule. Returns True if the spa acknowledged it."""
+        return await self._async_change_watercare_schedule(
+            "add",
+            lambda seq: GeckoAddWatercareScheduleProtocolHandler.add(
+                seq, schedule, parms=self.sendparms
+            ),
+        )
+
+    async def async_modify_watercare_schedule(
+        self, schedule: GeckoWatercareSchedule
+    ) -> bool:
+        """
+        Modify a watercare schedule.
+
+        The schedule to change is identified by its mode, type and number.
+        Returns True if the spa acknowledged it.
+        """
+        return await self._async_change_watercare_schedule(
+            "modify",
+            lambda seq: GeckoModifyWatercareScheduleProtocolHandler.modify(
+                seq, schedule, parms=self.sendparms
+            ),
+        )
+
+    async def async_delete_watercare_schedule(
+        self, schedule: GeckoWatercareSchedule
+    ) -> bool:
+        """
+        Delete a watercare schedule.
+
+        The schedule to delete is identified by its mode, type and number.
+        Returns True if the spa acknowledged it.
+        """
+        return await self._async_change_watercare_schedule(
+            "delete",
+            lambda seq: GeckoDeleteWatercareScheduleProtocolHandler.delete(
+                seq, schedule, parms=self.sendparms
+            ),
+        )
+
+    async def async_set_channel(self, channel: int) -> bool:
+        """
+        Ask the in.touch2 module to move to a different radio channel.
+
+        Returns True if the module acknowledged the change. Note the module may
+        be unreachable for a little while afterwards as it retunes.
+        """
+        if not self.is_connected:
+            _LOGGER.warning("Cannot change channel when spa not connected")
+            return False
+        assert self._protocol is not None  # noqa: S101
+        handler = await self._protocol.get(
+            lambda: GeckoChangeChannelProtocolHandler.change(
+                self._protocol.get_and_increment_sequence_counter(),
+                channel,
+                parms=self.sendparms,
+            )
+        )
+        if handler is None:
+            _LOGGER.error("Cannot change channel, protocol retry time exceeded")
+            await self._event_handler(GeckoSpaEvent.ERROR_PROTOCOL_RETRY_TIME_EXCEEDED)
+            return False
+        # Don't wait for the next refresh to tell everyone about the new channel
+        self.channel = channel
+        await self._event_handler(GeckoSpaEvent.RUNNING_SPA_PACK_REFRESHED)
+        return True
 
     def _get_reminders_handler_func(self) -> GeckoRemindersProtocolHandler:
         assert self._protocol is not None  # noqa: S101
